@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Assistant.Net.Host.Application;
 using Assistant.Net.Messaging;
 
@@ -6,18 +8,16 @@ namespace Assistant.Net.Host
 {
     public class InternalService
     {
-        private readonly IOperationClient client;
+        private readonly IRequestClient client;
 
-        public InternalService(IOperationClient client)
-        {
+        public InternalService(IRequestClient client) =>
             this.client = client;
-        }
 
-        public IEnumerable<Promise> Handle1()
+        public async Task Handle1()
         {
-            yield return client.Send(new Command());
-            var response = client.Send(new Request());
-            yield return client.Send(new Event(response));
+            await client.Send(new Command2());
+            var response = await client.Send(new Command1());
+            await client.Send(new Event(response));
         }
     }
 }

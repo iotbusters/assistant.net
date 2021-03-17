@@ -1,23 +1,47 @@
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Assistant.Net.Messaging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Messaging
 {
-    public class OperationClient : IOperationClient
+    public sealed class RequestClient : IRequestClient
     {
         /// <summary>
         ///     Important logging. It should be persisted. Temporary solution.
         /// </summary>
         private readonly ConcurrentDictionary<string, object> cache = new();
+        private readonly IServiceProvider provider;
 
-        public Promise<TResponse> Send<TResponse>(IRequest<TResponse> request) =>
-            new(Evaluate(request));
+        public RequestClient(IServiceProvider provider)
+        {
+            this.provider = provider;
+        }
 
-        public Promise Send(IRequest request) =>
-            new(Evaluate(request));
+        public Task<TResponse> Send<TResponse>(IRequest<TResponse> request)
+        {
+            var interceptors = provider.GetServices<IInterceptor>()
+                .OfType<IRequestInterceptor<TResponse>>()
+                .Reverse()
+                .Aggregate(
+                    new Func<IRequest<TResponse>, Task<TResponse>>(InternalSend),
+                    ChainInterceptors);
+            return interceptors(request);
+        }
+
+        private static async Task<TResponse> InternalSend<TResponse>(IRequest<TResponse> request) =>
+            default;// todo: implement
+
+        private static Func<IRequest<TResponse>, Task<TResponse>> ChainInterceptors<TResponse>
+            (Func<IRequest<TResponse>, Task<TResponse>> next, IRequestInterceptor<TResponse> current) =>
+                x => current.Intercept(x, next);
+
+        public Task Send(IRequest request) =>
+            Evaluate(request);
 
         private Task<T> Evaluate<T>(IRequest<T> request)
         {

@@ -1,14 +1,18 @@
-using System;
-using System.Threading.Tasks;
 using Assistant.Net.Messaging;
 
 namespace Assistant.Net.Host.Application
 {
-    public class Command : IRequest
+    public class Command1 : IRequest<Response>
     {
-        public async Task Invoke()
+        public Command1()
         {
-            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+    }
+
+    public class Command2 : IRequest
+    {
+        public Command2()
+        {
         }
     }
 }

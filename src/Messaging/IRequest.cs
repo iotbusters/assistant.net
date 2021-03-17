@@ -1,15 +1,14 @@
 using System.Threading.Tasks;
+using Assistant.Net.Messaging.Awaiters;
 
 namespace Assistant.Net.Messaging
 {
     public interface IRequest<TResponse>
     {
-        Task<TResponse> Invoke();
     }
 
 
     public interface IRequest
     {
-        Task Invoke();
     }
 }

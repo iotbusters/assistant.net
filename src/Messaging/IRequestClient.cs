@@ -1,15 +1,16 @@
+using System.Threading.Tasks;
 using Assistant.Net.Messaging.Exceptions;
 
 namespace Assistant.Net.Messaging
 {
-    public interface IOperationClient
+    public interface IRequestClient
     {
         /// <summary>
         ///     Sends asynchronously a request to associated request handler expecting a specific object in respond.
         /// </summary>
         /// <typeparam name="TResponse">Response object type.</typeparam>
         /// <exception cref="RequestTimeoutException" />
-        Promise<TResponse> Send<TResponse>(IRequest<TResponse> request);
+        Task<TResponse> Send<TResponse>(IRequest<TResponse> request);
 
         /// <summary>
         ///     Sends asynchronously a request to associated request handler.
@@ -17,6 +18,6 @@ namespace Assistant.Net.Messaging
         /// </summary>
         /// <exception cref="RequestFailedException" />
         /// <exception cref="RequestTimeoutException" />
-        Promise Send(IRequest request);
+        Task Send(IRequest request);
     }
 }
