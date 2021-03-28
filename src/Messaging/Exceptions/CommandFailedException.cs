@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace Assistant.Net.Messaging.Exceptions
 {
-    public class CommandFailedException : CommandExecutionException
+    public class CommandFailedException : CommandException
     {
         public CommandFailedException(string message) : base(message) { }
         public CommandFailedException(Exception ex) : base("Command execution has failed.", ex) { }

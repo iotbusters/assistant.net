@@ -4,6 +4,7 @@ using System.Threading;
 using Assistant.Net.Core;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Configuration;
+using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -25,6 +26,10 @@ namespace Assistant.Net.Messaging
         public static IServiceCollection AddCommandOptions(this IServiceCollection services, Action<CommandConfigurationBuilder> configure)
         {
             var builder = new CommandConfigurationBuilder();
+            builder.AddInterceptor<ErrorHandlingInterceptor>();
+            builder.AddInterceptor<TimeoutInterceptor>();
+            builder.AddInterceptor<CachingInterceptor>();
+            builder.AddInterceptor<RetryingInterceptor>();
             configure?.Invoke(builder);
 
             var interceptors = builder.Interceptors.Distinct();

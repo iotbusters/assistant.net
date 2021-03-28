@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Configuration;
+using Assistant.Net.Messaging.Exceptions;
 
 namespace Assistant.Net.Messaging.Internal
 {
@@ -38,18 +39,19 @@ namespace Assistant.Net.Messaging.Internal
             using var scope = scopeFactory.CreateScope();
             var provider = scope.ServiceProvider;
 
-            var handler = CreateHandler(commandType, provider);
+            var handler = CreateHandler(commandType, provider)
+                          ?? throw new CommandUnknownException(commandType);
 
             return CreateInterceptableHandle(commandType, provider, handler.Handle);
         }
 
-        private IAbstractHandler CreateHandler(Type commandType, IServiceProvider provider)
+        private IAbstractHandler? CreateHandler(Type commandType, IServiceProvider provider)
         {
             var responseType = GetResponseType(commandType);
             var adapterType = typeof(HandlerAdapter<,>).MakeGenericType(commandType, responseType);
 
             if (!handlerMap.TryGetValue(commandType, out var handlerType))
-                throw new InvalidOperationException($"No handler registered for {commandType}");
+                return null;
 
             var commandHandler = provider.GetRequiredService(handlerType);
 
@@ -78,25 +80,5 @@ namespace Assistant.Net.Messaging.Internal
             .Single(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICommand<>))
             .GetGenericArguments()
             .Single();
-
-        internal interface IAbstractInterceptor
-        {
-            Task<object> Intercept(object command, Func<object, Task<object>> next);
-        }
-
-        internal class InterceptorAdaptor<TCommand, TResponse> : IAbstractInterceptor
-            where TCommand : ICommand<TResponse>
-        {
-            private readonly ICommandInterceptor<TCommand, TResponse> interceptor;
-
-            public InterceptorAdaptor(ICommandInterceptor<TCommand, TResponse> interceptor) =>
-                this.interceptor = interceptor;
-
-            public async Task<object> Intercept(object command, Func<object, Task<object>> next) =>
-                await Intercept((TCommand)command, async x => (TResponse)await next(x));
-
-            public Task<TResponse> Intercept(TCommand command, Func<TCommand, Task<TResponse>> next) =>
-                interceptor.Intercept(command, next);
-        }
     }
 }

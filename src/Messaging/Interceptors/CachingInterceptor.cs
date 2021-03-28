@@ -6,7 +6,7 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
-    public sealed class CachingCommandInterceptor : ICommandInterceptor
+    public sealed class CachingInterceptor : ICommandInterceptor
     {
         /// <summary>
         ///     Important logging. It should be persisted. Temporary solution.

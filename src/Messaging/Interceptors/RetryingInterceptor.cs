@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using Assistant.Net.Core;
@@ -8,13 +9,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
-    public class RetryingCommandInterceptor : ICommandInterceptor
+    public class RetryingInterceptor : ICommandInterceptor
     {
-        private readonly ILogger<RetryingCommandInterceptor> logger;
+        private readonly ILogger<RetryingInterceptor> logger;
         private readonly ISystemLifetime lifetime;
 
-        public RetryingCommandInterceptor(
-            ILogger<RetryingCommandInterceptor> logger,
+        public RetryingInterceptor(
+            ILogger<RetryingInterceptor> logger,
             ISystemLifetime lifetime)
         {
             this.lifetime = lifetime;
@@ -26,6 +27,13 @@ namespace Assistant.Net.Messaging.Interceptors
             // configurable
             var maxRetryLimit = 10;
             var delayingStrategy = new Func<int, TimeSpan>(x => TimeSpan.FromSeconds(Math.Pow(x, 2)));
+            var criticalExceptionTypes = new[]
+            {
+                typeof(TaskCanceledException),
+                typeof(OperationCanceledException),
+                typeof(TimeoutException),
+                typeof(CommandException)
+            };
 
             var retry = 0;
             do
@@ -35,16 +43,11 @@ namespace Assistant.Net.Messaging.Interceptors
                 {
                     return await next(command);
                 }
-                catch(AggregateException ex) when (ex.InnerException is TaskCanceledException)
-                {
-                    ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                }
-                catch(AggregateException ex) when (ex.InnerException is TimeoutException)
-                {
-                    ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-                }
                 catch (AggregateException ex)
                 {
+                    if (criticalExceptionTypes.Any(x => x.IsAssignableFrom(ex.InnerException!.GetType())))
+                        throw;
+
                     if (retry == 0)
                         logger.LogWarning(ex.InnerException, "Transient error occurred.");
                     else

@@ -1,7 +1,5 @@
-using System;
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Exceptions;
 
 namespace Assistant.Net.Messaging
 {
@@ -15,19 +13,7 @@ namespace Assistant.Net.Messaging
         public async Task<TResponse> Send<TResponse>(ICommand<TResponse> command)
         {
             var handler = factory.Create(command.GetType());
-
-            try
-            {
-                return (TResponse)await handler.Handle(command);
-            }
-            catch (CommandExecutionException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                throw new CommandFailedException(ex);
-            }
+            return (TResponse)await handler.Handle(command);
         }
     }
 }

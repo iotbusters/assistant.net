@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Exceptions;
 
 namespace Assistant.Net.Messaging.Tests.TestObjects
 {
@@ -8,18 +7,18 @@ namespace Assistant.Net.Messaging.Tests.TestObjects
     {
         public Task<TestResponse> Handle(TestCommand1 command)
         {
-            if(command.Fail)
-                throw new CommandFailedException(nameof(TestCommandHandler1));
-            return Task.FromResult(new TestResponse(command.Fail));
+            if (command.Exception != null)
+                throw command.Exception;
+            return Task.FromResult(new TestResponse(command.Exception != null));
         }
     }
     public class TestCommandHandler2 : ICommandHandler<TestCommand2>
     {
         public Task Handle(TestCommand2 command)
         {
-            if(command.Fail)
-                throw new CommandFailedException(nameof(TestCommandHandler2));
-            return Task.FromResult(new TestResponse(command.Fail));
+            if (command.Exception != null)
+                throw command.Exception;
+            return Task.CompletedTask;
         }
     }
 }
