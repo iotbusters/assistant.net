@@ -12,15 +12,13 @@ namespace Assistant.Net.Messaging.Tests
 {
     public class CommandClientTests
     {
-        private ICommandClient client;
+        private ICommandClient client = null!;
 
         [SetUp]
         public void Setup()
         {
             client = new ServiceCollection()
-                .AddSystemLifetime(p => CancellationToken.None)
-                .AddCommandOptions(b => b.AddHandler<TestCommandHandler1>())
-                .AddSingleton<ICommandClient, CommandClient>()
+                .AddCommandClient(b => b.AddHandler<TestCommandHandler1>())
                 .BuildServiceProvider()
                 .GetRequiredService<ICommandClient>();
         }

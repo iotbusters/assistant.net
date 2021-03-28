@@ -17,7 +17,7 @@ namespace Assistant.Net.Messaging.Interceptors
         {
             var id = command.GetSha1();
 
-            if (!cache.TryGetValue(id, out var value))
+            if (cache.TryGetValue(id, out var value))
                 return value.Get();
 
             object response;
@@ -37,8 +37,8 @@ namespace Assistant.Net.Messaging.Interceptors
 
         private class Result
         {
-            private readonly object value;
-            private readonly Exception exception;
+            private readonly object? value;
+            private readonly Exception? exception;
 
             public Result(object value) => this.value = value;
 
@@ -48,7 +48,7 @@ namespace Assistant.Net.Messaging.Interceptors
             {
                 if (exception != null)
                     ExceptionDispatchInfo.Capture(exception).Throw();
-                return value;
+                return value!;
             }
         }
     }

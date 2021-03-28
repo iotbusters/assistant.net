@@ -5,7 +5,7 @@ namespace Assistant.Net.Messaging.Configuration
 {
     public sealed class CommandOptions
     {
-        public IEnumerable<KeyValuePair<Type, Type>> Interceptors { get; internal set; }
-        public IEnumerable<KeyValuePair<Type, Type>> Handlers { get; internal set; }
+        public List<Type> Handlers { get; } = new();
+        public List<Type> Interceptors { get; } = new();
     }
 }

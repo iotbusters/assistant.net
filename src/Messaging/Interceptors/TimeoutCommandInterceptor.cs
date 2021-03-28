@@ -19,7 +19,7 @@ namespace Assistant.Net.Messaging.Interceptors
             }
             catch (AggregateException ex)
             {
-                ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                ExceptionDispatchInfo.Capture(ex.InnerException!).Throw();
                 throw;
             }
         }

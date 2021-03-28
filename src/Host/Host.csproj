@@ -9,6 +9,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Assistant.Net.Host</RootNamespace>
     <AssemblyName>assistant.net.host</AssemblyName>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
 </Project>
