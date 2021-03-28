@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Tests.TestObjects;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,13 +16,17 @@ namespace Assistant.Net.Messaging.Tests
         public void Setup()
         {
             client = new ServiceCollection()
-                .AddCommandClient(b => b.AddHandler<TestCommandHandler1>())
+                .AddCommandClient(b =>
+                {
+                    b.Handlers.Add<TestCommandHandler1>();
+                    b.Interceptors.Clear();
+                })
                 .BuildServiceProvider()
                 .GetRequiredService<ICommandClient>();
         }
 
         [Test]
-        public async Task CommandReturnsResponse()
+        public async Task ReturnsResponse()
         {
             var command = new TestCommand1(exception: null);
             var response = await client.Send(command);
@@ -32,43 +35,11 @@ namespace Assistant.Net.Messaging.Tests
         }
 
         [Test]
-        public async Task CommandThrowsCommandExecutionException()
-        {
-            var command = new TestCommand1(exception: new TestCommandExecutionException());
-            await client.Awaiting(x => x.Send(command))
-                .Should().ThrowAsync<TestCommandExecutionException>();
-        }
-
-        [Test]
-        public async Task CommandThrowsException()
+        public async Task ThrowsException()
         {
             var command = new TestCommand1(exception: new Exception());
             await client.Awaiting(x => x.Send(command))
-                .Should().ThrowAsync<CommandFailedException>();
-        }
-
-        [Test]
-        public async Task CommandThrowsInvalidOperationException()
-        {
-            var command = new TestCommand1(exception: new InvalidOperationException());
-            await client.Awaiting(x => x.Send(command))
-                .Should().ThrowAsync<InvalidOperationException>();
-        }
-
-        [Test]
-        public async Task CommandThrowsOperationCanceledException()
-        {
-            var command = new TestCommand1(exception: new OperationCanceledException());
-            await client.Awaiting(x => x.Send(command))
-                .Should().ThrowAsync<OperationCanceledException>();
-        }
-
-        [Test]
-        public async Task CommandThrowsTimeoutException()
-        {
-            var command = new TestCommand1(exception: new TimeoutException());
-            await client.Awaiting(x => x.Send(command))
-                .Should().ThrowAsync<TimeoutException>();
+                .Should().ThrowAsync<Exception>();
         }
     }
 }

@@ -26,14 +26,14 @@ namespace Assistant.Net.Messaging
         public static IServiceCollection AddCommandOptions(this IServiceCollection services, Action<CommandConfigurationBuilder> configure)
         {
             var builder = new CommandConfigurationBuilder();
-            builder.AddInterceptor<ErrorHandlingInterceptor>();
-            builder.AddInterceptor<TimeoutInterceptor>();
-            builder.AddInterceptor<CachingInterceptor>();
-            builder.AddInterceptor<RetryingInterceptor>();
+            builder.Interceptors.Add<ErrorHandlingInterceptor>();
+            builder.Interceptors.Add<TimeoutInterceptor>();
+            builder.Interceptors.Add<CachingInterceptor>();
+            builder.Interceptors.Add<RetryingInterceptor>();
             configure?.Invoke(builder);
 
-            var interceptors = builder.Interceptors.Distinct();
-            var handlers = builder.Handlers.Distinct();
+            var interceptors = builder.Interceptors.Select(x => x.Type).Distinct().ToArray();
+            var handlers = builder.Handlers.Select(x => x.Type).Distinct().ToArray();
 
             foreach (var implementation in handlers)
                 services.TryAddTransient(implementation);
