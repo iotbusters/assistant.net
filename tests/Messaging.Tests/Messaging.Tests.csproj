@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Messaging\Messaging.csproj"/>
-    <ProjectReference Include="..\..\src\Messaging.Web\Messaging.Web.csproj"/>
+    <ProjectReference Include="..\..\src\Messaging.Web.Client\Messaging.Web.Client.csproj"/>
+    <ProjectReference Include="..\..\src\Messaging.Web.Server\Messaging.Web.Server.csproj"/>
   </ItemGroup>
 </Project>

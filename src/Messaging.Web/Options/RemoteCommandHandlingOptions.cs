@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Assistant.Net.Messaging.Web.Client
+namespace Assistant.Net.Messaging.Web.Options
 {
     public class RemoteCommandHandlingOptions
     {

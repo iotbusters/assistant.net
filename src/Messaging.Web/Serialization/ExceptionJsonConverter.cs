@@ -2,8 +2,8 @@ using System;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Assistant.Net.Messaging.Exceptions;
 using Microsoft.Extensions.Logging;
+using Assistant.Net.Messaging.Exceptions;
 
 namespace Assistant.Net.Messaging.Web.Serialization
 {

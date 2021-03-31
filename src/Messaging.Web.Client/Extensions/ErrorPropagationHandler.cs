@@ -4,11 +4,10 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Assistant.Net.Core;
 using Assistant.Net.Messaging.Exceptions;
 using Microsoft.Extensions.Options;
 
-namespace Assistant.Net.Messaging.Web.Client
+namespace Assistant.Net.Messaging.Web.Client.Extensions
 {
     public class ErrorPropagationHandler : DelegatingHandler
     {

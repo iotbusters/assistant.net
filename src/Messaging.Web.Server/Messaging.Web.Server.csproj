@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Assistant.Net.Messaging.Web.Server</RootNamespace>
+    <AssemblyName>assistant.net.messaging.web.server</AssemblyName>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Messaging.Web\Messaging.Web.csproj" />
+  </ItemGroup>
+
+</Project>

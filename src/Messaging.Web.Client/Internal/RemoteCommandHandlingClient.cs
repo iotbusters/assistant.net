@@ -6,7 +6,7 @@ using Assistant.Net.Core.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Microsoft.Extensions.Options;
 
-namespace Assistant.Net.Messaging.Web.Client
+namespace Assistant.Net.Messaging.Web.Client.Internal
 {
     public class RemoteCommandHandlingClient
     {

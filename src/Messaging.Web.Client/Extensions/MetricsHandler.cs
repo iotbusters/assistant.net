@@ -2,9 +2,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging.Web.Client
+namespace Assistant.Net.Messaging.Web.Client.Extensions
 {
-    internal class AuthorizationHandler : DelegatingHandler
+    public class MetricsHandler : DelegatingHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
