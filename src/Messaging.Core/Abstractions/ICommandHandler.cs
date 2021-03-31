@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Abstractions
 {
-    public interface ICommandHandler<TCommand, TResponse> : ICommandHandler where TCommand : ICommand<TResponse>
+    public interface ICommandHandler<TCommand, TResponse> : IAbstractCommandHandler where TCommand : ICommand<TResponse>
     {
         Task<TResponse> Handle(TCommand command);
     }
@@ -18,7 +18,7 @@ namespace Assistant.Net.Messaging.Abstractions
         }
     }
 
-    public interface ICommandHandler
+    public interface IAbstractCommandHandler
     {
     }
 }

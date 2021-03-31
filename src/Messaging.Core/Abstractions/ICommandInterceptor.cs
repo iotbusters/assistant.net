@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Abstractions
 {
-    public interface ICommandInterceptor<TCommand, TResponse> : IInterceptor
+    public interface ICommandInterceptor<TCommand, TResponse> : IAbstractCommandInterceptor
         where TCommand : ICommand<TResponse>
     {
         Task<TResponse> Intercept(TCommand command, Func<TCommand, Task<TResponse>> next);
@@ -25,7 +25,7 @@ namespace Assistant.Net.Messaging.Abstractions
     {
     }
 
-    public interface IInterceptor
+    public interface IAbstractCommandInterceptor
     {
     }
 }

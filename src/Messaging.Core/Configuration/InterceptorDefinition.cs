@@ -7,10 +7,10 @@ namespace Assistant.Net.Messaging.Configuration
     {
         internal InterceptorDefinition(Type type) => Type = type;
 
-        internal Type Type { get; }
+        public Type Type { get; }
 
 
-        public static InterceptorDefinition Create<TInterceptor>() where TInterceptor : class, IInterceptor =>
+        public static InterceptorDefinition Create<TInterceptor>() where TInterceptor : class, IAbstractCommandInterceptor =>
             new(typeof(TInterceptor));
     }
 }

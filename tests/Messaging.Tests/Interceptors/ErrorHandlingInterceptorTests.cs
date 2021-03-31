@@ -26,7 +26,7 @@ namespace Assistant.Net.Messaging.Tests.Interceptors
         [Test]
         public async Task ReturnsResponse()
         {
-            var response = await interceptor.Intercept(command, async x => new TestResponse(false));
+            var response = await interceptor.Intercept(command, x => Task.FromResult<object>(new TestResponse(false)));
 
             response.Should().BeEquivalentTo(new TestResponse(false));
         }

@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Assistant.Net.Messaging</RootNamespace>
-    <AssemblyName>assistant.net.messaging</AssemblyName>
+    <AssemblyName>assistant.net.messaging.core</AssemblyName>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Messaging.Core\Messaging.Core.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
 </Project>

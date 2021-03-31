@@ -1,11 +1,10 @@
 using System;
-using System.Runtime.Serialization;
 
 namespace Assistant.Net.Messaging.Exceptions
 {
     public class CommandRetryLimitExceededException : CommandException
     {
-        public CommandRetryLimitExceededException(Exception ex) : base("Reached command retry limit.", ex) { }
-        public CommandRetryLimitExceededException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+        public CommandRetryLimitExceededException(string message, Exception ex) : base(message, ex) { }
+        public CommandRetryLimitExceededException(Exception ex) : this("Reached command retry limit.", ex) { }
     }
 }

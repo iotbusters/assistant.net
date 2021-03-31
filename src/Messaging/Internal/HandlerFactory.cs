@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Configuration;
 using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Interceptors;
 
 namespace Assistant.Net.Messaging.Internal
 {
@@ -40,15 +41,14 @@ namespace Assistant.Net.Messaging.Internal
             var provider = scope.ServiceProvider;
 
             var handler = CreateHandler(commandType, provider)
-                          ?? throw new CommandUnknownException(commandType);
+                          ?? throw new CommandNotRegisteredException(commandType);
 
             return CreateInterceptableHandle(commandType, provider, handler.Handle);
         }
 
         private IAbstractHandler? CreateHandler(Type commandType, IServiceProvider provider)
         {
-            var responseType = GetResponseType(commandType);
-            var adapterType = typeof(HandlerAdapter<,>).MakeGenericType(commandType, responseType);
+            var adapterType = typeof(HandlerAdaptor<,>).MakeGenericTypeBoundToCommand(commandType);
 
             if (!handlerMap.TryGetValue(commandType, out var handlerType))
                 return null;
@@ -65,7 +65,7 @@ namespace Assistant.Net.Messaging.Internal
                 .Reverse()
                 .Select(x => (IAbstractInterceptor)ActivatorUtilities.CreateInstance(
                     provider,
-                    typeof(InterceptorAdaptor<,>).MakeGenericType(x.Key, GetResponseType(x.Key)),
+                    typeof(InterceptorAdaptor<,>).MakeGenericTypeBoundToCommand(x.Key),
                     provider.GetRequiredService(x.Value)))
                 .Aggregate(
                     commandHandle,
@@ -74,11 +74,5 @@ namespace Assistant.Net.Messaging.Internal
 
             return new DelegatingAbstractHandler(interceptableHandle);
         }
-
-        private static Type GetResponseType(Type commandType) => commandType
-            .GetInterfaces()
-            .Single(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICommand<>))
-            .GetGenericArguments()
-            .Single();
     }
 }

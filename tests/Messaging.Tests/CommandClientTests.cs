@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Configuration;
 using Assistant.Net.Messaging.Tests.TestObjects;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,7 +19,7 @@ namespace Assistant.Net.Messaging.Tests
             client = new ServiceCollection()
                 .AddCommandClient(b =>
                 {
-                    b.Handlers.Add<TestCommandHandler1>();
+                    b.Handlers.AddLocal<TestCommandHandler1>();
                     b.Interceptors.Clear();
                 })
                 .BuildServiceProvider()

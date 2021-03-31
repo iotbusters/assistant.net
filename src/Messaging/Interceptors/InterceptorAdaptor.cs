@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
 
-namespace Assistant.Net.Messaging.Internal
+namespace Assistant.Net.Messaging.Interceptors
 {
     internal class InterceptorAdaptor<TCommand, TResponse> : IAbstractInterceptor
         where TCommand : ICommand<TResponse>

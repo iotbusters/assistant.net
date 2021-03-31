@@ -1,12 +1,11 @@
 using System;
-using System.Runtime.Serialization;
 
 namespace Assistant.Net.Messaging.Exceptions
 {
     public class CommandFailedException : CommandException
     {
         public CommandFailedException(string message) : base(message) { }
-        public CommandFailedException(Exception ex) : base("Command execution has failed.", ex) { }
-        public CommandFailedException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+        public CommandFailedException(string message, Exception ex) : base(message, ex) { }
+        public CommandFailedException(Exception ex) : this("Command execution has failed.", ex) { }
     }
 }

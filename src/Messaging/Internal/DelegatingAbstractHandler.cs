@@ -4,7 +4,7 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Internal
 {
-    public class DelegatingAbstractHandler : IAbstractHandler
+    internal class DelegatingAbstractHandler : IAbstractHandler
     {
         private readonly Func<object, Task<object>> handle;
 
