@@ -1,13 +1,12 @@
 using System;
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Configuration;
 using Assistant.Net.Messaging.Tests.TestObjects;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 
-namespace Assistant.Net.Messaging.Tests
+namespace Assistant.Net.Messaging.Tests.Internal
 {
     public class CommandClientTests
     {

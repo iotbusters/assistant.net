@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
 
-namespace Assistant.Net.Messaging
+namespace Assistant.Net.Messaging.Internal
 {
     internal class CommandClient : ICommandClient
     {

@@ -14,10 +14,8 @@ namespace Assistant.Net.Messaging.Web.Client
     {
         private readonly IOptions<JsonSerializerOptions> options;
 
-        public ErrorPropagationHandler(IOptions<JsonSerializerOptions> options)
-        {
+        public ErrorPropagationHandler(IOptions<JsonSerializerOptions> options) =>
             this.options = options;
-        }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {

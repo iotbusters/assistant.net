@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Assistant.Net.Core;
+using Assistant.Net.Core.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Microsoft.Extensions.Options;
 

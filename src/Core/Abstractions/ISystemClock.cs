@@ -1,6 +1,6 @@
 using System;
 
-namespace Assistant.Net.Core
+namespace Assistant.Net.Core.Abstractions
 {
     public interface ISystemClock
     {

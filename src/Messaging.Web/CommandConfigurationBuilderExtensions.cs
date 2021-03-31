@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Configuration;
-using Assistant.Net.Messaging.Internal;
+using Assistant.Net.Messaging.Web.Internal;
 
 namespace Assistant.Net.Messaging.Web
 {
