@@ -1,6 +1,6 @@
 using Assistant.Net.Messaging.Exceptions;
 
-namespace Assistant.Net.Messaging.Web.Client.Exceptions
+namespace Assistant.Net.Messaging.Exceptions
 {
     public class CommandConnectionFailedException : CommandException
     {

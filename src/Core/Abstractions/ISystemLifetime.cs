@@ -1,6 +1,6 @@
 using System.Threading;
 
-namespace Assistant.Net.Core.Abstractions
+namespace Assistant.Net.Abstractions
 {
     public interface ISystemLifetime
     {

@@ -1,10 +1,9 @@
 using System.Collections.Generic;
-using Assistant.Net.Messaging;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Configuration;
-using Assistant.Net.Messaging.Web.Client.Internal;
+using Assistant.Net.Messaging.Internal;
 
-namespace Assistant.Net.Messaging.Web.Client
+namespace Assistant.Net.Messaging
 {
     public static class CommandConfigurationBuilderExtensions
     {

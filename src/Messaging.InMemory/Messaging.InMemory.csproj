@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>Assistant.Net.Messaging</RootNamespace>
-    <AssemblyName>assistant.net.messaging.web</AssemblyName>
+    <AssemblyName>assistant.net.messaging.inmemory</AssemblyName>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 

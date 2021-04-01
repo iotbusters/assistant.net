@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
 
-namespace Assistant.Net.Messaging.Web.Client.Internal
+namespace Assistant.Net.Messaging.Internal
 {
     public class CommandHandlerWebProxy<TCommand, TResponse> : ICommandHandler<TCommand, TResponse>
         where TCommand : ICommand<TResponse>

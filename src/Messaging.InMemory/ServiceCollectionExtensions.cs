@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading;
-using Assistant.Net.Core;
+using Assistant.Net;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Configuration;
 using Assistant.Net.Messaging.Interceptors;

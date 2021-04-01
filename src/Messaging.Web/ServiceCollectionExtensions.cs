@@ -2,12 +2,12 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
-using Assistant.Net.Core;
-using Assistant.Net.Messaging.Web.Serialization;
-using Assistant.Net.Messaging.Web.Options;
 using Microsoft.Extensions.Configuration;
+using Assistant.Net;
+using Assistant.Net.Messaging.Serialization;
+using Assistant.Net.Messaging.Options;
 
-namespace Assistant.Net.Messaging.Web
+namespace Assistant.Net.Messaging
 {
     public static class ServiceCollectionExtensions
     {
@@ -26,7 +26,10 @@ namespace Assistant.Net.Messaging.Web
             .Configure(configureOptions);
 
         public static IServiceCollection AddRemoteCommandHandlingOptions(this IServiceCollection services, IConfigurationSection configuration) => services
-            .Configure<RemoteCommandHandlingOptions>(configuration);
+            .AddOptions<RemoteCommandHandlingOptions>()
+            .Bind(configuration)
+            .ValidateDataAnnotations()
+            .Services;
 
         public static IServiceCollection AddRemoteCommandHandlingOptions(this IServiceCollection services, Action<RemoteCommandHandlingOptions> configureOptions) => services
             .Configure(configureOptions);

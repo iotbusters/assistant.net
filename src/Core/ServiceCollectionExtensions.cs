@@ -1,13 +1,13 @@
 using System;
 using System.Threading;
-using Assistant.Net.Core.Abstractions;
-using Assistant.Net.Core.Internal;
-using Messaging.Web.Options;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
+using Assistant.Net.Abstractions;
+using Assistant.Net.Internal;
+using Assistant.Net.Options;
 
-namespace Assistant.Net.Core
+namespace Assistant.Net
 {
     public static class ServiceCollectionExtensions
     {
@@ -26,11 +26,12 @@ namespace Assistant.Net.Core
 
         public static IServiceCollection Configure<TOptions>(this IServiceCollection services, Action<IServiceProvider, TOptions> configureOptions)
             where TOptions : class =>
-            services.Configure(Options.DefaultName, configureOptions);
+            services.Configure(Microsoft.Extensions.Options.Options.DefaultName, configureOptions);
 
         public static IServiceCollection Configure<TOptions>(this IServiceCollection services, string name, Action<IServiceProvider, TOptions> configureOptions)
             where TOptions : class
         {
+
             if (services == null)
                 throw new ArgumentNullException(nameof(services));
             if (configureOptions == null)

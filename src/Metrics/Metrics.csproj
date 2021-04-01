@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Messaging</RootNamespace>
-    <AssemblyName>assistant.net.messaging.core</AssemblyName>
+    <RootNamespace>Assistant.Net.Metrics</RootNamespace>
+    <AssemblyName>assistant.net.metrics</AssemblyName>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\Messaging\Messaging.csproj" />
+    <ProjectReference Include="..\Messaging.InMemory\Messaging.InMemory.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
 
@@ -11,10 +12,11 @@ namespace Assistant.Net.Messaging.Internal
         public HandlerAdaptor(ICommandHandler<TCommand, TResponse> handler) =>
             this.handler = handler;
 
-        public Task<TResponse> Handle(TCommand command) =>
-            handler.Handle(command);
+        public async Task<TResponse> Handle(TCommand command) =>
+            await handler.Handle(command);
 
         public async Task<object> Handle(object command) =>
-            await Handle((TCommand)command);
+            await Handle((TCommand)command)
+            ?? throw new NotSupportedException("Unexpected null received");
     }
 }

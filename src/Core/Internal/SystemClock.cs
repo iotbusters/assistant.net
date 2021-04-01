@@ -1,7 +1,7 @@
 using System;
-using Assistant.Net.Core.Abstractions;
+using Assistant.Net.Abstractions;
 
-namespace Assistant.Net.Core.Internal
+namespace Assistant.Net.Internal
 {
     public class SystemClock : ISystemClock
     {

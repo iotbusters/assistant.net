@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging.Web.Client.Extensions
+namespace Assistant.Net.Messaging.Extensions
 {
     internal class AuthorizationHandler : DelegatingHandler
     {

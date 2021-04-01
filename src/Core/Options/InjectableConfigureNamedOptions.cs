@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.Options;
 
-namespace Messaging.Web.Options
+namespace Assistant.Net.Options
 {
     public class InjectableConfigureNamedOptions<TOptions> : ConfigureNamedOptions<TOptions> where TOptions : class
     {

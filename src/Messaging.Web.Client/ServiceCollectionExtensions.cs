@@ -1,22 +1,24 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Assistant.Net.Messaging.Web.Options;
-using Assistant.Net.Messaging.Web.Client.Internal;
-using Assistant.Net.Messaging.Web.Client.Extensions;
+using Assistant.Net.Messaging.Options;
+using Assistant.Net.Messaging.Internal;
+using Assistant.Net.Messaging.Extensions;
+using System;
 
-namespace Assistant.Net.Messaging.Web.Client
+namespace Assistant.Net.Messaging
 {
     public static class ServiceCollectionExtensions
     {
+        private static TimeSpan DefaultTimeout => TimeSpan.FromSeconds(10);
+
         public static IServiceCollection AddRemoteCommandHandlingClient(this IServiceCollection services) => services
             .AddJsonSerializerOptions()
             .AddHttpClient<RemoteCommandHandlingClient>((p, c) =>
             {
                 var options = p.GetRequiredService<IOptions<RemoteCommandHandlingOptions>>().Value;
                 c.BaseAddress = options.Endpoint;
-                if (options.Timeout != null)
-                    c.Timeout = options.Timeout.Value;
+                c.Timeout = options.Timeout ?? DefaultTimeout;
             })
             .AddHttpMessageHandler<MetricsHandler>()
             .AddHttpMessageHandler<AuthorizationHandler>()

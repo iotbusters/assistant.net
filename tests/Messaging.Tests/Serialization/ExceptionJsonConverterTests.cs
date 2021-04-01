@@ -6,11 +6,10 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Serialization;
 using NUnit.Framework;
 using FluentAssertions;
-using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Messaging.Web.Serialization;
-using Assistant.Net.Messaging.Web.Client.Exceptions;
 
 namespace Assistant.Net.Messaging.Tests.Exceptions
 {

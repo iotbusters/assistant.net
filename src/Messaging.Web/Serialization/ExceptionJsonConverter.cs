@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Assistant.Net.Messaging.Exceptions;
 
-namespace Assistant.Net.Messaging.Web.Serialization
+namespace Assistant.Net.Messaging.Serialization
 {
     /// <summary>
     ///     Json converter responsible for exception serialization.

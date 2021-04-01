@@ -13,7 +13,8 @@ namespace Assistant.Net.Messaging.Interceptors
             this.interceptor = interceptor;
 
         public async Task<object> Intercept(object command, Func<object, Task<object>> next) =>
-            await Intercept((TCommand)command, async x => (TResponse)await next(x));
+            await Intercept((TCommand)command, async x => (TResponse)await next(x))
+            ?? throw new NotSupportedException("Unexpected null received");
 
         public Task<TResponse> Intercept(TCommand command, Func<TCommand, Task<TResponse>> next) =>
             interceptor.Intercept(command, next);
