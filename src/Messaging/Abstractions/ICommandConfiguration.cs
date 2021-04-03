@@ -4,6 +4,6 @@ namespace Assistant.Net.Messaging.Abstractions
 {
     public interface ICommandConfiguration
     {
-        void Configure(CommandConfigurationBuilder builder);
+        void Configure(CommandOptions options);
     }
 }

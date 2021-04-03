@@ -1,8 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <ItemGroup>
-    <ProjectReference Include="..\Messaging.InMemory\Messaging.InMemory.csproj" />
-  </ItemGroup>
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -11,5 +7,9 @@
     <AssemblyName>assistant.net.host</AssemblyName>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Messaging.InMemory\Messaging.InMemory.csproj" />
+  </ItemGroup>
 
 </Project>

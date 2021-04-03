@@ -5,14 +5,14 @@ using Assistant.Net.Messaging.Internal;
 
 namespace Assistant.Net.Messaging
 {
-    public static class CommandConfigurationBuilderExtensions
+    public static class CommandOptionsExtensions
     {
-        public static List<HandlerDefinition> AddRemote<TCommand>(this List<HandlerDefinition> list)
+        public static ISet<HandlerDefinition> AddRemote<TCommand>(this ISet<HandlerDefinition> set)
             where TCommand : class, IAbstractCommand
         {
             var type = typeof(CommandHandlerWebProxy<,>).MakeGenericTypeBoundToCommand(typeof(TCommand));
-            list.Add(HandlerDefinition.Create(type));
-            return list;
+            set.Add(HandlerDefinition.Create(type));
+            return set;
         }
     }
 }

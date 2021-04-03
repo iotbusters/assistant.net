@@ -28,5 +28,17 @@ namespace Assistant.Net.Messaging
         public static IServiceCollection AddRemoteCommandHandlingClient(this IServiceCollection services, IConfigurationSection configuration) => services
             .AddRemoteCommandHandlingOptions(configuration)
             .AddRemoteCommandHandlingClient();
+
+        /// <summary>
+        ///     Registers a configuration instance which <see cref="RemoteCommandHandlingOptions"/> will bind against.
+        /// </summary>
+        public static IServiceCollection AddRemoteCommandHandlingOptions(this IServiceCollection services, IConfigurationSection configuration) => services
+            .Configure<RemoteCommandHandlingOptions>(configuration);
+
+        /// <summary>
+        ///     Register an action used to configure <see cref="RemoteCommandHandlingOptions"/> options.
+        /// </summary>
+        public static IServiceCollection AddRemoteCommandHandlingOptions(this IServiceCollection services, Action<RemoteCommandHandlingOptions> configureOptions) => services
+            .Configure(configureOptions);
     }
 }

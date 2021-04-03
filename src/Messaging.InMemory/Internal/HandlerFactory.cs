@@ -21,17 +21,17 @@ namespace Assistant.Net.Messaging.Internal
             IOptions<CommandOptions> options,
             IServiceScopeFactory scopeFactory)
         {
-            handlerMap = (from handlerType in options.Value.Handlers
-                          from interfaceType in handlerType.GetInterfaces()
+            handlerMap = (from definition in options.Value.Handlers
+                          from interfaceType in definition.Type.GetInterfaces()
                           where interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(ICommandHandler<,>)
                           let commandType = interfaceType.GetGenericArguments().First()
-                          select new { commandType, handlerType }).ToDictionary(x => x.commandType, x => x.handlerType);
+                          select new { commandType, definition.Type }).ToDictionary(x => x.commandType, x => x.Type);
 
-            interceptorMap = (from interceptorType in options.Value.Interceptors
-                              from interfaceType in interceptorType.GetInterfaces()
+            interceptorMap = (from definition in options.Value.Interceptors
+                              from interfaceType in definition.Type.GetInterfaces()
                               where interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(ICommandInterceptor<,>)
                               let commandType = interfaceType.GetGenericArguments().First()
-                              select new KeyValuePair<Type, Type>(commandType, interceptorType)).ToArray();
+                              select new KeyValuePair<Type, Type>(commandType, definition.Type)).ToArray();
             this.scopeFactory = scopeFactory;
         }
 

@@ -1,51 +1,32 @@
 using System;
-using System.Linq;
-using System.Threading;
-using Assistant.Net;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Configuration;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Internal;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Assistant.Net.Messaging
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddCommandClient(this IServiceCollection services, Action<CommandConfigurationBuilder> configure)
+        /// <summary>
+        ///     Adds <see cref="ICommandClient"/> implementation, required services and default <see cref="CommandOptions"/> configuration.
+        /// </summary>
+        public static IServiceCollection AddCommandClient(this IServiceCollection services)
         {
-            services
-                .AddSystemLifetime(p => CancellationToken.None)
-                .AddCommandOptions(configure);
             services.TryAddSingleton<IHandlerFactory, HandlerFactory>();
             services.TryAddSingleton<ICommandClient, CommandClient>();
-            return services;
+            return services
+                .AddDefaultSystemServices()
+                .AddCommandOptions(b => b.Add<DefaultInterceptorConfiguration>());
         }
 
-        public static IServiceCollection AddCommandOptions(this IServiceCollection services, Action<CommandConfigurationBuilder> configure)
-        {
-            var builder = new CommandConfigurationBuilder();
-            builder.Interceptors.Add<ErrorHandlingInterceptor>();
-            builder.Interceptors.Add<TimeoutInterceptor>();
-            builder.Interceptors.Add<CachingInterceptor>();
-            builder.Interceptors.Add<RetryingInterceptor>();
-            configure?.Invoke(builder);
-
-            var interceptors = builder.Interceptors.Select(x => x.Type).Distinct().ToArray();
-            var handlers = builder.Handlers.Select(x => x.Type).Distinct().ToArray();
-
-            foreach (var implementation in handlers)
-                services.TryAddTransient(implementation);
-
-            foreach (var implementation in interceptors)
-                services.TryAddTransient(implementation);
-
-            return services.Configure<CommandOptions>(opt =>
-            {
-                opt.Handlers.AddRange(handlers);
-                opt.Interceptors.AddRange(interceptors);
-            });
-        }
+        /// <summary>
+        ///     Adds <see cref="ICommandClient"/> implementation, required services and <see cref="CommandOptions"/> configuration.
+        /// </summary>
+        public static IServiceCollection AddCommandClient(this IServiceCollection services, Action<CommandOptions> configureOptions) => services
+            .AddCommandClient()
+            .AddCommandOptions(configureOptions);
     }
 }
