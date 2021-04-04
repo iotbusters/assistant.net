@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging.Interceptors
+namespace Assistant.Net.Messaging.Abstractions
 {
     internal interface IAbstractInterceptor
     {

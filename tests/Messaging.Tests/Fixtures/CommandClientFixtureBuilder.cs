@@ -27,6 +27,12 @@ namespace Assistant.Net.Messaging.Tests.Fixtures
         public IServiceCollection Services { get; init; }
         public IHostBuilder RemoteHostBuilder { get; init; }
 
+        public CommandClientFixtureBuilder ClearHandlers()
+        {
+            Services.AddCommandOptions(o => o.Handlers.Clear());
+            return this;
+        }
+
         public CommandClientFixtureBuilder AddLocal<THandler>() where THandler : class, IAbstractCommandHandler
         {
             Services.AddCommandOptions(o => o.Handlers.AddLocal<THandler>());

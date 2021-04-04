@@ -34,7 +34,6 @@ namespace Assistant.Net.Messaging.Internal
                 Content = JsonContent.Create(command, command.GetType(), options: options.Value)
             }, lifetime.Stopping);
 
-            var str = await response.Content.ReadAsStringAsync(lifetime.Stopping);
             var stream = await response.Content.ReadAsStreamAsync(lifetime.Stopping);
             var responseObject = await JsonSerializer.DeserializeAsync<TResponse>(stream, options.Value, lifetime.Stopping);
             return responseObject!;

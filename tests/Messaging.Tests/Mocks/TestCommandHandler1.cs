@@ -1,5 +1,7 @@
+using System;
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Tests.Mocks.Stubs;
 
 namespace Assistant.Net.Messaging.Tests.Mocks
@@ -8,9 +10,14 @@ namespace Assistant.Net.Messaging.Tests.Mocks
     {
         public Task<TestResponse> Handle(TestCommand1 command)
         {
-            if (command.Exception != null)
-                throw command.Exception;
-            return Task.FromResult(new TestResponse(command.Exception != null));
+            return command.Scenario switch
+            {
+                0 => Task.FromResult(new TestResponse(false)),
+                1 => throw new InvalidOperationException("1"),
+                2 => throw new CommandFailedException("2"),
+                3 => throw new CommandFailedException("3", new CommandFailedException("inner")),
+                _ => throw new NotImplementedException("Not implemented")
+            };
         }
     }
 }

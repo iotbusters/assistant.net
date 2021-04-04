@@ -26,7 +26,7 @@ namespace Assistant.Net.Messaging.Internal
         {
             var commandName = httpContext.Request.Headers["command-name"].FirstOrDefault()
                               ?? throw new CommandContractException("Header 'command-name' is required.");
-            // todo
+            // todo: introduce type resolver
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.GetTypes())
                 .FirstOrDefault(x => x.IsClass && x.Name == commandName)
@@ -61,7 +61,7 @@ namespace Assistant.Net.Messaging.Internal
                 lifetime.Stopping);
         }
 
-        public static async Task WriteCommandResponse(this HttpContext context, int statusCode, Exception exception)
+        public static async Task WriteCommandResponse(this HttpContext context, int statusCode, CommandException exception)
         {
             context
                 .GetService<ILoggerFactory>()

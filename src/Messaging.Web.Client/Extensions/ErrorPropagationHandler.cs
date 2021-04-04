@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Serialization;
@@ -14,14 +13,10 @@ namespace Assistant.Net.Messaging.Extensions
 {
     public class ErrorPropagationHandler : DelegatingHandler
     {
-        private readonly ILogger<ErrorPropagationHandler> logger;
         private readonly IOptions<JsonSerializerOptions> options;
 
-        public ErrorPropagationHandler(ILogger<ErrorPropagationHandler> logger, IOptions<JsonSerializerOptions> options)
-        {
-            this.logger = logger;
+        public ErrorPropagationHandler(IOptions<JsonSerializerOptions> options) =>
             this.options = options;
-        }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -36,7 +31,7 @@ namespace Assistant.Net.Messaging.Extensions
                 throw new CommandConnectionFailedException(ErrorMessage(response.StatusCode));
 
             var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            throw await stream.ReadObject<Exception>(options.Value, cancellationToken)
+            throw await stream.ReadException(options.Value, cancellationToken)
             ?? new CommandContractException(ErrorContentMessage(response.StatusCode));
         }
 

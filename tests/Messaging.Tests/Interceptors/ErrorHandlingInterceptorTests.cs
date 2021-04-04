@@ -12,7 +12,7 @@ namespace Assistant.Net.Messaging.Tests.Interceptors
     public class ErrorHandlingInterceptorTests
     {
         private ICommandInterceptor<ICommand<object>, object> interceptor = null!;
-        private static readonly TestCommand1 command = new(null);
+        private static readonly TestCommand1 command = new(0);
 
         [SetUp]
         public void Setup()

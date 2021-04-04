@@ -12,8 +12,8 @@ namespace Assistant.Net.Messaging
             .AddJsonSerializerOptions(delegate { });
 
         public static IServiceCollection AddJsonSerializerOptions(this IServiceCollection services, Action<JsonSerializerOptions> configureOptions) => services
-            .AddScoped<ExceptionJsonConverter>()
-            .Configure<JsonSerializerOptions, ExceptionJsonConverter>((options, converter) =>
+            .AddScoped<CommandExceptionJsonConverter>()
+            .Configure<JsonSerializerOptions, CommandExceptionJsonConverter>((options, converter) =>
              {
                  options.Converters.Add(converter);
                  options.PropertyNameCaseInsensitive = true;

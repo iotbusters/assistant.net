@@ -1,5 +1,4 @@
 using System;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Exceptions;
 using Microsoft.AspNetCore.Http;
@@ -31,13 +30,17 @@ namespace Assistant.Net.Messaging.Internal
             {
                 await context.WriteCommandResponse(400, ex);
             }
-            catch (JsonException ex)
+            catch (CommandException ex)
             {
-                await context.WriteCommandResponse(400, new CommandContractException("Unexpected content", ex));
+                await context.WriteCommandResponse(500, ex);
+            }
+            catch (Exception ex) when (ex is TaskCanceledException || ex is OperationCanceledException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
-                await context.WriteCommandResponse(500, ex);
+                await context.WriteCommandResponse(500, new CommandFailedException(ex));
             }
         }
     }

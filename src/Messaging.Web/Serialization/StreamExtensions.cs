@@ -10,6 +10,9 @@ namespace Assistant.Net.Messaging.Serialization
     public static class StreamExtensions
     {
 
+        public static Task<CommandException?> ReadException(this Stream stream, JsonSerializerOptions options, CancellationToken cancellationToken) =>
+            stream.ReadObject<CommandException>(options, cancellationToken);
+
         public static async Task<T?> ReadObject<T>(this Stream stream, JsonSerializerOptions options, CancellationToken cancellationToken)
             where T : class => (T?)await stream.ReadObject(typeof(T), options, cancellationToken);
 

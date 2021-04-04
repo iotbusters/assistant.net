@@ -11,21 +11,21 @@ namespace Assistant.Net.Messaging.Serialization
     ///     Json converter responsible for exception serialization.
     /// </summary>
     /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-5-0"/> />
-    public class ExceptionJsonConverter : JsonConverter<Exception>
+    public class CommandExceptionJsonConverter : JsonConverter<CommandException>
     {
         private const string TypePropertyName = "type";
         private const string MessagePropertyName = "message";
         private const string InnerExceptionPropertyName = "inner";
 
-        private readonly ILogger<ExceptionJsonConverter> logger;
+        private readonly ILogger<CommandExceptionJsonConverter> logger;
 
-        public ExceptionJsonConverter(ILogger<ExceptionJsonConverter> logger) =>
+        public CommandExceptionJsonConverter(ILogger<CommandExceptionJsonConverter> logger) =>
             this.logger = logger;
 
         public override bool CanConvert(Type typeToConvert) =>
             typeof(Exception).IsAssignableFrom(typeToConvert);
 
-        public override void Write(Utf8JsonWriter writer, Exception value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, CommandException value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
 
@@ -36,7 +36,7 @@ namespace Assistant.Net.Messaging.Serialization
 
             writer.WriteString(MessagePropertyName, value.Message);
 
-            if (value.InnerException != null)
+            if (value.InnerException as CommandException != null)
             {
                 writer.WritePropertyName(InnerExceptionPropertyName);
                 JsonSerializer.Serialize(writer, value.InnerException, options);
@@ -45,7 +45,7 @@ namespace Assistant.Net.Messaging.Serialization
             writer.WriteEndObject();
         }
 
-        public override Exception? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override CommandException? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException("Start object token is expected.");
@@ -60,14 +60,15 @@ namespace Assistant.Net.Messaging.Serialization
 
             try
             {
+                // todo: introduce type resolver
                 var type = Type.GetType(typeName!, throwOnError: true);
                 var ctorArguments = new object?[] { message, inner }
                     .Where(x => x != null).Select(x => x!).ToArray();
-                return (Exception)Activator.CreateInstance(type!, ctorArguments)!;
+                return (CommandException)Activator.CreateInstance(type!, ctorArguments)!;
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Cannot reproduce exception by {Type}, {Message} and {InnerException}.", typeName, message, inner);
+                logger.LogWarning(ex, "Cannot restore exception object by {Type}, {Message} and {InnerException}.", typeName, message, inner);
                 return new UnknownCommandException(typeName, message, inner);
             }
         }
