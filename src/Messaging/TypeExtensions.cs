@@ -16,7 +16,7 @@ namespace Assistant.Net.Messaging
             return genericTypeDefinition.MakeGenericType(commandType, responseType);
         }
 
-        private static Type? GetResponseType(this Type commandType)
+        public static Type? GetResponseType(this Type commandType)
         {
             if (commandType.IsClass)
                 return commandType.GetInterfaces().Select(x => x.GetResponseType()).SingleOrDefault(x => x != null);

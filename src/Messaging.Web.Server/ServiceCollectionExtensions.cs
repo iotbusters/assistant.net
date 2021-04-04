@@ -2,7 +2,8 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Internal;
-using static Assistant.Net.Messaging.Options.CommandOptions;
+using Assistant.Net.Messaging.Options;
+using static Assistant.Net.Messaging.Options.Options;
 
 namespace Assistant.Net.Messaging
 {
@@ -12,7 +13,7 @@ namespace Assistant.Net.Messaging
             .AddSystemClock(p => p.GetRequiredService<ISystemClock>().UtcNow)
             .AddSystemLifetime(p => p.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping);
 
-        public static IServiceCollection AddRemoteCommandHandlingServer(this IServiceCollection services, Action<Configuration.CommandOptions> configureOptions) => services
+        public static IServiceCollection AddRemoteCommandHandlingServer(this IServiceCollection services, Action<CommandOptions> configureOptions) => services
             .AddJsonSerializerOptions()
             .AddCommandOptions(RemoteName, configureOptions);
     }

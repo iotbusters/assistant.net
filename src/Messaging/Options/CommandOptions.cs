@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using Assistant.Net.Messaging.Options;
 
-namespace Assistant.Net.Messaging.Configuration
+namespace Assistant.Net.Messaging.Options
 {
     public sealed class CommandOptions
     {

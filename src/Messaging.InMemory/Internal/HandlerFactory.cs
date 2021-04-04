@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Configuration;
+using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Interceptors;
 

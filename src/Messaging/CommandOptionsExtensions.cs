@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Configuration;
+using Assistant.Net.Messaging.Options;
 
 namespace Assistant.Net.Messaging
 {

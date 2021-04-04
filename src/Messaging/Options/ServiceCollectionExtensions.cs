@@ -1,8 +1,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
-using Assistant.Net.Messaging.Configuration;
 
-namespace Assistant.Net.Messaging
+namespace Assistant.Net.Messaging.Options
 {
     public static class ServiceCollectionExtensions
     {

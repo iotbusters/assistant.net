@@ -23,6 +23,10 @@ namespace Assistant.Net.Messaging.Internal
             {
                 await context.WriteCommandResponse(404, ex);
             }
+            catch (CommandNotRegisteredException ex)
+            {
+                await context.WriteCommandResponse(404, ex);
+            }
             catch (CommandContractException ex)
             {
                 await context.WriteCommandResponse(400, ex);

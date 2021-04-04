@@ -8,11 +8,11 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static Microsoft.Extensions.Options.Options;
-
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
-using static Assistant.Net.Messaging.Options.CommandOptions;
+using Assistant.Net.Messaging.Serialization;
+using static Assistant.Net.Messaging.Options.Options;
 
 namespace Assistant.Net.Messaging.Internal
 {
@@ -36,15 +36,14 @@ namespace Assistant.Net.Messaging.Internal
         public static async Task<object> ReadCommandObject(this HttpContext context)
         {
             var commandType = context.GetCommandType();
-            var serializerOptions = context.GetService<IOptions<JsonSerializerOptions>>();
+            var options = context.GetService<IOptions<JsonSerializerOptions>>();
             var lifetime = context.GetService<ISystemLifetime>();
 
-            var responseObject = await JsonSerializer.DeserializeAsync(
-                context.Request.Body,
+            return await context.Request.Body.ReadObject(
                 commandType,
-                serializerOptions.Value,
-                lifetime.Stopping);
-            return responseObject!;
+                options.Value,
+                lifetime.Stopping)
+                ?? throw new CommandContractException("Unexpected null object.");
         }
 
         public static async Task WriteCommandResponse(this HttpContext context, int statusCode, object content)
@@ -77,7 +76,7 @@ namespace Assistant.Net.Messaging.Internal
             var lifetime = context.GetService<ISystemLifetime>();
             var clock = context.GetService<ISystemClock>();
             var serializerOptions = context.GetService<IOptions<JsonSerializerOptions>>();
-            var commandOptions = context.GetService<IOptionsMonitor<Configuration.CommandOptions>>();
+            var commandOptions = context.GetService<IOptionsMonitor<Options.CommandOptions>>();
             var options = Create(commandOptions.Get(RemoteName));
             var scopeFactory = context.GetService<IServiceScopeFactory>();
 

@@ -1,7 +1,7 @@
 using System;
 using Assistant.Net.Messaging.Abstractions;
 
-namespace Assistant.Net.Messaging.Configuration
+namespace Assistant.Net.Messaging.Options
 {
     public class HandlerDefinition
     {

@@ -5,17 +5,23 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Serialization;
 
 namespace Assistant.Net.Messaging.Extensions
 {
     public class ErrorPropagationHandler : DelegatingHandler
     {
+        private readonly ILogger<ErrorPropagationHandler> logger;
         private readonly IOptions<JsonSerializerOptions> options;
 
-        public ErrorPropagationHandler(IOptions<JsonSerializerOptions> options) =>
+        public ErrorPropagationHandler(ILogger<ErrorPropagationHandler> logger, IOptions<JsonSerializerOptions> options)
+        {
+            this.logger = logger;
             this.options = options;
+        }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -30,8 +36,8 @@ namespace Assistant.Net.Messaging.Extensions
                 throw new CommandConnectionFailedException(ErrorMessage(response.StatusCode));
 
             var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            var error = await JsonSerializer.DeserializeAsync<Exception>(stream, options.Value, cancellationToken);
-            throw error ?? new NoneCommandException(ErrorMessage(response.StatusCode));
+            throw await stream.ReadObject<Exception>(options.Value, cancellationToken)
+            ?? new CommandContractException(ErrorContentMessage(response.StatusCode));
         }
 
         private static HttpStatusCode[] SucceededStatuses { get; } = new[]
@@ -45,7 +51,6 @@ namespace Assistant.Net.Messaging.Extensions
             HttpStatusCode.BadGateway,
             HttpStatusCode.FailedDependency,
             HttpStatusCode.Forbidden,
-            HttpStatusCode.NotFound,
             HttpStatusCode.RequestTimeout,
             HttpStatusCode.ServiceUnavailable,
             HttpStatusCode.Unauthorized
@@ -55,5 +60,7 @@ namespace Assistant.Net.Messaging.Extensions
             $"Response invalid success status code: {(int)status}.";
         private static string ErrorMessage(HttpStatusCode status) =>
             $"Response failed with status code: {(int)status}.";
+        private static string ErrorContentMessage(HttpStatusCode status) =>
+            $"Response failed with status code: {(int)status} and provided invalid content.";
     }
 }
