@@ -18,8 +18,7 @@ namespace Assistant.Net.Messaging
                  options.Converters.Add(converter);
                  options.PropertyNameCaseInsensitive = true;
                  options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                 options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
-                 options.ReferenceHandler = ReferenceHandler.Preserve;
+                 options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
              })
             .Configure(configureOptions);
     }

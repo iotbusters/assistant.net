@@ -15,6 +15,7 @@ namespace Assistant.Net.Messaging.Interceptors
             }
             catch (Exception ex)
             {
+                var b = ex.StackTrace;
                 OverrideException(ex);
                 throw;
             }

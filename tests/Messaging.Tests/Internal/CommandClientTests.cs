@@ -1,10 +1,11 @@
 using System;
 using System.Threading.Tasks;
-using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Tests.TestObjects;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using FluentAssertions;
 using NUnit.Framework;
+using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Tests.Mocks;
+using Assistant.Net.Messaging.Tests.Mocks.Stubs;
 
 namespace Assistant.Net.Messaging.Tests.Internal
 {
@@ -28,16 +29,16 @@ namespace Assistant.Net.Messaging.Tests.Internal
         [Test]
         public async Task ReturnsResponse()
         {
-            var command = new TestCommand1(exception: null);
+            var command = new TestCommand1(Exception: null);
             var response = await client.Send(command);
 
-            response.Should().BeEquivalentTo(new TestResponse(false));
+            response.Should().BeEquivalentTo(new TestResponse(Fail: false));
         }
 
         [Test]
         public async Task ThrowsException()
         {
-            var command = new TestCommand1(exception: new Exception());
+            var command = new TestCommand1(Exception: new Exception());
             await client.Awaiting(x => x.Send(command))
                 .Should().ThrowAsync<Exception>();
         }

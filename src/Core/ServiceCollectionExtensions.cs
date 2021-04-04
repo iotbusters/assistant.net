@@ -13,7 +13,8 @@ namespace Assistant.Net
         /// <summary>
         ///     Adds system services with default behavior.
         /// </summary>
-        public static IServiceCollection AddDefaultSystemServices(this IServiceCollection services) => services
+        public static IServiceCollection AddSystemServicesDefaulted(this IServiceCollection services) => services
+            .AddLogging()
             .AddSystemClock()
             .AddSystemLifetime();
 

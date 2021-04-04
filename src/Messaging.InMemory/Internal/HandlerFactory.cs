@@ -53,8 +53,7 @@ namespace Assistant.Net.Messaging.Internal
             if (!handlerMap.TryGetValue(commandType, out var handlerType))
                 return null;
 
-            var commandHandler = provider.GetRequiredService(handlerType);
-
+            var commandHandler = ActivatorUtilities.CreateInstance(provider, handlerType);
             return (IAbstractHandler)ActivatorUtilities.CreateInstance(provider, adapterType, commandHandler);
         }
 
@@ -63,14 +62,14 @@ namespace Assistant.Net.Messaging.Internal
             var interceptableHandle = interceptorMap
                 .Where(x => x.Key.IsAssignableFrom(commandType))
                 .Reverse()
-                .Select(x => (IAbstractInterceptor)ActivatorUtilities.CreateInstance(
-                    provider,
-                    typeof(InterceptorAdaptor<,>).MakeGenericTypeBoundToCommand(x.Key),
-                    provider.GetRequiredService(x.Value)))
-                .Aggregate(
-                    commandHandle,
-                    (next, current) =>
-                        x => current.Intercept(x, next));
+                .Select(x =>
+                {
+                    var adaptorType = typeof(InterceptorAdaptor<,>).MakeGenericTypeBoundToCommand(x.Key);
+                    var interceptor = ActivatorUtilities.CreateInstance(provider, x.Value);
+                    return (IAbstractInterceptor)ActivatorUtilities.CreateInstance(provider, adaptorType, interceptor);
+                })
+                .Aggregate(commandHandle, (next, current) =>
+                    x => current.Intercept(x, next));
 
             return new DelegatingAbstractHandler(interceptableHandle);
         }

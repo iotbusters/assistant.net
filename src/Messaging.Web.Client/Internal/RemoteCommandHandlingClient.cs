@@ -27,10 +27,17 @@ namespace Assistant.Net.Messaging.Internal
         public async Task<TResponse> DelegateHandling<TResponse>(ICommand<TResponse> command)
         {
             var commandName = command.GetType().Name;
-            var httpResponse = await client.PostAsJsonAsync($"/{commandName}", command, options.Value, lifetime.Stopping);
-            var stream = await httpResponse.Content.ReadAsStreamAsync(lifetime.Stopping);
-            var response = await JsonSerializer.DeserializeAsync<TResponse>(stream, options.Value, lifetime.Stopping);
-            return response!;
+            var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Post, "")
+            {
+                // todo: add tracing ids, ETag etc
+                Headers = { { "command-name", commandName } },
+                Content = JsonContent.Create(command, command.GetType(), options: options.Value)
+            }, lifetime.Stopping);
+
+            var str = await response.Content.ReadAsStringAsync(lifetime.Stopping);
+            var stream = await response.Content.ReadAsStreamAsync(lifetime.Stopping);
+            var responseObject = await JsonSerializer.DeserializeAsync<TResponse>(stream, options.Value, lifetime.Stopping);
+            return responseObject!;
         }
     }
 }

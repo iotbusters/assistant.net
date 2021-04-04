@@ -1,11 +1,11 @@
 using System;
 using System.Threading.Tasks;
-using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Interceptors;
-using Assistant.Net.Messaging.Tests.TestObjects;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using FluentAssertions;
+using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Interceptors;
+using Assistant.Net.Messaging.Tests.Mocks.Stubs;
 
 namespace Assistant.Net.Messaging.Tests.Interceptors
 {

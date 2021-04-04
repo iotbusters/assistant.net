@@ -18,7 +18,7 @@ namespace Assistant.Net.Messaging
             services.TryAddSingleton<IHandlerFactory, HandlerFactory>();
             services.TryAddSingleton<ICommandClient, CommandClient>();
             return services
-                .AddDefaultSystemServices()
+                .AddSystemServicesDefaulted()
                 .AddCommandOptions(b => b.Add<DefaultInterceptorConfiguration>());
         }
 
