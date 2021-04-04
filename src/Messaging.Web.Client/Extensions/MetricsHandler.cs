@@ -8,7 +8,7 @@ namespace Assistant.Net.Messaging.Extensions
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            // todo
+            // todo: implement basic metrics
             return base.SendAsync(request, cancellationToken);
         }
     }

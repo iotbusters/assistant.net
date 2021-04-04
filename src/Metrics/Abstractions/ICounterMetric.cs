@@ -1,6 +1,6 @@
 namespace Assistant.Net.Metrics.Abstractions
 {
-    public interface ICountingMetric : IMetric
+    public interface ICounterMetric : IMetric
     {
         void Increment();
     }

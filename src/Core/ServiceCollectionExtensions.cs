@@ -52,17 +52,15 @@ namespace Assistant.Net
             .Replace(ServiceDescriptor.Singleton<ISystemLifetime>(p => new SystemLifetime(getStoppingToken(p))));
 
         /// <summary>
-        /// todo
+        ///     Registers an action used to configure a particular type of options with following validation.
         /// </summary>
-        /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/core/extensions/options"/>
         public static IServiceCollection Configure<TOptions>(this IServiceCollection services, IConfigurationSection config)
             where TOptions : class => services
             .Configure<TOptions>(Microsoft.Extensions.Options.Options.DefaultName, config);
 
         /// <summary>
-        /// todo
+        ///     Registers an action used to configure a particular type of options with following validation.
         /// </summary>
-        /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/core/extensions/options"/>
         public static IServiceCollection Configure<TOptions>(this IServiceCollection services, string name, IConfigurationSection config)
             where TOptions : class => services
             .AddOptions<TOptions>(name)
@@ -71,17 +69,15 @@ namespace Assistant.Net
             .Services;
 
         /// <summary>
-        /// todo
+        ///     Registers an action used to configure a particular type of options with following validation.
         /// </summary>
-        /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/core/extensions/options"/>
         public static IServiceCollection Configure<TOptions>(this IServiceCollection services, Action<TOptions> configureOptions)
             where TOptions : class => services
             .Configure(Microsoft.Extensions.Options.Options.DefaultName, configureOptions);
 
         /// <summary>
-        /// todo
+        ///     Registers an action used to configure a particular type of options with following validation.
         /// </summary>
-        /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/core/extensions/options"/>
         public static IServiceCollection Configure<TOptions>(this IServiceCollection services, string name, Action<TOptions> configureOptions)
             where TOptions : class => services
             .AddOptions<TOptions>(name)
@@ -90,18 +86,16 @@ namespace Assistant.Net
             .Services;
 
         /// <summary>
-        /// todo
+        ///     Registers an action used to configure a particular type of options with following validation.
         /// </summary>
-        /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/core/extensions/options"/>
         public static IServiceCollection Configure<TOptions,TDep>(this IServiceCollection services, Action<TOptions, TDep> configureOptions)
             where TOptions : class 
             where TDep : class => services
             .Configure(Microsoft.Extensions.Options.Options.DefaultName, configureOptions);
 
         /// <summary>
-        /// todo
+        ///     Registers an action used to configure a particular type of options with following validation.
         /// </summary>
-        /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/core/extensions/options"/>
         public static IServiceCollection Configure<TOptions,TDep>(this IServiceCollection services, string name, Action<TOptions,TDep> configureOptions)
             where TOptions : class 
             where TDep : class => services

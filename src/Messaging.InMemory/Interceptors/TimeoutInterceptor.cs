@@ -12,15 +12,7 @@ namespace Assistant.Net.Messaging.Interceptors
         {
             var timeout = TimeSpan.FromSeconds(30);// configurable
 
-            try
-            {
-                return await Task.Run(() => next(command), new CancellationTokenSource(timeout).Token);
-            }
-            catch (AggregateException ex)
-            {
-                ExceptionDispatchInfo.Capture(ex.InnerException!).Throw();
-                throw;
-            }
+            return await Task.Run(() => next(command), new CancellationTokenSource(timeout).Token);
         }
     }
 }
