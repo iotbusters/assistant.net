@@ -3,7 +3,7 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Internal
 {
-    public class CommandHandlerWebProxy<TCommand, TResponse> : ICommandHandler<TCommand, TResponse>
+    internal class CommandHandlerWebProxy<TCommand, TResponse> : ICommandHandler<TCommand, TResponse>
         where TCommand : ICommand<TResponse>
     {
         private readonly RemoteCommandHandlingClient client;

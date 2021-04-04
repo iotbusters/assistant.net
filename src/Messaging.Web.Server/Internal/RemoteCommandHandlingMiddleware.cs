@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Assistant.Net.Messaging.Internal
 {
-    public class RemoteCommandHandlingMiddleware : RemoteCommandHandlingEndpointMiddleware
+    internal class RemoteCommandHandlingMiddleware : RemoteCommandHandlingEndpointMiddleware
     {
         private readonly RequestDelegate next;
 

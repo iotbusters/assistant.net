@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Extensions;
 
 namespace Assistant.Net.Messaging

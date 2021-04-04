@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Assistant.Net.Messaging.Internal
 {
-    public class RemoteExceptionHandlingMiddleware
+    internal class RemoteExceptionHandlingMiddleware
     {
         private readonly RequestDelegate next;
 

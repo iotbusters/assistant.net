@@ -3,7 +3,7 @@ using Assistant.Net.Abstractions;
 
 namespace Assistant.Net.Internal
 {
-    public class SystemClock : ISystemClock
+    internal class SystemClock : ISystemClock
     {
         private readonly Func<DateTimeOffset> getTime;
 
