@@ -12,21 +12,18 @@ namespace Assistant.Net.Messaging
     {
         private static TimeSpan DefaultTimeout => TimeSpan.FromSeconds(10);
 
-        public static IServiceCollection AddRemoteCommandHandlingClient(this IServiceCollection services)
-        {
-            services.AddJsonSerializerOptions();
-            return Microsoft.Extensions.DependencyInjection.Hotfix.HttpClientFactoryServiceCollectionExtensions
-                .AddHttpClient<RemoteCommandHandlingClient>(services, (p, c) =>
-                {
-                    var options = p.GetRequiredService<IOptions<RemoteCommandHandlingOptions>>().Value;
-                    c.BaseAddress = options.BaseAddress;
-                    c.Timeout = options.Timeout ?? DefaultTimeout;
-                })
-                .AddHttpMessageHandler<MetricsHandler>()
-                .AddHttpMessageHandler<AuthorizationHandler>()
-                .AddHttpMessageHandler<ErrorPropagationHandler>()
-                .Services;
-        }
+        public static IServiceCollection AddRemoteCommandHandlingClient(this IServiceCollection services) => services
+            .AddJsonSerializerOptions()
+            .AddHttpClient<RemoteCommandHandlingClient>((p, c) =>
+            {
+                var options = p.GetRequiredService<IOptions<RemoteCommandHandlingOptions>>().Value;
+                c.BaseAddress = options.BaseAddress;
+                c.Timeout = options.Timeout ?? DefaultTimeout;
+            })
+            .AddHttpMessageHandler<MetricsHandler>()
+            .AddHttpMessageHandler<AuthorizationHandler>()
+            .AddHttpMessageHandler<ErrorPropagationHandler>()
+            .Services;
 
         public static IServiceCollection AddRemoteCommandHandlingClient(this IServiceCollection services, IConfigurationSection config) => services
             .AddRemoteCommandHandlingOptions(config)
