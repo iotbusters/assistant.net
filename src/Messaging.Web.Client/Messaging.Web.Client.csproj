@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Messaging.Web</RootNamespace>
+    <RootNamespace>Assistant.Net.Messaging</RootNamespace>
     <AssemblyName>assistant.net.messaging.web.client</AssemblyName>
     <Nullable>enable</Nullable>
   </PropertyGroup>
