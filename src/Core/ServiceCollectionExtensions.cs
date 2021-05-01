@@ -23,33 +23,27 @@ namespace Assistant.Net
         ///     Adds <see cref="ISystemClock"/> implementation with default behavior
         ///     if it hasn't been already registered.
         /// </summary>
-        public static IServiceCollection AddSystemClock(this IServiceCollection services)
-        {
+        public static IServiceCollection AddSystemClock(this IServiceCollection services) =>
             services.TryAddSingleton<ISystemClock>(p => new SystemClock(() => DateTimeOffset.UtcNow));
-            return services;
-        }
 
         /// <summary>
         ///     Adds or replaces <see cref="ISystemClock"/> implementation with configured behavior.
         /// </summary>
         public static IServiceCollection AddSystemClock(this IServiceCollection services, Func<IServiceProvider, DateTimeOffset> getUtcNow) => services
-            .Replace(ServiceDescriptor.Singleton<ISystemClock>(p => new SystemClock(() => getUtcNow(p))));
+            .ReplaceSingleton<ISystemClock>(p => new SystemClock(() => getUtcNow(p)));
 
         /// <summary>
         ///     Adds <see cref="ISystemLifetime"/> implementation with default behavior
         ///     if it hasn't been already registered.
         /// </summary>
-        public static IServiceCollection AddSystemLifetime(this IServiceCollection services)
-        {
+        public static IServiceCollection AddSystemLifetime(this IServiceCollection services) =>
             services.TryAddSingleton<ISystemLifetime>(p => new SystemLifetime(CancellationToken.None));
-            return services;
-        }
 
         /// <summary>
         ///     Adds or replaces <see cref="ISystemLifetime"/> implementation with configured behavior.
         /// </summary>
         public static IServiceCollection AddSystemLifetime(this IServiceCollection services, Func<IServiceProvider, CancellationToken> getStoppingToken) => services
-            .Replace(ServiceDescriptor.Singleton<ISystemLifetime>(p => new SystemLifetime(getStoppingToken(p))));
+            .ReplaceSingleton<ISystemLifetime>(p => new SystemLifetime(getStoppingToken(p)));
 
         /// <summary>
         ///     Registers an action used to configure a particular type of options with following validation.
@@ -103,5 +97,101 @@ namespace Assistant.Net
             .Configure(configureOptions)
             .ValidateDataAnnotations()
             .Services;
+
+        public static IServiceCollection TryAddTransient<TService, TImplementation>(this IServiceCollection services)
+            where TImplementation : class, TService
+            where TService : class
+        {
+            ServiceCollectionDescriptorExtensions.TryAddTransient<TService, TImplementation>(services);
+            return services;
+        }
+
+        public static IServiceCollection TryAddTransient<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
+            where TService : class
+        {
+            ServiceCollectionDescriptorExtensions.TryAddTransient(services, implementationFactory);
+            return services;
+        }
+
+        public static IServiceCollection TryAddTransient<TService>(this IServiceCollection services)
+            where TService : class =>
+            services.TryAddTransient<TService, TService>();
+
+        public static IServiceCollection TryAddScoped<TService,TImplementation>(this IServiceCollection services)
+            where TImplementation : class, TService
+            where TService : class
+        {
+            ServiceCollectionDescriptorExtensions.TryAddScoped<TService, TImplementation>(services);
+            return services;
+        }
+
+        public static IServiceCollection TryAddScoped<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
+            where TService : class
+        {
+            ServiceCollectionDescriptorExtensions.TryAddScoped(services, implementationFactory);
+            return services;
+        }
+
+        public static IServiceCollection TryAddScoped<TService>(this IServiceCollection services)
+            where TService : class =>
+            services.TryAddScoped<TService, TService>();
+
+        public static IServiceCollection TryAddSingleton<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
+            where TService : class
+        {
+            ServiceCollectionDescriptorExtensions.TryAddSingleton(services, implementationFactory);
+            return services;
+        }
+
+        public static IServiceCollection TryAddSingleton<TService, TImplementation>(this IServiceCollection services)
+            where TImplementation : class, TService
+            where TService : class
+        {
+            ServiceCollectionDescriptorExtensions.TryAddSingleton<TService, TImplementation>(services);
+            return services;
+        }
+
+        public static IServiceCollection TryAddSingleton<TService>(this IServiceCollection services)
+            where TService : class =>
+            services.TryAddSingleton<TService, TService>();
+
+        public static IServiceCollection ReplaceTransient<TService, TImplementation>(this IServiceCollection services)
+            where TImplementation : class, TService
+            where TService : class =>
+            services.Replace(ServiceDescriptor.Transient<TService, TImplementation>());
+
+        public static IServiceCollection ReplaceTransient<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
+            where TService : class =>
+            services.Replace(ServiceDescriptor.Transient(implementationFactory));
+
+        public static IServiceCollection ReplaceTransient<TService>(this IServiceCollection services)
+            where TService : class =>
+            services.ReplaceTransient<TService, TService>();
+
+        public static IServiceCollection ReplaceScoped<TService, TImplementation>(this IServiceCollection services)
+            where TImplementation : class, TService
+            where TService : class =>
+            services.Replace(ServiceDescriptor.Scoped<TService, TImplementation>());
+
+        public static IServiceCollection ReplaceScoped<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
+            where TService : class =>
+            services.Replace(ServiceDescriptor.Scoped(implementationFactory));
+
+        public static IServiceCollection ReplaceScoped<TService>(this IServiceCollection services)
+            where TService : class =>
+            services.ReplaceScoped<TService, TService>();
+
+        public static IServiceCollection ReplaceSingleton<TService, TImplementation>(this IServiceCollection services)
+            where TImplementation : class, TService
+            where TService : class =>
+            services.Replace(ServiceDescriptor.Singleton<TService, TImplementation>());
+
+        public static IServiceCollection ReplaceSingleton<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
+            where TService : class =>
+            services.Replace(ServiceDescriptor.Singleton(implementationFactory));
+
+        public static IServiceCollection ReplaceSingleton<TService>(this IServiceCollection services)
+            where TService : class =>
+            services.ReplaceSingleton<TService, TService>();
     }
 }

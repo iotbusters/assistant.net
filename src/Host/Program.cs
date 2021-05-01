@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Host
+namespace Assistant.Net.Host
 {
     class Program
     {
