@@ -1,12 +1,11 @@
 using System;
-using Assistant.Net.Messaging.Options;
 using Microsoft.Extensions.DependencyInjection;
+using Assistant.Net.Messaging.Options;
 
 namespace Assistant.Net.Messaging
 {
     public static class ServiceCollectionExtensions
     {
-
         /// <summary>
         ///     Register an action used to configure <see cref="CommandOptions"/> options.
         /// </summary>

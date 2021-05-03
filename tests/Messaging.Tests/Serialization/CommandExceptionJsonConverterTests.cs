@@ -95,7 +95,8 @@ namespace Assistant.Net.Messaging.Tests.Exceptions
         {
             yield return new CommandFailedException("1");
             yield return new CommandFailedException("1", new Exception("2"));
-            yield return new CommandRetryLimitExceededException(new Exception("2"));
+            yield return new CommandRetryLimitExceededException();
+            yield return new CommandRetryLimitExceededException("1");
             yield return new CommandRetryLimitExceededException("1", new Exception("2"));
             yield return new CommandNotRegisteredException("1");
             yield return new CommandNotRegisteredException(typeof(object));
