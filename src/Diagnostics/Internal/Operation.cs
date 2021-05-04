@@ -39,7 +39,7 @@ namespace Assistant.Net.Diagnostics.Internal
         void IDisposable.Dispose() =>
             Stop(OperationStatus.Incompleted, LostOperationMessage);
 
-        // todo: consider failing with user-data.
+        // todo: consider failing with user-data (https://github.com/iotbusters/assistant.net/issues/3)
         private void Stop(string status, string message)
         {
             if (isStopped) return;

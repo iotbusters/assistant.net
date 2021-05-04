@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
@@ -10,7 +9,8 @@ namespace Assistant.Net.Messaging.Interceptors
     {
         public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
         {
-            var timeout = TimeSpan.FromSeconds(30);// configurable
+            // todo: configurable (https://github.com/iotbusters/assistant.net/issues/4)
+            var timeout = TimeSpan.FromSeconds(30);
 
             return await Task.Run(() => next(command), new CancellationTokenSource(timeout).Token);
         }

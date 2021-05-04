@@ -29,7 +29,7 @@ namespace Assistant.Net.Messaging
             var commandName = command.GetType().Name;
             var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Post, "")
             {
-                // todo: add tracing ids, ETag etc
+                // todo: add request-id (https://github.com/iotbusters/assistant.net/issues/6)
                 Headers = { { HeaderNames.CommandName, commandName } },
                 Content = JsonContent.Create(command, command.GetType(), options: options.Value)
             }, lifetime.Stopping);

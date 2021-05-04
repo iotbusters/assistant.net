@@ -60,7 +60,7 @@ namespace Assistant.Net.Messaging.Serialization
 
             try
             {
-                // todo: introduce type resolver
+                // todo: introduce type resolver (https://github.com/iotbusters/assistant.net/issues/7)
                 var type = Type.GetType(typeName!, throwOnError: true);
                 var ctorArguments = new object?[] { message, inner }
                     .Where(x => x != null).Select(x => x!).ToArray();

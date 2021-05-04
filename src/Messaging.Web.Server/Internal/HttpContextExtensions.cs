@@ -7,8 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Assistant.Net.Abstractions;
-using Assistant.Net.Diagnostics.Abstractions;
-using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Serialization;
 
@@ -40,7 +38,7 @@ namespace Assistant.Net.Messaging.Internal
         public static Type GetCommandType(this HttpContext httpContext)
         {
             var commandName = httpContext.GetCommandName();
-            // todo: introduce type resolver
+            // todo: introduce type resolver (https://github.com/iotbusters/assistant.net/issues/7)
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.GetTypes())
                 .FirstOrDefault(x => x.IsClass && x.Name == commandName)

@@ -8,7 +8,7 @@ namespace Assistant.Net.Messaging.Extensions
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            // todo: add authentication and authorization
+            // todo: add authentication and authorization (https://github.com/iotbusters/assistant.net/issues/5)
             return base.SendAsync(request, cancellationToken);
         }
     }

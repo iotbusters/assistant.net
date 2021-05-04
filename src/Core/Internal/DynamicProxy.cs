@@ -16,7 +16,7 @@ namespace Assistant.Net.Internal
         private T instance = default!;
 
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args) =>
-            // todo: consider reusing commands and their interceptors. Ensure performance.
+            // todo: consider reusing commands and their interceptors. Ensure performance (https://github.com/iotbusters/assistant.net/issues/2)
             interceptors
                 .Select(intercept => (intercepted: intercept(targetMethod!, args!, out var result), result))
                 .First(x => x.intercepted).result;

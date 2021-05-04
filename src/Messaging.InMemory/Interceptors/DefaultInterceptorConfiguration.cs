@@ -4,7 +4,7 @@ using Assistant.Net.Messaging.Options;
 namespace Assistant.Net.Messaging.Interceptors
 {
     /// <summary>
-    ///     todo: consider removing if disabled in configuration.
+    ///     todo: consider removing if disabled in configuration (https://github.com/iotbusters/assistant.net/issues/1)
     /// </summary>
     public class DefaultInterceptorConfiguration : ICommandConfiguration
     {

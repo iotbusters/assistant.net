@@ -24,7 +24,7 @@ namespace Assistant.Net.Messaging.Interceptors
         }
 
         /// <summary>
-        ///     todo: resolve duplication in RetryingInterceptor.
+        ///     todo: resolve duplication in RetryingInterceptor (https://github.com/iotbusters/assistant.net/issues/4)
         /// </summary>
         private static Exception ToCommandException(Exception ex)
         {
