@@ -53,10 +53,10 @@ namespace Assistant.Net.Messaging.Serialization
             var (typeName, message, inner) = ReadExceptionContent(ref reader, options);
 
             if (typeName == null)
-                throw new JsonException($"Property '{TypePropertyName}' cannot be null.");
+                throw new JsonException($"Property '{TypePropertyName}' is required.");
 
             if (message == null)
-                throw new JsonException($"Property '{MessagePropertyName}' cannot be null.");
+                throw new JsonException($"Property '{MessagePropertyName}' is required.");
 
             try
             {
