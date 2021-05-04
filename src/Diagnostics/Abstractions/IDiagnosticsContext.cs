@@ -2,7 +2,7 @@
 
 namespace Assistant.Net.Diagnostics.Abstractions
 {
-    public interface IOperationContext
+    public interface IDiagnosticsContext
     {
         Guid CorrelationId { get; }
     }

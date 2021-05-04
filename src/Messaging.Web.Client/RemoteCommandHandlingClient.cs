@@ -2,9 +2,9 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
-using Microsoft.Extensions.Options;
 
 namespace Assistant.Net.Messaging
 {
@@ -30,7 +30,7 @@ namespace Assistant.Net.Messaging
             var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Post, "")
             {
                 // todo: add tracing ids, ETag etc
-                Headers = { { "command-name", commandName } },
+                Headers = { { HeaderNames.CommandName, commandName } },
                 Content = JsonContent.Create(command, command.GetType(), options: options.Value)
             }, lifetime.Stopping);
 

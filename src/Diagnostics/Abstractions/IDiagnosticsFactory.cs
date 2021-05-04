@@ -1,6 +1,6 @@
 ﻿namespace Assistant.Net.Diagnostics.Abstractions
 {
-    public interface IOperationFactory
+    public interface IDiagnosticsFactory
     {
         /// <summary>
         ///     Starts new operation within current operation context.

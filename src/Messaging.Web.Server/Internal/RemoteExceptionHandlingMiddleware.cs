@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using Assistant.Net.Messaging.Exceptions;
 using Microsoft.AspNetCore.Http;
+using Assistant.Net.Messaging.Exceptions;
 
 namespace Assistant.Net.Messaging.Internal
 {
@@ -18,30 +18,36 @@ namespace Assistant.Net.Messaging.Internal
             {
                 await next(context);
             }
-            catch (CommandNotFoundException ex)
+            catch (TaskCanceledException)
             {
-                await context.WriteCommandResponse(404, ex);
+                throw;
             }
-            catch (CommandNotRegisteredException ex)
-            {
-                await context.WriteCommandResponse(404, ex);
-            }
-            catch (CommandContractException ex)
-            {
-                await context.WriteCommandResponse(400, ex);
-            }
-            catch (CommandException ex)
-            {
-                await context.WriteCommandResponse(500, ex);
-            }
-            catch (Exception ex) when (ex is TaskCanceledException || ex is OperationCanceledException)
+            catch (OperationCanceledException)
             {
                 throw;
             }
             catch (Exception ex)
             {
-                await context.WriteCommandResponse(500, new CommandFailedException(ex));
+                await HandleException(context, ex);
             }
+        }
+
+        private Task HandleException(HttpContext context, Exception ex)
+        {
+            if (ex is AggregateException e)
+                return HandleException(context, e.InnerException!);
+
+            if (ex is CommandNotFoundException
+                || ex is CommandNotRegisteredException)
+                return context.WriteCommandResponse(404, ex);
+
+            if (ex is CommandContractException)
+                return context.WriteCommandResponse(400, ex);
+
+            if (ex is CommandException)
+                return context.WriteCommandResponse(500, ex);
+
+            return context.WriteCommandResponse(500, new CommandFailedException(ex));
         }
     }
 }

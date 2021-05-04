@@ -4,28 +4,42 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using static Microsoft.Extensions.Options.Options;
 using Assistant.Net.Abstractions;
+using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Serialization;
-using static Assistant.Net.Messaging.Options.Options;
 
 namespace Assistant.Net.Messaging.Internal
 {
     internal static class HttpContextExtensions
     {
-        public static T GetService<T>(this HttpContext httpContext)
-            where T : class => httpContext
-            .RequestServices.GetRequiredService<T>();
+        public static string GetRequiredHeader(this HttpContext httpContext, string name)
+        {
+            if (!httpContext.Request.Headers.TryGetValue(name, out var values))
+                throw new CommandContractException($"Header '{name}' is required.");
+
+            return values.First();
+        }
+
+        public static string GetCommandName(this HttpContext httpContext) =>
+            httpContext.GetRequiredHeader(HeaderNames.CommandName);
+
+        public static Guid GetCorrelationId(this HttpContext httpContext)
+        {
+            var value = httpContext.GetRequiredHeader(HeaderNames.CorrelationIdName);
+
+            if (!Guid.TryParse(value, out var correlationId))
+                throw new CommandContractException($"Header '{HeaderNames.CorrelationIdName}' is invalid.");
+
+            return correlationId;
+        }
 
         public static Type GetCommandType(this HttpContext httpContext)
         {
-            var commandName = httpContext.Request.Headers["command-name"].FirstOrDefault()
-                              ?? throw new CommandContractException("Header 'command-name' is required.");
+            var commandName = httpContext.GetCommandName();
             // todo: introduce type resolver
             return AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.GetTypes())
@@ -71,24 +85,8 @@ namespace Assistant.Net.Messaging.Internal
             await context.WriteCommandResponse(statusCode, (object)exception);
         }
 
-        public static ICommandClient GetClient(this HttpContext context)
-        {
-            var lifetime = context.GetService<ISystemLifetime>();
-            var clock = context.GetService<ISystemClock>();
-            var serializerOptions = context.GetService<IOptions<JsonSerializerOptions>>();
-            var commandOptions = context.GetService<IOptionsMonitor<Options.CommandOptions>>();
-            var options = Create(commandOptions.Get(RemoteName));
-            var scopeFactory = context.GetService<IServiceScopeFactory>();
-
-            var provider = new ServiceCollection()
-                .AddCommandClient()
-                .Replace(ServiceDescriptor.Singleton(lifetime))
-                .Replace(ServiceDescriptor.Singleton(clock))
-                .Replace(ServiceDescriptor.Singleton(serializerOptions))
-                .Replace(ServiceDescriptor.Singleton(options))
-                .Replace(ServiceDescriptor.Singleton(scopeFactory))
-                .BuildServiceProvider();
-            return provider.GetRequiredService<ICommandClient>();
-        }
+        public static T GetService<T>(this HttpContext httpContext)
+            where T : class => httpContext
+            .RequestServices.GetRequiredService<T>();
     }
 }

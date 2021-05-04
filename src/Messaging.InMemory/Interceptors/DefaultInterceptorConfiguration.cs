@@ -3,13 +3,16 @@ using Assistant.Net.Messaging.Options;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
+    /// <summary>
+    ///     todo: consider removing if disabled in configuration.
+    /// </summary>
     public class DefaultInterceptorConfiguration : ICommandConfiguration
     {
         public void Configure(CommandOptions options) => options.Interceptors
-            .Add<OperationInterceptor>()
+            .Add<DiagnosticsInterceptor>()
             .Add<ErrorHandlingInterceptor>()
-            .Add<TimeoutInterceptor>()
             .Add<CachingInterceptor>()
-            .Add<RetryingInterceptor>();
+            .Add<RetryingInterceptor>()
+            .Add<TimeoutInterceptor>();
     }
 }

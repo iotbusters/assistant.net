@@ -2,6 +2,7 @@ using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Extensions;
 
@@ -12,6 +13,7 @@ namespace Assistant.Net.Messaging
         private static TimeSpan DefaultTimeout => TimeSpan.FromSeconds(10);
 
         public static IServiceCollection AddRemoteCommandHandlingClient(this IServiceCollection services) => services
+            .AddDiagnostics()
             .AddJsonSerializerOptions()
             .AddHttpClient<RemoteCommandHandlingClient>((p, c) =>
             {
@@ -19,7 +21,8 @@ namespace Assistant.Net.Messaging
                 c.BaseAddress = options.BaseAddress;
                 c.Timeout = options.Timeout ?? DefaultTimeout;
             })
-            .AddHttpMessageHandler<MetricsHandler>()
+            .AddHttpMessageHandler<CorrelationIdHandler>()
+            .AddHttpMessageHandler<DiagnosticsHandler>()
             .AddHttpMessageHandler<AuthorizationHandler>()
             .AddHttpMessageHandler<ErrorPropagationHandler>()
             .Services;

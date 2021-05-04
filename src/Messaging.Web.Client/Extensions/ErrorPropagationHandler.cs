@@ -11,7 +11,7 @@ using Assistant.Net.Messaging.Serialization;
 
 namespace Assistant.Net.Messaging.Extensions
 {
-    public class ErrorPropagationHandler : DelegatingHandler
+    internal class ErrorPropagationHandler : DelegatingHandler
     {
         private readonly IOptions<JsonSerializerOptions> options;
 

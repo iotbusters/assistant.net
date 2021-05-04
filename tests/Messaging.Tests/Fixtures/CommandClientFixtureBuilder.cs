@@ -1,13 +1,12 @@
 using System;
 using System.Linq;
+using Assistant.Net.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Tests.Mocks;
-using Assistant.Net.Messaging.Internal;
 
 namespace Assistant.Net.Messaging.Tests.Fixtures
 {
@@ -20,8 +19,8 @@ namespace Assistant.Net.Messaging.Tests.Fixtures
                 .AddRemoteCommandHandlingClient(o => o.BaseAddress = new Uri("http://localhost/command"));
             RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
-                .Configure(b => b.UseRemoteCommandHandling())
-                .ConfigureServices(s => s.AddSystemServicesHosted().AddJsonSerializerOptions()));
+                .Configure(b => b.UseRemoteCommandHandling()))
+                .ConfigureServices(s => s.AddCommandClient());
         }
 
         public IServiceCollection Services { get; init; }

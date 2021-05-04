@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Runtime.ExceptionServices;
 using Microsoft.Extensions.Logging;
 using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics.Abstractions;
@@ -13,16 +12,16 @@ namespace Assistant.Net.Messaging.Interceptors
     public class RetryingInterceptor : ICommandInterceptor
     {
         private readonly ILogger<RetryingInterceptor> logger;
-        private readonly IOperationFactory operationFactory;
+        private readonly IDiagnosticsFactory diagnosticsFactory;
         private readonly ISystemLifetime lifetime;
 
         public RetryingInterceptor(
             ILogger<RetryingInterceptor> logger,
-            IOperationFactory operationFactory,
+            IDiagnosticsFactory diagnosticsFactory,
             ISystemLifetime lifetime)
         {
             this.logger = logger;
-            this.operationFactory = operationFactory;
+            this.diagnosticsFactory = diagnosticsFactory;
             this.lifetime = lifetime;
         }
 
@@ -35,7 +34,7 @@ namespace Assistant.Net.Messaging.Interceptors
 
             for (var attempt = 1; attempt <= maxRetryLimit; attempt++)
             {
-                var operation = operationFactory.Start($"attempt-{attempt}");
+                var operation = diagnosticsFactory.Start($"attempt-{attempt}");
 
                 lifetime.Stopping.ThrowIfCancellationRequested();
 
@@ -67,13 +66,15 @@ namespace Assistant.Net.Messaging.Interceptors
         /// </summary>
         private static bool CriticalExceptionOnly(Exception ex)
         {
+            // todo: define transient list instead
+            return true;
             // configurable
             var criticalExceptionTypes = new[]
             {
                 typeof(TaskCanceledException),
                 typeof(OperationCanceledException),
                 typeof(TimeoutException),
-                typeof(CommandException)
+                typeof(CommandException),
             };
 
             if (ex is AggregateException e)

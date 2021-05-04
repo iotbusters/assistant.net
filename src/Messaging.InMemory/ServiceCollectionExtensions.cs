@@ -1,10 +1,10 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Internal;
-using Assistant.Net.Diagnostics;
 
 namespace Assistant.Net.Messaging
 {

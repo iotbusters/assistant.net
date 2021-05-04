@@ -48,7 +48,7 @@ namespace Assistant.Net.Messaging.Internal
 
         private IAbstractHandler? CreateHandler(Type commandType, IServiceProvider provider)
         {
-            var adapterType = typeof(HandlerAdaptor<,>).MakeGenericTypeBoundToCommand(commandType);
+            var adapterType = typeof(HandlerAdapter<,>).MakeGenericTypeBoundToCommand(commandType);
 
             if (!handlerMap.TryGetValue(commandType, out var handlerType))
                 return null;

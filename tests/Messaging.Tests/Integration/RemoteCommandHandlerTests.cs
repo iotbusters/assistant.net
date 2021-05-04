@@ -41,6 +41,7 @@ namespace Assistant.Net.Messaging.Tests.Integration
         {
             using var fixture = new CommandClientFixtureBuilder()
             .AddRemoteCommandRegistrationOnly<TestCommand1>()
+            .AddRemote<TestCommandHandler2>()// to have at least one handler configured
             .Create();
 
             fixture.Client.Awaiting(x => x.Send(new TestCommand1(0)))

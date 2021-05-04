@@ -7,9 +7,9 @@ using Assistant.Net.Diagnostics.EventSources;
 
 namespace Assistant.Net.Diagnostics.Internal
 {
-    internal sealed class OperationFactory : IOperationFactory, IDisposable
+    internal sealed class DiagnosticsFactory : IDiagnosticsFactory, IDisposable
     {
-        public OperationFactory(OperationEventSource eventSource, ISystemClock clock, IOperationContext context)
+        public DiagnosticsFactory(OperationEventSource eventSource, ISystemClock clock, IDiagnosticsContext context)
         {
             EventSource = eventSource;
             Clock = clock;
@@ -18,10 +18,10 @@ namespace Assistant.Net.Diagnostics.Internal
 
         internal OperationEventSource EventSource { get; }
         internal ISystemClock Clock { get; }
-        internal IOperationContext Context { get; }
+        internal IDiagnosticsContext Context { get; }
         internal IDictionary<string, IDisposable> Operations { get; } = new ConcurrentDictionary<string, IDisposable>();
 
-        IOperation IOperationFactory.Start(string name) =>
+        IOperation IDiagnosticsFactory.Start(string name) =>
             new Operation(name, this);
 
         void IDisposable.Dispose()

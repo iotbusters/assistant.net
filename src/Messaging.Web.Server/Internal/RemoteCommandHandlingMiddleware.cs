@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Internal
 {
@@ -7,7 +8,7 @@ namespace Assistant.Net.Messaging.Internal
     {
         private readonly RequestDelegate next;
 
-        public RemoteCommandHandlingMiddleware(RequestDelegate next) =>
+        public RemoteCommandHandlingMiddleware(RequestDelegate next, ICommandClient client) : base(client) =>
             this.next = next;
 
         public override Task Invoke(HttpContext httpContext)

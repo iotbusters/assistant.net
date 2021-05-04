@@ -5,16 +5,18 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
-    public class OperationInterceptor : ICommandInterceptor<ICommand<object>, object>
+    public class DiagnosticsInterceptor : ICommandInterceptor<ICommand<object>, object>
     {
-        private readonly IOperationFactory operationFactory;
+        private readonly IDiagnosticsFactory diagnosticsFactory;
 
-        public OperationInterceptor(IOperationFactory operationFactory) =>
-            this.operationFactory = operationFactory;
+        public DiagnosticsInterceptor(IDiagnosticsFactory diagnosticsFactory) =>
+            this.diagnosticsFactory = diagnosticsFactory;
 
         public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
         {
-            var operation = operationFactory.Start($"{command.GetType().Name.ToLower()}-handling");
+            var commandName = command.GetType().Name.ToLower();
+            var operation = diagnosticsFactory.Start($"{commandName}-local-handling");
+
             try
             {
                 return await next(command);

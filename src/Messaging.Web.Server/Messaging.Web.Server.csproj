@@ -9,7 +9,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Messaging.Web\Messaging.Web.csproj"/>
-    <ProjectReference Include="..\Messaging.InMemory\Messaging.InMemory.csproj"/>
+    <ProjectReference Include="..\Messaging.Web\Messaging.Web.csproj" />
+    <ProjectReference Include="..\Messaging.InMemory\Messaging.InMemory.csproj" />
   </ItemGroup>
 </Project>

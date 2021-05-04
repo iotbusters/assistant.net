@@ -4,12 +4,12 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Internal
 {
-    internal class HandlerAdaptor<TCommand, TResponse> : IAbstractHandler, ICommandHandler<TCommand, TResponse>
+    internal class HandlerAdapter<TCommand, TResponse> : IAbstractHandler, ICommandHandler<TCommand, TResponse>
         where TCommand : ICommand<TResponse>
     {
         private readonly ICommandHandler<TCommand, TResponse> handler;
 
-        public HandlerAdaptor(ICommandHandler<TCommand, TResponse> handler) =>
+        public HandlerAdapter(ICommandHandler<TCommand, TResponse> handler) =>
             this.handler = handler;
 
         public async Task<TResponse> Handle(TCommand command) =>
