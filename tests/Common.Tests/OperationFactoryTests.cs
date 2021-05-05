@@ -58,7 +58,7 @@ namespace Assistant.Net.Common.Tests
                 }
             },
                 opt => opt
-                    .Using<TimeSpan>(ctx => ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(20)))
+                    .Using<TimeSpan>(ctx => ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromSeconds(0.5)))
                     .WhenTypeIs<TimeSpan>());
         }
 
@@ -126,7 +126,7 @@ namespace Assistant.Net.Common.Tests
                 }
             },
                 opt => opt
-                    .Using<TimeSpan>(ctx => ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(20)))
+                    .Using<TimeSpan>(ctx => ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromSeconds(0.5)))
                     .WhenTypeIs<TimeSpan>());
 
         }
@@ -190,7 +190,7 @@ namespace Assistant.Net.Common.Tests
                     }
                 },
                 opt => opt
-                    .Using<TimeSpan>(ctx => ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(20)))
+                    .Using<TimeSpan>(ctx => ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromSeconds(0.5)))
                     .WhenTypeIs<TimeSpan>());
         }
 
@@ -253,7 +253,7 @@ namespace Assistant.Net.Common.Tests
                     }
                 },
                 opt => opt
-                    .Using<TimeSpan>(ctx => ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(20)))
+                    .Using<TimeSpan>(ctx => ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromSeconds(0.5)))
                     .WhenTypeIs<TimeSpan>());
         }
 
@@ -319,7 +319,7 @@ namespace Assistant.Net.Common.Tests
                     }
                 },
                 opt => opt
-                    .Using<TimeSpan>(ctx => ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromMilliseconds(20)))
+                    .Using<TimeSpan>(ctx => ctx.Subject.Should().BeCloseTo(ctx.Expectation, TimeSpan.FromSeconds(0.5)))
                     .WhenTypeIs<TimeSpan>());
         }
 
