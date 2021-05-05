@@ -1,0 +1,54 @@
+name: CI/master
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: [ '5.0' ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-dotnet@v1.7.2
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: ${{ runner.os }}-nuget-
+      - run: dotnet restore -v n
+      - run: dotnet build -c release -v n --no-restore
+      - run: dotnet test -c release -v n --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
+      - name: Report test results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          files: |
+            **/TestResults.xml
+        if: always()
+      - name: Report coverage results
+        uses: codecov/codecov-action@v1.0.5
+        if: always()
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Results
+          path: |
+            **/TestResults.xml
+            **/coverage.opencover.xml
+          retention-days: 60
+        if: always()
+      - uses: actions/upload-artifact@v2
+        with:
+          name: binaries
+          path: |
+            src/Core/bin/Release/*/*.dll
+            src/Diagnostics/bin/Release/*/*.dll
+            src/Messaging/bin/Release/*/*.dll
+            src/Messaging.InMemory/bin/Release/*/*.dll
+            src/Messaging.Web/bin/Release/*/*.dll
+            src/Messaging.Web.Client/bin/Release/*/*.dll
+            src/Messaging.Web.Server/bin/Release/*/*.dll
+          retention-days: 1
