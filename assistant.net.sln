@@ -27,6 +27,24 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Tests", "tests\Commo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "App.Host", "src\App.Host\App.Host.csproj", "{7107B07D-47CC-4A3B-A2FD-306D75ABCAFB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{4F6B2A00-A05C-4144-81DD-383CC77F7951}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{5100A35B-B0AD-4B31-B20D-1B6BA9C28E67}"
+	ProjectSection(SolutionItems) = preProject
+		.github\codecov.yml = .github\codecov.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{E8CFAD40-A709-484B-95BF-05136817D277}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\ci-master.yml = .github\workflows\ci-master.yml
+		.github\workflows\ci.yml = .github\workflows\ci.yml
+		.github\workflows\release.yml = .github\workflows\release.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -172,6 +190,7 @@ Global
 		{AF54229C-4604-4E73-853F-B3458A48926D} = {16267B81-E515-4C2E-8BE9-671F5E6DE6E6}
 		{10FA103F-02FD-4306-9655-C9990DAA004C} = {B61F8903-EF78-4C57-9CCC-0758D49B4C48}
 		{7107B07D-47CC-4A3B-A2FD-306D75ABCAFB} = {16267B81-E515-4C2E-8BE9-671F5E6DE6E6}
+		{E8CFAD40-A709-484B-95BF-05136817D277} = {5100A35B-B0AD-4B31-B20D-1B6BA9C28E67}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {785A054B-D40C-486E-9A4F-1A7CA8F4FCD7}
