@@ -1,22 +1,46 @@
-name: Publish Assistant.Net packages
+name: Release
 on:
   release:
     types: [created]
+    paths: src/Core
 jobs:
   package:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet-version: ['5.0']
+    env:
+      VERSION: 0.0.${{ GITHUB_RUN_NUMBER }}
     steps:
-      # - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v2
-      - run: ls src/Core -R
+      - uses: actions/checkout@v2
       - uses: actions/setup-dotnet@v1.7.2
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
-          source-url: https://nuget.pkg.github.com/iotbusters/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-      #- run: dotnet pack -c release --no-restore --no-build src/Core/Core.csproj -v n
-      #- run: dotnet nuget push src/Core/bin/Release/*.nupkg
+          dotnet-version: 5.0
+      # - uses: actions/cache@v2.1.5
+      #   with:
+      #     path: ~/.nuget/packages
+      #     key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+      #     restore-keys: ${{ runner.os }}-nuget-
+      - run: dotnet restore -v n
+      - run: dotnet build -v n -c release --no-restore -p:version=$VERSION
+      - run: dotnet pack src/Core/Core.csproj -o packages -p:PackageVersion=$VERSION -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -v n -c release --no-restore --no-build --no-dependencies
+      - uses: actions/upload-artifact@v2.2.3
+        with:
+          name: packages
+          path: |
+            packages/*.nupkg
+            packages/*.snupkg
+          retention-days: 30
+        if: always()
+  publish:
+    runs-on: ubuntu-latest
+    needs: package
+    steps:
+      - uses: actions/download-artifact@v2.0.9
+        with:
+          name: packages
+      - run: dotnet nuget push *.nupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json -t 30
+      - run: dotnet nuget push *.snupkg -k ${{secrets.NUGET_API_KEY}} -s https://api.nuget.org/v3/index.json -t 30
+      # if ubuntu-latest doesn't work
+      # - run: |
+      #     for f in *.nupkg
+      #     do
+      #       curl -vX PUT -u "iotbusters:$GITHUB_TOKEN" -F package=@$f $GITHUB_FEED
+      #     done

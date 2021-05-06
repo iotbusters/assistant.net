@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [ develop ]
+    branches: [ master, develop ]
   pull_request:
     branches: [ master ]
 
@@ -9,22 +9,19 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet-version: [ '5.0' ]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-dotnet@v1.7.2
         with:
-          dotnet-version: ${{ matrix.dotnet-version }}
-      - uses: actions/cache@v2
+          dotnet-version: 5.0
+      - uses: actions/cache@v2.1.5
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
           restore-keys: ${{ runner.os }}-nuget-
       - run: dotnet restore -v n
-      - run: dotnet build -c release -v n --no-restore
-      - run: dotnet test -c release -v n --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
+      - run: dotnet build -v n -c release --no-restore
+      - run: dotnet test -v n -c release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
       - name: Report test results
         uses: EnricoMi/publish-unit-test-result-action@v1
         with:
@@ -34,9 +31,9 @@ jobs:
       - name: Report coverage results
         uses: codecov/codecov-action@v1.5.0
         if: always()
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2.2.3
         with:
-          name: Results
+          name: ci-results
           path: |
             **/TestResults.xml
             **/coverage.opencover.xml
