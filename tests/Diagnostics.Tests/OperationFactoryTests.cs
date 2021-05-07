@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Diagnostics.Tracing;
-using Assistant.Net.Common.Tests.Mocks;
-using Assistant.Net.Diagnostics;
-using Assistant.Net.Diagnostics.Abstractions;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using FluentAssertions;
 using NUnit.Framework;
+using Assistant.Net.Diagnostics.Abstractions;
+using Assistant.Net.Diagnostics.Tests.Mocks;
 
-namespace Assistant.Net.Common.Tests
+namespace Assistant.Net.Diagnostics.Tests
 {
     public class OperationFactoryTests
     {
@@ -23,7 +22,7 @@ namespace Assistant.Net.Common.Tests
             provider.Dispose();
 
         [Test]
-        public void Dispose_Scope_OperationIncompleted()
+        public void Dispose_Scope_OperationIncomplete()
         {
             using var eventListener = new TestOperationEventListener();
             var scope = provider.CreateScope();
@@ -53,7 +52,7 @@ namespace Assistant.Net.Common.Tests
                     RelatedActivityId = correlationId,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Stop,
-                    Payload = new object[] {new TimeSpan(), "Operation wasn't properly stopped or lost.", "incompleted", CorrelationIdPayload(correlationId)},
+                    Payload = new object[] {new TimeSpan(), "Operation wasn't properly stopped or lost.", "incomplete", CorrelationIdPayload(correlationId)},
                     PayloadNames = new[] {"Duration", "Message", "Status", "Metadata"}
                 }
             },
@@ -63,7 +62,7 @@ namespace Assistant.Net.Common.Tests
         }
 
         [Test]
-        public void Complete_TwoScopes_OperationsCompleted()
+        public void Complete_TwoScopes_OperationsComplete()
         {
             using var eventListener = new TestOperationEventListener();
 
@@ -111,7 +110,7 @@ namespace Assistant.Net.Common.Tests
                     RelatedActivityId = correlationId2,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Stop,
-                    Payload = new object[] {new TimeSpan(), "Operation has successfully completed.", "completed", CorrelationIdPayload(correlationId2, correlationId1)},
+                    Payload = new object[] {new TimeSpan(), "Operation has successfully completed.", "complete", CorrelationIdPayload(correlationId2, correlationId1)},
                     PayloadNames = new[] {"Duration", "Message", "Status", "Metadata"}
                 },
                 new
@@ -121,7 +120,7 @@ namespace Assistant.Net.Common.Tests
                     RelatedActivityId = correlationId1,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Stop,
-                    Payload = new object[] { new TimeSpan(), "Operation has successfully completed.", "completed", CorrelationIdPayload(correlationId1)},
+                    Payload = new object[] { new TimeSpan(), "Operation has successfully completed.", "complete", CorrelationIdPayload(correlationId1)},
                     PayloadNames = new[] {"Duration", "Message", "Status", "Metadata"}
                 }
             },
@@ -132,7 +131,7 @@ namespace Assistant.Net.Common.Tests
         }
 
         [Test]
-        public void Complete_HierarchicallySameNamedOperation_OperationsCompleted()
+        public void Complete_HierarchicallySameNamedOperation_OperationsComplete()
         {
             using var eventListener = new TestOperationEventListener();
             using var scope = provider.CreateScope();
@@ -175,7 +174,7 @@ namespace Assistant.Net.Common.Tests
                         RelatedActivityId = correlationId,
                         EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                         Opcode = EventOpcode.Stop,
-                        Payload = new object[] {new TimeSpan(), "Operation has successfully completed.", "completed", CorrelationIdPayload(correlationId)},
+                        Payload = new object[] {new TimeSpan(), "Operation has successfully completed.", "complete", CorrelationIdPayload(correlationId)},
                         PayloadNames = new[] {"Duration", "Message", "Status", "Metadata"}
                     },
                     new
@@ -185,7 +184,7 @@ namespace Assistant.Net.Common.Tests
                         RelatedActivityId = correlationId,
                         EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                         Opcode = EventOpcode.Stop,
-                        Payload = new object[] {new TimeSpan(), "test-message", "completed", CorrelationIdPayload(correlationId)},
+                        Payload = new object[] {new TimeSpan(), "test-message", "complete", CorrelationIdPayload(correlationId)},
                         PayloadNames = new[] {"Duration", "Message", "Status", "Metadata"}
                     }
                 },
@@ -238,7 +237,7 @@ namespace Assistant.Net.Common.Tests
                         RelatedActivityId = correlationId,
                         EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                         Opcode = EventOpcode.Stop,
-                        Payload = new object[] {new TimeSpan(), "Operation has successfully completed.", "completed", CorrelationIdPayload(correlationId)},
+                        Payload = new object[] {new TimeSpan(), "Operation has successfully completed.", "complete", CorrelationIdPayload(correlationId)},
                         PayloadNames = new[] {"Duration", "Message", "Status", "Metadata"}
                     },
                     new
@@ -248,7 +247,7 @@ namespace Assistant.Net.Common.Tests
                         RelatedActivityId = correlationId,
                         EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                         Opcode = EventOpcode.Stop,
-                        Payload = new object[] {new TimeSpan(), "Operation has successfully completed.", "completed", CorrelationIdPayload(correlationId)},
+                        Payload = new object[] {new TimeSpan(), "Operation has successfully completed.", "complete", CorrelationIdPayload(correlationId)},
                         PayloadNames = new[] {"Duration", "Message", "Status", "Metadata"}
                     }
                 },
@@ -258,7 +257,7 @@ namespace Assistant.Net.Common.Tests
         }
 
         [Test]
-        public void Complete_RootOperation_SubOperationIncompleted()
+        public void Complete_RootOperation_SubOperationIncomplete()
         {
             using var eventListener = new TestOperationEventListener();
             using var scope = provider.CreateScope();
@@ -304,7 +303,7 @@ namespace Assistant.Net.Common.Tests
                         RelatedActivityId = correlationId,
                         EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                         Opcode = EventOpcode.Stop,
-                        Payload = new object[] {new TimeSpan(), "Operation has successfully completed.", "completed", CorrelationIdPayload(correlationId)},
+                        Payload = new object[] {new TimeSpan(), "Operation has successfully completed.", "complete", CorrelationIdPayload(correlationId)},
                         PayloadNames = new[] {"Duration", "Message", "Status", "Metadata"}
                     },
                     new
@@ -314,7 +313,7 @@ namespace Assistant.Net.Common.Tests
                         RelatedActivityId = correlationId,
                         EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                         Opcode = EventOpcode.Stop,
-                        Payload = new object[] {new TimeSpan(), "Operation wasn't properly stopped or lost.", "incompleted", CorrelationIdPayload(correlationId)},
+                        Payload = new object[] {new TimeSpan(), "Operation wasn't properly stopped or lost.", "incomplete", CorrelationIdPayload(correlationId)},
                         PayloadNames = new[] {"Duration", "Message", "Status", "Metadata"}
                     }
                 },
