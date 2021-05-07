@@ -2,7 +2,7 @@
 using System.Diagnostics.Tracing;
 using Assistant.Net.Diagnostics.EventSources;
 
-namespace Assistant.Net.Common.Tests.Mocks
+namespace Assistant.Net.Diagnostics.Tests.Mocks
 {
     public class TestOperationEventListener : EventListener
     {

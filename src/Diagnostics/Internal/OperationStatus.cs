@@ -2,8 +2,8 @@
 {
     internal static class OperationStatus
     {
-        public const string Completed = "completed";
-        public const string Incompleted = "incompleted";
+        public const string Complete = "complete";
+        public const string Incomplete = "incomplete";
         public const string Failed = "failed";
     }
 }

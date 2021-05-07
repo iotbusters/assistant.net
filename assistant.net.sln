@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Messaging.InMemory", "src\M
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Diagnostics", "src\Diagnostics\Diagnostics.csproj", "{AF54229C-4604-4E73-853F-B3458A48926D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common.Tests", "tests\Common.Tests\Common.Tests.csproj", "{10FA103F-02FD-4306-9655-C9990DAA004C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Diagnostics.Tests", "tests\Diagnostics.Tests\Diagnostics.Tests.csproj", "{10FA103F-02FD-4306-9655-C9990DAA004C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "App.Host", "src\App.Host\App.Host.csproj", "{7107B07D-47CC-4A3B-A2FD-306D75ABCAFB}"
 EndProject

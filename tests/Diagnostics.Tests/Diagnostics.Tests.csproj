@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Common.Tests</RootNamespace>
-    <AssemblyName>assistant.net.common.tests</AssemblyName>
+    <RootNamespace>Assistant.Net.Diagnostics.Tests</RootNamespace>
+    <AssemblyName>assistant.net.diagnostics.tests</AssemblyName>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>

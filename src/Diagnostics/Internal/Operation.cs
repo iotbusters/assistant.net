@@ -31,13 +31,13 @@ namespace Assistant.Net.Diagnostics.Internal
         }
 
         void IOperation.Complete(string? message) =>
-            Stop(OperationStatus.Completed, message ?? DefaultCompleteMessage);
+            Stop(OperationStatus.Complete, message ?? DefaultCompleteMessage);
 
         void IOperation.Fail(string? message) =>
             Stop(OperationStatus.Failed, message ?? DefaultFailMessage);
 
         void IDisposable.Dispose() =>
-            Stop(OperationStatus.Incompleted, LostOperationMessage);
+            Stop(OperationStatus.Incomplete, LostOperationMessage);
 
         // todo: consider failing with user-data (https://github.com/iotbusters/assistant.net/issues/3)
         private void Stop(string status, string message)
