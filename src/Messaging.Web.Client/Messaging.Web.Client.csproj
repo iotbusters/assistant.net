@@ -16,4 +16,12 @@
     <ProjectReference Include="..\Messaging.Web\Messaging.Web.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <PackageDescription>Assistant.NET remote WEB Messaging client implementation. It enbles delegating to remote message handlers.</PackageDescription>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
+  </ItemGroup>
+
 </Project>

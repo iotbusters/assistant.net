@@ -2,19 +2,15 @@ name: Release
 on:
   release:
     types: [created]
-    paths: src/Core
+    #branches: master
 
 jobs:
-
   package:
     runs-on: ubuntu-latest
-    env:
-      VERSION: '0.0.${GITHUB_RUN_NUMBER}'
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-dotnet@v1.7.2
-        with:
-          dotnet-version: '5.0'
+        with: { dotnet-version: "5.0" }
 
       # - uses: actions/cache@v2.1.5
       #   with:
@@ -22,9 +18,27 @@ jobs:
       #     key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
       #     restore-keys: ${{ runner.os }}-nuget-
 
+      - run: | # dirty parsing hack. waiting for suitable trigger option to provide custom data.
+          REGEX='^(\w*) release (\d\.\d\.\d+)$'
+          RELEASE_NAME=${{ github.event.release.name }}
+          [[ ${RELEASE_NAME} =~ ${REGEX} ]]
+          GROUPS=${BASH_REMATCH}
+      - run: exit 1
+        if: ${GROUPS[0]} == ''
+      - run: |
+          NAME=${GROUPS[1]}
+          PROJECT_PATH=src/${NAME}/${NAME}.csproj
+          VERSION=${GROUPS[2]}
+        if: ${GROUPS[0]} != ''
+      - run: NUGET_VERSION=${VERSION}-prerelease
+        if: github.event.release.prerelease
+      - run: NUGET_VERSION=${VERSION}
+        if: github.event.release.prerelease == false
+      # useful link: https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#release
+
       - run: dotnet restore -v n
-      - run: dotnet build -v n -c release --no-restore -p:version=$VERSION
-      - run: dotnet pack src/Core/Core.csproj -o packages -p:PackageVersion=$VERSION -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -v n -c release --no-restore --no-build --no-dependencies
+      - run: dotnet build -v n -c release --no-restore -p:version=${VERSION}
+      - run: dotnet pack ${PROJECT_PATH} -o packages -p:PackageVersion=${NUGET_VERSION} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -v n -c release --no-restore --no-build --no-dependencies
 
       - uses: actions/upload-artifact@v2.2.3
         with:
@@ -44,8 +58,8 @@ jobs:
       - uses: actions/download-artifact@v2.0.9
         with:
           name: packages
-      - run: dotnet nuget push *.nupkg -k $API_KEY -s https://api.nuget.org/v3/index.json -t 30
-      - run: dotnet nuget push *.snupkg -k $API_KEY -s https://api.nuget.org/v3/index.json -t 30
+      - run: dotnet nuget push *.nupkg -k ${API_KEY} -s https://api.nuget.org/v3/index.json -t 30
+      - run: dotnet nuget push *.snupkg -k ${API_KEY} -s https://api.nuget.org/v3/index.json -t 30
       # if ubuntu-latest doesn't work
       # - run: |
       #     for f in *.nupkg

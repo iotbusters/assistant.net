@@ -1,41 +1,66 @@
 name: CI
+
 on:
   push:
-    branches: [ master, develop ]
-  pull_request:
     branches: [ master ]
+  # push:
+  #   branches: [ master, develop ]
+  #   paths: [ src, tests ]
+  # pull_request:
+  #   branches: [ master ]
+  #   paths: [ src, tests ]
+  #   # useful link: https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#pull_request
 
 jobs:
 
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-dotnet@v1.7.2
-        with:
-          dotnet-version: '5.0'
-      - uses: actions/cache@v2.1.5
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-          restore-keys: ${{ runner.os }}-nuget-
-      - run: dotnet restore -v n
-      - run: dotnet build -v n -c release --no-restore
-      - run: dotnet test -v n -c release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
-      - name: Report test results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        with:
-          files: |
-            **/TestResults.xml
-        if: always()
-      - name: Report coverage results
-        uses: codecov/codecov-action@v1.5.0
-        if: always()
-      - uses: actions/upload-artifact@v2.2.3
-        with:
-          name: ci-results
-          path: |
-            **/TestResults.xml
-            **/coverage.opencover.xml
-          retention-days: 60
-        if: always()
+      - run: echo disabled
+      # - uses: actions/checkout@v2
+      # - uses: actions/setup-dotnet@v1.7.2
+      #   with:
+      #     dotnet-version: '5.0'
+
+      # - uses: actions/cache@v2.1.5
+      #   with:
+      #     path: ~/.nuget/packages
+      #     key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+      #     restore-keys: ${{ runner.os }}-nuget-
+
+      # - run: dotnet restore -v n
+      # - run: dotnet build -v n -c release --no-restore
+      # - run: dotnet test -v n -c release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
+
+      # - name: Report test results
+      #   uses: EnricoMi/publish-unit-test-result-action@v1
+      #   with:
+      #     files: |
+      #       **/TestResults.xml
+      #   if: always()
+      # - name: Report coverage results
+      #   uses: codecov/codecov-action@v1.5.0
+      #   if: always()
+      # - uses: actions/upload-artifact@v2.2.3
+      #   with:
+      #     name: ci-results
+      #     path: |
+      #       **/TestResults.xml
+      #       **/coverage.opencover.xml
+      #     retention-days: 60
+      #   if: always()
+
+  # pre-release:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   steps:
+  #     - uses: actions/create-release@v1
+  #       env:
+  #         VERSION: '0.0.${GITHUB_RUN_NUMBER}-prerelease'
+  #       with:
+  #         tag_name: ${VERSION}
+  #         release_name: Release ${VERSION}
+  #         prerelease: true
+  #         # todo: implement. see https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#push
+  #         # body: ${{ github.event.commits[].message }}
+  #       if: github.event_name == 'push' #&& github.ref == 'refs/heads/master'
