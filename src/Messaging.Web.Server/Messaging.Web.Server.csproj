@@ -5,11 +5,22 @@
     <AssemblyName>assistant.net.messaging.web.server</AssemblyName>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Messaging.Web\Messaging.Web.csproj" />
     <ProjectReference Include="..\Messaging.InMemory\Messaging.InMemory.csproj" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <PackageDescription>Assistant.NET remote WEB Messaging handling implementation. It enbles remote message request handling.</PackageDescription>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
+  </ItemGroup>
+
 </Project>
