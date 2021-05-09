@@ -19,17 +19,19 @@ jobs:
       #     restore-keys: ${{ runner.os }}-nuget-
 
       - run: | # dirty parsing hack. waiting for suitable trigger option to provide custom data.
-          REGEX='^(\w*) Release (\d\.\d\.\d+)$'
+          # the command doesn't support \d \w for some reason.
+          REGEX='^([a-zA-Z]*) Release ([0-9]\.[0-9]\.[0-9]+)$'
           RELEASE_NAME=${{ github.event.release.name }}
           [[ ${RELEASE_NAME} =~ ${REGEX} ]]
-          GROUPS=${BASH_REMATCH}
-      - run: exit 1
-        if: ${GROUPS[0]} == ''
       - run: |
-          NAME=${GROUPS[1]}
+          echo The release "${RELEASE_NAME}" does not follow the convention "<Project> Release <Version>".
+          exit 1
+        if: ${BASH_REMATCH[0]} == ''
+      - run: |
+          NAME=${BASH_REMATCH[1]}
           PROJECT_PATH=src/${NAME}/${NAME}.csproj
-          VERSION=${GROUPS[2]}
-        if: ${GROUPS[0]} != ''
+          VERSION=${BASH_REMATCH[2]}
+        if: ${BASH_REMATCH[0]} != ''
       - run: NUGET_VERSION=${VERSION}-prerelease
         if: github.event.release.prerelease
       - run: NUGET_VERSION=${VERSION}
