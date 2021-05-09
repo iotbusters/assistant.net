@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-dotnet@v1.7.2
-        with: { dotnet-version: "5.0" }
+        with: { dotnet-version: '5.0' }
 
       # - uses: actions/cache@v2.1.5
       #   with:
@@ -19,7 +19,7 @@ jobs:
       #     restore-keys: ${{ runner.os }}-nuget-
 
       - run: | # dirty parsing hack. waiting for suitable trigger option to provide custom data.
-          REGEX='^(\w*) release (\d\.\d\.\d+)$'
+          REGEX='^(\w*) Release (\d\.\d\.\d+)$'
           RELEASE_NAME=${{ github.event.release.name }}
           [[ ${RELEASE_NAME} =~ ${REGEX} ]]
           GROUPS=${BASH_REMATCH}

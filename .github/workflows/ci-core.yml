@@ -2,7 +2,7 @@ name: CI Core
 on:
   push:
     branches: [master, develop]
-    # paths: [src/Core]
+    paths: [src/Core]
   pull_request:
     branches: [master]
     paths: [src/Core]
@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2.3.4
       - uses: actions/setup-dotnet@v1.7.2
-        with: { dotnet-version: "5.0" }
+        with: { dotnet-version: '5.0' }
 
       - name: Initialize environment variables
         run: |
@@ -62,8 +62,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           tag_name: v${{ env.VERSION }}
-          release_name: ${{ env.NAME }} release ${{ env.VERSION }}
+          release_name: ${{ env.NAME }} Release ${{ env.VERSION }}
           prerelease: true
           # todo: implement. see https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#push
           # body: ${{ github.event.commits[].message }}
-        if: github.event_name == 'push' #&& github.ref == 'refs/heads/master'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
