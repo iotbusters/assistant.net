@@ -8,7 +8,7 @@ on:
     paths: [src/Core]
 env:
   NAME: Core
-  VERSION: 0.0.${{ github.run_number }}
+  VERSION: ${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}
 
 jobs:
   build:
@@ -64,6 +64,7 @@ jobs:
           tag_name: v${{ env.VERSION }}
           release_name: ${{ env.NAME }} Release ${{ env.VERSION }}
           prerelease: true
-          # todo: implement. see https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#push
-          # body: ${{ github.event.commits[].message }}
+          body: ${{ join(github.event.commits.*.message, '%0A') }}
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        # useful link:
+        # https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#push
