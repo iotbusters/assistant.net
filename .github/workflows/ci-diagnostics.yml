@@ -1,7 +1,7 @@
 name: CI Diagnostics
 on:
   push:
-    branches: [master, develop]
+    branches: [master]
     paths: [src/Diagnostics/**]
   pull_request:
     branches: [master]
@@ -64,7 +64,7 @@ jobs:
           tag_name: v${{ env.VERSION }}
           release_name: ${{ env.NAME }} Release ${{ env.VERSION }}
           prerelease: true
-          body: ${{ join(github.event.commits.*.message, '%0A') }}
+          body: ${{ join(github.event.commits.*.message, "|") }}
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         # useful link:
         # https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#push
