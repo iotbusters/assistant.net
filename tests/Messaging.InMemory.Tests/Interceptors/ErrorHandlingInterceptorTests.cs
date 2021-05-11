@@ -5,14 +5,14 @@ using NUnit.Framework;
 using FluentAssertions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Interceptors;
-using Assistant.Net.Messaging.Tests.Mocks.Stubs;
+using Assistant.Net.Messaging.InMemory.Tests.Mocks.Stubs;
 
-namespace Assistant.Net.Messaging.Tests.Interceptors
+namespace Assistant.Net.Messaging.InMemory.Tests.Interceptors
 {
     public class ErrorHandlingInterceptorTests
     {
         private ICommandInterceptor<ICommand<object>, object> interceptor = null!;
-        private static readonly TestCommand1 command = new(0);
+        private static readonly TestCommand command = new(0);
 
         [SetUp]
         public void Setup()

@@ -1,11 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Messaging.Tests</RootNamespace>
-    <AssemblyName>assistant.net.messaging.tests</AssemblyName>
+    <RootNamespace>Assistant.Net.Messaging.InMemory.Tests</RootNamespace>
+    <AssemblyName>assistant.net.messaging.inmemory.tests</AssemblyName>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="3.0.3">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -23,9 +25,9 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="5.0.4" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Messaging.InMemory\Messaging.InMemory.csproj" />
-    <ProjectReference Include="..\..\src\Messaging.Web.Client\Messaging.Web.Client.csproj" />
-    <ProjectReference Include="..\..\src\Messaging.Web.Server\Messaging.Web.Server.csproj" />
   </ItemGroup>
+
 </Project>

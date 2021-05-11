@@ -6,12 +6,12 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Messaging.Serialization;
 using NUnit.Framework;
 using FluentAssertions;
+using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Serialization;
 
-namespace Assistant.Net.Messaging.Tests.Exceptions
+namespace Assistant.Net.Messaging.Web.Tests.Exceptions
 {
     public class CommandExceptionJsonConverterTests
     {
@@ -21,7 +21,6 @@ namespace Assistant.Net.Messaging.Tests.Exceptions
             DefaultIgnoreCondition = JsonIgnoreCondition.Never
         };
 
-        //Assistant.Net.Messaging.Exceptions.CommandFailedException, assistant.net.messaging.inmemory, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
         [TestCase("")]
         [TestCase("Some non-json text")]
         [TestCase("{}")]
