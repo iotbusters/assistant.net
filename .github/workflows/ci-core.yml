@@ -4,7 +4,6 @@ on:
     branches: [master, develop]
     paths: [src/Core]
   pull_request:
-    branches: [master]
     paths: [src/Core]
 env:
   NAME: Core

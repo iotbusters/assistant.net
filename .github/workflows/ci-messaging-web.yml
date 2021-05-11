@@ -4,7 +4,6 @@ on:
     branches: [master, develop]
     paths: [src/Messaging.Web]
   pull_request:
-    branches: [master]
     paths: [src/Messaging.Web]
 env:
   NAME: Messaging.Web
