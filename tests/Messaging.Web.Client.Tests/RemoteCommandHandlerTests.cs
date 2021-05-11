@@ -1,12 +1,12 @@
 using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
-using Assistant.Net.Messaging.Tests.Mocks;
-using Assistant.Net.Messaging.Tests.Mocks.Stubs;
-using Assistant.Net.Messaging.Tests.Fixtures;
 using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Web.Client.Tests.Mocks;
+using Assistant.Net.Messaging.Web.Client.Tests.Mocks.Stubs;
+using Assistant.Net.Messaging.Web.Client.Tests.Fixtures;
 
-namespace Assistant.Net.Messaging.Tests.Integration
+namespace Assistant.Net.Messaging.Web.Client.Tests.Integration
 {
     public class RemoteCommandHandlerTests
     {

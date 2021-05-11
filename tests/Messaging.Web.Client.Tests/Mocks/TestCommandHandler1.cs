@@ -2,9 +2,9 @@ using System;
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Messaging.Tests.Mocks.Stubs;
+using Assistant.Net.Messaging.Web.Client.Tests.Mocks.Stubs;
 
-namespace Assistant.Net.Messaging.Tests.Mocks
+namespace Assistant.Net.Messaging.Web.Client.Tests.Mocks
 {
     public class TestCommandHandler1 : ICommandHandler<TestCommand1, TestResponse>
     {

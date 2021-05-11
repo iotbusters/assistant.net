@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Tests.Mocks;
+using Assistant.Net.Messaging.Web.Client.Tests.Mocks;
 
-namespace Assistant.Net.Messaging.Tests.Fixtures
+namespace Assistant.Net.Messaging.Web.Client.Tests.Fixtures
 {
     public class CommandClientFixtureBuilder
     {

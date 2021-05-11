@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http;
 
-namespace Assistant.Net.Messaging.Tests.Mocks
+namespace Assistant.Net.Messaging.Web.Client.Tests.Mocks
 {
     public static class ServiceCollectionExtensions
     {

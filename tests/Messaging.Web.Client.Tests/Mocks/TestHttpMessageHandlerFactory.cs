@@ -1,6 +1,6 @@
 using System.Net.Http;
 
-namespace Assistant.Net.Messaging.Tests.Mocks
+namespace Assistant.Net.Messaging.Web.Client.Tests.Mocks
 {
     public class TestHttpMessageHandlerFactory : IHttpMessageHandlerFactory
     {
