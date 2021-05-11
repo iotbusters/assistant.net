@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Messaging.Web.Client.Tests</RootNamespace>
-    <AssemblyName>assistant.net.messaging.web.client.tests</AssemblyName>
+    <RootNamespace>Assistant.Net.Messaging.Web.Tests</RootNamespace>
+    <AssemblyName>assistant.net.messaging.web.tests</AssemblyName>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
