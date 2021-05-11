@@ -4,14 +4,14 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Serialization;
+using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
-using FluentAssertions;
-using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Messaging.Serialization;
 
-namespace Assistant.Net.Messaging.Web.Tests.Exceptions
+namespace Assistant.Net.Messaging.Web.Tests.Serialization
 {
     public class CommandExceptionJsonConverterTests
     {
@@ -28,7 +28,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Exceptions
         [TestCase("{\"type\":\"Assistant.Net.Messaging.Exceptions.CommandFailedException, assistant.net.messaging.inmemory\"}")]
         public async Task DeserializeInvalidContent(string content)
         {
-            using var stream = new MemoryStream();
+            await using var stream = new MemoryStream();
             await new StreamWriter(stream).WriteAsync(content);
             stream.Position = 0;
 
@@ -39,7 +39,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Exceptions
         [TestCase("{\"type\":\"System.Exception, System.Private.CoreLib\",\"message\":\"1\"}")]
         public async Task DeserializeNotCommandExceptionContent(string content)
         {
-            using var stream = new MemoryStream();
+            await using var stream = new MemoryStream();
             await new StreamWriter(stream).WriteAsync(content);
             stream.Position = 0;
 
@@ -47,10 +47,10 @@ namespace Assistant.Net.Messaging.Web.Tests.Exceptions
                 .Should().ThrowAsync<JsonException>();
         }
 
-        [TestCase("{\"type\":\"Assistant.Net.Messaging.Exceptions.CommandFailedException, assistant.net.messaging.inmemory\",\"message\":\"1\",\"unknown\":\"2\"}")]
+        [TestCase("{\"type\":\"Assistant.Net.Messaging.Exceptions.CommandFailedException, assistant.net.messaging\",\"message\":\"1\",\"unknown\":\"2\"}")]
         public async Task DeserializeAdditionalProperties(string content)
         {
-            using var stream = new MemoryStream();
+            await using var stream = new MemoryStream();
             var writer = new StreamWriter(stream);
             await writer.WriteAsync(content);
             await writer.FlushAsync();
@@ -65,7 +65,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Exceptions
         [TestCase("{\"type\":\"UnknownException\",\"message\":\"1\"}")]
         public async Task DeserializeUnknownException(string content)
         {
-            using var stream = new MemoryStream();
+            await using var stream = new MemoryStream();
             var writer = new StreamWriter(stream);
             await writer.WriteAsync(content);
             await writer.FlushAsync();
@@ -80,7 +80,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Exceptions
         [TestCaseSource(nameof(SupportedExceptions))]
         public async Task DeserializeException(CommandException exception)
         {
-            using var stream = new MemoryStream();
+            await using var stream = new MemoryStream();
             await JsonSerializer.SerializeAsync(stream, exception, options);
             stream.Position = 0;
 
