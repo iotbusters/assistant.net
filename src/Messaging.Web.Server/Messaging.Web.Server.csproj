@@ -11,8 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Messaging.Web\Messaging.Web.csproj" />
-    <ProjectReference Include="..\Messaging.InMemory\Messaging.InMemory.csproj" />
+    <PackageReference Include="assistant.net.messaging.web" Version="0.0.0.2"/>
+    <PackageReference Include="assistant.net.messaging.inmemory" Version="0.0.0.2"/>
   </ItemGroup>
 
   <PropertyGroup>
