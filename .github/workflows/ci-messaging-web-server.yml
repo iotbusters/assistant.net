@@ -4,6 +4,7 @@ on:
     branches: [master, develop]
     paths: [src/Messaging.Web.Server]
   pull_request:
+    types: [opened, edited]
     paths: [src/Messaging.Web.Server]
 env:
   NAME: Messaging.Web.Server

@@ -4,6 +4,7 @@ on:
     branches: [master, develop]
     paths: [src/Core]
   pull_request:
+    types: [opened, edited]
     paths: [src/Core]
 env:
   NAME: Core
