@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
-    <ProjectReference Include="..\Diagnostics\Diagnostics.csproj" />
+    <PackageReference Include="assistant.net.core" Version="0.0.0.1"/>
+    <PackageReference Include="assistant.net.diagnostics" Version="0.0.0.1"/>
   </ItemGroup>
 
   <PropertyGroup>

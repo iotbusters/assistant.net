@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Messaging\Messaging.csproj" />
+    <PackageReference Include="assistant.net.messaging" Version="0.0.0.2"/>
   </ItemGroup>
 
   <PropertyGroup>
