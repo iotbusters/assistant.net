@@ -1,13 +1,13 @@
-name: CI Core
+name: CI Messaging.Web.Server
 on:
   push:
     branches: [master, develop]
-    paths: [src/Core/**]
+    paths: [src/Messaging.Web.Server/**]
   pull_request:
     branches: [master]
-    paths: [src/Core/**]
+    paths: [src/Messaging.Web.Server/**]
 env:
-  NAME: Core
+  NAME: Messaging.Web.Server
   VERSION: ${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}
 
 jobs:
