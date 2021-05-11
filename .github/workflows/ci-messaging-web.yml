@@ -1,0 +1,70 @@
+name: CI Messaging.Web
+on:
+  push:
+    branches: [master, develop]
+    paths: [src/Messaging.Web]
+  pull_request:
+    branches: [master]
+    paths: [src/Messaging.Web]
+env:
+  NAME: Messaging.Web
+  VERSION: ${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.4
+      - uses: actions/setup-dotnet@v1.7.2
+        with: { dotnet-version: '5.0' }
+
+      - name: Initialize environment variables
+        run: |
+          PATH=src/${NAME}
+          PROJECT_PATH=${PATH}/${NAME}.csproj
+          TEST_PROJECT_PATH=tests/${NAME}/${NAME}.Tests.csproj
+
+      - uses: actions/cache@v2.1.5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('${PATH}/**/packages.lock.json') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - run: dotnet restore ${PROJECT_PATH} -v n
+      - run: dotnet build ${PROJECT_PATH} -v n -c release --no-restore
+      - run: dotnet test ${TEST_PROJECT_PATH} -v n -c release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
+
+      - uses: EnricoMi/publish-unit-test-result-action@v1
+        with:
+          files: |
+            **/TestResults.xml
+        if: always()
+      - uses: codecov/codecov-action@v1.5.0
+        with:
+          files: |
+            **/coverage.opencover.xml
+        if: always()
+      - uses: actions/upload-artifact@v2.2.3
+        with:
+          name: ci-results
+          path: |
+            **/TestResults.xml
+            **/coverage.opencover.xml
+          retention-days: 60
+        if: always()
+
+  pre-release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag_name: v${{ env.VERSION }}
+          release_name: ${{ env.NAME }} Release ${{ env.VERSION }}
+          prerelease: true
+          body: ${{ join(github.event.commits.*.message, '%0A') }}
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        # useful link:
+        # https://docs.github.com/en/developers/webhooks-and-events/webhook-events-and-payloads#push
