@@ -18,7 +18,6 @@ namespace Assistant.Net
             .AddSystemClock()
             .AddSystemLifetime();
 
-
         /// <summary>
         ///     Adds <see cref="ISystemClock"/> implementation with default behavior
         ///     if it hasn't been already registered.
