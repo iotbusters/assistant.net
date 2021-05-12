@@ -1,7 +1,9 @@
 name: CI
 on:
   push:
-    branches: [develop]
+    branches: [master]
+  pull_request:
+    branches: [master]
 env:
   VERSION: ${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}
 
@@ -45,11 +47,11 @@ jobs:
       - name: preparations
         id: preparations
         run: |
-          CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
-          echo ::set-output name=core-change-count::$(echo $CHANGES | grep src/Core | wc -l)
-          echo ::set-output name=diagnostics-change-count::$(echo $CHANGES | grep src/Diagnostics | wc -l)
-          echo ::set-output name=messaging-change-count::$(echo $CHANGES | grep src/Messaging | wc -l)
-          echo ::set-output name=messaging-web-count::$(echo $CHANGES | grep src/Messaging.Web | wc -l)
+          CHANGES=$(git diff --name-only ${{ github.event.before }})
+          echo ::set-output name=core-change-count::$(echo $CHANGES | grep -c src/Core)
+          echo ::set-output name=diagnostics-change-count::$(echo $CHANGES | grep -c src/Diagnostics)
+          echo ::set-output name=messaging-change-count::$(echo $CHANGES | grep -c src/Messaging)
+          echo ::set-output name=messaging-web-count::$(echo $CHANGES | grep -c src/Messaging.Web)
           echo ::set-output name=nuget-version::${{ env.VERSION }}-prerelease
           mkdir release-artifacts
       - run: cp -r src/Core release-artifacts/Core
@@ -75,7 +77,15 @@ jobs:
           name: release-artifacts
       - uses: actions/create-release@v1
         with:
-          tag_name: ${{ env.VERSION }}
-          release_name: Release ${{ env.VERSION }}
+          tag_name: '${{ env.VERSION }}'
+          release_name: 'Release ${{ env.VERSION }}'
           prerelease: true
-          body: ${{ join(github.event.commits.*.message, ' ++ ') }}
+<<<<<<< HEAD
+          body: |
+            commits:
+            ${{ join(github.event.commits.*.message, ' ++ ') }}
+    if: github.action = 'push'
+=======
+          body: "commits: ${{ join(github.event.commits.*.message, ' ++ ') }}"
+    if: github.event_name == 'push' && needs.build.outputs.change-count != '0'
+>>>>>>> 902cfe5 (test actions)
