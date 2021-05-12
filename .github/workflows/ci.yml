@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [master]
+    branches: [develop]
   pull_request:
     branches: [master]
 env:
@@ -62,11 +62,16 @@ jobs:
         if:  steps.preparations.outputs.messaging-change-count != '0'
       - run: p -r src/Messaging.Web release-artifacts/Messaging.Web
         if:  steps.preparations.outputs.messaging-web-change-count != '0'
+      - id: count-changes
+        run: echo ::set-output name=total-change-count::$(ls release-artifacts | wc -l)
       - uses: actions/upload-artifact@v2.2.3
         with:
           name: release-artifacts
           path: release-artifacts
           retention-days: 7
+        if: steps.count-changes.outputs.total-change-count != '0'
+    outputs:
+      change-count: ${{ steps.count-changes.outputs.total-change-count }}
 
   pre-release:
     runs-on: ubuntu-latest
