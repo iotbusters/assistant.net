@@ -1,10 +1,10 @@
 using System;
 using System.Threading;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Assistant.Net.Abstractions;
 using Assistant.Net.Internal;
-using Microsoft.Extensions.Configuration;
 
 namespace Assistant.Net
 {

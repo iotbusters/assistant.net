@@ -1,8 +1,8 @@
 ﻿using System;
+using Microsoft.Extensions.DependencyInjection;
 using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Diagnostics.EventSources;
 using Assistant.Net.Diagnostics.Internal;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Assistant.Net.Diagnostics
 {

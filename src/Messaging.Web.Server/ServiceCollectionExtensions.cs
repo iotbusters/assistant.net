@@ -1,10 +1,10 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
-using Microsoft.AspNetCore.Http;
 
 namespace Assistant.Net.Messaging
 {
