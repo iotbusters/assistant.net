@@ -2,6 +2,9 @@ using System;
 
 namespace Assistant.Net.Messaging.Exceptions
 {
+    /// <summary>
+    ///     Common failure command exception.
+    /// </summary>
     public class CommandFailedException : CommandException
     {
         public CommandFailedException(string message) : base(message) { }

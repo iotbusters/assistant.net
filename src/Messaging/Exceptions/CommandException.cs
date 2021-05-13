@@ -2,6 +2,9 @@ using System;
 
 namespace Assistant.Net.Messaging.Exceptions
 {
+    /// <summary>
+    ///     A parent to command exception family.
+    /// </summary>
     public abstract class CommandException : Exception
     {
         protected CommandException() : base() { }
