@@ -3,9 +3,11 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Options
 {
+    /// <summary>
+    ///     A wrapper over handler type which is used during configuration.
+    /// </summary>
     public class HandlerDefinition
     {
-
         internal HandlerDefinition(Type type) => Type = type;
 
         public Type Type { get; }

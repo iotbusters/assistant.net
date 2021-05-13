@@ -6,9 +6,15 @@ namespace Assistant.Net.Messaging
 {
     public static class CommandOptionsExtensions
     {
+        /// <summary>
+        ///     Registers a configuration type <typeparamref name="TConfiguration" />.
+        /// </summary>
         public static CommandOptions Add<TConfiguration>(this CommandOptions options)
             where TConfiguration : ICommandConfiguration, new() => options.Add(new TConfiguration());
 
+        /// <summary>
+        ///     Registers a configuration instance <paramref name="commandConfigurations" />.
+        /// </summary>
         public static CommandOptions Add(this CommandOptions options, params ICommandConfiguration[] commandConfigurations)
         {
             foreach (var config in commandConfigurations)
@@ -16,6 +22,9 @@ namespace Assistant.Net.Messaging
             return options;
         }
 
+        /// <summary>
+        ///     Registers a local in-memory handler type <typeparamref name="THandler" />.
+        /// </summary>
         public static ISet<HandlerDefinition> AddLocal<THandler>(this ISet<HandlerDefinition> set)
             where THandler : class, IAbstractCommandHandler
         {
@@ -23,6 +32,9 @@ namespace Assistant.Net.Messaging
             return set;
         }
 
+        /// <summary>
+        ///     Adds an interceptor type <typeparamref name="TInterceptor" /> to the end of a list.
+        /// </summary>
         public static IList<InterceptorDefinition> Add<TInterceptor>(this IList<InterceptorDefinition> list)
             where TInterceptor : class, IAbstractCommandInterceptor
         {
@@ -30,6 +42,9 @@ namespace Assistant.Net.Messaging
             return list;
         }
 
+        /// <summary>
+        ///     Adds an interceptor type <typeparamref name="TInterceptor" /> at specific possition in a list.
+        /// </summary>
         public static IList<InterceptorDefinition> InsertAt<TInterceptor>(this IList<InterceptorDefinition> list, int index)
             where TInterceptor : class, IAbstractCommandInterceptor
         {
