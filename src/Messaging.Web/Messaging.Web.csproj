@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <PackageDescription>Messaging tools and abstractions for remote WEB handling.</PackageDescription>
+    <PackageDescription>Messaging tools and abstractions for remote WEB handling. It's part of Assistant.NET infrastructure.</PackageDescription>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>
