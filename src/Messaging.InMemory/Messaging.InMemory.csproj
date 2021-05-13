@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <PackageDescription>Assistant.NET in-memory Messaging implementation.</PackageDescription>
+    <PackageDescription>Messaging implementation for local in-memory handling.</PackageDescription>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>

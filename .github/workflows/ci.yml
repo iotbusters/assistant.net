@@ -52,6 +52,8 @@ jobs:
           echo ::set-output name=diagnostics-change-count::$(echo $CHANGES | grep -c src/Diagnostics)
           echo ::set-output name=messaging-change-count::$(echo $CHANGES | grep -c src/Messaging)
           echo ::set-output name=messaging-web-count::$(echo $CHANGES | grep -c src/Messaging.Web)
+          echo ::set-output name=messaging-web-client-count::$(echo $CHANGES | grep -c src/Messaging.Web.Client)
+          echo ::set-output name=messaging-web-server-count::$(echo $CHANGES | grep -c src/Messaging.Web.Server)
           echo ::set-output name=nuget-version::${{ env.VERSION }}-prerelease
           mkdir release-artifacts
       - run: cp -r src/Core release-artifacts/Core
@@ -62,6 +64,10 @@ jobs:
         if:  steps.preparations.outputs.messaging-change-count != '0'
       - run: p -r src/Messaging.Web release-artifacts/Messaging.Web
         if:  steps.preparations.outputs.messaging-web-change-count != '0'
+      - run: p -r src/Messaging.Web release-artifacts/Messaging.Web.Client
+        if:  steps.preparations.outputs.messaging-web-client-change-count != '0'
+      - run: p -r src/Messaging.Web release-artifacts/Messaging.Web.Server
+        if:  steps.preparations.outputs.messaging-web-server-change-count != '0'
       - id: count-changes
         run: echo ::set-output name=total-change-count::$(ls release-artifacts | wc -l)
       - uses: actions/upload-artifact@v2.2.3
@@ -71,7 +77,12 @@ jobs:
           retention-days: 7
         if: steps.count-changes.outputs.total-change-count != '0'
     outputs:
-      change-count: ${{ steps.count-changes.outputs.total-change-count }}
+      core-change-count: ${{ steps.count-changes.outputs.core-change-count }}
+      diagnostics-change-count: ${{ steps.count-changes.outputs.diagnostics-change-count }}
+      messaging-change-count: ${{ steps.count-changes.outputs.messaging-change-count }}
+      messaging-web-change-count: ${{ steps.count-changes.outputs.messaging-web-change-count }}
+      messaging-web-client-change-count: ${{ steps.count-changes.outputs.messaging-web-client-change-count }}
+      messaging-web-server-change-count: ${{ steps.count-changes.outputs.messaging-web-server-change-count }}
 
   pre-release:
     runs-on: ubuntu-latest
@@ -86,6 +97,14 @@ jobs:
           release_name: Release ${{ env.VERSION }}
           prerelease: true
           body: |
+            | Package              | Change count                                                 |
+            | Core                 | ${{ needs.build.outputs.core-change-count }}                 |
+            | Diagnostics          | ${{ needs.build.outputs.diagnostics-change-count }}          |
+            | Messaging            | ${{ needs.build.outputs.messaging-change-count }}            |
+            | Messaging.Web        | ${{ needs.build.outputs.messaging-web-change-count }}        |
+            | Messaging.Web.Client | ${{ needs.build.outputs.messaging-web-client-change-count }} |
+            | Messaging.Web.Server | ${{ needs.build.outputs.messaging-web-server-change-count }} |
+            | Total                | ${{ needs.build.outputs.change-count }}                      |
             comments:
             ${{ join(github.event.commits.*.message, ' ++ ') }}
         env:

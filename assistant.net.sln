@@ -45,11 +45,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\release.yml = .github\workflows\release.yml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging.Web.Client.Tests", "tests\Messaging.Web.Client.Tests\Messaging.Web.Client.Tests.csproj", "{F57F11D4-82B8-4197-B234-93769814137F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Messaging.Web.Client.Tests", "tests\Messaging.Web.Client.Tests\Messaging.Web.Client.Tests.csproj", "{F57F11D4-82B8-4197-B234-93769814137F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging.Web.Server.Tests", "tests\Messaging.Web.Server.Tests\Messaging.Web.Server.Tests.csproj", "{E208915A-CCA4-4219-B6B6-D2223A6287CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Messaging.Web.Server.Tests", "tests\Messaging.Web.Server.Tests\Messaging.Web.Server.Tests.csproj", "{E208915A-CCA4-4219-B6B6-D2223A6287CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging.Web.Tests", "tests\Messaging.Web.Tests\Messaging.Web.Tests.csproj", "{027DC107-290E-4AF9-AB0D-7280299CACC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Messaging.Web.Tests", "tests\Messaging.Web.Tests\Messaging.Web.Tests.csproj", "{027DC107-290E-4AF9-AB0D-7280299CACC1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Tests", "tests\Core.Tests\Core.Tests.csproj", "{630361EF-DE90-4F6B-B7E6-4D47C887F59C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -217,6 +219,18 @@ Global
 		{027DC107-290E-4AF9-AB0D-7280299CACC1}.Release|x64.Build.0 = Release|Any CPU
 		{027DC107-290E-4AF9-AB0D-7280299CACC1}.Release|x86.ActiveCfg = Release|Any CPU
 		{027DC107-290E-4AF9-AB0D-7280299CACC1}.Release|x86.Build.0 = Release|Any CPU
+		{630361EF-DE90-4F6B-B7E6-4D47C887F59C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{630361EF-DE90-4F6B-B7E6-4D47C887F59C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{630361EF-DE90-4F6B-B7E6-4D47C887F59C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{630361EF-DE90-4F6B-B7E6-4D47C887F59C}.Debug|x64.Build.0 = Debug|Any CPU
+		{630361EF-DE90-4F6B-B7E6-4D47C887F59C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{630361EF-DE90-4F6B-B7E6-4D47C887F59C}.Debug|x86.Build.0 = Debug|Any CPU
+		{630361EF-DE90-4F6B-B7E6-4D47C887F59C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{630361EF-DE90-4F6B-B7E6-4D47C887F59C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{630361EF-DE90-4F6B-B7E6-4D47C887F59C}.Release|x64.ActiveCfg = Release|Any CPU
+		{630361EF-DE90-4F6B-B7E6-4D47C887F59C}.Release|x64.Build.0 = Release|Any CPU
+		{630361EF-DE90-4F6B-B7E6-4D47C887F59C}.Release|x86.ActiveCfg = Release|Any CPU
+		{630361EF-DE90-4F6B-B7E6-4D47C887F59C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -236,6 +250,7 @@ Global
 		{F57F11D4-82B8-4197-B234-93769814137F} = {B61F8903-EF78-4C57-9CCC-0758D49B4C48}
 		{E208915A-CCA4-4219-B6B6-D2223A6287CC} = {B61F8903-EF78-4C57-9CCC-0758D49B4C48}
 		{027DC107-290E-4AF9-AB0D-7280299CACC1} = {B61F8903-EF78-4C57-9CCC-0758D49B4C48}
+		{630361EF-DE90-4F6B-B7E6-4D47C887F59C} = {B61F8903-EF78-4C57-9CCC-0758D49B4C48}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {785A054B-D40C-486E-9A4F-1A7CA8F4FCD7}

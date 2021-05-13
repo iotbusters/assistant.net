@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <PackageDescription>Assistant.NET Messaging abstractions, related tools and configurations.</PackageDescription>
+    <PackageDescription>Messaging abstractions, tools and configurations for Assistant.NET.</PackageDescription>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>

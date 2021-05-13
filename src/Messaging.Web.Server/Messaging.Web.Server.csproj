@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <PackageDescription>Assistant.NET remote WEB Messaging handling implementation. It enbles remote message request handling.</PackageDescription>
+    <PackageDescription>Messaging server implementation for remote WEB handling.</PackageDescription>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>
