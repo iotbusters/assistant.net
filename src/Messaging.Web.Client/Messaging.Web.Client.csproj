@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <PackageDescription>Messaging client implementation for remote WEB handling.</PackageDescription>
+    <PackageDescription>Messaging client implementation for remote WEB handling. It's part of Assistant.NET infrastructure.</PackageDescription>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>

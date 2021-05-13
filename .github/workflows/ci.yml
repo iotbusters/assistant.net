@@ -62,11 +62,11 @@ jobs:
         if:  steps.preparations.outputs.diagnostics-change-count != '0'
       - run: cp -r src/Messaging release-artifacts/Messaging
         if:  steps.preparations.outputs.messaging-change-count != '0'
-      - run: p -r src/Messaging.Web release-artifacts/Messaging.Web
+      - run: cp -r src/Messaging.Web release-artifacts/Messaging.Web
         if:  steps.preparations.outputs.messaging-web-change-count != '0'
-      - run: p -r src/Messaging.Web release-artifacts/Messaging.Web.Client
+      - run: cp -r src/Messaging.Web release-artifacts/Messaging.Web.Client
         if:  steps.preparations.outputs.messaging-web-client-change-count != '0'
-      - run: p -r src/Messaging.Web release-artifacts/Messaging.Web.Server
+      - run: cp -r src/Messaging.Web release-artifacts/Messaging.Web.Server
         if:  steps.preparations.outputs.messaging-web-server-change-count != '0'
       - id: count-changes
         run: echo ::set-output name=total-change-count::$(ls release-artifacts | wc -l)
@@ -83,6 +83,7 @@ jobs:
       messaging-web-change-count: ${{ steps.count-changes.outputs.messaging-web-change-count }}
       messaging-web-client-change-count: ${{ steps.count-changes.outputs.messaging-web-client-change-count }}
       messaging-web-server-change-count: ${{ steps.count-changes.outputs.messaging-web-server-change-count }}
+      total-change-count: ${{ steps.count-changes.outputs.total-change-count }}
 
   pre-release:
     runs-on: ubuntu-latest
@@ -97,16 +98,16 @@ jobs:
           release_name: Release ${{ env.VERSION }}
           prerelease: true
           body: |
-            | Package              | Change count                                                 |
-            | Core                 | ${{ needs.build.outputs.core-change-count }}                 |
-            | Diagnostics          | ${{ needs.build.outputs.diagnostics-change-count }}          |
-            | Messaging            | ${{ needs.build.outputs.messaging-change-count }}            |
-            | Messaging.Web        | ${{ needs.build.outputs.messaging-web-change-count }}        |
-            | Messaging.Web.Client | ${{ needs.build.outputs.messaging-web-client-change-count }} |
-            | Messaging.Web.Server | ${{ needs.build.outputs.messaging-web-server-change-count }} |
-            | Total                | ${{ needs.build.outputs.change-count }}                      |
+            changes:
+            - Core: ${{ needs.build.outputs.core-change-count }}
+            - Diagnostics: ${{ needs.build.outputs.diagnostics-change-count }}
+            - Messaging: ${{ needs.build.outputs.messaging-change-count }}
+            - Messaging.Web: ${{ needs.build.outputs.messaging-web-change-count }}
+            - Messaging.Web.Client: ${{ needs.build.outputs.messaging-web-client-change-count }}
+            - Messaging.Web.Server: ${{ needs.build.outputs.messaging-web-server-change-count }}
+            - Total: ${{ needs.build.outputs.total-change-count }}
             comments:
             ${{ join(github.event.commits.*.message, ' ++ ') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    if: github.event_name == 'push' && needs.build.outputs.change-count != '0'
+    if: github.event_name == 'push' && needs.build.outputs.total-change-count != '0'
