@@ -5,6 +5,9 @@ using System.Text.Json;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
+    /// <summary>
+    ///     Hash code generating extensions.
+    /// </summary>
     internal static class HashExtensions
     {
         public static string GetSha1(this object target)

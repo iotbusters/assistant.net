@@ -5,6 +5,9 @@ using Assistant.Net.Diagnostics.Abstractions;
 
 namespace Assistant.Net.Messaging.Extensions
 {
+    /// <summary>
+    ///     Spreading current correlation context on remote command handling.
+    /// </summary>
     internal class CorrelationIdHandler : DelegatingHandler
     {
         private readonly IDiagnosticsContext context;

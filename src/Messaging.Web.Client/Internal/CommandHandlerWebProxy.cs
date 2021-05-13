@@ -3,6 +3,9 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Internal
 {
+    /// <summary>
+    ///     Strongly typed web proxy to remote handling.
+    /// </summary>
     internal class CommandHandlerWebProxy<TCommand, TResponse> : ICommandHandler<TCommand, TResponse>
         where TCommand : ICommand<TResponse>
     {

@@ -4,6 +4,9 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
+    /// <summary>
+    ///     Adaptor between de-typed interceptors to strongly typed presentation.
+    /// </summary>
     internal class InterceptorAdaptor<TCommand, TResponse> : IAbstractInterceptor
         where TCommand : ICommand<TResponse>
     {

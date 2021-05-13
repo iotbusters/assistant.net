@@ -3,6 +3,9 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Internal
 {
+    /// <summary>
+    ///     Default command client implementation.
+    /// </summary>
     internal class CommandClient : ICommandClient
     {
         private readonly IHandlerFactory factory;

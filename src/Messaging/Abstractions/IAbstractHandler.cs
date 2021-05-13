@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Abstractions
 {
     /// <summary>
-    ///     De-strongified command handler abstraction that helps handling unknown commands 
+    ///     De-typed command handler abstraction that helps handling unknown commands 
     ///     during runtime without reflection related performance drop.
     /// </summary>
     public interface IAbstractHandler

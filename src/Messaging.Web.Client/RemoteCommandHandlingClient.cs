@@ -8,6 +8,9 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging
 {
+    /// <summary>
+    ///     Strongly typed http client for remote command handling.
+    /// </summary>
     public class RemoteCommandHandlingClient
     {
         private readonly HttpClient client;

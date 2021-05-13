@@ -5,6 +5,9 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
+    /// <summary>
+    ///     Operation tracking interceptor.
+    /// </summary>
     public class DiagnosticsInterceptor : ICommandInterceptor<ICommand<object>, object>
     {
         private readonly IDiagnosticsFactory diagnosticsFactory;

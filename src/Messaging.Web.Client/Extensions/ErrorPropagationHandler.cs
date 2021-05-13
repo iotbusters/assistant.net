@@ -11,6 +11,9 @@ using Assistant.Net.Messaging.Serialization;
 
 namespace Assistant.Net.Messaging.Extensions
 {
+    /// <summary>
+    ///     Remote command handling failure propagation.
+    /// </summary>
     internal class ErrorPropagationHandler : DelegatingHandler
     {
         private readonly IOptions<JsonSerializerOptions> options;

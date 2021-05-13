@@ -6,6 +6,10 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
+    /// <summary>
+    ///     Command response (including failures) caching interceptor.
+    ///     Caching key is based on command's sha1 hash code.
+    /// </summary>
     public sealed class CachingInterceptor : ICommandInterceptor
     {
         /// <summary>
