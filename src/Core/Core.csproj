@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <PackageDescription>Assistant.NET related low level tools.</PackageDescription>
+    <PackageDescription>Common system tools for Assistant.NET.</PackageDescription>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>

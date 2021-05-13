@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <PackageDescription>Assistant.NET related diagnostics.</PackageDescription>
+    <PackageDescription>Common diagnostic services for Assistance.NET.</PackageDescription>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>
