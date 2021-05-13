@@ -5,6 +5,9 @@ using Assistant.Net.Diagnostics.EventSources;
 
 namespace Assistant.Net.Diagnostics.Internal
 {
+    /// <summary>
+    ///     Tracking operation implementation.
+    /// </summary>
     internal sealed class Operation : IOperation, IDisposable
     {
         public const string DefaultCompleteMessage = "Operation has successfully completed.";

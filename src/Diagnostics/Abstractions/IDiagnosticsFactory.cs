@@ -1,5 +1,8 @@
 ﻿namespace Assistant.Net.Diagnostics.Abstractions
 {
+    /// <summary>
+    ///     
+    /// </summary>
     public interface IDiagnosticsFactory
     {
         /// <summary>
