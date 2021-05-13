@@ -4,6 +4,9 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Internal
 {
+    /// <summary>
+    ///     Function based implementation of de-typed command handler abstraction.
+    /// </summary>
     internal class DelegatingAbstractHandler : IAbstractHandler
     {
         private readonly Func<object, Task<object>> handle;

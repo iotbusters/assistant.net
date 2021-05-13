@@ -4,6 +4,10 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Extensions
 {
+    /// <summary>
+    ///     [NOT IMPLEMENTED]
+    ///     Default web authorizing implementation for remote command handling.
+    /// </summary>
     internal class AuthorizationHandler : DelegatingHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

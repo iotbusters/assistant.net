@@ -5,6 +5,9 @@ using Assistant.Net.Messaging.Exceptions;
 
 namespace Assistant.Net.Messaging.Internal
 {
+    /// <summary>
+    ///     Global error handling middleware.
+    /// </summary>
     internal class RemoteExceptionHandlingMiddleware
     {
         private readonly RequestDelegate next;

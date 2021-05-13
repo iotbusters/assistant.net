@@ -4,6 +4,9 @@ using System.Net.Http;
 
 namespace Assistant.Net.Messaging.Extensions
 {
+    /// <summary>
+    ///     Common operation over <see cref="HttpRequestMessage" /> object.
+    /// </summary>
     internal static  class HttpRequestMessageExtensions
     {
         public static string GetRequiredHeader(this HttpRequestMessage request, string name)

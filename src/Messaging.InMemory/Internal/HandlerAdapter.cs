@@ -4,6 +4,9 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Internal
 {
+    /// <summary>
+    ///     Adapter between de-typed and typed command handlers.
+    /// </summary>
     internal class HandlerAdapter<TCommand, TResponse> : IAbstractHandler, ICommandHandler<TCommand, TResponse>
         where TCommand : ICommand<TResponse>
     {

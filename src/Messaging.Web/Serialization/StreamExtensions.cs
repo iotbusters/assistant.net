@@ -7,9 +7,11 @@ using Assistant.Net.Messaging.Exceptions;
 
 namespace Assistant.Net.Messaging.Serialization
 {
+    /// <summary>
+    ///     Common operations over a <see cref="Stream" /> object.
+    /// </summary>
     public static class StreamExtensions
     {
-
         public static Task<CommandException?> ReadException(this Stream stream, JsonSerializerOptions options, CancellationToken cancellationToken) =>
             stream.ReadObject<CommandException>(options, cancellationToken);
 

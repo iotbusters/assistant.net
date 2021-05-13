@@ -12,6 +12,9 @@ using Assistant.Net.Messaging.Serialization;
 
 namespace Assistant.Net.Messaging.Internal
 {
+    /// <summary>
+    ///     Common operations over <see cref="HttpContext" />.
+    /// </summary>
     internal static class HttpContextExtensions
     {
         public static string GetRequiredHeader(this HttpContext httpContext, string name)

@@ -5,6 +5,9 @@ using Assistant.Net.Diagnostics.Abstractions;
 
 namespace Assistant.Net.Messaging.Extensions
 {
+    /// <summary>
+    ///     Operation tracking for remote command handling.
+    /// </summary>
     internal class DiagnosticsHandler : DelegatingHandler
     {
         private readonly IDiagnosticsFactory diagnosticsFactory;

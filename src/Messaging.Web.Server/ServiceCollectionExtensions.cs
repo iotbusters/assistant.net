@@ -10,10 +10,16 @@ namespace Assistant.Net.Messaging
 {
     public static class ServiceCollectionExtensions
     {
+        /// <summary>
+        ///     Adds system services with self-hosted service based behavior.
+        /// </summary>
         public static IServiceCollection AddSystemServicesHosted(this IServiceCollection services) => services
             .AddSystemServicesDefaulted()
             .AddSystemLifetime(p => p.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping);
 
+        /// <summary>
+        ///     Registers remote command handling server configuration customized by <paramref name="configureOptions" />.
+        /// </summary>
         public static IServiceCollection AddRemoteCommandHandlingServer(this IServiceCollection services, Action<CommandOptions> configureOptions) => services
             .AddDiagnostics()
             .AddDiagnosticsContext(InitializeFromHttpContext)

@@ -4,6 +4,9 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Internal
 {
+    /// <summary>
+    ///     Endpoint based remote command handling middleware.
+    /// </summary>
     internal class RemoteCommandHandlingEndpointMiddleware
     {
         private readonly ICommandClient client;

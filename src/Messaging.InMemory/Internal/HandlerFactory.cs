@@ -11,6 +11,9 @@ using Assistant.Net.Messaging.Interceptors;
 
 namespace Assistant.Net.Messaging.Internal
 {
+    /// <summary>
+    ///     Configuration based default de-typed command handler implementation.
+    /// </summary>
     internal class HandlerFactory : IHandlerFactory
     {
         private readonly IDictionary<Type, Type> handlerMap;

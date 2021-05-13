@@ -4,6 +4,9 @@ using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Internal
 {
+    /// <summary>
+    ///     Routingless remote command handling middleware.
+    /// </summary>
     internal class RemoteCommandHandlingMiddleware : RemoteCommandHandlingEndpointMiddleware
     {
         private readonly RequestDelegate next;

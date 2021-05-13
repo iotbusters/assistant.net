@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace Assistant.Net.Messaging.Internal
 {
+    /// <summary>
+    ///     Operation tracking middleware.
+    /// </summary>
     internal class DiagnosticsMiddleware
     {
         private readonly RequestDelegate next;

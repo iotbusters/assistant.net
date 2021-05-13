@@ -3,7 +3,7 @@ using System;
 namespace Assistant.Net.Messaging.Abstractions
 {
     /// <summary>
-    ///     Command handler resolver abstraction.
+    ///     Command handler factory abstraction.
     /// </summary>
     public interface IHandlerFactory
     {
