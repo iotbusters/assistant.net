@@ -14,7 +14,6 @@ namespace Assistant.Net.Messaging.Abstractions
         ///     Sends asynchronously a request to associated request handler.
         ///     Similar to request although in opposite expecting successful execution only.
         /// </summary>
-        Task Send(ICommand command)
-            => Send<None>(command);
+        Task Send(ICommand command) => Send<None>(command);
     }
 }
