@@ -7,6 +7,9 @@ using Assistant.Net.Diagnostics.EventSources;
 
 namespace Assistant.Net.Diagnostics.Internal
 {
+    /// <summary>
+    ///     Default diagnostic factory implementation.
+    /// </summary>
     internal sealed class DiagnosticsFactory : IDiagnosticsFactory, IDisposable
     {
         public DiagnosticsFactory(OperationEventSource eventSource, ISystemClock clock, IDiagnosticsContext context)
