@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using Assistant.Net.Messaging.Options;
 
 namespace Assistant.Net.Messaging.Options
 {
+    /// <summary>
+    ///     Collects all commnad handler configurations which are required 
+    ///     for resolving handlers by command type.
+    /// </summary>
     public sealed class CommandOptions
     {
         [MinLength(1)]

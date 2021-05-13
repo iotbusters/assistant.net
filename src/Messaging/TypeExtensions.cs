@@ -6,6 +6,12 @@ namespace Assistant.Net.Messaging
 {
     public static class TypeExtensions
     {
+        /// <summary>
+        ///     Makes a generic type from the definition <paramref name="genericTypeDefinition" />
+        ///     and its type parameters resolved from <paramref name="commandType" />
+        /// </summary>
+        /// <param name="genericTypeDefinition">Generic type definition that requires two parameters: command type and command response type.</param>
+        /// <param name="commandType">Specific command type.</param>
         public static Type MakeGenericTypeBoundToCommand(this Type genericTypeDefinition, Type commandType)
         {
             if (!genericTypeDefinition.IsGenericTypeDefinition)
@@ -16,6 +22,9 @@ namespace Assistant.Net.Messaging
             return genericTypeDefinition.MakeGenericType(commandType, responseType);
         }
 
+        /// <summary>
+        ///     Resolves command response type from command type.
+        /// </summary>
         public static Type? GetResponseType(this Type commandType)
         {
             if (commandType.IsClass)
@@ -27,6 +36,9 @@ namespace Assistant.Net.Messaging
             return null;
         }
 
+        /// <summary>
+        ///     Verifies if provided <paramref name="type" /> implements a command interface.
+        /// </summary>
         private static bool IsCommandInterface(this Type type) =>
             type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ICommand<>);
     }
