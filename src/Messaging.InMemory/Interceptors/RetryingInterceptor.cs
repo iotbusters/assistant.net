@@ -61,26 +61,16 @@ namespace Assistant.Net.Messaging.Interceptors
             throw new CommandRetryLimitExceededException();
         }
 
-        /// <summary>
-        ///     todo: resolve duplication in ErrorHandlingInterceptor (https://github.com/iotbusters/assistant.net/issues/4)
-        /// </summary>
         private static bool CriticalExceptionOnly(Exception ex)
         {
-            // todo: define transient list instead.
-            return true;
+            // todo: resolve duplication in ErrorHandlingInterceptor (https://github.com/iotbusters/assistant.net/issues/4)
             // configurable
-            var criticalExceptionTypes = new[]
-            {
-                typeof(TaskCanceledException),
-                typeof(OperationCanceledException),
-                typeof(TimeoutException),
-                typeof(CommandException),
-            };
+            var transientExceptionTypes = new Type[0];
 
             if (ex is AggregateException e)
                 return CriticalExceptionOnly(e.InnerException!);
 
-            return criticalExceptionTypes.Any(x => x.IsAssignableFrom(ex.GetType()));
+            return !transientExceptionTypes.Any(x => x.IsAssignableFrom(ex.GetType()));
         }
     }
 }
