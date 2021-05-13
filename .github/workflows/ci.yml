@@ -85,5 +85,9 @@ jobs:
           tag_name: ${{ env.VERSION }}
           release_name: Release ${{ env.VERSION }}
           prerelease: true
-          body: ${{ join(github.event.commits.*.message, ' ++ ') }}
+          body: |
+            comments:
+            ${{ join(github.event.commits.*.message, ' ++ ') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     if: github.event_name == 'push' && needs.build.outputs.change-count != '0'
