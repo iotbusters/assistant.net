@@ -3,6 +3,9 @@ using Assistant.Net.Abstractions;
 
 namespace Assistant.Net.Internal
 {
+    /// <summary>
+    ///     Default system lifetime implementation.
+    /// </summary>
     internal class SystemLifetime : ISystemLifetime
     {
         private readonly CancellationTokenSource stopping;
