@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [master]
 env:
-  VERSION: ${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}
+  VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
 
 jobs:
   build:
@@ -82,8 +82,8 @@ jobs:
           name: release-artifacts
       - uses: actions/create-release@v1
         with:
-          tag_name: '${{ env.VERSION }}'
-          release_name: 'Release ${{ env.VERSION }}'
+          tag_name: ${{ env.VERSION }}
+          release_name: Release ${{ env.VERSION }}
           prerelease: true
-          body: "commits: ${{ join(github.event.commits.*.message, ' ++ ') }}"
+          body: commits ':' ${{ join(github.event.commits.*.message, ' ++ ') }}
     if: github.event_name == 'push' && needs.build.outputs.change-count != '0'
