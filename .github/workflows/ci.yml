@@ -6,6 +6,7 @@ on:
     branches: [master]
 env:
   VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
+  ALL_PACKAGES: true
 
 jobs:
   build:
@@ -57,17 +58,17 @@ jobs:
           echo ::set-output name=nuget-version::${{ env.VERSION }}-prerelease
           mkdir release-artifacts
       - run: cp -r src/Core release-artifacts/Core
-        if:  steps.preparations.outputs.core-change-count != '0'
+        if:  steps.preparations.outputs.core-change-count != '0' || env.ALL_PACKAGES
       - run: cp -r src/Diagnostics release-artifacts/Diagnostics
-        if:  steps.preparations.outputs.diagnostics-change-count != '0'
+        if:  steps.preparations.outputs.diagnostics-change-count != '0' || env.ALL_PACKAGES
       - run: cp -r src/Messaging release-artifacts/Messaging
-        if:  steps.preparations.outputs.messaging-change-count != '0'
+        if:  steps.preparations.outputs.messaging-change-count != '0' || env.ALL_PACKAGES
       - run: cp -r src/Messaging.Web release-artifacts/Messaging.Web
-        if:  steps.preparations.outputs.messaging-web-change-count != '0'
+        if:  steps.preparations.outputs.messaging-web-change-count != '0' || env.ALL_PACKAGES
       - run: cp -r src/Messaging.Web release-artifacts/Messaging.Web.Client
-        if:  steps.preparations.outputs.messaging-web-client-change-count != '0'
+        if:  steps.preparations.outputs.messaging-web-client-change-count != '0' || env.ALL_PACKAGES
       - run: cp -r src/Messaging.Web release-artifacts/Messaging.Web.Server
-        if:  steps.preparations.outputs.messaging-web-server-change-count != '0'
+        if:  steps.preparations.outputs.messaging-web-server-change-count != '0' || env.ALL_PACKAGES
       - id: count-changes
         run: echo ::set-output name=total-change-count::$(ls release-artifacts | wc -l)
       - uses: actions/upload-artifact@v2.2.3
