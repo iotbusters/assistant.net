@@ -6,7 +6,7 @@ on:
     branches: [master]
 env:
   VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
-  ALL_PACKAGES: true
+  ALL_PACKAGES: false
 
 jobs:
   build:
@@ -48,14 +48,13 @@ jobs:
       - name: preparations
         id: preparations
         run: |
-          CHANGES=$(git diff --name-only ${{ github.event.before }})
+          CHANGES=$(git diff --name-only ${{ github.sha }})
           echo ::set-output name=core-change-count::$(echo $CHANGES | grep -c src/Core)
           echo ::set-output name=diagnostics-change-count::$(echo $CHANGES | grep -c src/Diagnostics)
           echo ::set-output name=messaging-change-count::$(echo $CHANGES | grep -c src/Messaging)
           echo ::set-output name=messaging-web-change-count::$(echo $CHANGES | grep -c src/Messaging.Web)
           echo ::set-output name=messaging-web-client-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Client)
           echo ::set-output name=messaging-web-server-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Server)
-          echo ::set-output name=nuget-version::${{ env.VERSION }}-prerelease
           mkdir release-artifacts
       - run: cp -r src/Core release-artifacts/Core
         if:  steps.preparations.outputs.core-change-count != '0' || env.ALL_PACKAGES
