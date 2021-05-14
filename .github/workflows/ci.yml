@@ -52,9 +52,9 @@ jobs:
           echo ::set-output name=core-change-count::$(echo $CHANGES | grep -c src/Core)
           echo ::set-output name=diagnostics-change-count::$(echo $CHANGES | grep -c src/Diagnostics)
           echo ::set-output name=messaging-change-count::$(echo $CHANGES | grep -c src/Messaging)
-          echo ::set-output name=messaging-web-count::$(echo $CHANGES | grep -c src/Messaging.Web)
-          echo ::set-output name=messaging-web-client-count::$(echo $CHANGES | grep -c src/Messaging.Web.Client)
-          echo ::set-output name=messaging-web-server-count::$(echo $CHANGES | grep -c src/Messaging.Web.Server)
+          echo ::set-output name=messaging-web-change-count::$(echo $CHANGES | grep -c src/Messaging.Web)
+          echo ::set-output name=messaging-web-client-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Client)
+          echo ::set-output name=messaging-web-server-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Server)
           echo ::set-output name=nuget-version::${{ env.VERSION }}-prerelease
           mkdir release-artifacts
       - run: cp -r src/Core release-artifacts/Core
@@ -78,13 +78,13 @@ jobs:
           retention-days: 7
         if: steps.count-changes.outputs.total-change-count != '0'
     outputs:
-      core-change-count: ${{ steps.count-changes.outputs.core-change-count }}
-      diagnostics-change-count: ${{ steps.count-changes.outputs.diagnostics-change-count }}
-      messaging-change-count: ${{ steps.count-changes.outputs.messaging-change-count }}
-      messaging-web-change-count: ${{ steps.count-changes.outputs.messaging-web-change-count }}
-      messaging-web-client-change-count: ${{ steps.count-changes.outputs.messaging-web-client-change-count }}
-      messaging-web-server-change-count: ${{ steps.count-changes.outputs.messaging-web-server-change-count }}
-      total-change-count: ${{ steps.count-changes.outputs.total-change-count }}
+      core-change-count: ${{ steps.preparations.outputs.core-change-count }}
+      diagnostics-change-count: ${{ steps.preparations.outputs.diagnostics-change-count }}
+      messaging-change-count: ${{ steps.preparations.outputs.messaging-change-count }}
+      messaging-web-change-count: ${{ steps.preparations.outputs.messaging-web-change-count }}
+      messaging-web-client-change-count: ${{ steps.preparations.outputs.messaging-web-client-change-count }}
+      messaging-web-server-change-count: ${{ steps.preparations.outputs.messaging-web-server-change-count }}
+      total-change-count: ${{ steps.preparations.outputs.total-change-count }}
 
   pre-release:
     runs-on: ubuntu-latest
