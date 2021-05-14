@@ -10,6 +10,7 @@ namespace Assistant.Net
 {
     public static class ServiceCollectionExtensions
     {
+
         /// <summary>
         ///     Adds system services with default behavior.
         /// </summary>
