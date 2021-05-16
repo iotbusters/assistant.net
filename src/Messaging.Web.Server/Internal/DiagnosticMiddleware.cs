@@ -8,11 +8,11 @@ namespace Assistant.Net.Messaging.Internal
     /// <summary>
     ///     Operation tracking middleware.
     /// </summary>
-    internal class DiagnosticsMiddleware
+    internal class DiagnosticMiddleware
     {
         private readonly RequestDelegate next;
 
-        public DiagnosticsMiddleware(RequestDelegate next) =>
+        public DiagnosticMiddleware(RequestDelegate next) =>
             this.next = next;
 
         public async Task Invoke(HttpContext context, IDiagnosticsFactory operationFactory)

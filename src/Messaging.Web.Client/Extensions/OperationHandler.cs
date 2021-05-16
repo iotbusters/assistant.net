@@ -8,11 +8,11 @@ namespace Assistant.Net.Messaging.Extensions
     /// <summary>
     ///     Operation tracking for remote command handling.
     /// </summary>
-    internal class DiagnosticsHandler : DelegatingHandler
+    internal class OperationHandler : DelegatingHandler
     {
         private readonly IDiagnosticsFactory diagnosticsFactory;
 
-        public DiagnosticsHandler(IDiagnosticsFactory diagnosticsFactory) =>
+        public OperationHandler(IDiagnosticsFactory diagnosticsFactory) =>
             this.diagnosticsFactory = diagnosticsFactory;
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
