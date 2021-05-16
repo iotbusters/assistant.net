@@ -12,7 +12,7 @@ namespace Assistant.Net.Diagnostics.Internal
     /// </summary>
     internal sealed class DiagnosticFactory : IDiagnosticFactory, IDisposable
     {
-        public DiagnosticFactory(OperationEventSource eventSource, ISystemClock clock, IDiagnosticsContext context)
+        public DiagnosticFactory(OperationEventSource eventSource, ISystemClock clock, IDiagnosticContext context)
         {
             EventSource = eventSource;
             Clock = clock;
@@ -21,7 +21,7 @@ namespace Assistant.Net.Diagnostics.Internal
 
         internal OperationEventSource EventSource { get; }
         internal ISystemClock Clock { get; }
-        internal IDiagnosticsContext Context { get; }
+        internal IDiagnosticContext Context { get; }
         internal IDictionary<string, IDisposable> Operations { get; } = new ConcurrentDictionary<string, IDisposable>();
 
         IOperation IDiagnosticFactory.Start(string name) =>

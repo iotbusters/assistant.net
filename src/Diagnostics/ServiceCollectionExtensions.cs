@@ -13,12 +13,12 @@ namespace Assistant.Net.Diagnostics
         /// </summary>
         public static IServiceCollection AddDiagnosticContext(this IServiceCollection services) => services
             .TryAddScoped(p => new DiagnosticContext())
-            .TryAddScoped(InitializeWith(p => Guid.NewGuid()));
+            .TryAddScoped(InitializeWith(p => Guid.NewGuid().ToString()));
 
         /// <summary>
         ///     Registers diagnostic context customized by a predicate <paramref name="getCorrelationId" />.
         /// </summary>
-        public static IServiceCollection AddDiagnosticContext(this IServiceCollection services, Func<IServiceProvider, Guid> getCorrelationId) => services
+        public static IServiceCollection AddDiagnosticContext(this IServiceCollection services, Func<IServiceProvider, string> getCorrelationId) => services
             .TryAddScoped(p => new DiagnosticContext())
             .ReplaceScoped(InitializeWith(getCorrelationId));
 
@@ -31,7 +31,7 @@ namespace Assistant.Net.Diagnostics
             .TryAddSingleton(x => OperationEventSource.Instance)
             .TryAddScoped<IDiagnosticFactory, DiagnosticFactory>();
 
-        private static Func<IServiceProvider, IDiagnosticsContext> InitializeWith(Func<IServiceProvider, Guid> getCorrelationId) =>
+        private static Func<IServiceProvider, IDiagnosticContext> InitializeWith(Func<IServiceProvider, string> getCorrelationId) =>
             p =>
             {
                 var context = p.GetRequiredService<DiagnosticContext>();

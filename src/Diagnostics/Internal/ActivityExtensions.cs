@@ -19,15 +19,15 @@ namespace Assistant.Net.Diagnostics.Internal
             CorrelationIdName, StatusName, MessageName
         };
 
-        public static Activity AddCorrelationId(this Activity activity, Guid correlationId)
+        public static Activity AddCorrelationId(this Activity activity, string correlationId)
         {
             return activity
                 .AddTag(CorrelationIdName, correlationId)
-                .TryAddBaggage(CorrelationIdName, correlationId.ToString());
+                .TryAddBaggage(CorrelationIdName, correlationId);
         }
 
-        public static Guid GetCorrelationId(this Activity activity) =>
-            (Guid?) activity.TagObjects.LastOrDefault(x => x.Key == CorrelationIdName).Value
+        public static string GetCorrelationId(this Activity activity) =>
+            activity.Tags.LastOrDefault(x => x.Key == CorrelationIdName).Value
             ?? throw new ArgumentException($"Activity({activity.OperationName}) doesn't have {CorrelationIdName} baggage value.");
 
         public static Activity AddMessage(this Activity activity, string message) =>
