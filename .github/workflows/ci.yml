@@ -1,12 +1,12 @@
 name: CI
 on:
   push:
-    branches: [develop]
+    branches: [master]
   pull_request:
     branches: [master]
 env:
   VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
-  ALL_PACKAGES: true
+  ALL_PACKAGES: false
 
 jobs:
   build:
