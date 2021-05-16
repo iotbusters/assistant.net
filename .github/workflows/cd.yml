@@ -1,6 +1,8 @@
-name: Release
+# stopped triggering for some reason
+name: CD
 on:
   release:
+    branches: [develop, master]
     types: [created, edited]
 
 jobs:

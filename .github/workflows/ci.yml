@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [master]
+    branches: [develop, master]
   pull_request:
     branches: [master]
 env:
@@ -48,7 +48,7 @@ jobs:
       - name: preparations
         id: preparations
         run: |
-          CHANGES=$(git diff --name-only ${{ github.sha }})
+          CHANGES=$(git diff --name-only ${{ github.event.before }})
           echo ::set-output name=core-change-count::$(echo $CHANGES | grep -c src/Core)
           echo ::set-output name=storage-change-count::$(echo $CHANGES | grep -c src/Storage)
           echo ::set-output name=diagnostics-change-count::$(echo $CHANGES | grep -c src/Diagnostics)
@@ -56,29 +56,35 @@ jobs:
           echo ::set-output name=messaging-web-change-count::$(echo $CHANGES | grep -c src/Messaging.Web)
           echo ::set-output name=messaging-web-client-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Client)
           echo ::set-output name=messaging-web-server-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Server)
-          mkdir release-artifacts
-      - run: cp -r src/Core release-artifacts/Core
+          echo ::set-output name=total-change-count::$(echo $CHANGES | wc -l)
+          mkdir -p release-artifacts/src
+          cp LICENSE release-artifacts
+      - run: cp -r src/Core release-artifacts/src/Core
         if:  steps.preparations.outputs.core-change-count != '0' || env.ALL_PACKAGES
-      - run: cp -r src/Storage release-artifacts/Storage
+      - run: cp -r src/Storage release-artifacts/src/Storage
         if:  steps.preparations.outputs.storage-change-count != '0' || env.ALL_PACKAGES
-      - run: cp -r src/Diagnostics release-artifacts/Diagnostics
+      - run: cp -r src/Diagnostics release-artifacts/src/Diagnostics
         if:  steps.preparations.outputs.diagnostics-change-count != '0' || env.ALL_PACKAGES
-      - run: cp -r src/Messaging release-artifacts/Messaging
+      - run: cp -r src/Messaging release-artifacts/src/Messaging
         if:  steps.preparations.outputs.messaging-change-count != '0' || env.ALL_PACKAGES
-      - run: cp -r src/Messaging.Web release-artifacts/Messaging.Web
+      - run: cp -r src/Messaging.Web release-artifacts/src/Messaging.Web
         if:  steps.preparations.outputs.messaging-web-change-count != '0' || env.ALL_PACKAGES
-      - run: cp -r src/Messaging.Web release-artifacts/Messaging.Web.Client
+      - run: cp -r src/Messaging.Web release-artifacts/src/Messaging.Web.Client
         if:  steps.preparations.outputs.messaging-web-client-change-count != '0' || env.ALL_PACKAGES
-      - run: cp -r src/Messaging.Web release-artifacts/Messaging.Web.Server
+      - run: cp -r src/Messaging.Web release-artifacts/src/Messaging.Web.Server
         if:  steps.preparations.outputs.messaging-web-server-change-count != '0' || env.ALL_PACKAGES
       - id: count-changes
-        run: echo ::set-output name=total-change-count::$(ls release-artifacts | wc -l)
+        run: echo ::set-output name=total-package-prepared-count::$(ls release-artifacts | wc -l)
       - uses: actions/upload-artifact@v2.2.3
         with:
           name: release-artifacts
-          path: release-artifacts
+          path: |
+            release-artifacts/**/*.csproj
+            release-artifacts/**/*.dll
+            release-artifacts/**/*.pdb
+            release-artifacts/**/*.json
           retention-days: 7
-        if: steps.count-changes.outputs.total-change-count != '0'
+        if: steps.count-changes.outputs.total-package-prepared-count != '0'
     outputs:
       core-change-count: ${{ steps.preparations.outputs.core-change-count }}
       storage-change-count: ${{ steps.preparations.outputs.storage-change-count }}
@@ -87,12 +93,13 @@ jobs:
       messaging-web-change-count: ${{ steps.preparations.outputs.messaging-web-change-count }}
       messaging-web-client-change-count: ${{ steps.preparations.outputs.messaging-web-client-change-count }}
       messaging-web-server-change-count: ${{ steps.preparations.outputs.messaging-web-server-change-count }}
-      total-change-count: ${{ steps.count-changes.outputs.total-change-count }}
-
+      total-change-count: ${{ steps.preparations.outputs.total-change-count }}
+      total-package-prepared-count: ${{ steps.count-changes.outputs.total-package-prepared-count }}
   pre-release:
     runs-on: ubuntu-latest
     needs: build
     steps:
+        # ensure the artifact were created to skip empty releases.
       - uses: actions/download-artifact@v2.0.9
         with:
           name: release-artifacts
@@ -102,15 +109,10 @@ jobs:
           release_name: Release ${{ env.VERSION }}
           prerelease: true
           body: |
+            <h4>Total packages prepared: ${{ needs.build.outputs.total-package-prepared-count }}</h4>
+            <h4>Total changes released: ${{ needs.build.outputs.total-change-count }}</h4>
             <details>
-              <summary>Commits</summary>
-              <ul>
-                <li>${{ join(github.event.commits.*.message, '</li><br /><li>') }}</li>
-              </ul>
-            </details>
-            <br />
-            <details>
-              <summary>Total packages: ${{ needs.build.outputs.total-change-count }}</summary>
+              <summary>Package changes</summary>
               <ul>
                 <li>Core: ${{ needs.build.outputs.core-change-count }}</li>
                 <li>Storage: ${{ needs.build.outputs.storage-change-count }}</li>
@@ -121,6 +123,46 @@ jobs:
                 <li>Messaging.Web.Server: ${{ needs.build.outputs.messaging-web-server-change-count }}</li>
               </ul>
             </details>
+            <details>
+              <summary>Commits</summary>
+              <ul>
+                <li>${{ join(github.event.commits.*.message, '</li><li>') }}</li>
+              </ul>
+            </details>
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    if: github.event_name == 'push' && needs.build.outputs.total-change-count != '0'
+    if: github.event_name == 'push' && needs.build.outputs.total-package-prepared-count != '0'
+
+  # todo: remove once cd workflow started triggering.
+  # publish-package:
+  #   runs-on: ubuntu-latest
+  #   needs: pre-release
+  #   steps:
+  #     - uses: actions/setup-dotnet@v1.7.2
+  #       with: { dotnet-version: '5.0' }
+
+  #     - uses: actions/download-artifact@v2.0.9
+  #       with:
+  #         name: release-artifacts
+
+  #     - name: pack
+  #       run: |
+  #         NUGET_VERSION=${VERSION}-prerelease
+  #         # it cannot find csproj files for some reason
+  #         find . -name *.csproj | \
+  #         xargs -i dotnet pack -p:PackageVersion=${NUGET_VERSION} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -o packages -c Release --no-restore --no-build --no-dependencies -v n
+
+  #     - name: publish
+  #       run: |
+  #         API_KEY=${{ secrets.NUGET_API_KEY }}
+  #         find . -name '*.nupkg' | 
+  #         xargs -i dotnet nuget push -k ${API_KEY} -s https://api.nuget.org/v3/index.json -t 30 {}
+  #         #dotnet nuget push *.nupkg -k ${API_KEY} -s https://api.nuget.org/v3/index.json -t 30
+
+  #     - uses: actions/upload-artifact@v2.2.3
+  #       with:
+  #         name: packages
+  #         path: |
+  #           **/*.nupkg
+  #           **/*.snupkg
+  #         retention-days: 30
