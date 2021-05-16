@@ -28,7 +28,7 @@ namespace Assistant.Net.Diagnostics.Tests
             var scope = provider.CreateScope();
 
             var correlationId = scope.ServiceProvider.GetRequiredService<IDiagnosticsContext>().CorrelationId;
-            var factory = scope.ServiceProvider.GetRequiredService<IDiagnosticsFactory>();
+            var factory = scope.ServiceProvider.GetRequiredService<IDiagnosticFactory>();
             factory.Start("A"); // not disposed
 
             scope.Dispose();
@@ -68,12 +68,12 @@ namespace Assistant.Net.Diagnostics.Tests
 
             var scope1 = provider.CreateScope();
             var correlationId1 = scope1.ServiceProvider.GetRequiredService<IDiagnosticsContext>().CorrelationId;
-            var factory1 = scope1.ServiceProvider.GetRequiredService<IDiagnosticsFactory>();
+            var factory1 = scope1.ServiceProvider.GetRequiredService<IDiagnosticFactory>();
             var operation1 = factory1.Start("A");
 
             var scope2 = provider.CreateScope();
             var correlationId2 = scope2.ServiceProvider.GetRequiredService<IDiagnosticsContext>().CorrelationId;
-            var factory2 = scope2.ServiceProvider.GetRequiredService<IDiagnosticsFactory>();
+            var factory2 = scope2.ServiceProvider.GetRequiredService<IDiagnosticFactory>();
             var operation2 = factory2.Start("B");
             operation2.Complete();
             scope2.Dispose();
@@ -137,7 +137,7 @@ namespace Assistant.Net.Diagnostics.Tests
             using var scope = provider.CreateScope();
 
             var correlationId = scope.ServiceProvider.GetRequiredService<IDiagnosticsContext>().CorrelationId;
-            var factory = scope.ServiceProvider.GetRequiredService<IDiagnosticsFactory>();
+            var factory = scope.ServiceProvider.GetRequiredService<IDiagnosticFactory>();
             var a1 = factory.Start("A");
             var a2 = factory.Start("A");
             a2.Complete();
@@ -200,7 +200,7 @@ namespace Assistant.Net.Diagnostics.Tests
             using var scope = provider.CreateScope();
 
             var correlationId = scope.ServiceProvider.GetRequiredService<IDiagnosticsContext>().CorrelationId;
-            var factory = scope.ServiceProvider.GetRequiredService<IDiagnosticsFactory>();
+            var factory = scope.ServiceProvider.GetRequiredService<IDiagnosticFactory>();
             var a = factory.Start("A");
             var b = factory.Start("B");
             b.Complete();
@@ -263,7 +263,7 @@ namespace Assistant.Net.Diagnostics.Tests
             using var scope = provider.CreateScope();
 
             var correlationId = scope.ServiceProvider.GetRequiredService<IDiagnosticsContext>().CorrelationId;
-            var factory = scope.ServiceProvider.GetRequiredService<IDiagnosticsFactory>();
+            var factory = scope.ServiceProvider.GetRequiredService<IDiagnosticFactory>();
             var a = factory.Start("A");
             var _ = factory.Start("B");
             a.Complete();

@@ -8,11 +8,11 @@ namespace Assistant.Net.Messaging.Extensions
     /// <summary>
     ///     Spreading current correlation context on remote command handling.
     /// </summary>
-    internal class CorrelationIdHandler : DelegatingHandler
+    internal class CorrelationHandler : DelegatingHandler
     {
         private readonly IDiagnosticsContext context;
 
-        public CorrelationIdHandler(IDiagnosticsContext context) =>
+        public CorrelationHandler(IDiagnosticsContext context) =>
             this.context = context;
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

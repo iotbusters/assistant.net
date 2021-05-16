@@ -11,30 +11,30 @@ namespace Assistant.Net.Diagnostics
         /// <summary>
         ///     Registers default diagnostics context.
         /// </summary>
-        public static IServiceCollection AddDiagnosticsContext(this IServiceCollection services) => services
-            .TryAddScoped(p => new DiagnosticsContext())
+        public static IServiceCollection AddDiagnosticContext(this IServiceCollection services) => services
+            .TryAddScoped(p => new DiagnosticContext())
             .TryAddScoped(InitializeWith(p => Guid.NewGuid()));
 
         /// <summary>
-        ///     Registers diagnostics context customized by a predicate <paramref name="getCorrelationId" />.
+        ///     Registers diagnostic context customized by a predicate <paramref name="getCorrelationId" />.
         /// </summary>
-        public static IServiceCollection AddDiagnosticsContext(this IServiceCollection services, Func<IServiceProvider, Guid> getCorrelationId) => services
-            .TryAddScoped(p => new DiagnosticsContext())
+        public static IServiceCollection AddDiagnosticContext(this IServiceCollection services, Func<IServiceProvider, Guid> getCorrelationId) => services
+            .TryAddScoped(p => new DiagnosticContext())
             .ReplaceScoped(InitializeWith(getCorrelationId));
 
         /// <summary>
-        ///     Registers diagnostics services.
+        ///     Registers diagnostic services.
         /// </summary>
         public static IServiceCollection AddDiagnostics(this IServiceCollection services) => services
             .AddSystemClock()
-            .AddDiagnosticsContext()
+            .AddDiagnosticContext()
             .TryAddSingleton(x => OperationEventSource.Instance)
-            .TryAddScoped<IDiagnosticsFactory, DiagnosticsFactory>();
+            .TryAddScoped<IDiagnosticFactory, DiagnosticFactory>();
 
         private static Func<IServiceProvider, IDiagnosticsContext> InitializeWith(Func<IServiceProvider, Guid> getCorrelationId) =>
             p =>
             {
-                var context = p.GetRequiredService<DiagnosticsContext>();
+                var context = p.GetRequiredService<DiagnosticContext>();
                 context.CorrelationId = getCorrelationId(p);
                 return context;
             };

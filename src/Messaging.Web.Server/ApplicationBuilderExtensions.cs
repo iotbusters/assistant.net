@@ -12,7 +12,7 @@ namespace Assistant.Net.Messaging
         /// </summary>
         public static IApplicationBuilder UseRemoteCommandHandling(this IApplicationBuilder builder) => builder
             .UseRemoteExceptionHandling()
-            .UseMiddleware<DiagnosticsMiddleware>()
+            .UseMiddleware<DiagnosticMiddleware>()
             .UseMiddleware<RemoteCommandHandlingMiddleware>();
 
         /// <summary>

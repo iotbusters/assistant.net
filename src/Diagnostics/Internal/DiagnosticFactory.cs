@@ -10,9 +10,9 @@ namespace Assistant.Net.Diagnostics.Internal
     /// <summary>
     ///     Default diagnostic factory implementation.
     /// </summary>
-    internal sealed class DiagnosticsFactory : IDiagnosticsFactory, IDisposable
+    internal sealed class DiagnosticFactory : IDiagnosticFactory, IDisposable
     {
-        public DiagnosticsFactory(OperationEventSource eventSource, ISystemClock clock, IDiagnosticsContext context)
+        public DiagnosticFactory(OperationEventSource eventSource, ISystemClock clock, IDiagnosticsContext context)
         {
             EventSource = eventSource;
             Clock = clock;
@@ -24,7 +24,7 @@ namespace Assistant.Net.Diagnostics.Internal
         internal IDiagnosticsContext Context { get; }
         internal IDictionary<string, IDisposable> Operations { get; } = new ConcurrentDictionary<string, IDisposable>();
 
-        IOperation IDiagnosticsFactory.Start(string name) =>
+        IOperation IDiagnosticFactory.Start(string name) =>
             new Operation(name, this);
 
         void IDisposable.Dispose()

@@ -25,8 +25,8 @@ namespace Assistant.Net.Messaging
                 c.BaseAddress = options.BaseAddress;
                 c.Timeout = options.Timeout ?? DefaultTimeout;
             })
-            .AddHttpMessageHandler<CorrelationIdHandler>()
-            .AddHttpMessageHandler<DiagnosticsHandler>()
+            .AddHttpMessageHandler<CorrelationHandler>()
+            .AddHttpMessageHandler<OperationHandler>()
             .AddHttpMessageHandler<AuthorizationHandler>()
             .AddHttpMessageHandler<ErrorPropagationHandler>()
             .Services;

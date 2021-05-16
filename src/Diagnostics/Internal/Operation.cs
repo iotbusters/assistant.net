@@ -14,12 +14,12 @@ namespace Assistant.Net.Diagnostics.Internal
         public const string DefaultFailMessage = "Operation has failed.";
         public const string LostOperationMessage = "Operation wasn't properly stopped or lost.";
 
-        private readonly DiagnosticsFactory factory;
+        private readonly DiagnosticFactory factory;
         private readonly Activity activity;
 
         private bool isStopped;
 
-        public Operation(string name, DiagnosticsFactory factory)
+        public Operation(string name, DiagnosticFactory factory)
         {
             this.factory = factory;
             this.activity = new Activity(name)

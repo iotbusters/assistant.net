@@ -3,7 +3,7 @@
     /// <summary>
     ///     
     /// </summary>
-    public interface IDiagnosticsFactory
+    public interface IDiagnosticFactory
     {
         /// <summary>
         ///     Starts new operation within current operation context.
