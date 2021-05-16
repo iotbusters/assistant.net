@@ -1,6 +1,8 @@
-name: Release
+# stopped triggering for some reason
+name: CD
 on:
   release:
+    branches: [develop, master]
     types: [created, edited]
 
 jobs:
@@ -13,6 +15,12 @@ jobs:
       - uses: actions/download-artifact@v2.0.9
         with:
           name: release-artifacts
+
+      - uses: actions/cache@v2.1.5
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: ${{ runner.os }}-nuget-
 
       - name: pack
         run: |
