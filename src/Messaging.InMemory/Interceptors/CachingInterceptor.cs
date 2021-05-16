@@ -14,6 +14,7 @@ namespace Assistant.Net.Messaging.Interceptors
     {
         /// <summary>
         ///     Important logging. It should be persisted. Temporary solution.
+        ///     https://github.com/iotbusters/assistant.net/issues/23
         /// </summary>
         private readonly ConcurrentDictionary<string, Result> cache = new();
 
