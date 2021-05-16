@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: [develop, master]
+    branches: [master]
 env:
   VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
   ALL_PACKAGES: false
@@ -47,30 +47,30 @@ jobs:
         id: preparations
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
-          echo ::set-output name=core-change-count::$(echo $CHANGES | grep -c src/Core/)
-          echo ::set-output name=storage-change-count::$(echo $CHANGES | grep -c src/Storage/)
-          echo ::set-output name=diagnostics-change-count::$(echo $CHANGES | grep -c src/Diagnostics/)
-          echo ::set-output name=messaging-change-count::$(echo $CHANGES | grep -c src/Messaging/)
-          echo ::set-output name=messaging-web-change-count::$(echo $CHANGES | grep -c src/Messaging.Web/)
-          echo ::set-output name=messaging-web-client-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Client/)
-          echo ::set-output name=messaging-web-server-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Server/)
+          echo ::set-output name=core-change-count::$(echo $CHANGES | grep -c src/Core)
+          echo ::set-output name=storage-change-count::$(echo $CHANGES | grep -c src/Storage)
+          echo ::set-output name=diagnostics-change-count::$(echo $CHANGES | grep -c src/Diagnostics)
+          echo ::set-output name=messaging-change-count::$(echo $CHANGES | grep -c src/Messaging)
+          echo ::set-output name=messaging-web-change-count::$(echo $CHANGES | grep -c src/Messaging.Web)
+          echo ::set-output name=messaging-web-client-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Client)
+          echo ::set-output name=messaging-web-server-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Server)
           echo ::set-output name=total-change-count::$(echo $CHANGES | wc -l)
           mkdir -p release-artifacts/src
           cp LICENSE release-artifacts
       - run: cp -r src/Core release-artifacts/src/Core
-        if:  steps.preparations.outputs.core-change-count != '0' || env.ALL_PACKAGES
+        if:  steps.preparations.outputs.core-change-count != '0' || env.ALL_PACKAGES == true
       - run: cp -r src/Storage release-artifacts/src/Storage
-        if:  steps.preparations.outputs.storage-change-count != '0' || env.ALL_PACKAGES
+        if:  steps.preparations.outputs.storage-change-count != '0' || env.ALL_PACKAGES == true
       - run: cp -r src/Diagnostics release-artifacts/src/Diagnostics
-        if:  steps.preparations.outputs.diagnostics-change-count != '0' || env.ALL_PACKAGES
+        if:  steps.preparations.outputs.diagnostics-change-count != '0' || env.ALL_PACKAGES == true
       - run: cp -r src/Messaging release-artifacts/src/Messaging
-        if:  steps.preparations.outputs.messaging-change-count != '0' || env.ALL_PACKAGES
+        if:  steps.preparations.outputs.messaging-change-count != '0' || env.ALL_PACKAGES == true
       - run: cp -r src/Messaging.Web release-artifacts/src/Messaging.Web
-        if:  steps.preparations.outputs.messaging-web-change-count != '0' || env.ALL_PACKAGES
+        if:  steps.preparations.outputs.messaging-web-change-count != '0' || env.ALL_PACKAGES == true
       - run: cp -r src/Messaging.Web release-artifacts/src/Messaging.Web.Client
-        if:  steps.preparations.outputs.messaging-web-client-change-count != '0' || env.ALL_PACKAGES
+        if:  steps.preparations.outputs.messaging-web-client-change-count != '0' || env.ALL_PACKAGES == true
       - run: cp -r src/Messaging.Web release-artifacts/src/Messaging.Web.Server
-        if:  steps.preparations.outputs.messaging-web-server-change-count != '0' || env.ALL_PACKAGES
+        if:  steps.preparations.outputs.messaging-web-server-change-count != '0' || env.ALL_PACKAGES == true
       - id: count-changes
         run: echo ::set-output name=total-package-prepared-count::$(ls release-artifacts/src | wc -l)
       - uses: actions/upload-artifact@v2.2.3
@@ -112,10 +112,10 @@ jobs:
           prerelease: true
           body: |
             <h4>Total packages prepared: ${{ needs.build.outputs.total-package-prepared-count }}</h4>
-            <h4>Total changes released: ${{ needs.build.outputs.total-change-count }}</h4>
             <details>
-              <summary>Package changes</summary>
+              <summary>Released changes</summary>
               <ul>
+                <li>Total: ${{ needs.build.outputs.total-change-count }}</li>
                 <li>Core: ${{ needs.build.outputs.core-change-count }}</li>
                 <li>Storage: ${{ needs.build.outputs.storage-change-count }}</li>
                 <li>Diagnostics: ${{ needs.build.outputs.diagnostics-change-count }}</li>
