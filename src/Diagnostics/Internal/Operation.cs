@@ -63,31 +63,25 @@ namespace Assistant.Net.Diagnostics.Internal
         {
             var data = new OperationStartedData
             {
+                CorrelationId = factory.Context.CorrelationId,
                 Metadata = activity.GetCustomMetadata()
             };
-            var correlationId = factory.Context.CorrelationId;
 
-            factory.EventSource.WriteOperationStarted(
-                activity.OperationName,
-                ref data,
-                ref correlationId);
+            factory.EventSource.WriteOperationStarted(activity.OperationName, ref data);
         }
 
         private void WriteOperationStopped(string status, string message)
         {
             var data = new OperationStoppedData
             {
+                CorrelationId = factory.Context.CorrelationId,
                 Duration = activity.Duration,
                 Status = status,
                 Message = message,
                 Metadata = activity.GetCustomMetadata()
             };
-            var correlationId = factory.Context.CorrelationId;
 
-            factory.EventSource.WriteOperationStopped(
-                activity.OperationName,
-                ref data,
-                ref correlationId);
+            factory.EventSource.WriteOperationStopped(activity.OperationName, ref data);
 
         }
     }

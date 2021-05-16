@@ -11,6 +11,11 @@ namespace Assistant.Net.Diagnostics.EventSources
     internal struct OperationStoppedData
     {
         /// <summary>
+        ///     Operation correlation ID.
+        /// </summary>
+        public string CorrelationId { get; set; }
+
+        /// <summary>
         ///     Operation duration.
         /// </summary>
         public TimeSpan Duration { get; set; }

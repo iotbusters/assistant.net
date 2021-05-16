@@ -7,11 +7,11 @@ namespace Assistant.Net.Diagnostics.Abstractions
     ///     Abstraction to diagnostic context which is responsible for sharing information
     ///     with all diagnostic services and other interested parties.
     /// </summary>
-    public interface IDiagnosticsContext
+    public interface IDiagnosticContext
     {
         /// <summary>
         ///     Current operation tracking identifier.
         /// </summary>
-        Guid CorrelationId { get; }
+        string CorrelationId { get; }
     }
 }

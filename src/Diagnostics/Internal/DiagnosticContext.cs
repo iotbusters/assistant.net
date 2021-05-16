@@ -6,8 +6,8 @@ namespace Assistant.Net.Diagnostics.Internal
     /// <summary>
     ///     Default diagnostic context implementation.
     /// </summary>
-    internal sealed class DiagnosticContext : IDiagnosticsContext
+    internal sealed class DiagnosticContext : IDiagnosticContext
     {
-        public Guid CorrelationId { get; set; }
+        public string CorrelationId { get; set; }
     }
 }

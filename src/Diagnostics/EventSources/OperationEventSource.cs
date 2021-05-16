@@ -16,18 +16,18 @@ namespace Assistant.Net.Diagnostics.EventSources
 
         private OperationEventSource() : base(EventNames.EventName) { }
 
-        internal void WriteOperationStarted(string eventName, ref OperationStartedData data, ref Guid correlationId)
+        internal void WriteOperationStarted(string eventName, ref OperationStartedData data)
         {
             if (!IsEnabled()) return;
 
-            Write(eventName, ref startOptions, ref noId, ref correlationId, ref data);
+            Write(eventName, ref startOptions, ref noId, ref noId, ref data);
         }
 
-        internal void WriteOperationStopped(string eventName, ref OperationStoppedData data, ref Guid correlationId)
+        internal void WriteOperationStopped(string eventName, ref OperationStoppedData data)
         {
             if (!IsEnabled()) return;
 
-            Write(eventName, ref stopOptions, ref noId, ref correlationId, ref data);
+            Write(eventName, ref stopOptions, ref noId, ref noId, ref data);
         }
     }
 }
