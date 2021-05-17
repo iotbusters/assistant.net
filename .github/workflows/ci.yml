@@ -48,7 +48,7 @@ jobs:
       - name: preparations
         id: preparations
         run: |
-          CHANGES=$(git diff --name-only ${{ github.event.before }})
+          CHANGES=$(git diff --name-only ${{ github.sha }})
           echo ::set-output name=core-change-count::$(echo $CHANGES | grep -c src/Core)
           echo ::set-output name=diagnostics-change-count::$(echo $CHANGES | grep -c src/Diagnostics)
           echo ::set-output name=messaging-change-count::$(echo $CHANGES | grep -c src/Messaging)
