@@ -28,6 +28,20 @@ var now = provider.GetRequiredService<ISystemClock>().UtcNow;
 var stoppingCancellationToken = provider.GetRequiredService<ISystemLifetime>().Stopping;
 ```
 
+### assistant.net.storage
+
+It's common storage abstraction and related basic implementations and tools.
+
+See also available extensions in `assistant.net.storage.*` packages for more information.
+
+```csharp
+services.AddLocalStorage(opt => opt
+    .AddLocal<Model>()
+    .AddLocalAny());
+
+var storage = provider.GetRequiredService<IStorage<Key, Model>>();
+```
+
 ### assistant.net.diagnostics
 
 It's diagnostics management tools including tracking operations, correlations, event tracing etc.
@@ -44,9 +58,9 @@ var currentCorrelationId = provider.GetRequiredService<IDiagnosticContext>().Cor
 
 ### assistant.net.messaging
 
-It's local (in-memory) message handling implementation which support simple extending mechanism and basic message (called command) intercepting out of box.
+It's local (in-memory) message handling implementation which support simple extending mechanism and basic message (internal term `command`) intercepting out of box.
 
-See also available extensions in assistant.net.messaging.* packages for more information.
+See also available extensions in `assistant.net.messaging.*` packages for more information.
 
 ```csharp
 services.AddCommandClient(opt =>
@@ -62,7 +76,7 @@ var response = await client.Send(new SomeCommand())
 
 It implements shared tools required by packages with remote WEB oriented handling implementation. E.g. json serialization.
 
-See assistant.net.messaging.web.* packages for more information.
+See `assistant.net.messaging.web.*` packages for more information.
 
 ### assistant.net.messaging.web.client
 
@@ -77,7 +91,7 @@ var client = provider.GetRequiredService<ICommandClient>();
 var response = await client.Send(new SomeCommand())
 ```
 
-See [server](#assistant.net.messaging.web.server) configuration for remote handling.
+See [server](#assistantnetmessagingwebserver) configuration for remote handling.
 
 ### assistant.net.messaging.web.server
 
@@ -91,4 +105,4 @@ services.AddRemoteCommandHandlingServer(opt =>
 });
 ```
 
-See [client](#assistant.net.messaging.web.client) configuration and remote command handling request.
+See [client](#assistantnetmessagingwebclient) configuration and remote command handling request.
