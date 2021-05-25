@@ -10,9 +10,9 @@ namespace Assistant.Net.Messaging.Interceptors
     /// </summary>
     public class DiagnosticsInterceptor : ICommandInterceptor<ICommand<object>, object>
     {
-        private readonly IDiagnosticsFactory diagnosticsFactory;
+        private readonly IDiagnosticFactory diagnosticsFactory;
 
-        public DiagnosticsInterceptor(IDiagnosticsFactory diagnosticsFactory) =>
+        public DiagnosticsInterceptor(IDiagnosticFactory diagnosticsFactory) =>
             this.diagnosticsFactory = diagnosticsFactory;
 
         public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)

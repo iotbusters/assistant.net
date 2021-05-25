@@ -12,12 +12,12 @@ namespace Assistant.Net.Messaging.Interceptors
     public class RetryingInterceptor : ICommandInterceptor
     {
         private readonly ILogger<RetryingInterceptor> logger;
-        private readonly IDiagnosticsFactory diagnosticsFactory;
+        private readonly IDiagnosticFactory diagnosticsFactory;
         private readonly ISystemLifetime lifetime;
 
         public RetryingInterceptor(
             ILogger<RetryingInterceptor> logger,
-            IDiagnosticsFactory diagnosticsFactory,
+            IDiagnosticFactory diagnosticsFactory,
             ISystemLifetime lifetime)
         {
             this.logger = logger;
@@ -28,13 +28,13 @@ namespace Assistant.Net.Messaging.Interceptors
         public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
         {
             // configurable
-            var maxRetryLimit = 10;
+            var maxRetryLimit = 5;
             var delayingStrategy = new Func<int, TimeSpan>(x => TimeSpan.FromSeconds(Math.Pow(x, 2)));
             var breakStrategy = new Func<Exception, bool>(CriticalExceptionOnly);
 
             for (var attempt = 1; attempt <= maxRetryLimit; attempt++)
             {
-                var operation = diagnosticsFactory.Start($"attempt-{attempt}");
+                var operation = diagnosticsFactory.Start($"retry-attempt-{attempt}");
 
                 lifetime.Stopping.ThrowIfCancellationRequested();
 
@@ -65,7 +65,10 @@ namespace Assistant.Net.Messaging.Interceptors
         {
             // todo: resolve duplication in ErrorHandlingInterceptor (https://github.com/iotbusters/assistant.net/issues/4)
             // configurable
-            var transientExceptionTypes = new Type[0];
+            var transientExceptionTypes = new Type[]
+            {
+                typeof(CommandDeferredException)
+            };
 
             if (ex is AggregateException e)
                 return CriticalExceptionOnly(e.InnerException!);
