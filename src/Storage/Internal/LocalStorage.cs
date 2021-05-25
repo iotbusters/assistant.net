@@ -6,7 +6,7 @@ using Assistant.Net.Unions;
 
 namespace Assistant.Net.Storage.Internal
 {
-    internal class LocalStorage<TValue> : IStorage<TValue>
+    internal sealed class LocalStorage<TValue> : IStorage<TValue>
     {
         private readonly ConcurrentDictionary<string, Task<TValue>> backedStorage = new();
 
@@ -27,9 +27,19 @@ namespace Assistant.Net.Storage.Internal
                 ? Option.Some(await task)
                 : Option.None;
 
-        public async Task<Option<TValue>> TryRemove(string key)=>
+        public async Task<Option<TValue>> TryRemove(string key) =>
             backedStorage.TryRemove(key, out var task)
                 ? Option.Some(await task)
                 : Option.None;
+
+        void IDisposable.Dispose()
+        {
+            if (typeof(TValue).IsAssignableTo(typeof(IDisposable)))
+                foreach (var value in backedStorage.Values)
+                    ((IDisposable)value).Dispose();
+            GC.SuppressFinalize(this);
+        }
+
+        ~LocalStorage() => ((IDisposable)this).Dispose();
     }
 }

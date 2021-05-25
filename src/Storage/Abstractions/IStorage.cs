@@ -61,5 +61,5 @@ namespace Assistant.Net.Storage.Abstractions
     ///    String key based value-centric storage.
     /// </summary>
     /// <typeparam name="TValue">A value object type which specific storage implementation is assigned to.</typeparam>
-    public interface IStorage<TValue> : IStorage<string, TValue> { }
+    public interface IStorage<TValue> : IStorage<string, TValue>, IDisposable { }
 }

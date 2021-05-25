@@ -60,5 +60,15 @@ namespace Assistant.Net.Storage.Internal
             var bytes = await backedStorage.TryRemove(key);
             return bytes.Map(valueConverter.Convert);
         }
+
+        void IDisposable.Dispose()
+        {
+            Dispose();
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose() => backedStorage.Dispose();
+
+        ~BinaryStorage() => ((IDisposable)this).Dispose();
     }
 }
