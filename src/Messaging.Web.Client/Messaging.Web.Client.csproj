@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -13,11 +13,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.messaging.web" Version="0.0.0.2"/>
+    <PackageReference Include="assistant.net.messaging.web" Version="0.0.0.14"/>
   </ItemGroup>
 
   <PropertyGroup>
-    <PackageDescription>Messaging client implementation for remote WEB handling. It's part of Assistant.NET infrastructure.</PackageDescription>
+    <Product>Assistant.NET</Product>
+    <RepositoryType>github</RepositoryType>
+    <PackageTags>mediator rpc</PackageTags>
+    <Description>A client for remote WEB oriented message handling.</Description>
+    <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetmessagingwebclient</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>

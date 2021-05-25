@@ -8,11 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.messaging" Version="0.0.0.2"/>
+    <PackageReference Include="assistant.net.messaging" Version="0.0.0.14"/>
   </ItemGroup>
 
   <PropertyGroup>
-    <PackageDescription>Messaging tools and abstractions for remote WEB handling. It's part of Assistant.NET infrastructure.</PackageDescription>
+    <Product>Assistant.NET</Product>
+    <RepositoryType>github</RepositoryType>
+    <PackageTags>mediator</PackageTags>
+    <Description>Shared tools for remote WEB oriented message handling.</Description>
+    <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetmessagingweb</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>
