@@ -87,7 +87,7 @@ jobs:
       messaging-web-change-count: ${{ steps.preparations.outputs.messaging-web-change-count }}
       messaging-web-client-change-count: ${{ steps.preparations.outputs.messaging-web-client-change-count }}
       messaging-web-server-change-count: ${{ steps.preparations.outputs.messaging-web-server-change-count }}
-      total-change-count: ${{ steps.preparations.outputs.total-change-count }}
+      total-change-count: ${{ steps.count-changes.outputs.total-change-count }}
 
   pre-release:
     runs-on: ubuntu-latest
@@ -102,28 +102,25 @@ jobs:
           release_name: Release ${{ env.VERSION }}
           prerelease: true
           body: |
-            changes:
-            - Core: ${{ needs.build.outputs.core-change-count }}
-            - Storage: ${{ needs.build.outputs.storage-change-count }}
-            - Diagnostics: ${{ needs.build.outputs.diagnostics-change-count }}
-            - Messaging: ${{ needs.build.outputs.messaging-change-count }}
-            - Messaging.Web: ${{ needs.build.outputs.messaging-web-change-count }}
-            - Messaging.Web.Client: ${{ needs.build.outputs.messaging-web-client-change-count }}
-            - Messaging.Web.Server: ${{ needs.build.outputs.messaging-web-server-change-count }}
-            - Total: ${{ needs.build.outputs.total-change-count }}
-            comments:
-            ${{ join(github.event.commits.*.message, ' ++ ') }}
-# todo: refactor
-# <details>
-# <summary>Commits</summary>
-# <ul>
-# <li><a href="https://github.com/microsoft/vstest/commit/99b911a57a02fc5d2eeef23e9ab8cbea4505678b">
-#       <code>99b911a</code>
-#     </a> Merging servicing fixes for 16.9.4
-# </li>
-# </ul>
-# </details>
-# <br />
+            <details>
+              <summary>Commits</summary>
+              <ul>
+                <li>${{ join(github.event.commits.*.message, '</li><br /><li>') }}</li>
+              </ul>
+            </details>
+            <br />
+            <details>
+              <summary>Total packages: ${{ needs.build.outputs.total-change-count }}</summary>
+              <ul>
+                <li>Core: ${{ needs.build.outputs.core-change-count }}</li>
+                <li>Storage: ${{ needs.build.outputs.storage-change-count }}</li>
+                <li>Diagnostics: ${{ needs.build.outputs.diagnostics-change-count }}</li>
+                <li>Messaging: ${{ needs.build.outputs.messaging-change-count }}</li>
+                <li>Messaging.Web: ${{ needs.build.outputs.messaging-web-change-count }}</li>
+                <li>Messaging.Web.Client: ${{ needs.build.outputs.messaging-web-client-change-count }}</li>
+                <li>Messaging.Web.Server: ${{ needs.build.outputs.messaging-web-server-change-count }}</li>
+              </ul>
+            </details>
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     if: github.event_name == 'push' && needs.build.outputs.total-change-count != '0'
