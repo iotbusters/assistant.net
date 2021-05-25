@@ -28,15 +28,8 @@ namespace Assistant.Net.Messaging.Internal
         public static string GetCommandName(this HttpContext httpContext) =>
             httpContext.GetRequiredHeader(HeaderNames.CommandName);
 
-        public static Guid GetCorrelationId(this HttpContext httpContext)
-        {
-            var value = httpContext.GetRequiredHeader(HeaderNames.CorrelationIdName);
-
-            if (!Guid.TryParse(value, out var correlationId))
-                throw new CommandContractException($"Header '{HeaderNames.CorrelationIdName}' is invalid.");
-
-            return correlationId;
-        }
+        public static string GetCorrelationId(this HttpContext httpContext) => httpContext
+            .GetRequiredHeader(HeaderNames.CorrelationId);
 
         public static Type GetCommandType(this HttpContext httpContext)
         {
@@ -54,40 +47,39 @@ namespace Assistant.Net.Messaging.Internal
             var options = context.GetService<IOptions<JsonSerializerOptions>>();
             var lifetime = context.GetService<ISystemLifetime>();
 
-            return await context.Request.Body.ReadObject(
-                commandType,
-                options.Value,
-                lifetime.Stopping)
+            return await context.Request.Body.ReadObject(commandType, options.Value, lifetime.Stopping)
                 ?? throw new CommandContractException("Unexpected null object.");
         }
 
-        public static async Task WriteCommandResponse(this HttpContext context, int statusCode, object content)
+        public static async Task WriteCommandResponse(this HttpContext context, int statusCode, object? content = null)
         {
             var serializerOptions = context.GetService<IOptions<JsonSerializerOptions>>();
             var lifetime = context.GetService<ISystemLifetime>();
 
             context.Response.StatusCode = statusCode;
 
-            await JsonSerializer.SerializeAsync(
-                context.Response.Body,
-                content,
-                content.GetType(),
-                serializerOptions.Value,
-                lifetime.Stopping);
+            if(content != null)
+                await JsonSerializer.SerializeAsync(
+                    context.Response.Body,
+                    content,
+                    content.GetType(),
+                    serializerOptions.Value,
+                    lifetime.Stopping);
         }
 
         public static async Task WriteCommandResponse(this HttpContext context, int statusCode, CommandException exception)
         {
-            context
-                .GetService<ILoggerFactory>()
-                .CreateLogger(typeof(HttpContextExtensions).Namespace)
-                .LogError(exception, "Remote command handling has failed.");
+            context.GetLogger().LogError(exception, "Remote command handling has failed.");
 
             await context.WriteCommandResponse(statusCode, (object)exception);
         }
 
-        public static T GetService<T>(this HttpContext httpContext)
-            where T : class => httpContext
+        public static ILogger GetLogger(this HttpContext context) => context
+            .GetService<ILoggerFactory>()
+            .CreateLogger(typeof(HttpContextExtensions).Namespace);
+
+        public static T GetService<T>(this HttpContext context)
+            where T : class => context
             .RequestServices.GetRequiredService<T>();
     }
 }

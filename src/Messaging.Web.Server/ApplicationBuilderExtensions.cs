@@ -1,5 +1,5 @@
-using Assistant.Net.Messaging.Internal;
 using Microsoft.AspNetCore.Builder;
+using Assistant.Net.Messaging.Internal;
 
 namespace Assistant.Net.Messaging
 {

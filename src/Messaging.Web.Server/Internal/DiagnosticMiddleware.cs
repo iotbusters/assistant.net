@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Assistant.Net.Diagnostics.Abstractions;
 using Microsoft.AspNetCore.Http;
+using Assistant.Net.Diagnostics.Abstractions;
 
 namespace Assistant.Net.Messaging.Internal
 {
@@ -15,7 +15,7 @@ namespace Assistant.Net.Messaging.Internal
         public DiagnosticMiddleware(RequestDelegate next) =>
             this.next = next;
 
-        public async Task Invoke(HttpContext context, IDiagnosticsFactory operationFactory)
+        public async Task Invoke(HttpContext context, IDiagnosticFactory operationFactory)
         {
             var commandName = context.GetCommandName().ToLower();
 

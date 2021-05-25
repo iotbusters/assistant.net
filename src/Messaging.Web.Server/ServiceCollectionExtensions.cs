@@ -3,8 +3,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Assistant.Net.Diagnostics;
-using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
+using Assistant.Net.Messaging.Internal;
+using Assistant.Net.Messaging.Interceptors;
+using Assistant.Net.Storage;
+using Assistant.Net.Storage.Configuration;
+using Assistant.Net.Messaging.Caching;
 
 namespace Assistant.Net.Messaging
 {
@@ -21,13 +25,15 @@ namespace Assistant.Net.Messaging
         ///     Registers remote command handling server configuration customized by <paramref name="configureOptions" />.
         /// </summary>
         public static IServiceCollection AddRemoteCommandHandlingServer(this IServiceCollection services, Action<CommandOptions> configureOptions) => services
+            .AddStorage(b => b.AddLocal<DeferredResult>())
             .AddDiagnostics()
-            .AddDiagnosticsContext(InitializeFromHttpContext)
+            .AddDiagnosticContext(InitializeFromHttpContext)
             .AddHttpContextAccessor()
             .AddJsonSerializerOptions()
-            .AddCommandClient(configureOptions);
+            .AddCommandClient(configureOptions)
+            .AddCommandOptions(opt => opt.Interceptors.Add<DeferredCachingInterceptor>());
 
-        private static Guid InitializeFromHttpContext(IServiceProvider provider)
+        private static string InitializeFromHttpContext(IServiceProvider provider)
         {
             var accessor = provider.GetRequiredService<IHttpContextAccessor>();
             var context = accessor.HttpContext ?? throw new InvalidOperationException("HttpContext wasn't yet initialized.");
