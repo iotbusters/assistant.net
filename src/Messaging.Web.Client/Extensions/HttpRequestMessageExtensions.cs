@@ -23,7 +23,7 @@ namespace Assistant.Net.Messaging.Extensions
         public static string GetCommandName(this HttpRequestMessage request) =>
             request.GetRequiredHeader(HeaderNames.CommandName);
 
-        public static void SetCorrelationId(this HttpRequestMessage request, Guid correlationId) =>
-            request.SetHeader(HeaderNames.CorrelationIdName, correlationId.ToString());
+        public static void SetCorrelationId(this HttpRequestMessage request, string correlationId) =>
+            request.SetHeader(HeaderNames.CorrelationId, correlationId);
     }
 }

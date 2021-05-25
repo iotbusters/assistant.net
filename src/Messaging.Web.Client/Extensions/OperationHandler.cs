@@ -10,9 +10,9 @@ namespace Assistant.Net.Messaging.Extensions
     /// </summary>
     internal class OperationHandler : DelegatingHandler
     {
-        private readonly IDiagnosticsFactory diagnosticsFactory;
+        private readonly IDiagnosticFactory diagnosticsFactory;
 
-        public OperationHandler(IDiagnosticsFactory diagnosticsFactory) =>
+        public OperationHandler(IDiagnosticFactory diagnosticsFactory) =>
             this.diagnosticsFactory = diagnosticsFactory;
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
