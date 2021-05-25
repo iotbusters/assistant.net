@@ -1,5 +1,4 @@
-﻿using System;
-using Assistant.Net.Diagnostics.Abstractions;
+﻿using Assistant.Net.Diagnostics.Abstractions;
 
 namespace Assistant.Net.Diagnostics.Internal
 {
@@ -8,6 +7,6 @@ namespace Assistant.Net.Diagnostics.Internal
     /// </summary>
     internal sealed class DiagnosticContext : IDiagnosticContext
     {
-        public string CorrelationId { get; set; }
+        public string CorrelationId { get; set; } = null!;
     }
 }

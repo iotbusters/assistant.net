@@ -63,7 +63,8 @@ namespace Assistant.Net.Diagnostics.Internal
         {
             var data = new OperationStartedData
             {
-                CorrelationId = factory.Context.CorrelationId,
+                CorrelationId = activity.GetCorrelationId(),
+                ParentCorrelationIds = activity.GetParentCorrelationIds(),
                 Metadata = activity.GetCustomMetadata()
             };
 
@@ -74,7 +75,8 @@ namespace Assistant.Net.Diagnostics.Internal
         {
             var data = new OperationStoppedData
             {
-                CorrelationId = factory.Context.CorrelationId,
+                CorrelationId = activity.GetCorrelationId(),
+                ParentCorrelationIds = activity.GetParentCorrelationIds(),
                 Duration = activity.Duration,
                 Status = status,
                 Message = message,
