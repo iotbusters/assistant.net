@@ -40,6 +40,9 @@ namespace Assistant.Net.Messaging.Internal
             if (ex is AggregateException e)
                 return HandleException(context, e.InnerException!);
 
+            if (ex is CommandDeferredException)
+                return context.WriteCommandResponse(202);
+
             if (ex is CommandNotFoundException
                 || ex is CommandNotRegisteredException)
                 return context.WriteCommandResponse(404, ex);
