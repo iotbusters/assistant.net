@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Options;
@@ -49,6 +50,17 @@ namespace Assistant.Net.Messaging
             where TInterceptor : class, IAbstractCommandInterceptor
         {
             list.Insert(index, InterceptorDefinition.Create<TInterceptor>());
+            return list;
+        }
+
+        /// <summary>
+        ///     Removes an interceptor type <typeparamref name="TInterceptor" /> from a list.
+        /// </summary>
+        public static IList<InterceptorDefinition> Remove<TInterceptor>(this IList<InterceptorDefinition> list)
+            where TInterceptor : class, IAbstractCommandInterceptor
+        {
+            foreach (var definition in list.Where(x => x.Type == typeof(TInterceptor)))
+                list.Remove(definition);
             return list;
         }
     }
