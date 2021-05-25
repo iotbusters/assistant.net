@@ -6,6 +6,6 @@
     public static class HeaderNames
     {
         public const string CommandName = "command-name";
-        public const string CorrelationIdName = "correlation-id";
+        public const string CorrelationId = "correlation-id";
     }
 }
