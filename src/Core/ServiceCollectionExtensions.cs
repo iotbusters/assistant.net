@@ -10,7 +10,6 @@ namespace Assistant.Net
 {
     public static class ServiceCollectionExtensions
     {
-
         /// <summary>
         ///     Adds system services with default behavior.
         /// </summary>
@@ -82,21 +81,27 @@ namespace Assistant.Net
         /// <summary>
         ///     Registers an action used to configure a particular type of options with following validation.
         /// </summary>
-        public static IServiceCollection Configure<TOptions,TDep>(this IServiceCollection services, Action<TOptions, TDep> configureOptions)
-            where TOptions : class 
+        public static IServiceCollection Configure<TOptions, TDep>(this IServiceCollection services, Action<TOptions, TDep> configureOptions)
+            where TOptions : class
             where TDep : class => services
             .Configure(Microsoft.Extensions.Options.Options.DefaultName, configureOptions);
 
         /// <summary>
         ///     Registers an action used to configure a particular type of options with following validation.
         /// </summary>
-        public static IServiceCollection Configure<TOptions,TDep>(this IServiceCollection services, string name, Action<TOptions,TDep> configureOptions)
-            where TOptions : class 
+        public static IServiceCollection Configure<TOptions, TDep>(this IServiceCollection services, string name, Action<TOptions, TDep> configureOptions)
+            where TOptions : class
             where TDep : class => services
             .AddOptions<TOptions>(name)
             .Configure(configureOptions)
             .ValidateDataAnnotations()
             .Services;
+
+        public static IServiceCollection TryAddTransient(this IServiceCollection services, Type serviceType, Type implementationType)
+        {
+            ServiceCollectionDescriptorExtensions.TryAddTransient(services, serviceType, implementationType);
+            return services;
+        }
 
         public static IServiceCollection TryAddTransient<TService, TImplementation>(this IServiceCollection services)
             where TImplementation : class, TService
@@ -117,7 +122,13 @@ namespace Assistant.Net
             where TService : class =>
             services.TryAddTransient<TService, TService>();
 
-        public static IServiceCollection TryAddScoped<TService,TImplementation>(this IServiceCollection services)
+        public static IServiceCollection TryAddScoped(this IServiceCollection services, Type serviceType, Type implementationType)
+        {
+            ServiceCollectionDescriptorExtensions.TryAddScoped(services, serviceType, implementationType);
+            return services;
+        }
+
+        public static IServiceCollection TryAddScoped<TService, TImplementation>(this IServiceCollection services)
             where TImplementation : class, TService
             where TService : class
         {
@@ -135,6 +146,12 @@ namespace Assistant.Net
         public static IServiceCollection TryAddScoped<TService>(this IServiceCollection services)
             where TService : class =>
             services.TryAddScoped<TService, TService>();
+
+        public static IServiceCollection TryAddSingleton(this IServiceCollection services, Type serviceType, Type implementationType)
+        {
+            ServiceCollectionDescriptorExtensions.TryAddSingleton(services, serviceType, implementationType);
+            return services;
+        }
 
         public static IServiceCollection TryAddSingleton<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
             where TService : class
@@ -168,6 +185,9 @@ namespace Assistant.Net
             where TService : class =>
             services.ReplaceTransient<TService, TService>();
 
+        public static IServiceCollection ReplaceTransient(this IServiceCollection services, Type serviceType, Type implementationType) =>
+            services.Replace(ServiceDescriptor.Transient(serviceType, implementationType));
+
         public static IServiceCollection ReplaceScoped<TService, TImplementation>(this IServiceCollection services)
             where TImplementation : class, TService
             where TService : class =>
@@ -181,6 +201,8 @@ namespace Assistant.Net
             where TService : class =>
             services.ReplaceScoped<TService, TService>();
 
+        public static IServiceCollection ReplaceScoped(this IServiceCollection services, Type serviceType, Type implementationType) =>
+            services.Replace(ServiceDescriptor.Scoped(serviceType, implementationType));
         public static IServiceCollection ReplaceSingleton<TService, TImplementation>(this IServiceCollection services)
             where TImplementation : class, TService
             where TService : class =>
@@ -193,5 +215,8 @@ namespace Assistant.Net
         public static IServiceCollection ReplaceSingleton<TService>(this IServiceCollection services)
             where TService : class =>
             services.ReplaceSingleton<TService, TService>();
+
+        public static IServiceCollection ReplaceSingleton(this IServiceCollection services, Type serviceType, Type implementationType) =>
+            services.Replace(ServiceDescriptor.Singleton(serviceType, implementationType));
     }
 }
