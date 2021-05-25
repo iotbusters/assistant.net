@@ -16,6 +16,12 @@ namespace Assistant.Net.Diagnostics.EventSources
         public string CorrelationId { get; set; }
 
         /// <summary>
+        ///     Operation correlation IDs of parent activities.
+        ///     Comma-separated values.
+        /// </summary>
+        public ItemData[] ParentCorrelationIds { get; set; }
+
+        /// <summary>
         ///     Operation duration.
         /// </summary>
         public TimeSpan Duration { get; set; }
@@ -32,7 +38,8 @@ namespace Assistant.Net.Diagnostics.EventSources
 
         /// <summary>
         ///     Operation metadata.
+        ///     Collection of key and comma-separated values.
         /// </summary>
-        public IDictionary<string, string> Metadata { get; set; }
+        public IDictionary<string, ItemData[]> Metadata { get; set; }
     }
 }

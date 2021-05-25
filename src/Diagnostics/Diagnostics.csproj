@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -8,11 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.core" Version="0.0.0.1"/>
+    <PackageReference Include="assistant.net.core" Version="0.0.0.12"/>
   </ItemGroup>
 
   <PropertyGroup>
-    <PackageDescription>Common diagnostic services for Assistance.NET.</PackageDescription>
+    <Product>Assistant.NET</Product>
+    <RepositoryType>github</RepositoryType>
+    <PackageTags>diagnostics eventsource tracing</PackageTags>
+    <Description>Common diagnostic services.</Description>
+    <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetdiagnostics</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>

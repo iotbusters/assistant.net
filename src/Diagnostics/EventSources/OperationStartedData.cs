@@ -15,8 +15,13 @@ namespace Assistant.Net.Diagnostics.EventSources
         public string CorrelationId { get; set; }
 
         /// <summary>
+        ///     Operation correlation ID of parent activities.
+        /// </summary>
+        public ItemData[] ParentCorrelationIds { get; set; }
+
+        /// <summary>
         ///     Operation metadata.
         /// </summary>
-        public IDictionary<string, string> Metadata { get; set; }
+        public IDictionary<string, ItemData[]> Metadata { get; set; }
     }
 }
