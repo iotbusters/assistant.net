@@ -5,7 +5,7 @@ using NUnit.Framework;
 using FluentAssertions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Interceptors;
-using Assistant.Net.Messaging.InMemory.Tests.Mocks.Stubs;
+using Assistant.Net.Messaging.InMemory.Tests.Mocks;
 
 namespace Assistant.Net.Messaging.InMemory.Tests.Interceptors
 {
