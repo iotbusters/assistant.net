@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Messaging.Caching;
 using Assistant.Net.Storage.Abstractions;
 
 namespace Assistant.Net.Messaging.Interceptors
@@ -13,9 +12,9 @@ namespace Assistant.Net.Messaging.Interceptors
     /// </summary>
     public sealed class CachingInterceptor : ICommandInterceptor
     {
-        private readonly IStorage<object, Result> cache;
+        private readonly IStorage<object, CachingResult> cache;
 
-        public CachingInterceptor(IStorage<object, Result> cache) =>
+        public CachingInterceptor(IStorage<object, CachingResult> cache) =>
             this.cache = cache;
 
         public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
@@ -24,13 +23,13 @@ namespace Assistant.Net.Messaging.Interceptors
             {
                 try
                 {
-                    return new Result(await next(command));
+                    return new CachingResult(await next(command));
                 }
                 catch (Exception ex)
                 {
                     if(IsCritical(ex))
                         throw;
-                    return new Result(ex);
+                    return new CachingResult(ex);
                 }
             });
             return result.Get();
@@ -53,5 +52,6 @@ namespace Assistant.Net.Messaging.Interceptors
 
             return criticalExceptionTypes.Any(x => x.IsAssignableFrom(ex.GetType()));
         }
+
     }
 }

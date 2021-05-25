@@ -21,14 +21,6 @@ namespace Assistant.Net.Messaging.Internal
             {
                 await next(context);
             }
-            catch (TaskCanceledException)
-            {
-                throw;
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
             catch (Exception ex)
             {
                 await HandleException(context, ex);
@@ -40,7 +32,9 @@ namespace Assistant.Net.Messaging.Internal
             if (ex is AggregateException e)
                 return HandleException(context, e.InnerException!);
 
-            if (ex is CommandDeferredException)
+            if (ex is CommandDeferredException
+                || ex is TaskCanceledException
+                || ex is OperationCanceledException)
                 return context.WriteCommandResponse(202);
 
             if (ex is CommandNotFoundException

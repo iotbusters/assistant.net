@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using Assistant.Net.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +15,11 @@ namespace Assistant.Net.Messaging.Web.Client.Tests.Fixtures
         {
             Services = new ServiceCollection()
                 .AddCommandClient()
-                .AddRemoteCommandHandlingClient(o => o.BaseAddress = new Uri("http://localhost/command"));
+                .AddRemoteCommandHandlingClient(o =>
+                {
+                    o.BaseAddress = new Uri("http://localhost/command");
+                    o.Timeout = TimeSpan.FromSeconds(300);// temporary
+                });
             RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
                 .Configure(b => b.UseRemoteCommandHandling()))

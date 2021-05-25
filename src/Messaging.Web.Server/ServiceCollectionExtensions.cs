@@ -8,7 +8,6 @@ using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Storage;
 using Assistant.Net.Storage.Configuration;
-using Assistant.Net.Messaging.Caching;
 
 namespace Assistant.Net.Messaging
 {
@@ -25,13 +24,13 @@ namespace Assistant.Net.Messaging
         ///     Registers remote command handling server configuration customized by <paramref name="configureOptions" />.
         /// </summary>
         public static IServiceCollection AddRemoteCommandHandlingServer(this IServiceCollection services, Action<CommandOptions> configureOptions) => services
-            .AddStorage(b => b.AddLocal<DeferredResult>())
+            .AddStorage(b => b.AddLocal<DeferredCachingResult>())
             .AddDiagnostics()
             .AddDiagnosticContext(InitializeFromHttpContext)
             .AddHttpContextAccessor()
             .AddJsonSerializerOptions()
             .AddCommandClient(configureOptions)
-            .AddCommandOptions(opt => opt.Interceptors.Add<DeferredCachingInterceptor>());
+            .AddCommandOptions(opt => opt.Add<ServerInterceptorConfiguration>());
 
         private static string InitializeFromHttpContext(IServiceProvider provider)
         {

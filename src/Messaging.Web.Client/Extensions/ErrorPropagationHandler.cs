@@ -31,6 +31,8 @@ namespace Assistant.Net.Messaging.Extensions
                 (true, HttpStatusCode.Accepted)     => throw new CommandDeferredException(),
                 (true, var x)                       => throw new CommandContractException(InvalidStatusMessage(x)),
 
+                (false, HttpStatusCode.NotFound)            => throw await ReadException(response, cancellationToken),
+                (false, HttpStatusCode.InternalServerError) => throw await ReadException(response, cancellationToken),
                 (false, HttpStatusCode.BadGateway)          => throw await ReadException(response, cancellationToken),
                 (false, HttpStatusCode.FailedDependency)    => throw await ReadException(response, cancellationToken),
                 (false, HttpStatusCode.Forbidden)           => throw await ReadException(response, cancellationToken),

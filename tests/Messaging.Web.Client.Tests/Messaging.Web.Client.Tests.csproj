@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.messaging.web.server" Version="0.0.0.14"/>
+    <PackageReference Include="assistant.net.messaging.web.server" Version="0.0.0.15"/>
   </ItemGroup>
 
   <ItemGroup>

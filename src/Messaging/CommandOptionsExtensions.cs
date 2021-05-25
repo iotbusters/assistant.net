@@ -34,7 +34,7 @@ namespace Assistant.Net.Messaging
         }
 
         /// <summary>
-        ///     Adds an interceptor type <typeparamref name="TInterceptor" /> to the end of a list.
+        ///     Adds an interceptor type <typeparamref name="TInterceptor" /> to the end of the list.
         /// </summary>
         public static IList<InterceptorDefinition> Add<TInterceptor>(this IList<InterceptorDefinition> list)
             where TInterceptor : class, IAbstractCommandInterceptor
@@ -44,7 +44,7 @@ namespace Assistant.Net.Messaging
         }
 
         /// <summary>
-        ///     Adds an interceptor type <typeparamref name="TInterceptor" /> at specific possition in a list.
+        ///     Adds an interceptor type typeparamref name="TInterceptor" /> at specific possition in the list.
         /// </summary>
         public static IList<InterceptorDefinition> InsertAt<TInterceptor>(this IList<InterceptorDefinition> list, int index)
             where TInterceptor : class, IAbstractCommandInterceptor
@@ -54,7 +54,16 @@ namespace Assistant.Net.Messaging
         }
 
         /// <summary>
-        ///     Removes an interceptor type <typeparamref name="TInterceptor" /> from a list.
+        ///     Removes all interceptors from the list.
+        /// </summary>
+        public static IList<InterceptorDefinition> ClearAll(this IList<InterceptorDefinition> list)
+        {
+            list.Clear();
+            return list;
+        }
+
+        /// <summary>
+        ///     Removes an interceptor type <typeparamref name="TInterceptor" /> from the list.
         /// </summary>
         public static IList<InterceptorDefinition> Remove<TInterceptor>(this IList<InterceptorDefinition> list)
             where TInterceptor : class, IAbstractCommandInterceptor
