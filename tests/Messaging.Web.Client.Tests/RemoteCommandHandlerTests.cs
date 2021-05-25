@@ -9,7 +9,7 @@ namespace Assistant.Net.Messaging.Web.Client.Tests.Integration
 {
     public class RemoteCommandHandlerTests
     {
-        [Test]
+        [Test, Timeout(2000)]
         public async Task Remote_returnsResponse()
         {
             using var fixture = new CommandClientFixtureBuilder()
@@ -21,7 +21,7 @@ namespace Assistant.Net.Messaging.Web.Client.Tests.Integration
             response.Should().Be(new TestResponse(false));
         }
 
-        [Test]
+        [Test, Timeout(2000)]
         public void Remote_throwsCommandNotRegisteredException_NoLocalHandler()
         {
             using var fixture = new CommandClientFixtureBuilder()
@@ -34,7 +34,7 @@ namespace Assistant.Net.Messaging.Web.Client.Tests.Integration
             .Which.InnerException.Should().BeNull();
         }
 
-        [Test]
+        [Test, Timeout(2000)]
         public void Remote_throwsCommandNotRegisteredException_NoRemoteHandler()
         {
             using var fixture = new CommandClientFixtureBuilder()
@@ -48,7 +48,7 @@ namespace Assistant.Net.Messaging.Web.Client.Tests.Integration
             .Which.InnerException.Should().BeNull();
         }
 
-        [Test]
+        [Test, Timeout(2000)]
         public void Remote_throwsCommandFailedException_thrownInvalidOperationException()
         {
             using var fixture = new CommandClientFixtureBuilder()
@@ -61,7 +61,7 @@ namespace Assistant.Net.Messaging.Web.Client.Tests.Integration
             .Which.InnerException.Should().BeNull();
         }
 
-        [Test]
+        [Test, Timeout(2000)]
         public void Remote_throwsCommandFailedException_thrownCommandFailedException()
         {
             using var fixture = new CommandClientFixtureBuilder()
@@ -74,7 +74,7 @@ namespace Assistant.Net.Messaging.Web.Client.Tests.Integration
             .Which.InnerException.Should().BeNull();
         }
 
-        [Test]
+        [Test, Timeout(2000)]
         public void Remote_throwsCommandFailedException_thrownCommandFailedExceptionWithInnerException()
         {
             using var fixture = new CommandClientFixtureBuilder()
