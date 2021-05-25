@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Messaging.InMemory.Tests</RootNamespace>
-    <AssemblyName>assistant.net.messaging.inmemory.tests</AssemblyName>
+    <RootNamespace>Assistant.Net.Messaging.Tests</RootNamespace>
+    <AssemblyName>assistant.net.messaging.tests</AssemblyName>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Messaging.InMemory\Messaging.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\Messaging\Messaging.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Web.Client.Tests.Mocks.Stubs;
 
 namespace Assistant.Net.Messaging.Web.Client.Tests.Mocks
 {

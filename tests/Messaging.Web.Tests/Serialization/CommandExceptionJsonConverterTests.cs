@@ -4,12 +4,12 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Messaging.Serialization;
-using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
+using FluentAssertions;
+using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Serialization;
 
 namespace Assistant.Net.Messaging.Web.Tests.Serialization
 {
@@ -25,7 +25,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
         [TestCase("Some non-json text")]
         [TestCase("{}")]
         [TestCase("{\"message\":\"1\"}")]
-        [TestCase("{\"type\":\"Assistant.Net.Messaging.Exceptions.CommandFailedException, assistant.net.messaging.inmemory\"}")]
+        [TestCase("{\"type\":\"Assistant.Net.Messaging.Exceptions.CommandFailedException, assistant.net.messaging\"}")]
         public async Task DeserializeInvalidContent(string content)
         {
             await using var stream = new MemoryStream();
