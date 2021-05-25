@@ -7,7 +7,6 @@ using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Storage;
 using Assistant.Net.Storage.Configuration;
-using Assistant.Net.Messaging.Caching;
 
 namespace Assistant.Net.Messaging
 {
@@ -19,7 +18,7 @@ namespace Assistant.Net.Messaging
         /// </summary>
         public static IServiceCollection AddCommandClient(this IServiceCollection services) => services
             // todo: use persisted caching. https://github.com/iotbusters/assistant.net/issues/23
-            .AddStorage(b => b.AddLocal<Result>())
+            .AddStorage(b => b.AddLocal<CachingResult>())
             .AddDiagnostics()
             .AddSystemServicesDefaulted()
             .TryAddSingleton<IHandlerFactory, HandlerFactory>()

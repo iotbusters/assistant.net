@@ -13,9 +13,9 @@ namespace Assistant.Net.Messaging.Interceptors
         public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
         {
             // todo: configurable (https://github.com/iotbusters/assistant.net/issues/4)
-            var timeout = TimeSpan.FromSeconds(30);
+            var timeout = TimeSpan.FromSeconds(10);
 
-            return await Task.Run(() => next(command), new CancellationTokenSource(timeout).Token);
+            return await next(command).ContinueWith(t => t.Result, new CancellationTokenSource(timeout).Token);
         }
     }
 }

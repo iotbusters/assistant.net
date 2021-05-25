@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="assistant.net.core" Version="0.0.0.12"/>
-    <PackageReference Include="assistant.net.storage" Version="0.0.0.12"/>
+    <PackageReference Include="assistant.net.storage" Version="0.0.0.15"/>
     <PackageReference Include="assistant.net.diagnostics" Version="0.0.0.12"/>
   </ItemGroup>
 
