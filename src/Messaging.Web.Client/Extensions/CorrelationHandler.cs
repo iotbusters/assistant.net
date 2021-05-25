@@ -6,19 +6,19 @@ using Assistant.Net.Diagnostics.Abstractions;
 namespace Assistant.Net.Messaging.Extensions
 {
     /// <summary>
-    ///     Spreading current correlation context on remote command handling.
+    ///     Spreads current correlation context on remote command handling.
     /// </summary>
     internal class CorrelationHandler : DelegatingHandler
     {
-        private readonly IDiagnosticsContext context;
+        private readonly IDiagnosticContext context;
 
-        public CorrelationHandler(IDiagnosticsContext context) =>
+        public CorrelationHandler(IDiagnosticContext context) =>
             this.context = context;
 
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             request.SetCorrelationId(context.CorrelationId);
-            return base.SendAsync(request, cancellationToken);
+            return await base.SendAsync(request, cancellationToken);
         }
     }
 }

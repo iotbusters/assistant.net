@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -24,41 +23,34 @@ namespace Assistant.Net.Messaging.Extensions
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var response = await base.SendAsync(request, cancellationToken);
-            if (response.IsSuccessStatusCode)
-                if (SucceededStatuses.Contains(response.StatusCode))
-                    return response;
-                else
-                    throw new CommandContractException(InvalidStatusMessage(response.StatusCode));
 
-            if (ConnectionErrorStatuses.Contains(response.StatusCode))
-                throw new CommandConnectionFailedException(ErrorMessage(response.StatusCode));
+            return (response.IsSuccessStatusCode, response.StatusCode) switch
+            {
+                (true, HttpStatusCode.NotModified)  => response,
+                (true, HttpStatusCode.OK)           => response,
+                (true, HttpStatusCode.Accepted)     => throw new CommandDeferredException(),
+                (true, var x)                       => throw new CommandContractException(InvalidStatusMessage(x)),
 
+                (false, HttpStatusCode.BadGateway)          => throw await ReadException(response, cancellationToken),
+                (false, HttpStatusCode.FailedDependency)    => throw await ReadException(response, cancellationToken),
+                (false, HttpStatusCode.Forbidden)           => throw await ReadException(response, cancellationToken),
+                (false, HttpStatusCode.RequestTimeout)      => throw await ReadException(response, cancellationToken),
+                (false, HttpStatusCode.ServiceUnavailable)  => throw await ReadException(response, cancellationToken),
+                (false, HttpStatusCode.Unauthorized)        => throw await ReadException(response, cancellationToken),
+                (false, var x)                              => throw new CommandContractException(InvalidStatusMessage(x)),
+            };
+        }
+
+        private async Task<Exception> ReadException(HttpResponseMessage response, CancellationToken cancellationToken)
+        {
             var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            throw await stream.ReadException(options.Value, cancellationToken)
+            return await stream.ReadException(options.Value, cancellationToken)
             ?? new CommandContractException(ErrorContentMessage(response.StatusCode));
         }
 
-        private static HttpStatusCode[] SucceededStatuses { get; } = new[]
-        {
-            HttpStatusCode.NotModified,
-            HttpStatusCode.OK
-        };
-
-        private static HttpStatusCode[] ConnectionErrorStatuses { get; } = new[]
-        {
-            HttpStatusCode.BadGateway,
-            HttpStatusCode.FailedDependency,
-            HttpStatusCode.Forbidden,
-            HttpStatusCode.RequestTimeout,
-            HttpStatusCode.ServiceUnavailable,
-            HttpStatusCode.Unauthorized
-        };
-
         private static string InvalidStatusMessage(HttpStatusCode status) =>
-            $"Response invalid success status code: {(int)status}.";
-        private static string ErrorMessage(HttpStatusCode status) =>
-            $"Response failed with status code: {(int)status}.";
+            $"Response returned unexpected status code: {(int)status}.";
         private static string ErrorContentMessage(HttpStatusCode status) =>
-            $"Response failed with status code: {(int)status} and provided invalid content.";
+            $"Response returned unexpected content for the status code: {(int)status}.";
     }
 }
