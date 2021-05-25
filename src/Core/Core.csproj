@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -17,7 +17,12 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <PackageDescription>Common system tools for Assistant.NET.</PackageDescription>
+    <Product>Assistant.NET</Product>
+    <RepositoryType>github</RepositoryType>
+    <PackageTags>system</PackageTags>
+    <Description>Common system tools.</Description>
+    <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetcore</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>
