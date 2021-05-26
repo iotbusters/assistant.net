@@ -27,6 +27,9 @@ namespace Assistant.Net.Messaging
             this.options = options;
         }
 
+        /// <summary>
+        ///     Delegates <paramref name="command"/> handling to remote WEB server.
+        /// </summary>
         public async Task<TResponse> DelegateHandling<TResponse>(ICommand<TResponse> command)
         {
             var commandName = command.GetType().Name;
