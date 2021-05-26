@@ -12,12 +12,21 @@ namespace Assistant.Net.Messaging.Serialization
     /// </summary>
     public static class StreamExtensions
     {
+        /// <summary>
+        ///     Deserialize <see cref="CommandException" /> object from streamed json.
+        /// </summary>
         public static Task<CommandException?> ReadException(this Stream stream, JsonSerializerOptions options, CancellationToken cancellationToken) =>
             stream.ReadObject<CommandException>(options, cancellationToken);
 
+        /// <summary>
+        ///     Deserialize <typeparamref name="T"/> object from streamed json.
+        /// </summary>
         public static async Task<T?> ReadObject<T>(this Stream stream, JsonSerializerOptions options, CancellationToken cancellationToken)
             where T : class => (T?)await stream.ReadObject(typeof(T), options, cancellationToken);
 
+        /// <summary>
+        ///     Deserialize <paramref name="objectType"/> object from streamed json.
+        /// </summary>
         public static async Task<object?> ReadObject(this Stream stream, Type objectType, JsonSerializerOptions options, CancellationToken cancellationToken)
         {
             try
