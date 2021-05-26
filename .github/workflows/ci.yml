@@ -2,8 +2,6 @@ name: CI
 on:
   push:
     branches: [develop, master]
-  pull_request:
-    branches: [master]
 env:
   VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
   ALL_PACKAGES: false
@@ -48,7 +46,7 @@ jobs:
       - name: preparations
         id: preparations
         run: |
-          CHANGES=$(git diff --name-only ${{ github.event.ref }}..${{ github.event.after }})
+          CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
           echo ::set-output name=core-change-count::$(echo $CHANGES | grep -c src/Core)
           echo ::set-output name=storage-change-count::$(echo $CHANGES | grep -c src/Storage)
           echo ::set-output name=diagnostics-change-count::$(echo $CHANGES | grep -c src/Diagnostics)
