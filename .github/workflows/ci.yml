@@ -111,11 +111,11 @@ jobs:
           release_name: Release ${{ env.VERSION }}
           prerelease: true
           body: |
-            <h4>Total packages prepared: ${{ needs.build.outputs.total-package-prepared-count }}</h4>
+            <h4>Release includes ${{ needs.build.outputs.total-change-count }} changes</h4>
+            <h4>Released packages: ${{ needs.build.outputs.total-package-prepared-count }}</h4>
             <details>
-              <summary>Released changes</summary>
+              <summary>Package changes</summary>
               <ul>
-                <li>Total: ${{ needs.build.outputs.total-change-count }}</li>
                 <li>Core: ${{ needs.build.outputs.core-change-count }}</li>
                 <li>Storage: ${{ needs.build.outputs.storage-change-count }}</li>
                 <li>Diagnostics: ${{ needs.build.outputs.diagnostics-change-count }}</li>
@@ -133,7 +133,7 @@ jobs:
             </details>
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    if: github.event_name == 'push' && needs.build.outputs.total-package-prepared-count != '0'
+    if: needs.build.outputs.total-package-prepared-count != '0'
 
   # todo: remove once cd workflow started triggering.
   publish-package:
