@@ -47,13 +47,13 @@ jobs:
         id: preparations
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
-          echo ::set-output name=core-change-count::$(echo $CHANGES | grep -c src/Core)
-          echo ::set-output name=storage-change-count::$(echo $CHANGES | grep -c src/Storage)
-          echo ::set-output name=diagnostics-change-count::$(echo $CHANGES | grep -c src/Diagnostics)
-          echo ::set-output name=messaging-change-count::$(echo $CHANGES | grep -c src/Messaging)
-          echo ::set-output name=messaging-web-change-count::$(echo $CHANGES | grep -c src/Messaging.Web)
-          echo ::set-output name=messaging-web-client-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Client)
-          echo ::set-output name=messaging-web-server-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Server)
+          echo ::set-output name=core-change-count::$(echo $CHANGES | grep -c src/Core/)
+          echo ::set-output name=storage-change-count::$(echo $CHANGES | grep -c src/Storage/)
+          echo ::set-output name=diagnostics-change-count::$(echo $CHANGES | grep -c src/Diagnostics/)
+          echo ::set-output name=messaging-change-count::$(echo $CHANGES | grep -c src/Messaging/)
+          echo ::set-output name=messaging-web-change-count::$(echo $CHANGES | grep -c src/Messaging.Web/)
+          echo ::set-output name=messaging-web-client-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Client/)
+          echo ::set-output name=messaging-web-server-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Server/)
           echo ::set-output name=total-change-count::$(echo $CHANGES | wc -l)
           mkdir -p release-artifacts/src
           cp LICENSE release-artifacts
