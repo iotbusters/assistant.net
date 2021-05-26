@@ -10,6 +10,9 @@ namespace Assistant.Net.Storage.Utils
     /// </summary>
     public static class HashExtensions
     {
+        /// <summary>
+        ///     Generates <see cref="SHA1"> hash code from <paramref name="value"/>.
+        /// </summary>
         public static string GetSha1<T>(this T value)
         {
             if (typeof(T).IsValueType)
@@ -17,6 +20,9 @@ namespace Assistant.Net.Storage.Utils
             return GetClassSha1((dynamic)value!);
         }
 
+        /// <summary>
+        ///     Generates <see cref="SHA1"> hash code from <typeparamref name="T"/> reference type.
+        /// </summary>
         public static string GetClassSha1<T>(this T value) where T : class
         {
             using var sha = SHA1.Create();
@@ -28,6 +34,9 @@ namespace Assistant.Net.Storage.Utils
             return Convert.ToBase64String(hash);
         }
 
+        /// <summary>
+        ///     Generates <see cref="SHA1"> hash code from <typeparamref name="T"/> value type.
+        /// </summary>
         public static string GetStructureSha1<T>(this T value) where T : struct
         {
             using var sha = SHA1.Create();
