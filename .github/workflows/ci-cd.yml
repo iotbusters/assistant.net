@@ -17,7 +17,8 @@ jobs:
         id: change-detected
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
-          echo ::set-output name=important-changes::$(echo $CHANGES | grep -c -E '\.(cs|csproj|json)$')
+          # it should be in build.if section but env.ALL_PACKAGES fails there
+          echo ::set-output name=important-changes::echo ::set-output name=important-changes::$([ ${{ env.ALL_PACKAGES == 'true' }} ] && echo 1 || echo $CHANGES | grep -c -E '\.(cs|csproj|json)$')
           echo ::set-output name=core::$(echo $CHANGES | grep -c src/Core/)
           echo ::set-output name=storage::$(echo $CHANGES | grep -c src/Storage/)
           echo ::set-output name=diagnostics::$(echo $CHANGES | grep -c src/Diagnostics/)
@@ -26,6 +27,7 @@ jobs:
           echo ::set-output name=web-client::$(echo $CHANGES | grep -c src/Messaging.Web.Client/)
           echo ::set-output name=web-server::$(echo $CHANGES | grep -c src/Messaging.Web.Server/)
           echo ::set-output name=total::$(echo $CHANGES | wc -l)
+        if: github.event.commits[0].id != '' # an intend to avoid failures if no commit push (e.g. rebasing) although it doesn't seem to work.
     outputs:
       important-changes: ${{ steps.change-detected.outputs.important-changes }}
       core: ${{ steps.change-detected.outputs.core }}
@@ -40,6 +42,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: change-detect
+    if: needs.change-detect.outputs.important-changes != '0'
     steps:
       - uses: actions/checkout@v2.3.4
         with: { fetch-depth: 100 }
@@ -75,23 +78,23 @@ jobs:
         if: always()
 
       - run: |
-          mkdir release-binaries
+          mkdir -p release-binaries/src
           cp LICENSE release-binaries
-        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.core != '0'
+        if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.core != '0'
       - run: cp -r src/Core release-binaries/src/Core
-        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.core != '0'
+        if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.core != '0'
       - run: cp -r src/Storage release-binaries/src/Storage
-        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.core != '0'
+        if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.core != '0'
       - run: cp -r src/Diagnostics release-binaries/src/Diagnostics
-        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
+        if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
       - run: cp -r src/Messaging release-binaries/src/Messaging
-        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
+        if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
       - run: cp -r src/Messaging.Web release-binaries/src/Messaging.Web
-        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.web != '0' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
+        if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.web != '0' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
       - run: cp -r src/Messaging.Web release-binaries/src/Messaging.Web.Client
-        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.web-client != '0' || needs.change-detect.outputs.web != '0' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
+        if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.web-client != '0' || needs.change-detect.outputs.web != '0' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
       - run: cp -r src/Messaging.Web release-binaries/src/Messaging.Web.Server
-        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.web-server != '0' || needs.change-detect.outputs.web != '0' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
+        if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.web-server != '0' || needs.change-detect.outputs.web != '0' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
       - id: count-changes
         run: echo ::set-output name=total-package-prepared-count::$(ls release-binaries/src | wc -l)
       - uses: actions/upload-artifact@v2.2.3
@@ -108,11 +111,11 @@ jobs:
           retention-days: 7
     outputs:
       total-package-prepared-count: ${{ steps.count-changes.outputs.total-package-prepared-count }}
-    if: ALL_PACKAGES == true || needs.change-detect.outputs.important-changes != '0'
 
   pre-release:
     runs-on: ubuntu-latest
     needs: [change-detect, build]
+    if: needs.build.outputs.total-package-prepared-count != '0'
     steps:
         # ensure the artifact were created to skip empty releases.
       - uses: actions/download-artifact@v2.0.9
@@ -146,7 +149,6 @@ jobs:
             </details>
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    if: needs.build.outputs.total-package-prepared-count != '0'
 
   # todo: remove once cd workflow started triggering.
   pack-packages:
