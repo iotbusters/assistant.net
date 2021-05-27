@@ -19,6 +19,7 @@ namespace Assistant.Net.Messaging
         public static IServiceCollection AddRemoteCommandHandlingClient(this IServiceCollection services) => services
             .AddDiagnostics()
             .AddJsonSerializerOptions()
+            .AddTypeEncoder()
             .AddHttpClient<RemoteCommandHandlingClient>((p, c) =>
             {
                 var options = p.GetRequiredService<IOptions<RemoteCommandHandlingOptions>>().Value;
