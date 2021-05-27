@@ -6,15 +6,17 @@ on:
     types: [created, edited]
 
 jobs:
-  publish-package:
+  # todo: remove once cd workflow started triggering.
+  pack-packages:
     runs-on: ubuntu-latest
+    needs: pre-release
     steps:
       - uses: actions/setup-dotnet@v1.7.2
         with: { dotnet-version: '5.0' }
 
       - uses: actions/download-artifact@v2.0.9
         with:
-          name: release-artifacts
+          name: release-binaries
 
       - uses: actions/cache@v2.1.5
         with:
@@ -24,22 +26,33 @@ jobs:
 
       - name: pack
         run: |
-          VERSION=${{ github.event.release.tag_name }}
-          NUGET_VERSION=$([ '${{ github.event.release.prerelease }}' == 'true' ] && echo ${VERSION}-prerelease || echo ${VERSION} )
-          find . -name *.csproj | \
-          xargs -i dotnet pack -p:PackageVersion=${NUGET_VERSION} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -o packages -c Release --no-restore --no-build --no-dependencies -v n
+          NUGET_VERSION=${VERSION}-prerelease
+          # it cannot find csproj files for some reason
+          find . -name *.csproj |
+          xargs -i dotnet pack -p:PackageVersion=${NUGET_VERSION} --include-source --include-symbols -p:SymbolPackageFormat=snupkg -o packages -c Release --no-restore --no-build --no-dependencies -v n {}
+
+      - uses: actions/upload-artifact@v2.2.3
+        with:
+          name: release-packages
+          path: |
+            packages/*.nupkg
+            packages/*.snupkg
+          retention-days: 30
+
+  # todo: remove once cd workflow started triggering.
+  publish-packages:
+    runs-on: ubuntu-latest
+    needs: pack-packages
+    steps:
+      - uses: actions/setup-dotnet@v1.7.2
+        with: { dotnet-version: '5.0' }
+
+      - uses: actions/download-artifact@v2.0.9
+        with:
+          name: release-packages
 
       - name: publish
         run: |
           API_KEY=${{ secrets.NUGET_API_KEY }}
-          find . -name '*.nupkg' | 
+          find packages -name '*.nupkg' |
           xargs -i dotnet nuget push -k ${API_KEY} -s https://api.nuget.org/v3/index.json -t 30 {}
-          #dotnet nuget push *.nupkg -k ${API_KEY} -s https://api.nuget.org/v3/index.json -t 30
-
-      - uses: actions/upload-artifact@v2.2.3
-        with:
-          name: packages
-          path: |
-            **/*.nupkg
-            **/*.snupkg
-          retention-days: 30
