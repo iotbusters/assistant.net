@@ -7,8 +7,37 @@ env:
   ALL_PACKAGES: false
 
 jobs:
+  change-detect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with: { fetch-depth: 100 }
+
+      - name: change-detected
+        id: change-detected
+        run: |
+          CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
+          echo ::set-output name=core::$(echo $CHANGES | grep -c src/Core/)
+          echo ::set-output name=storage::$(echo $CHANGES | grep -c src/Storage/)
+          echo ::set-output name=diagnostics::$(echo $CHANGES | grep -c src/Diagnostics/)
+          echo ::set-output name=messaging::$(echo $CHANGES | grep -c src/Messaging/)
+          echo ::set-output name=web::$(echo $CHANGES | grep -c src/Messaging.Web/)
+          echo ::set-output name=web-client::$(echo $CHANGES | grep -c src/Messaging.Web.Client/)
+          echo ::set-output name=web-server::$(echo $CHANGES | grep -c src/Messaging.Web.Server/)
+          echo ::set-output name=total::$(echo $CHANGES | wc -l)
+    outputs:
+      core: ${{ steps.change-detected.outputs.core }}
+      storage: ${{ steps.change-detected.outputs.storage }}
+      diagnostics: ${{ steps.change-detected.outputs.diagnostics }}
+      messaging: ${{ steps.change-detected.outputs.messaging }}
+      web: ${{ steps.change-detected.outputs.web }}
+      web-client: ${{ steps.change-detected.outputs.web-client }}
+      web-server: ${{ steps.change-detected.outputs.web-server }}
+      total: ${{ steps.change-detected.outputs.total }}
+
   build:
     runs-on: ubuntu-latest
+    needs: change-detect
     steps:
       - uses: actions/checkout@v2.3.4
         with: { fetch-depth: 100 }
@@ -43,86 +72,67 @@ jobs:
           retention-days: 60
         if: always()
 
-      - name: preparations
-        id: preparations
-        run: |
-          CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
-          echo ::set-output name=core-change-count::$(echo $CHANGES | grep -c src/Core/)
-          echo ::set-output name=storage-change-count::$(echo $CHANGES | grep -c src/Storage/)
-          echo ::set-output name=diagnostics-change-count::$(echo $CHANGES | grep -c src/Diagnostics/)
-          echo ::set-output name=messaging-change-count::$(echo $CHANGES | grep -c src/Messaging/)
-          echo ::set-output name=messaging-web-change-count::$(echo $CHANGES | grep -c src/Messaging.Web/)
-          echo ::set-output name=messaging-web-client-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Client/)
-          echo ::set-output name=messaging-web-server-change-count::$(echo $CHANGES | grep -c src/Messaging.Web.Server/)
-          echo ::set-output name=total-change-count::$(echo $CHANGES | wc -l)
-          mkdir -p release-artifacts/src
-          cp LICENSE release-artifacts
-      - run: cp -r src/Core release-artifacts/src/Core
-        if:  steps.preparations.outputs.core-change-count != '0' || env.ALL_PACKAGES == true
-      - run: cp -r src/Storage release-artifacts/src/Storage
-        if:  steps.preparations.outputs.storage-change-count != '0' || env.ALL_PACKAGES == true
-      - run: cp -r src/Diagnostics release-artifacts/src/Diagnostics
-        if:  steps.preparations.outputs.diagnostics-change-count != '0' || env.ALL_PACKAGES == true
-      - run: cp -r src/Messaging release-artifacts/src/Messaging
-        if:  steps.preparations.outputs.messaging-change-count != '0' || env.ALL_PACKAGES == true
-      - run: cp -r src/Messaging.Web release-artifacts/src/Messaging.Web
-        if:  steps.preparations.outputs.messaging-web-change-count != '0' || env.ALL_PACKAGES == true
-      - run: cp -r src/Messaging.Web release-artifacts/src/Messaging.Web.Client
-        if:  steps.preparations.outputs.messaging-web-client-change-count != '0' || env.ALL_PACKAGES == true
-      - run: cp -r src/Messaging.Web release-artifacts/src/Messaging.Web.Server
-        if:  steps.preparations.outputs.messaging-web-server-change-count != '0' || env.ALL_PACKAGES == true
+      - run: |
+          mkdir release-binaries
+          cp LICENSE release-binaries
+        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.core != '0'
+      - run: cp -r src/Core release-binaries/src/Core
+        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.core != '0'
+      - run: cp -r src/Storage release-binaries/src/Storage
+        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.core != '0'
+      - run: cp -r src/Diagnostics release-binaries/src/Diagnostics
+        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
+      - run: cp -r src/Messaging release-binaries/src/Messaging
+        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
+      - run: cp -r src/Messaging.Web release-binaries/src/Messaging.Web
+        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.web != '0' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
+      - run: cp -r src/Messaging.Web release-binaries/src/Messaging.Web.Client
+        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.web-client != '0' || needs.change-detect.outputs.web != '0' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
+      - run: cp -r src/Messaging.Web release-binaries/src/Messaging.Web.Server
+        if: env.ALL_PACKAGES == true || needs.change-detect.outputs.web-server != '0' || needs.change-detect.outputs.web != '0' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
       - id: count-changes
-        run: echo ::set-output name=total-package-prepared-count::$(ls release-artifacts/src | wc -l)
+        run: echo ::set-output name=total-package-prepared-count::$(ls release-binaries/src | wc -l)
       - uses: actions/upload-artifact@v2.2.3
         with:
-          name: release-artifacts
+          name: release-binaries
           path: |
-            release-artifacts/**/*.csproj
-            release-artifacts/**/*.dll
-            release-artifacts/**/*.pdb
-            release-artifacts/**/*.json
-            !release-artifacts/**/obj/**/*.dll
-            !release-artifacts/**/obj/**/*.pdb
-            release-artifacts/LICENSE
+            release-binaries/**/*.csproj
+            release-binaries/**/*.dll
+            release-binaries/**/*.pdb
+            release-binaries/**/*.json
+            !release-binaries/**/obj/**/*.dll
+            !release-binaries/**/obj/**/*.pdb
+            release-binaries/LICENSE
           retention-days: 7
-        if: steps.count-changes.outputs.total-package-prepared-count != '0'
     outputs:
-      core-change-count: ${{ steps.preparations.outputs.core-change-count }}
-      storage-change-count: ${{ steps.preparations.outputs.storage-change-count }}
-      diagnostics-change-count: ${{ steps.preparations.outputs.diagnostics-change-count }}
-      messaging-change-count: ${{ steps.preparations.outputs.messaging-change-count }}
-      messaging-web-change-count: ${{ steps.preparations.outputs.messaging-web-change-count }}
-      messaging-web-client-change-count: ${{ steps.preparations.outputs.messaging-web-client-change-count }}
-      messaging-web-server-change-count: ${{ steps.preparations.outputs.messaging-web-server-change-count }}
-      total-change-count: ${{ steps.preparations.outputs.total-change-count }}
       total-package-prepared-count: ${{ steps.count-changes.outputs.total-package-prepared-count }}
 
   pre-release:
     runs-on: ubuntu-latest
-    needs: build
+    needs: [change-detect, build]
     steps:
         # ensure the artifact were created to skip empty releases.
       - uses: actions/download-artifact@v2.0.9
         with:
-          name: release-artifacts
+          name: release-binaries
       - uses: actions/create-release@v1
         with:
           tag_name: ${{ env.VERSION }}
           release_name: Release ${{ env.VERSION }}
           prerelease: true
           body: |
-            <h4>Release includes ${{ needs.build.outputs.total-change-count }} changes</h4>
             <h4>Released packages: ${{ needs.build.outputs.total-package-prepared-count }}</h4>
+            <h4>Release includes ${{ needs.change-detect.outputs.total }} changes</h4>
             <details>
               <summary>Package changes</summary>
               <ul>
-                <li>Core: ${{ needs.build.outputs.core-change-count }}</li>
-                <li>Storage: ${{ needs.build.outputs.storage-change-count }}</li>
-                <li>Diagnostics: ${{ needs.build.outputs.diagnostics-change-count }}</li>
-                <li>Messaging: ${{ needs.build.outputs.messaging-change-count }}</li>
-                <li>Messaging.Web: ${{ needs.build.outputs.messaging-web-change-count }}</li>
-                <li>Messaging.Web.Client: ${{ needs.build.outputs.messaging-web-client-change-count }}</li>
-                <li>Messaging.Web.Server: ${{ needs.build.outputs.messaging-web-server-change-count }}</li>
+                <li>Core: ${{ needs.change-detect.outputs.core }}</li>
+                <li>Storage: ${{ needs.change-detect.outputs.storage }}</li>
+                <li>Diagnostics: ${{ needs.change-detect.outputs.diagnostics }}</li>
+                <li>Messaging: ${{ needs.change-detect.outputs.messaging }}</li>
+                <li>Messaging.Web: ${{ needs.change-detect.outputs.web }}</li>
+                <li>Messaging.Web.Client: ${{ needs.change-detect.outputs.web-client }}</li>
+                <li>Messaging.Web.Server: ${{ needs.change-detect.outputs.web-server }}</li>
               </ul>
             </details>
             <details>
@@ -136,7 +146,7 @@ jobs:
     if: needs.build.outputs.total-package-prepared-count != '0'
 
   # todo: remove once cd workflow started triggering.
-  publish-package:
+  pack-packages:
     runs-on: ubuntu-latest
     needs: pre-release
     steps:
@@ -145,7 +155,7 @@ jobs:
 
       - uses: actions/download-artifact@v2.0.9
         with:
-          name: release-artifacts
+          name: release-binaries
 
       - uses: actions/cache@v2.1.5
         with:
@@ -158,18 +168,30 @@ jobs:
           NUGET_VERSION=${VERSION}-prerelease
           # it cannot find csproj files for some reason
           find . -name *.csproj |
-          xargs -i dotnet pack -p:PackageVersion=${NUGET_VERSION} -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg -o packages -c Release --no-restore --no-build --no-dependencies -v n {}
+          xargs -i dotnet pack -p:PackageVersion=${NUGET_VERSION} --include-source --include-symbols -p:SymbolPackageFormat=snupkg -o packages -c Release --no-restore --no-build --no-dependencies -v n {}
+
+      - uses: actions/upload-artifact@v2.2.3
+        with:
+          name: release-packages
+          path: |
+            packages/*.nupkg
+            packages/*.snupkg
+          retention-days: 30
+
+  # todo: remove once cd workflow started triggering.
+  publish-packages:
+    runs-on: ubuntu-latest
+    needs: pack-packages
+    steps:
+      - uses: actions/setup-dotnet@v1.7.2
+        with: { dotnet-version: '5.0' }
+
+      - uses: actions/download-artifact@v2.0.9
+        with:
+          name: release-packages
 
       - name: publish
         run: |
           API_KEY=${{ secrets.NUGET_API_KEY }}
-          find . -name '*.nupkg' |
+          find packages -name '*.nupkg' |
           xargs -i dotnet nuget push -k ${API_KEY} -s https://api.nuget.org/v3/index.json -t 30 {}
-
-      - uses: actions/upload-artifact@v2.2.3
-        with:
-          name: packages
-          path: |
-            **/*.nupkg
-            **/*.snupkg
-          retention-days: 30
