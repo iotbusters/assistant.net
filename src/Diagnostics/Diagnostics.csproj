@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.core" Version="0.0.0.12"/>
+    <ProjectReference Include="..\..\src\Core\Core.csproj"/>
   </ItemGroup>
 
   <PropertyGroup>
