@@ -27,11 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.messaging.web.server" Version="0.0.0.21"/>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\src\Messaging.Web.Client\Messaging.Web.Client.csproj" />
+    <ProjectReference Include="..\..\src\Messaging.Web.Server\Messaging.Web.Server.csproj" />
   </ItemGroup>
 
 </Project>

@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.core" Version="0.0.0.21"/>
-    <PackageReference Include="assistant.net.storage" Version="0.0.0.15"/>
-    <PackageReference Include="assistant.net.diagnostics" Version="0.0.0.12"/>
+    <ProjectReference Include="..\..\src\Core\Core.csproj"/>
+    <ProjectReference Include="..\..\src\Storage\Storage.csproj"/>
+    <ProjectReference Include="..\..\src\Diagnostics\Diagnostics.csproj"/>
   </ItemGroup>
 
   <PropertyGroup>
