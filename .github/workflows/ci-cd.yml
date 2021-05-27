@@ -108,7 +108,7 @@ jobs:
           retention-days: 7
     outputs:
       total-package-prepared-count: ${{ steps.count-changes.outputs.total-package-prepared-count }}
-    if: ALL_PACKAGES == true || needs.change-detect.outputs.important-changes != '0'
+    if: env.ALL_PACKAGES == true || needs.change-detect.outputs.important-changes != '0'
 
   pre-release:
     runs-on: ubuntu-latest
