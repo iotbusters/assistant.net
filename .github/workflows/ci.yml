@@ -28,16 +28,10 @@ jobs:
           files: |
             **/TestResults.xml
         if: always()
-      - uses: codecov/codecov-action@v1.5.0
-        with:
-          files: |
-            **/coverage.opencover.xml
-        if: always()
       - uses: actions/upload-artifact@v2.2.3
         with:
           name: ci-results
           path: |
             **/TestResults.xml
-            **/coverage.opencover.xml
           retention-days: 60
         if: always()
