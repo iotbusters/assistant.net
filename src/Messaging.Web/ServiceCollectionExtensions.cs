@@ -19,6 +19,7 @@ namespace Assistant.Net.Messaging
         /// </summary>
         public static IServiceCollection AddJsonSerializerOptions(this IServiceCollection services, Action<JsonSerializerOptions> configureOptions) => services
             .AddScoped<CommandExceptionJsonConverter>()
+            .AddTypeEncoder()
             .Configure<JsonSerializerOptions, CommandExceptionJsonConverter>((options, converter) =>
              {
                  options.Converters.Add(converter);

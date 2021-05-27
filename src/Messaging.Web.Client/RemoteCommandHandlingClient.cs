@@ -15,15 +15,18 @@ namespace Assistant.Net.Messaging
     {
         private readonly HttpClient client;
         private readonly ISystemLifetime lifetime;
+        private readonly ITypeEncoder typeEncoder;
         private readonly IOptions<JsonSerializerOptions> options;
 
         public RemoteCommandHandlingClient(
             HttpClient client,
             ISystemLifetime lifetime,
+            ITypeEncoder typeEncoder,
             IOptions<JsonSerializerOptions> options)
         {
             this.client = client;
             this.lifetime = lifetime;
+            this.typeEncoder = typeEncoder;
             this.options = options;
         }
 
@@ -32,7 +35,7 @@ namespace Assistant.Net.Messaging
         /// </summary>
         public async Task<TResponse> DelegateHandling<TResponse>(ICommand<TResponse> command)
         {
-            var commandName = command.GetType().Name;
+            var commandName = typeEncoder.Encode(command.GetType());
             var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Post, "")
             {
                 Headers =

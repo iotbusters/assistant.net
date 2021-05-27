@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
+using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 
 namespace Assistant.Net.Messaging.Serialization
@@ -18,9 +19,15 @@ namespace Assistant.Net.Messaging.Serialization
         private const string InnerExceptionPropertyName = "inner";
 
         private readonly ILogger<CommandExceptionJsonConverter> logger;
+        private readonly ITypeEncoder typeEncoder;
 
-        public CommandExceptionJsonConverter(ILogger<CommandExceptionJsonConverter> logger) =>
+        public CommandExceptionJsonConverter(
+            ILogger<CommandExceptionJsonConverter> logger,
+            ITypeEncoder typeEncoder)
+        {
             this.logger = logger;
+            this.typeEncoder = typeEncoder;
+        }
 
         public override bool CanConvert(Type typeToConvert) =>
             typeof(Exception).IsAssignableFrom(typeToConvert);
@@ -32,7 +39,7 @@ namespace Assistant.Net.Messaging.Serialization
             if (value is UnknownCommandException ex)
                 writer.WriteString(TypePropertyName, ex.Type);
             else
-                writer.WriteString(TypePropertyName, value.GetType().AssemblyQualifiedName);
+                writer.WriteString(TypePropertyName, typeEncoder.Encode(value.GetType()));
 
             writer.WriteString(MessagePropertyName, value.Message);
 
@@ -50,9 +57,9 @@ namespace Assistant.Net.Messaging.Serialization
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException("Start object token is expected.");
 
-            var (typeName, message, inner) = ReadExceptionContent(ref reader, options);
+            var (encodedType, message, inner) = ReadExceptionContent(ref reader, options);
 
-            if (typeName == null)
+            if (encodedType == null)
                 throw new JsonException($"Property '{TypePropertyName}' is required.");
 
             if (message == null)
@@ -60,16 +67,15 @@ namespace Assistant.Net.Messaging.Serialization
 
             try
             {
-                // todo: introduce type resolver (https://github.com/iotbusters/assistant.net/issues/7)
-                var type = Type.GetType(typeName!, throwOnError: true);
+                var type = typeEncoder.Decode(encodedType!);
                 var ctorArguments = new object?[] { message, inner }
                     .Where(x => x != null).Select(x => x!).ToArray();
                 return (CommandException)Activator.CreateInstance(type!, ctorArguments)!;
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Cannot restore exception object by {Type}, {Message} and {InnerException}.", typeName, message, inner);
-                return new UnknownCommandException(typeName, message, inner);
+                logger.LogWarning(ex, "Cannot restore exception object by {Type}, {Message} and {InnerException}.", encodedType, message, inner);
+                return new UnknownCommandException(encodedType, message, inner);
             }
         }
 
@@ -77,7 +83,7 @@ namespace Assistant.Net.Messaging.Serialization
             ref Utf8JsonReader reader,
             JsonSerializerOptions options)
         {
-            string? typeName = null;
+            string? encodedType = null;
             string? message = null;
             Exception? inner = null;
 
@@ -93,7 +99,7 @@ namespace Assistant.Net.Messaging.Serialization
                     case TypePropertyName:
                         if (reader.TokenType != JsonTokenType.String)
                             throw new JsonException("String token is expected.");
-                        typeName = reader.GetString();
+                        encodedType = reader.GetString();
                         break;
 
                     case MessagePropertyName:
@@ -114,7 +120,7 @@ namespace Assistant.Net.Messaging.Serialization
                 }
             }
 
-            return (typeName, message, inner);
+            return (encodedType, message, inner);
         }
     }
 }

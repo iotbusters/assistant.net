@@ -51,10 +51,7 @@ namespace Assistant.Net.Messaging.Internal
         public static Type GetCommandType(this HttpContext httpContext)
         {
             var commandName = httpContext.GetCommandName();
-            // todo: introduce type resolver (https://github.com/iotbusters/assistant.net/issues/7)
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(x => x.GetTypes())
-                .FirstOrDefault(x => x.IsClass && x.Name == commandName)
+            return httpContext.GetService<ITypeEncoder>().Decode(commandName)
                 ?? throw new CommandNotFoundException($"Unknown command '{commandName}' was provided.");
         }
 
@@ -62,13 +59,13 @@ namespace Assistant.Net.Messaging.Internal
         ///     Reads command object from request body stream.
         /// </summary>
         /// <exception cref="CommandContractException" />
-        public static async Task<object> ReadCommandObject(this HttpContext context)
+        public static async Task<object> ReadCommandObject(this HttpContext httpContext)
         {
-            var commandType = context.GetCommandType();
-            var options = context.GetService<IOptions<JsonSerializerOptions>>();
-            var lifetime = context.GetService<ISystemLifetime>();
+            var commandType = httpContext.GetCommandType();
+            var options = httpContext.GetService<IOptions<JsonSerializerOptions>>();
+            var lifetime = httpContext.GetService<ISystemLifetime>();
 
-            return await context.Request.Body.ReadObject(commandType, options.Value, lifetime.Stopping)
+            return await httpContext.Request.Body.ReadObject(commandType, options.Value, lifetime.Stopping)
                 ?? throw new CommandContractException("Unexpected null object.");
         }
 

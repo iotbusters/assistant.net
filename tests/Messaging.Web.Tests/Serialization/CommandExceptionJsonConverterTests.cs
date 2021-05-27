@@ -4,12 +4,13 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using FluentAssertions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Serialization;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Assistant.Net.Messaging.Web.Tests.Serialization
 {
@@ -17,7 +18,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
     {
         private readonly JsonSerializerOptions options = new()
         {
-            Converters = { new CommandExceptionJsonConverter(Logger) },
+            Converters = { Provider.GetRequiredService<CommandExceptionJsonConverter>() },
             DefaultIgnoreCondition = JsonIgnoreCondition.Never
         };
 
@@ -25,7 +26,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
         [TestCase("Some non-json text")]
         [TestCase("{}")]
         [TestCase("{\"message\":\"1\"}")]
-        [TestCase("{\"type\":\"Assistant.Net.Messaging.Exceptions.CommandFailedException, assistant.net.messaging\"}")]
+        [TestCase("{\"type\":\"CommandFailedException\"}")]
         public async Task DeserializeInvalidContent(string content)
         {
             await using var stream = new MemoryStream();
@@ -36,7 +37,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
             .Should().ThrowAsync<JsonException>();
         }
 
-        [TestCase("{\"type\":\"System.Exception, System.Private.CoreLib\",\"message\":\"1\"}")]
+        [TestCase("{\"type\":\"Exception\",\"message\":\"1\"}")]
         public async Task DeserializeNotCommandExceptionContent(string content)
         {
             await using var stream = new MemoryStream();
@@ -47,7 +48,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
                 .Should().ThrowAsync<JsonException>();
         }
 
-        [TestCase("{\"type\":\"Assistant.Net.Messaging.Exceptions.CommandFailedException, assistant.net.messaging\",\"message\":\"1\",\"unknown\":\"2\"}")]
+        [TestCase("{\"type\":\"CommandFailedException\",\"message\":\"1\",\"unknown\":\"2\"}")]
         public async Task DeserializeAdditionalProperties(string content)
         {
             await using var stream = new MemoryStream();
@@ -103,6 +104,10 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
             yield return new CommandConnectionFailedException("1");
         }
 
-        private static ILogger<CommandExceptionJsonConverter> Logger => NullLogger<CommandExceptionJsonConverter>.Instance;
+        private static IServiceProvider Provider { get; } = new ServiceCollection()
+            .AddSingleton<ILogger<CommandExceptionJsonConverter>>(NullLogger<CommandExceptionJsonConverter>.Instance)
+            .AddTypeEncoder()
+            .AddTransient<CommandExceptionJsonConverter>()
+            .BuildServiceProvider();
     }
 }

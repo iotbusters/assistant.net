@@ -45,6 +45,13 @@ namespace Assistant.Net
             .ReplaceSingleton<ISystemLifetime>(p => new SystemLifetime(getStoppingToken(p)));
 
         /// <summary>
+        ///     Adds <see cref="ITypeEncoder"/> implementation with default behavior
+        ///     if it hasn't been already registered.
+        /// </summary>
+        public static IServiceCollection AddTypeEncoder(this IServiceCollection services) => services
+            .TryAddSingleton<ITypeEncoder, TypeEncoder>();
+
+        /// <summary>
         ///     Registers an action used to configure a particular type of options with following validation.
         /// </summary>
         public static IServiceCollection Configure<TOptions>(this IServiceCollection services, IConfigurationSection config)

@@ -25,6 +25,7 @@ namespace Assistant.Net.Messaging
         /// </summary>
         public static IServiceCollection AddRemoteCommandHandlingServer(this IServiceCollection services, Action<CommandOptions> configureOptions) => services
             .AddStorage(b => b.AddLocal<DeferredCachingResult>())
+            .AddTypeEncoder()
             .AddDiagnostics()
             .AddDiagnosticContext(InitializeFromHttpContext)
             .AddHttpContextAccessor()
