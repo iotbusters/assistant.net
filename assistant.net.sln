@@ -32,13 +32,14 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{5100A35B-B0AD-4B31-B20D-1B6BA9C28E67}"
 	ProjectSection(SolutionItems) = preProject
 		.github\codecov.yml = .github\codecov.yml
+		.github\dependabot.yml = .github\dependabot.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{E8CFAD40-A709-484B-95BF-05136817D277}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\ci-master.yml = .github\workflows\ci-master.yml
+		.github\workflows\cd.yml = .github\workflows\cd.yml
+		.github\workflows\ci-cd.yml = .github\workflows\ci-cd.yml
 		.github\workflows\ci.yml = .github\workflows\ci.yml
-		.github\workflows\release.yml = .github\workflows\release.yml
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Messaging.Web.Client.Tests", "tests\Messaging.Web.Client.Tests\Messaging.Web.Client.Tests.csproj", "{F57F11D4-82B8-4197-B234-93769814137F}"
@@ -49,9 +50,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Messaging.Web.Tests", "test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Tests", "tests\Core.Tests\Core.Tests.csproj", "{630361EF-DE90-4F6B-B7E6-4D47C887F59C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage", "src\Storage\Storage.csproj", "{E7FCD4E0-C366-4D90-AADD-051B2644F06C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Storage", "src\Storage\Storage.csproj", "{E7FCD4E0-C366-4D90-AADD-051B2644F06C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Storage.Tests", "tests\Storage.Tests\Storage.Tests.csproj", "{93671E9F-C1F2-445C-82BB-F897688AE3AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Storage.Tests", "tests\Storage.Tests\Storage.Tests.csproj", "{93671E9F-C1F2-445C-82BB-F897688AE3AB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
