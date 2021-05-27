@@ -40,6 +40,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: change-detect
+    if: env.ALL_PACKAGES == true || needs.change-detect.outputs.important-changes != '0'
     steps:
       - uses: actions/checkout@v2.3.4
         with: { fetch-depth: 100 }
@@ -108,11 +109,11 @@ jobs:
           retention-days: 7
     outputs:
       total-package-prepared-count: ${{ steps.count-changes.outputs.total-package-prepared-count }}
-    if: ALL_PACKAGES == true || needs.change-detect.outputs.important-changes != '0'
 
   pre-release:
     runs-on: ubuntu-latest
     needs: [change-detect, build]
+    if: needs.build.outputs.total-package-prepared-count != '0'
     steps:
         # ensure the artifact were created to skip empty releases.
       - uses: actions/download-artifact@v2.0.9
@@ -146,7 +147,6 @@ jobs:
             </details>
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    if: needs.build.outputs.total-package-prepared-count != '0'
 
   # todo: remove once cd workflow started triggering.
   pack-packages:
