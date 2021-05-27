@@ -17,6 +17,7 @@ jobs:
         id: change-detected
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
+          echo ::set-output name=important-changes::$(echo $CHANGES | grep -c -E '\.(cs|csproj|json)$')
           echo ::set-output name=core::$(echo $CHANGES | grep -c src/Core/)
           echo ::set-output name=storage::$(echo $CHANGES | grep -c src/Storage/)
           echo ::set-output name=diagnostics::$(echo $CHANGES | grep -c src/Diagnostics/)
@@ -26,6 +27,7 @@ jobs:
           echo ::set-output name=web-server::$(echo $CHANGES | grep -c src/Messaging.Web.Server/)
           echo ::set-output name=total::$(echo $CHANGES | wc -l)
     outputs:
+      important-changes: ${{ steps.change-detected.outputs.important-changes }}
       core: ${{ steps.change-detected.outputs.core }}
       storage: ${{ steps.change-detected.outputs.storage }}
       diagnostics: ${{ steps.change-detected.outputs.diagnostics }}
@@ -106,6 +108,7 @@ jobs:
           retention-days: 7
     outputs:
       total-package-prepared-count: ${{ steps.count-changes.outputs.total-package-prepared-count }}
+    if: needs.change-detect.outputs.important-changes != '0'
 
   pre-release:
     runs-on: ubuntu-latest
