@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 
-namespace Assistant.Net.Messaging.Web.Client.Tests.Mocks
+namespace Assistant.Net.Messaging.Integration.Tests.Mocks
 {
-    public class TestCommandHandler1 : ICommandHandler<TestCommand1, TestResponse>
+    public class TestScenarioCommandHandler : ICommandHandler<TestScenarioCommand, TestResponse>
     {
-        public Task<TestResponse> Handle(TestCommand1 command)
+        public Task<TestResponse> Handle(TestScenarioCommand command)
         {
             return command.Scenario switch
             {

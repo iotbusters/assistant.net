@@ -13,7 +13,7 @@ namespace Assistant.Net.Tests
             var value = option switch
             {
                 Some<int>(var x) => x,
-                _ => default
+                _                => default
             };
 
             value.Should().Be(111);
@@ -26,7 +26,7 @@ namespace Assistant.Net.Tests
             var value = option switch
             {
                 None<int> => true,
-                _ => false
+                _         => false
             };
 
             value.Should().BeTrue();
@@ -38,6 +38,34 @@ namespace Assistant.Net.Tests
             ((bool)Option.None).Should().BeFalse();
             ((bool)Option.None).Should().BeFalse();
             ((bool)Option.Some(1)).Should().BeTrue();
+        }
+
+        [Test]
+        public void Some_equals_Some()
+        {
+            Option.Some("test").Equals(Option.Some("test"))
+                .Should().BeTrue();
+        }
+
+        [Test]
+        public void Some_unequals_Some()
+        {
+            Option.Some("test-1").Equals(Option.Some("test-2"))
+                .Should().BeFalse();
+        }
+
+        [Test]
+        public void Some_unequals_None()
+        {
+            Option.Some("test").Equals(Option.None)
+                .Should().BeFalse();
+        }
+
+        [Test]
+        public void SomeOfString_unequals_SomeOfObject()
+        {
+            Option.Some("test").Equals(Option.Some<object>("test"))
+                .Should().BeFalse();
         }
     }
 }

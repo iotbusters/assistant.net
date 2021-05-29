@@ -1,29 +1,31 @@
 using System;
 using System.Linq;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Web.Client.Tests.Mocks;
+using Assistant.Net.Messaging.Integration.Tests.Mocks;
 
-namespace Assistant.Net.Messaging.Web.Client.Tests.Fixtures
+namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
 {
     public class CommandClientFixtureBuilder
     {
         public CommandClientFixtureBuilder()
         {
             Services = new ServiceCollection()
-                .AddCommandClient()
+                .AddCommandClient(o => o.Interceptors.ClearAll())
                 .AddRemoteCommandHandlingClient(o =>
                 {
                     o.BaseAddress = new Uri("http://localhost/command");
-                    o.Timeout = TimeSpan.FromSeconds(300);// temporary
+                    // debugging purpose only.
+                    if(Debugger.IsAttached)
+                        o.Timeout = TimeSpan.FromSeconds(300);
                 });
             RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
-                .Configure(b => b.UseRemoteCommandHandling()))
-                .ConfigureServices(s => s.AddCommandClient());
+                .Configure(b => b.UseRemoteCommandHandling()));
         }
 
         public IServiceCollection Services { get; init; }
@@ -44,7 +46,11 @@ namespace Assistant.Net.Messaging.Web.Client.Tests.Fixtures
         public CommandClientFixtureBuilder AddRemote<THandler>() where THandler : class, IAbstractCommandHandler
         {
             RemoteHostBuilder.ConfigureServices(s => s
-                .AddRemoteCommandHandlingServer(o => o.Handlers.AddLocal<THandler>()));
+                .AddRemoteCommandHandlingServer(o =>
+                {
+                    o.Handlers.AddLocal<THandler>();
+                    o.Interceptors.ClearAll();
+                }));
 
             var commandType = typeof(THandler)
                 .GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICommandHandler<,>))
