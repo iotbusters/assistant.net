@@ -17,6 +17,7 @@ namespace Assistant.Net.Messaging
         ///     Assuming <see cref="RemoteCommandHandlingOptions" /> is configured separately.
         /// </summary>
         public static IServiceCollection AddRemoteCommandHandlingClient(this IServiceCollection services) => services
+            .AddSystemLifetime()
             .AddDiagnostics()
             .AddJsonSerializerOptions()
             .AddTypeEncoder()

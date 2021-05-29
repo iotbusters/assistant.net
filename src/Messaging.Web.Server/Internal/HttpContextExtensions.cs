@@ -2,7 +2,9 @@ using System;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -52,7 +54,7 @@ namespace Assistant.Net.Messaging.Internal
         {
             var commandName = httpContext.GetCommandName();
             return httpContext.GetService<ITypeEncoder>().Decode(commandName)
-                ?? throw new CommandNotFoundException($"Unknown command '{commandName}' was provided.");
+                ?? throw new CommandNotFoundException($"Couldn't resolve command type from its name.", commandName);
         }
 
         /// <summary>
@@ -72,18 +74,21 @@ namespace Assistant.Net.Messaging.Internal
         /// <summary>
         ///     Writes the <paramref name="content"/> object to response and set <paramref name="statusCode"/>.
         /// </summary>
-        public static async Task WriteCommandResponse(this HttpContext context, int statusCode, object? content = null)
+        public static async Task WriteCommandResponse(this HttpContext httpContext, int statusCode, object? content = null)
         {
-            var serializerOptions = context.GetService<IOptions<JsonSerializerOptions>>();
-            var lifetime = context.GetService<ISystemLifetime>();
+            var serializerOptions = httpContext.GetService<IOptions<JsonSerializerOptions>>();
+            var lifetime = httpContext.GetService<ISystemLifetime>();
 
-            context.Response.StatusCode = statusCode;
+            var commandName = httpContext.GetCommandName();
+            var correlationId = httpContext.GetCorrelationId();
+
+            httpContext.Response.Headers.Add(HeaderNames.CommandName, commandName);
+            httpContext.Response.Headers.Add(HeaderNames.CorrelationId, correlationId);
+            httpContext.Response.StatusCode = statusCode;
 
             if(content != null)
-                await JsonSerializer.SerializeAsync(
-                    context.Response.Body,
+                await httpContext.Response.WriteAsJsonAsync(
                     content,
-                    content.GetType(),
                     serializerOptions.Value,
                     lifetime.Stopping);
         }

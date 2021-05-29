@@ -13,7 +13,7 @@ namespace Assistant.Net.Messaging
         /// </summary>
         public static IEndpointConventionBuilder MapRemoteCommandHandling(this IEndpointRouteBuilder builder)
         {
-            return builder.MapPost("/command/{commandName}", async context =>
+            return builder.MapPost("/command", async context =>
             {
                 await ActivatorUtilities
                     .CreateInstance<RemoteCommandHandlingEndpointMiddleware>(context.RequestServices)

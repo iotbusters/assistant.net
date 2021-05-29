@@ -30,8 +30,9 @@ namespace Assistant.Net.Messaging
             .AddDiagnosticContext(InitializeFromHttpContext)
             .AddHttpContextAccessor()
             .AddJsonSerializerOptions()
-            .AddCommandClient(configureOptions)
-            .AddCommandOptions(opt => opt.Add<ServerInterceptorConfiguration>());
+            .AddCommandClient()
+            .AddCommandOptions(opt => opt.Add<ServerInterceptorConfiguration>())
+            .AddCommandOptions(configureOptions);
 
         private static string InitializeFromHttpContext(IServiceProvider provider)
         {

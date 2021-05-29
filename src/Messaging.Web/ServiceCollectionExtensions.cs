@@ -18,6 +18,7 @@ namespace Assistant.Net.Messaging
         ///     Registers default configuration for <see cref="JsonSerializer" /> customized by <paramref name="configureOptions" /> predicate.
         /// </summary>
         public static IServiceCollection AddJsonSerializerOptions(this IServiceCollection services, Action<JsonSerializerOptions> configureOptions) => services
+            .AddLogging()
             .AddScoped<CommandExceptionJsonConverter>()
             .AddTypeEncoder()
             .Configure<JsonSerializerOptions, CommandExceptionJsonConverter>((options, converter) =>

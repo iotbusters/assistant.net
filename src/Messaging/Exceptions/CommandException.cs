@@ -7,7 +7,10 @@ namespace Assistant.Net.Messaging.Exceptions
     /// </summary>
     public abstract class CommandException : Exception
     {
-        protected CommandException() : base() { }
+        /// <summary>
+        ///     Pay attention, this ctor is required to implement for all children.
+        ///     Otherwise, deserialization will fail.
+        /// </summary>
         protected CommandException(string? message) : base(message) { }
         protected CommandException(string? message, Exception? ex) : base(message, ex) { }
     }

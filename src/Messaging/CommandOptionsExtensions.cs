@@ -68,7 +68,8 @@ namespace Assistant.Net.Messaging
         public static IList<InterceptorDefinition> Remove<TInterceptor>(this IList<InterceptorDefinition> list)
             where TInterceptor : class, IAbstractCommandInterceptor
         {
-            foreach (var definition in list.Where(x => x.Type == typeof(TInterceptor)))
+            var definitions = list.Where(x => x.Type == typeof(TInterceptor)).ToArray();
+            foreach (var definition in definitions)
                 list.Remove(definition);
             return list;
         }
