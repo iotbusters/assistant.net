@@ -2,7 +2,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Assistant.Net.Messaging.Abstractions;
 
-namespace Assistant.Net.Messaging.Web.Client.Tests.Fixtures
+namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
 {
     public class CommandClientFixture : IDisposable
     {

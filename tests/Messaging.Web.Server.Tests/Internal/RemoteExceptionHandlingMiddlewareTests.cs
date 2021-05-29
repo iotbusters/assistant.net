@@ -1,0 +1,158 @@
+using System;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+using FluentAssertions;
+using NUnit.Framework;
+using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Web.Server.Tests.Fixtures;
+using Assistant.Net.Messaging.Web.Server.Tests.Mocks;
+using Assistant.Net.Messaging.Abstractions;
+
+namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
+{
+    [Timeout(2000)]
+    public class RemoteExceptionHandlingMiddlewareTests
+    {
+        private static readonly string CorrelationId = Guid.NewGuid().ToString();
+
+        [TestCase(typeof(TimeoutException))]
+        [TestCase(typeof(TaskCanceledException))]
+        [TestCase(typeof(OperationCanceledException))]
+        [TestCase(typeof(CommandDeferredException))]
+        public async Task Post_Accepted_thrownInterraptingKindOfException(Type exceptionType)
+        {
+            using var fixture = new CommandClientFixtureBuilder()
+                .AddRemote<TestFailCommandHandler>()
+                .Create();
+
+            var request = Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var response = await fixture.Client.SendAsync(request);
+
+            response.Should().BeEquivalentTo(new HttpResponseMessage()
+            {
+                StatusCode = HttpStatusCode.Accepted,
+                RequestMessage = request,
+                Headers =
+                {
+                    {HeaderNames.CommandName, nameof(TestFailCommand)},
+                    {HeaderNames.CorrelationId, CorrelationId},
+                }
+            });
+        }
+
+        [Test]
+        public async Task Post_NotFound_thrownCommandNotFoundException()
+        {
+            var exceptionType = typeof(CommandNotFoundException);
+            using var fixture = new CommandClientFixtureBuilder()
+                .AddRemote<TestFailCommandHandler>()
+                .Create();
+
+            var request = Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var response = await fixture.Client.SendAsync(request);
+
+            response.Should().BeEquivalentTo(new
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                RequestMessage = request,
+                Headers = new[]
+                {
+                    new { Key = HeaderNames.CommandName, Value = new[] { nameof(TestFailCommand) } },
+                    new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } },
+                }
+            });
+            var responseObject = await response.Content.ReadFromJsonAsync<CommandException>(fixture.JsonSerializerOptions);
+            responseObject.Should().BeOfType<CommandNotFoundException>();
+        }
+
+        [Test]
+        public async Task Post_NotFound_thrownCommandNotRegisteredException()
+        {
+            var exceptionType = typeof(CommandNotRegisteredException);
+            using var fixture = new CommandClientFixtureBuilder()
+                .AddRemote<TestFailCommandHandler>()
+                .Create();
+
+            var request = Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var response = await fixture.Client.SendAsync(request);
+
+            response.Should().BeEquivalentTo(new
+            {
+                StatusCode = HttpStatusCode.NotFound,
+                RequestMessage = request,
+                Headers = new[]
+                {
+                    new { Key = HeaderNames.CommandName, Value = new[] { nameof(TestFailCommand) } },
+                    new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } },
+                }
+            });
+            var responseObject = await response.Content.ReadFromJsonAsync<CommandException>(fixture.JsonSerializerOptions);
+            responseObject.Should().BeOfType<CommandNotRegisteredException>();
+        }
+
+        [Test]
+        public async Task Post_BadRequest_thrownCommandContractException()
+        {
+            var exceptionType = typeof(CommandContractException);
+            using var fixture = new CommandClientFixtureBuilder()
+                .AddRemote<TestFailCommandHandler>()
+                .Create();
+
+            var request = Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var response = await fixture.Client.SendAsync(request);
+
+            response.Should().BeEquivalentTo(new
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                RequestMessage = request,
+                Headers = new[]
+                {
+                    new { Key = HeaderNames.CommandName, Value = new[] { nameof(TestFailCommand) } },
+                    new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } },
+                }
+            });
+            var responseObject = await response.Content.ReadFromJsonAsync<CommandException>(fixture.JsonSerializerOptions);
+            responseObject.Should().BeOfType<CommandContractException>();
+        }
+
+        [Test]
+        public async Task Post_InternalServerError_throwAnyOtherCommandException()
+        {
+            var exceptionType = typeof(TestCommandException);
+            using var fixture = new CommandClientFixtureBuilder()
+                .AddRemote<TestFailCommandHandler>()
+                .Create();
+
+            var request = Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var response = await fixture.Client.SendAsync(request);
+
+            response.Should().BeEquivalentTo(new
+            {
+                StatusCode = HttpStatusCode.InternalServerError,
+                RequestMessage = request,
+                Headers = new[]
+                {
+                    new { Key = HeaderNames.CommandName, Value = new[] { nameof(TestFailCommand) } },
+                    new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } },
+                }
+            });
+            var responseObject = await response.Content.ReadFromJsonAsync<CommandException>(fixture.JsonSerializerOptions);
+            responseObject.Should().BeOfType<TestCommandException>();
+        }
+
+        private static HttpRequestMessage Request<T>(T command) where T : IAbstractCommand
+        {
+            return new HttpRequestMessage(HttpMethod.Post, "http://localhost/command")
+            {
+                Headers =
+                {
+                    {HeaderNames.CommandName, command.GetType().Name},
+                    {HeaderNames.CorrelationId, CorrelationId},
+                },
+                Content = JsonContent.Create(command)
+            };
+        }
+    }
+}
