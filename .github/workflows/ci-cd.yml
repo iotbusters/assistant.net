@@ -27,7 +27,7 @@ jobs:
           echo ::set-output name=web-client::$(echo $CHANGES | grep -c src/Messaging.Web.Client/)
           echo ::set-output name=web-server::$(echo $CHANGES | grep -c src/Messaging.Web.Server/)
           echo ::set-output name=total::$(echo $CHANGES | wc -l)
-        if: github.event.commits[0].id != '' # an intend to avoid failures if no commit push (e.g. rebasing) although it doesn't seem to work.
+        if: github.event.commits[0].id != '' # to avoid failures if no commit push (e.g. rebasing).
     outputs:
       important-changes: ${{ steps.change-detected.outputs.important-changes }}
       core: ${{ steps.change-detected.outputs.core }}

@@ -33,6 +33,7 @@ namespace Assistant.Net.Messaging.Internal
                 return HandleException(context, e.InnerException!);
 
             if (ex is CommandDeferredException
+                || ex is TimeoutException
                 || ex is TaskCanceledException
                 || ex is OperationCanceledException)
                 return context.WriteCommandResponse(202);

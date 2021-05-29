@@ -14,7 +14,7 @@ namespace Assistant.Net.Storage.Internal
         public Storage(IServiceProvider provider, IKeyConverter<TKey> keyConverter)
         {
             this.backedStorage = provider.GetService<IStorage<TValue>>()
-                                 ?? throw new InvalidOperationException($"Storage of {typeof(TValue).Name} wasn't properly configured.");
+                                 ?? throw new InvalidOperationException($"Storage of '{typeof(TValue).Name}' wasn't properly configured.");
             this.keyConverter = keyConverter;
         }
 
