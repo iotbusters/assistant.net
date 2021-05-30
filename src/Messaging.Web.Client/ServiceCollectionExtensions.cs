@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Extensions;
+using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging
 {
@@ -14,49 +15,51 @@ namespace Assistant.Net.Messaging
 
         /// <summary>
         ///     Registers empty remote command handling configuration.
-        ///     Assuming <see cref="RemoteCommandHandlingOptions" /> is configured separately.
+        ///     Assuming <see cref="RemoteWebCommandClientOptions" /> is configured separately.
         /// </summary>
-        public static IServiceCollection AddRemoteCommandHandlingClient(this IServiceCollection services) => services
-            .AddSystemLifetime()
-            .AddDiagnostics()
-            .AddJsonSerializerOptions()
-            .AddTypeEncoder()
-            .AddHttpClient<RemoteCommandHandlingClient>((p, c) =>
-            {
-                var options = p.GetRequiredService<IOptions<RemoteCommandHandlingOptions>>().Value;
-                c.BaseAddress = options.BaseAddress;
-                c.Timeout = options.Timeout ?? DefaultTimeout;
-            })
-            .AddHttpMessageHandler<CorrelationHandler>()
-            .AddHttpMessageHandler<OperationHandler>()
-            .AddHttpMessageHandler<AuthorizationHandler>()
-            .AddHttpMessageHandler<ErrorPropagationHandler>()
-            .Services;
+        public static IHttpClientBuilder AddRemoteWebCommandClient(this IServiceCollection services)
+        {
+            return services
+                .AddSystemLifetime()
+                .AddDiagnostics()
+                .AddTypeEncoder()
+                .AddJsonSerializerOptions()
+                .AddHttpClient<IRemoteCommandClient, RemoteWebCommandClient>((p, c) =>
+                {
+                    var options = p.GetRequiredService<IOptions<RemoteWebCommandClientOptions>>().Value;
+                    c.BaseAddress = options.BaseAddress;
+                    c.Timeout = options.Timeout ?? DefaultTimeout;
+                })
+                .AddHttpMessageHandler<CorrelationHandler>()
+                .AddHttpMessageHandler<OperationHandler>()
+                .AddHttpMessageHandler<AuthorizationHandler>()
+                .AddHttpMessageHandler<ErrorPropagationHandler>();
+        }
 
         /// <summary>
         ///     Registers <see cref="IConfigurationSection" /> based remote command handling configuration.
         /// </summary>
-        public static IServiceCollection AddRemoteCommandHandlingClient(this IServiceCollection services, IConfigurationSection config) => services
-            .AddRemoteCommandHandlingOptions(config)
-            .AddRemoteCommandHandlingClient();
+        public static IHttpClientBuilder AddRemoteWebCommandClient(this IServiceCollection services, IConfigurationSection configuration) => services
+            .AddRemoteWebCommandClientOptions(configuration)
+            .AddRemoteWebCommandClient();
 
         /// <summary>
         ///     Registers remote command handling configuration customized by <paramref name="configureOptions" />.
         /// </summary>
-        public static IServiceCollection AddRemoteCommandHandlingClient(this IServiceCollection services, Action<RemoteCommandHandlingOptions> configureOptions) => services
-            .AddRemoteCommandHandlingOptions(configureOptions)
-            .AddRemoteCommandHandlingClient();
+        public static IHttpClientBuilder AddRemoteWebCommandClient(this IServiceCollection services, Action<RemoteWebCommandClientOptions> configureOptions) => services
+            .AddRemoteWebCommandClientOptions(configureOptions)
+            .AddRemoteWebCommandClient();
 
         /// <summary>
-        ///     Registers a configuration instance which <see cref="RemoteCommandHandlingOptions"/> will bind against.
+        ///     Registers a configuration instance which <see cref="RemoteWebCommandClientOptions"/> will bind against.
         /// </summary>
-        public static IServiceCollection AddRemoteCommandHandlingOptions(this IServiceCollection services, IConfigurationSection configuration) => services
-            .Configure<RemoteCommandHandlingOptions>(configuration);
+        internal static IServiceCollection AddRemoteWebCommandClientOptions(this IServiceCollection services, IConfigurationSection configuration) => services
+            .Configure<RemoteWebCommandClientOptions>(configuration);
 
         /// <summary>
-        ///     Registers an action used to configure <see cref="RemoteCommandHandlingOptions"/> options.
+        ///     Registers an action used to configure <see cref="RemoteWebCommandClientOptions"/> options.
         /// </summary>
-        public static IServiceCollection AddRemoteCommandHandlingOptions(this IServiceCollection services, Action<RemoteCommandHandlingOptions> configureOptions) => services
+        internal static IServiceCollection AddRemoteWebCommandClientOptions(this IServiceCollection services, Action<RemoteWebCommandClientOptions> configureOptions) => services
             .Configure(configureOptions);
     }
 }

@@ -12,12 +12,12 @@ namespace Assistant.Net.Messaging.Interceptors
     public class DefaultInterceptorConfiguration : ICommandConfiguration
     {
         // todo: consider removing if disabled in configuration (https://github.com/iotbusters/assistant.net/issues/1)
-        public void Configure(CommandOptions options) => options.Interceptors
+        public void Configure(CommandClientBuilder builder) => builder
             .ClearAll()
-            .Add<DiagnosticsInterceptor>()
-            .Add<ErrorHandlingInterceptor>()
-            .Add<CachingInterceptor>()
-            .Add<RetryingInterceptor>()
-            .Add<TimeoutInterceptor>();
+            .AddInterceptor<DiagnosticsInterceptor>()
+            .AddInterceptor<ErrorHandlingInterceptor>()
+            .AddInterceptor<CachingInterceptor>()
+            .AddInterceptor<RetryingInterceptor>()
+            .AddInterceptor<TimeoutInterceptor>();
     }
 }

@@ -6,7 +6,7 @@ namespace Assistant.Net.Messaging.Options
     /// <summary>
     ///     Remote command handling configuration.
     /// </summary>
-    public class RemoteCommandHandlingOptions
+    public class RemoteWebCommandClientOptions
     {
         [Required]
         public Uri BaseAddress { get; set; } = null!;

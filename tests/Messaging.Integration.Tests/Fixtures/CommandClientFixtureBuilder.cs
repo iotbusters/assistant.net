@@ -15,17 +15,18 @@ namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
         public CommandClientFixtureBuilder()
         {
             Services = new ServiceCollection()
-                .AddCommandClient(o => o.Interceptors.ClearAll())
-                .AddRemoteCommandHandlingClient(o =>
+                .AddCommandClient(b => b.ClearAll())
+                .AddRemoteWebCommandClient(o =>
                 {
                     o.BaseAddress = new Uri("http://localhost/command");
                     // debugging purpose only.
-                    if(Debugger.IsAttached)
+                    if (Debugger.IsAttached)
                         o.Timeout = TimeSpan.FromSeconds(300);
-                });
+                }).Services;
             RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
-                .Configure(b => b.UseRemoteCommandHandling()));
+                .Configure(b => b.UseRemoteWebCommandHandler()))
+                .ConfigureServices(b => b.AddRemoteWebCommandHandler(o => { }));
         }
 
         public IServiceCollection Services { get; init; }
@@ -33,31 +34,27 @@ namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
 
         public CommandClientFixtureBuilder ClearHandlers()
         {
-            Services.AddCommandOptions(o => o.Handlers.Clear());
+            Services.ConfigureCommandClient(b => b.ClearAll());
             return this;
         }
 
         public CommandClientFixtureBuilder AddLocal<THandler>() where THandler : class, IAbstractCommandHandler
         {
-            Services.AddCommandOptions(o => o.Handlers.AddLocal<THandler>());
+            Services.ConfigureCommandClient(b => b.AddLocal<THandler>());
             return this;
         }
 
         public CommandClientFixtureBuilder AddRemote<THandler>() where THandler : class, IAbstractCommandHandler
         {
             RemoteHostBuilder.ConfigureServices(s => s
-                .AddRemoteCommandHandlingServer(o =>
-                {
-                    o.Handlers.AddLocal<THandler>();
-                    o.Interceptors.ClearAll();
-                }));
+                .ConfigureCommandClient(b => b.AddLocal<THandler>().ClearAll()));
 
             var commandType = typeof(THandler)
                 .GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICommandHandler<,>))
                 ?.GetGenericArguments().First()
                 ?? throw new ArgumentException("Invalid command handler type.", nameof(THandler));
 
-            Services.AddCommandOptions(options => options.Handlers.AddRemote(commandType));
+            Services.ConfigureCommandClient(b => b.AddRemote(commandType));
             return this;
         }
 
@@ -65,14 +62,14 @@ namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
             where TCommand : IAbstractCommand
         {
             var commandType = typeof(TCommand);
-            Services.AddCommandOptions(options => options.Handlers.AddRemote(commandType));
+            Services.ConfigureCommandClient(b => b.AddRemote(commandType));
             return this;
         }
 
         public CommandClientFixture Create()
         {
             var provider = Services
-                .AddHttpClientRedirect<RemoteCommandHandlingClient>(p => RemoteHostBuilder.Start())
+                .AddHttpClientRedirect<IRemoteCommandClient>(p => RemoteHostBuilder.Start())
                 .BuildServiceProvider();
             return new(provider);
         }

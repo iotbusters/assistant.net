@@ -9,10 +9,10 @@ namespace Assistant.Net.Messaging.Web.Server.Tests
     public class ServiceCollectionExtensionsTests
     {
         [Test]
-        public void AddRemoteCommandHandlingClient_registersServiceDescriptors()
+        public void AddRemoteCommandHandlingServer_registersServiceDescriptors()
         {
             var services = new ServiceCollection()
-                .AddRemoteCommandHandlingServer(opt => { });
+                .AddRemoteWebCommandHandler(opt => { });
 
             services.Should().ContainEquivalentOf(new
             {
@@ -22,11 +22,11 @@ namespace Assistant.Net.Messaging.Web.Server.Tests
         }
 
         [Test]
-        public void GetServiceOfRemoteCommandHandlingClient_resolvesObject()
+        public void GetServiceOfICommandClient_resolvesObject()
         {
             var provider = new ServiceCollection()
-                .AddRemoteCommandHandlingServer(opt => opt
-                    .Handlers.AddLocal<TestFailCommandHandler>()) // to have at least one handler configured
+                .AddRemoteWebCommandHandler(b => b
+                    .AddLocal<TestFailCommandHandler>()) // to have at least one handler configured
                 .BuildServiceProvider();
 
             provider.GetService<ICommandClient>()

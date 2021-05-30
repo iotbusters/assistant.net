@@ -10,7 +10,7 @@ namespace Assistant.Net.Messaging
         ///     It should be registered before routing middlewares.
         ///     Pay attention, it duplicates <see cref="EndpointRouteBuilderExtensions.MapRemoteCommandHandling" /> behavior.
         /// </summary>
-        public static IApplicationBuilder UseRemoteCommandHandling(this IApplicationBuilder builder) => builder
+        public static IApplicationBuilder UseRemoteWebCommandHandler(this IApplicationBuilder builder) => builder
             .UseRemoteExceptionHandling()
             .UseMiddleware<DiagnosticMiddleware>()
             .UseMiddleware<RemoteCommandHandlingMiddleware>();
@@ -18,7 +18,7 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Adds exception handling middleware to pipeline handling occurred exceptions during remote command handling requests.
         ///     It should be registered before routing middlewares.
-        ///     Pay attention, it duplicates <see cref="UseRemoteCommandHandling" /> behavior.
+        ///     Pay attention, it duplicates <see cref="UseRemoteWebCommandHandler" /> behavior.
         /// </summary>
         public static IApplicationBuilder UseRemoteExceptionHandling(this IApplicationBuilder builder) => builder
             .UseMiddleware<RemoteExceptionHandlingMiddleware>();

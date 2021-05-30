@@ -16,25 +16,18 @@ namespace Assistant.Net.Messaging.Internal
     /// </summary>
     internal class HandlerFactory : IHandlerFactory
     {
-        private readonly IDictionary<Type, Type> handlerMap;
         private readonly IEnumerable<KeyValuePair<Type, Type>> interceptorMap;
         private readonly IServiceScopeFactory scopeFactory;
 
         public HandlerFactory(
-            IOptions<CommandOptions> options,
+            IOptions<CommandClientOptions> options,
             IServiceScopeFactory scopeFactory)
         {
-            handlerMap = (from definition in options.Value.Handlers
-                          from interfaceType in definition.Type.GetInterfaces()
-                          where interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(ICommandHandler<,>)
-                          let commandType = interfaceType.GetGenericArguments().First()
-                          select new { commandType, definition.Type }).ToDictionary(x => x.commandType, x => x.Type);
-
-            interceptorMap = (from definition in options.Value.Interceptors
-                              from interfaceType in definition.Type.GetInterfaces()
+            interceptorMap = (from type in options.Value.Interceptors
+                              from interfaceType in type.GetInterfaces()
                               where interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(ICommandInterceptor<,>)
                               let commandType = interfaceType.GetGenericArguments().First()
-                              select new KeyValuePair<Type, Type>(commandType, definition.Type)).ToArray();
+                              select new KeyValuePair<Type, Type>(commandType, type)).ToArray();
             this.scopeFactory = scopeFactory;
         }
 
@@ -43,21 +36,8 @@ namespace Assistant.Net.Messaging.Internal
             using var scope = scopeFactory.CreateScope();
             var provider = scope.ServiceProvider;
 
-            var handler = CreateHandler(commandType, provider)
-                          ?? throw new CommandNotRegisteredException(commandType);
-
+            var handler = CreateHandler(commandType, provider);
             return CreateInterceptableHandle(commandType, provider, handler.Handle);
-        }
-
-        private IAbstractHandler? CreateHandler(Type commandType, IServiceProvider provider)
-        {
-            var adapterType = typeof(HandlerAdapter<,>).MakeGenericTypeBoundToCommand(commandType);
-
-            if (!handlerMap.TryGetValue(commandType, out var handlerType))
-                return null;
-
-            var commandHandler = ActivatorUtilities.CreateInstance(provider, handlerType);
-            return (IAbstractHandler)ActivatorUtilities.CreateInstance(provider, adapterType, commandHandler);
         }
 
         private IAbstractHandler CreateInterceptableHandle(Type commandType, IServiceProvider provider, Func<object, Task<object>> commandHandle)
@@ -68,13 +48,32 @@ namespace Assistant.Net.Messaging.Internal
                 .Select(x =>
                 {
                     var adaptorType = typeof(InterceptorAdaptor<,>).MakeGenericTypeBoundToCommand(x.Key);
-                    var interceptor = ActivatorUtilities.CreateInstance(provider, x.Value);
-                    return (IAbstractInterceptor)ActivatorUtilities.CreateInstance(provider, adaptorType, interceptor);
+                    var interceptor = provider.GetRequiredService(x.Value);
+
+                    var adaptor = provider.GetRequiredService(x.Value);
+                    ((IInterceptorAdaptorContext)adaptor).Init((dynamic)interceptor);
+
+                    return (adaptor as IAbstractInterceptor)!;
                 })
                 .Aggregate(commandHandle, (next, current) =>
                     x => current.Intercept(x, next));
 
             return new DelegatingAbstractHandler(interceptableHandle);
+        }
+
+        private static IAbstractHandler CreateHandler(Type commandType, IServiceProvider provider)
+        {
+            var adaptorType = typeof(HandlerAdapter<,>).MakeGenericTypeBoundToCommand(commandType);
+            var handlerType = typeof(ICommandHandler<,>).MakeGenericTypeBoundToCommand(commandType);
+
+            var handler = provider.GetService(handlerType);
+            if (handler == null)
+                throw new CommandNotRegisteredException(commandType);
+
+            var adaptor = provider.GetRequiredService(adaptorType);
+            ((IHandlerAdaptorContext)adaptor).Init((dynamic)handler);
+
+            return (adaptor as IAbstractHandler)!;
         }
     }
 }

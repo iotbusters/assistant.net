@@ -21,9 +21,9 @@ namespace Assistant.Net.Messaging
             .AddSystemLifetime(p => p.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping);
 
         /// <summary>
-        ///     Registers remote command handling server configuration customized by <paramref name="configureOptions" />.
+        ///     Registers remote command handling server configuration customized by <paramref name="configure" />.
         /// </summary>
-        public static IServiceCollection AddRemoteCommandHandlingServer(this IServiceCollection services, Action<CommandOptions> configureOptions) => services
+        public static IServiceCollection AddRemoteWebCommandHandler(this IServiceCollection services, Action<CommandClientBuilder> configure) => services
             .AddStorage(b => b.AddLocal<DeferredCachingResult>())
             .AddTypeEncoder()
             .AddDiagnostics()
@@ -31,8 +31,8 @@ namespace Assistant.Net.Messaging
             .AddHttpContextAccessor()
             .AddJsonSerializerOptions()
             .AddCommandClient()
-            .AddCommandOptions(opt => opt.Add<ServerInterceptorConfiguration>())
-            .AddCommandOptions(configureOptions);
+            .ConfigureCommandClient(b => b.AddConfiguration<ServerInterceptorConfiguration>())
+            .ConfigureCommandClient(configure);
 
         private static string InitializeFromHttpContext(IServiceProvider provider)
         {

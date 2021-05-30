@@ -9,8 +9,8 @@ namespace Assistant.Net.Messaging.Abstractions
     public interface ICommandConfiguration
     {
         /// <summary>
-        ///     Configures command handling.
+        ///     Configures command client.
         /// </summary>
-        void Configure(CommandOptions options);
+        void Configure(CommandClientBuilder builder);
     }
 }

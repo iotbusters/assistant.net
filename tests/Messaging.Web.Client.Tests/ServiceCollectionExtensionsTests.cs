@@ -2,6 +2,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
 using NUnit.Framework;
+using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Web.Client.Tests
 {
@@ -11,13 +12,14 @@ namespace Assistant.Net.Messaging.Web.Client.Tests
         public void AddRemoteCommandHandlingClient_registersServiceDescriptors()
         {
             var services = new ServiceCollection()
-                .AddRemoteCommandHandlingClient(opt => {});
+                .AddRemoteWebCommandClient(opt => { })
+                .Services;
 
             services.Should().ContainEquivalentOf(new
             {
-                ServiceType = typeof(RemoteCommandHandlingClient),
-                ImplementationType = (Type?) null,
-                //ImplementationFactory: Assistant.Net.Messaging.RemoteCommandHandlingClient <AddTypedClientCore>b__0(System.IServiceProvider)
+                ServiceType = typeof(IRemoteCommandClient),
+                ImplementationType = (Type?) null
+                //ImplementationFactory: Assistant.Net.Messaging.RemoteWebCommandClient <AddTypedClientCore>b__0(System.IServiceProvider)
             });
         }
 
@@ -25,10 +27,10 @@ namespace Assistant.Net.Messaging.Web.Client.Tests
         public void GetServiceOfRemoteCommandHandlingClient_resolvesObject()
         {
             var provider = new ServiceCollection()
-                .AddRemoteCommandHandlingClient(opt => opt.BaseAddress = new Uri("http://localhost"))
+                .AddRemoteWebCommandClient(opt => opt.BaseAddress = new Uri("http://localhost")).Services
                 .BuildServiceProvider();
 
-            provider.GetService<RemoteCommandHandlingClient>()
+            provider.GetService<IRemoteCommandClient>()
                 .Should().NotBeNull();
         }
     }

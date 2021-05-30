@@ -11,7 +11,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests
         {
             var builder = new TestApplicationBuilder();
 
-            builder.UseRemoteCommandHandling();
+            builder.UseRemoteWebCommandHandler();
 
             builder.Count.Should().Be(3);// it would be difficult to resolve specific middlewares.
         }
