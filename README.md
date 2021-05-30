@@ -63,10 +63,10 @@ It's local (in-memory) message handling implementation which support simple exte
 See also available extensions in `assistant.net.messaging.*` packages for more information.
 
 ```csharp
-services.AddCommandClient(opt =>
+services.AddCommandClient(b =>
 {
-    opt.Handlers.Add<SomeCommandHandler>();
-    opt.Interceptors.Add<SomeCommandInterceptor>();
+    b.AddLocal<SomeCommandHandler>();
+    b.AddInterceptor<SomeCommandInterceptor>();
 });
 var client = provider.GetRequiredService<ICommandClient>();
 var response = await client.Send(new SomeCommand())
@@ -84,8 +84,8 @@ It's a client implementation to remote WEB oriented message handling server.
 
 ```csharp
 services
-    .AddRemoteCommandHandlingClient(opt => opt.BaseAddress = "https://localhost")
-    .AddCommandClient(opt => opt.Handlers.AddRemote<SomeCommand>());
+    .AddCommandClient(b => b.AddRemote<SomeCommand>())
+    .AddRemoteWebCommandClient(opt => opt.BaseAddress = "https://localhost");
 
 var client = provider.GetRequiredService<ICommandClient>();
 var response = await client.Send(new SomeCommand())
@@ -98,11 +98,11 @@ See [server](#assistantnetmessagingwebserver) configuration for remote handling.
 It's a remote WEB oriented message handling server implementation. The server exposes API and accepts remote requests for further processing.
 
 ```csharp
-services.AddRemoteCommandHandlingServer(opt =>
+services.AddRemoteWebCommandHandler(b =>
 {
-    opt.Handlers.Add<SomeCommandHandler>();
-    opt.Interceptors.Add<SomeCommandInterceptor>();
-});
+    b.AddLocal<SomeCommandHandler>();
+    b.AddInterceptor<SomeCommandInterceptor>();
+}); // it reuses `.AddCommandClient(b => { })` behind the scenes so they are fully compatible.
 ```
 
 See [client](#assistantnetmessagingwebclient) configuration and remote command handling request.
