@@ -4,7 +4,7 @@ on:
     branches: [master]
 env:
   VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
-  ALL_PACKAGES: true
+  ALL_PACKAGES: false
 
 jobs:
   change-detect:
@@ -18,15 +18,15 @@ jobs:
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
           # it should be in build.if section but env.ALL_PACKAGES fails there
-          echo ::set-output name=important-changes::echo ::set-output name=important-changes::$([ ${{ env.ALL_PACKAGES == 'true' }} ] && echo 1 || echo $CHANGES | grep -c -E '\.(cs|csproj|json)$')
-          echo ::set-output name=core::$(echo $CHANGES | grep -c src/Core/)
-          echo ::set-output name=storage::$(echo $CHANGES | grep -c src/Storage/)
-          echo ::set-output name=diagnostics::$(echo $CHANGES | grep -c src/Diagnostics/)
-          echo ::set-output name=messaging::$(echo $CHANGES | grep -c src/Messaging/)
-          echo ::set-output name=web::$(echo $CHANGES | grep -c src/Messaging.Web/)
-          echo ::set-output name=web-client::$(echo $CHANGES | grep -c src/Messaging.Web.Client/)
-          echo ::set-output name=web-server::$(echo $CHANGES | grep -c src/Messaging.Web.Server/)
-          echo ::set-output name=total::$(echo $CHANGES | wc -l)
+          echo ::set-output name=important-changes::echo ::set-output name=important-changes::$([ ${{ env.ALL_PACKAGES == 'true' }} ] && echo 1 || echo "$CHANGES" | grep -c -E '\.(cs|csproj|json)$')
+          echo ::set-output name=core::$(echo "$CHANGES" | grep -c src/Core/)
+          echo ::set-output name=storage::$(echo "$CHANGES" | grep -c src/Storage/)
+          echo ::set-output name=diagnostics::$(echo "$CHANGES" | grep -c src/Diagnostics/)
+          echo ::set-output name=messaging::$(echo "$CHANGES" | grep -c src/Messaging/)
+          echo ::set-output name=web::$(echo "$CHANGES" | grep -c src/Messaging.Web/)
+          echo ::set-output name=web-client::$(echo "$CHANGES" | grep -c src/Messaging.Web.Client/)
+          echo ::set-output name=web-server::$(echo "$CHANGES" | grep -c src/Messaging.Web.Server/)
+          echo ::set-output name=total::$(echo "$CHANGES" | wc -l)
         if: github.event.commits[0].id != '' # to avoid failures if no commit push (e.g. rebasing).
     outputs:
       important-changes: ${{ steps.change-detected.outputs.important-changes }}
