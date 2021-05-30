@@ -4,14 +4,14 @@ using Assistant.Net.Messaging.Abstractions;
 namespace Assistant.Net.Messaging.Internal
 {
     /// <summary>
-    ///     Strongly typed web proxy to remote handling.
+    ///     Strongly typed proxy to remote handling.
     /// </summary>
-    internal class CommandHandlerWebProxy<TCommand, TResponse> : ICommandHandler<TCommand, TResponse>
+    internal class RemoteCommandHandlerProxy<TCommand, TResponse> : ICommandHandler<TCommand, TResponse>
         where TCommand : ICommand<TResponse>
     {
-        private readonly RemoteCommandHandlingClient client;
+        private readonly IRemoteCommandClient client;
 
-        public CommandHandlerWebProxy(RemoteCommandHandlingClient client) =>
+        public RemoteCommandHandlerProxy(IRemoteCommandClient client) =>
             this.client = client;
 
         public async Task<TResponse> Handle(TCommand command) =>

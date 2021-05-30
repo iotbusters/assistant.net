@@ -13,8 +13,8 @@ namespace Assistant.Net.Messaging
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        ///     Adds <see cref="ICommandClient"/> implementation, required services and default <see cref="CommandOptions"/> configuration.
-        ///     Pay attention, you need to call explicitly <see cref="Assistant.Net.Messaging.ServiceCollectionExtensions.AddCommandOptions"/> to register handlers.
+        ///     Adds <see cref="ICommandClient"/> implementation, required services and default <see cref="CommandClientOptions"/> configuration.
+        ///     Pay attention, you need to call explicitly <see cref="Assistant.Net.Messaging.ServiceCollectionExtensions.ConfigureCommandClient"/> to register handlers.
         /// </summary>
         public static IServiceCollection AddCommandClient(this IServiceCollection services) => services
             // todo: use persisted caching. https://github.com/iotbusters/assistant.net/issues/23
@@ -23,25 +23,29 @@ namespace Assistant.Net.Messaging
             .AddSystemServicesDefaulted()
             .TryAddSingleton<IHandlerFactory, HandlerFactory>()
             .TryAddSingleton<ICommandClient, CommandClient>()
-            .AddCommandOptions(b => b.Add<DefaultInterceptorConfiguration>());
+            .TryAddSingleton(typeof(HandlerAdapter<,>), typeof(HandlerAdapter<,>))
+            .ConfigureCommandClient(b => b.AddConfiguration<DefaultInterceptorConfiguration>());
 
         /// <summary>
-        ///     Adds <see cref="ICommandClient"/> implementation, required services and <see cref="CommandOptions"/> configuration.
+        ///     Adds <see cref="ICommandClient"/> implementation, required services and <see cref="CommandClientOptions"/> configuration.
         /// </summary>
-        public static IServiceCollection AddCommandClient(this IServiceCollection services, Action<CommandOptions> configureOptions) => services
+        public static IServiceCollection AddCommandClient(this IServiceCollection services, Action<CommandClientBuilder> configure) => services
             .AddCommandClient()
-            .AddCommandOptions(configureOptions);
+            .ConfigureCommandClient(configure);
 
         /// <summary>
-        ///     Register an action used to configure <see cref="CommandOptions"/> options.
+        ///     Register an action used to configure <see cref="CommandClientOptions"/> options.
         /// </summary>
-        public static IServiceCollection AddCommandOptions(this IServiceCollection services, Action<CommandOptions> configureOptions) => services
-            .AddCommandOptions(Microsoft.Extensions.Options.Options.DefaultName, configureOptions);
+        public static IServiceCollection ConfigureCommandClient(this IServiceCollection services, Action<CommandClientBuilder> configure)
+        {
+            configure(new CommandClientBuilder(services));
+            return services;
+        }
 
         /// <summary>
-        ///     Register an action used to configure the same named <see cref="CommandOptions"/> options.
+        ///     Register an action used to configure the same named <see cref="CommandClientOptions"/> options.
         /// </summary>
-        public static IServiceCollection AddCommandOptions(this IServiceCollection services, string name, Action<CommandOptions> configureOptions) => services
-            .Configure(name, configureOptions);
+        internal static IServiceCollection AddCommandClientOptions(this IServiceCollection services, Action<CommandClientOptions> configureOptions) => services
+            .Configure(configureOptions);
     }
 }

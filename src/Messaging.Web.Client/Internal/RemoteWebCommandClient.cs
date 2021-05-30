@@ -11,14 +11,14 @@ namespace Assistant.Net.Messaging
     /// <summary>
     ///     Strongly typed http client for remote command handling.
     /// </summary>
-    public class RemoteCommandHandlingClient
+    internal class RemoteWebCommandClient : IRemoteCommandClient
     {
         private readonly HttpClient client;
         private readonly ISystemLifetime lifetime;
         private readonly ITypeEncoder typeEncoder;
         private readonly IOptions<JsonSerializerOptions> options;
 
-        public RemoteCommandHandlingClient(
+        public RemoteWebCommandClient(
             HttpClient client,
             ISystemLifetime lifetime,
             ITypeEncoder typeEncoder,

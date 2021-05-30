@@ -7,6 +7,7 @@ using NUnit.Framework;
 using FluentAssertions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Web.Client.Tests.Mocks;
+using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Web.Client.Tests
 {
@@ -55,18 +56,16 @@ namespace Assistant.Net.Messaging.Web.Client.Tests
             response.Should().Be(InvalidlyParsedResponse);
         }
 
-        private static RemoteCommandHandlingClient Client(DelegatingHandler handler)
+        private static IRemoteCommandClient Client(DelegatingHandler handler)
         {
             var services = new ServiceCollection();
             services
-                .AddSystemLifetime()
-                .AddTypeEncoder()
-                .AddJsonSerializerOptions()
-                .AddHttpClient<RemoteCommandHandlingClient>(c => c.BaseAddress = new Uri(RequestUri))
+                .AddRemoteWebCommandClient(c => c.BaseAddress = new Uri(RequestUri))
+                .ClearAllHttpMessageHandlers()
                 .AddHttpMessageHandler(() => handler);
             return services
                 .BuildServiceProvider()
-                .GetRequiredService<RemoteCommandHandlingClient>();
+                .GetRequiredService<IRemoteCommandClient>();
         }
     }
 }

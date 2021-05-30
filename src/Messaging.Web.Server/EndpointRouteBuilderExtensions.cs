@@ -9,7 +9,7 @@ namespace Assistant.Net.Messaging
     {
         /// <summary>
         ///     Adds command handling endpoint to existing endpoint middleware.
-        ///     Pay attention, it duplicates <see cref="ApplicationBuilderExtensions.UseRemoteCommandHandling" /> behavior.
+        ///     Pay attention, it duplicates <see cref="ApplicationBuilderExtensions.UseRemoteWebCommandHandler" /> behavior.
         /// </summary>
         public static IEndpointConventionBuilder MapRemoteCommandHandling(this IEndpointRouteBuilder builder)
         {

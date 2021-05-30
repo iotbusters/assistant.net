@@ -7,19 +7,21 @@ namespace Assistant.Net.Messaging.Internal
     /// <summary>
     ///     Adapter between de-typed and typed command handlers.
     /// </summary>
-    internal class HandlerAdapter<TCommand, TResponse> : IAbstractHandler, ICommandHandler<TCommand, TResponse>
+    internal class HandlerAdapter<TCommand, TResponse> : IHandlerAdaptorContext, IAbstractHandler, ICommandHandler<TCommand, TResponse>
         where TCommand : ICommand<TResponse>
     {
-        private readonly ICommandHandler<TCommand, TResponse> handler;
+        private ICommandHandler<TCommand, TResponse>? handler;
 
-        public HandlerAdapter(ICommandHandler<TCommand, TResponse> handler) =>
-            this.handler = handler;
+        private ICommandHandler<TCommand, TResponse> Handler =>
+            handler ?? throw new InvalidOperationException($"'{nameof(HandlerAdapter<TCommand, TResponse>)}' wasn't properly initialized.");
 
-        public async Task<TResponse> Handle(TCommand command) =>
-            await handler.Handle(command);
+        void IHandlerAdaptorContext.Init(IAbstractCommandHandler handler) =>
+            this.handler = handler as ICommandHandler<TCommand, TResponse>
+                           ?? throw new InvalidOperationException("Unexpected handler type.");
 
-        public async Task<object> Handle(object command) =>
-            await Handle((TCommand)command)
-            ?? throw new NotSupportedException("Unexpected null received");
+        public Task<TResponse> Handle(TCommand command) => Handler.Handle(command);
+
+        public Task<object> Handle(object command) =>
+            Handle((TCommand)command).ContinueWith(t => (object)t.Result!);
     }
 }
