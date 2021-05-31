@@ -17,7 +17,7 @@
   <PropertyGroup>
     <Product>Assistant.NET</Product>
     <RepositoryType>github</RepositoryType>
-    <PackageTags>mediator</PackageTags>
+    <PackageTags>mediator rpc</PackageTags>
     <Description>A server for remote WEB oriented message handling.</Description>
     <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
     <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetmessagingwebserver</PackageProjectUrl>
