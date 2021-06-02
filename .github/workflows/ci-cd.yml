@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v2.3.4
         with: { fetch-depth: 100 }
 
-      - name: change-detected
+      - name: detect code changes
         id: change-detected
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
@@ -45,30 +45,36 @@ jobs:
     if: needs.change-detect.outputs.important-changes != '0'
     steps:
       - uses: actions/checkout@v2.3.4
-        with: { fetch-depth: 100 }
       - uses: actions/setup-dotnet@v1.7.2
         with: { dotnet-version: '5.0' }
 
-      - uses: actions/cache@v2.1.5
+      - name: restore (prepare)
+        uses: actions/cache@v2.1.5
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: ${{ runner.os }}-nuget-
 
-      - run: dotnet restore -v n
-      - run: dotnet build -p:Version=${{ env.VERSION }} -c Release --no-restore -v n
-      - run: dotnet test -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
-      - uses: EnricoMi/publish-unit-test-result-action@v1
+      - name: restore
+        run: dotnet restore -v n
+      - name: build
+        run: dotnet build -p:Version=${{ env.VERSION }} -c Release --no-restore -v n
+      - name: test
+        run: dotnet test -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
+      - name: publish test result
+        uses: EnricoMi/publish-unit-test-result-action@v1
         with:
           files: |
             **/TestResults.xml
         if: always()
-      - uses: codecov/codecov-action@v1.5.0
+      - name: publish coverage result
+        uses: codecov/codecov-action@v1.5.0
         with:
           files: |
             **/coverage.opencover.xml
         if: always()
-      - uses: actions/upload-artifact@v2.2.3
+      - name: upload result
+        uses: actions/upload-artifact@v2.2.3
         with:
           name: ci-results
           path: |
@@ -77,27 +83,37 @@ jobs:
           retention-days: 60
         if: always()
 
-      - run: |
+      - name: upload binaries (prepare license)
+        run: |
           mkdir -p release-binaries/src
           cp LICENSE release-binaries
         if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.core != '0'
-      - run: cp -r src/Core release-binaries/src/Core
+      - name: upload binaries (prepare core)
+        run: cp -r src/Core release-binaries/src/Core
         if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.core != '0'
-      - run: cp -r src/Storage release-binaries/src/Storage
+      - name: upload binaries (prepare storage)
+        run: cp -r src/Storage release-binaries/src/Storage
         if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.core != '0'
-      - run: cp -r src/Diagnostics release-binaries/src/Diagnostics
+      - name: upload binaries (prepare diagnostics)
+        run: cp -r src/Diagnostics release-binaries/src/Diagnostics
         if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
-      - run: cp -r src/Messaging release-binaries/src/Messaging
+      - name: upload binaries (prepare messaging)
+        run: cp -r src/Messaging release-binaries/src/Messaging
         if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
-      - run: cp -r src/Messaging.Web release-binaries/src/Messaging.Web
+      - name: upload binaries (prepare messaging.web)
+        run: cp -r src/Messaging.Web release-binaries/src/Messaging.Web
         if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.web != '0' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
-      - run: cp -r src/Messaging.Web release-binaries/src/Messaging.Web.Client
+      - name: upload binaries (prepare messaging.web.client)
+        run: cp -r src/Messaging.Web.Client release-binaries/src/Messaging.Web.Client
         if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.web-client != '0' || needs.change-detect.outputs.web != '0' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
-      - run: cp -r src/Messaging.Web release-binaries/src/Messaging.Web.Server
+      - name: upload binaries (prepare messaging.web.server)
+        run: cp -r src/Messaging.Web.Server release-binaries/src/Messaging.Web.Server
         if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.web-server != '0' || needs.change-detect.outputs.web != '0' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
-      - id: count-changes
+      - name: upload binaries (prepare package counter)
+        id: count-changes
         run: echo ::set-output name=total-package-prepared-count::$(ls release-binaries/src | wc -l)
-      - uses: actions/upload-artifact@v2.2.3
+      - name: upload binaries
+        uses: actions/upload-artifact@v2.2.3
         with:
           name: release-binaries
           path: |
@@ -113,11 +129,11 @@ jobs:
       # it duplicates actions/upload-artifact
       # todo: remove once actions/download-artifact supports cross workflow artifacts.
       # https://github.com/actions/toolkit/pull/517
-      - uses: actions/cache@v2.1.5
+      - name: upload binaries (workaround)
+        uses: actions/cache@v2.1.5
         with:
-          path: .
+          path: release-binaries
           key: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
-          #restore-keys: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
 
     outputs:
       total-package-prepared-count: ${{ steps.count-changes.outputs.total-package-prepared-count }}
@@ -128,17 +144,21 @@ jobs:
     # ensure the artifact were created to skip empty releases.
     if: needs.build.outputs.total-package-prepared-count != '0'
     steps:
-      - uses: actions/download-artifact@v2.0.9
+      - name: create release (ensure binaries)
+        uses: actions/download-artifact@v2.0.9
         with:
           name: release-binaries
-      - uses: actions/create-release@v1
+
+      - name: create release
+        uses: actions/create-release@v1
         with:
           tag_name: ${{ env.VERSION }}
           release_name: Release ${{ env.VERSION }}
           prerelease: true
+          draft: true # published event isn't triggered automatically, so release is created as draft to publish manually.
           body: |
-            <h4>Released packages: ${{ needs.build.outputs.total-package-prepared-count }}</h4>
-            <h5>including ${{ needs.change-detect.outputs.total }} changes</h5>
+            Changed files: ${{ needs.change-detect.outputs.total }}
+            Packed packages: ${{ needs.build.outputs.total-package-prepared-count }}
             <details>
               <summary>Package changes</summary>
               <ul>
