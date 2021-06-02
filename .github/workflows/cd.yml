@@ -16,7 +16,7 @@ jobs:
       # https://github.com/actions/toolkit/pull/517
       - uses: actions/cache@v2.1.5
         with:
-          #path: .
+          path: release-binaries
           key: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
           restore-keys: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
         env:
@@ -39,7 +39,8 @@ jobs:
           VERSION=${{ github.event.release.tag_name }}
           NUGET_VERSION=$([ ${{ github.event.release.prerelease }} ] && echo ${VERSION}-prerelease || echo ${VERSION})
           # it cannot find csproj files for some reason
-          find . -name *.csproj |
+          #find . -name *.csproj |
+          find release-binaries -name *.csproj |
           xargs -i dotnet pack -p:PackageVersion=${NUGET_VERSION} --include-source --include-symbols -p:SymbolPackageFormat=snupkg -o packages -c Release --no-restore --no-build --no-dependencies -v n {}
 
       - uses: actions/upload-artifact@v2.2.3
