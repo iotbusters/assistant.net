@@ -2,7 +2,7 @@ name: CD
 on:
   release:
     branches: [master]
-    types: [published, released, created, edited]
+    types: [prereleased, released]
 
 jobs:
   pack-packages:
@@ -17,7 +17,7 @@ jobs:
       - uses: actions/cache@v2.1.5
         with:
           #path: .
-          #key: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
+          key: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
           restore-keys: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
         env:
           VERSION: ${{ github.event.release.tag_name }}
