@@ -5,16 +5,28 @@ on:
     types: [published, released, created, edited]
 
 jobs:
-  # todo: remove once cd workflow started triggering.
   pack-packages:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-dotnet@v1.7.2
         with: { dotnet-version: '5.0' }
 
-      - uses: actions/download-artifact@v2.0.9
+      # it duplicates actions/upload-artifact
+      # todo: remove once actions/download-artifact supports cross workflow artifacts.
+      # https://github.com/actions/toolkit/pull/517
+      - uses: actions/cache@v2.1.5
         with:
-          name: release-binaries
+          #path: .
+          #key: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
+          restore-keys: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
+        env:
+          VERSION: ${{ github.event.release.tag_name }}
+
+      # todo: replace caching once actions/download-artifact supports cross workflow artifacts
+      # https://github.com/actions/toolkit/pull/517
+      # - uses: actions/download-artifact@v2.0.9
+      #   with:
+      #     name: release-binaries
 
       - uses: actions/cache@v2.1.5
         with:
@@ -24,6 +36,7 @@ jobs:
 
       - name: pack
         run: |
+          VERSION=${{ github.event.release.tag_name }}
           NUGET_VERSION=$([ ${{ github.event.release.prerelease }} ] && echo ${VERSION}-prerelease || echo ${VERSION})
           # it cannot find csproj files for some reason
           find . -name *.csproj |
@@ -37,7 +50,6 @@ jobs:
             packages/*.snupkg
           retention-days: 30
 
-  # todo: remove once cd workflow started triggering.
   publish-packages:
     runs-on: ubuntu-latest
     needs: pack-packages
