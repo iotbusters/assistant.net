@@ -2,7 +2,7 @@ name: CD
 on:
   release:
     branches: [master]
-    types: [published, edited]
+    types: [published, released, created, edited]
 
 jobs:
   # todo: remove once cd workflow started triggering.
