@@ -109,6 +109,16 @@ jobs:
             !release-binaries/**/obj/**/*.pdb
             release-binaries/LICENSE
           retention-days: 7
+
+      # it duplicates actions/upload-artifact
+      # todo: remove once actions/download-artifact supports cross workflow artifacts.
+      # https://github.com/actions/toolkit/pull/517
+      - uses: actions/cache@v2.1.5
+        with:
+          path: .
+          key: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
+          #restore-keys: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
+
     outputs:
       total-package-prepared-count: ${{ steps.count-changes.outputs.total-package-prepared-count }}
 
