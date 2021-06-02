@@ -2,12 +2,14 @@ name: CD
 on:
   release:
     branches: [master]
-    types: [prereleased, released]
+    types: [published, prereleased, released]
 
 jobs:
   pack-packages:
     runs-on: ubuntu-latest
     steps:
+      - run: echo ${{ github.event.action }}
+
       - uses: actions/setup-dotnet@v1.7.2
         with: { dotnet-version: '5.0' }
 
@@ -37,8 +39,9 @@ jobs:
       - name: pack
         run: |
           VERSION=${{ github.event.release.tag_name }}
-          NUGET_VERSION=$([ ${{ github.event.release.prerelease }} ] && echo ${VERSION}-prerelease || echo ${VERSION})
-          # it cannot find csproj files for some reason
+          NUGET_VERSION=$([ '${{ github.event.release.prerelease }}' == 'true' ] && echo ${VERSION}-prerelease || echo ${VERSION})
+          # todo: uncomment once actions/download-artifact supports cross workflow artifacts
+          # https://github.com/actions/toolkit/pull/517
           #find . -name *.csproj |
           find release-binaries -name *.csproj |
           xargs -i dotnet pack -p:PackageVersion=${NUGET_VERSION} --include-source --include-symbols -p:SymbolPackageFormat=snupkg -o packages -c Release --no-restore --no-build --no-dependencies -v n {}
