@@ -4,7 +4,7 @@ on:
     branches: [master]
 env:
   VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
-  ALL_PACKAGES: false
+  ALL_PACKAGES: ${{ secrets.FORCE_ALL_PACKAGES }}
 
 jobs:
   change-detect:
