@@ -2,7 +2,7 @@ name: CD
 on:
   release:
     branches: [master]
-    types: [published, prereleased, released]
+    types: [created, released, prereleased]
 
 jobs:
   pack-packages:
