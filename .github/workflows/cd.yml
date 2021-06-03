@@ -4,17 +4,18 @@ on:
     branches: [master]
     # not triggered after creation with actions/create-release
     # types behavior from documentation (but it acts differently in fact):
-    # - prereleased (update release: prerelease=true),
-    # - released (update release: prerelease=false),
+    # - prereleased (update release: prerelease=true; in fact, never with published)
+    # - released (update release: prerelease=false; in fact, also together with published)
     # - deleted (delete release)
-    # - published - covers prereleased and released
-    # - unpublished - covers deleted
-    types: [published, released, prereleased, unpublished, deleted]
+    # - published - covers prereleased and released (in fact, only initially and only released)
+    # - unpublished - covers deleted (in fact, never triggered)
+    types: [published, released, prereleased, deleted]
 
 jobs:
   pack-packages:
     runs-on: ubuntu-latest
-    if: github.event.action == 'published' || github.event.action == 'released' || github.event.action == 'prereleased'
+    # published and released are triggered simultaneously.
+    if: github.event.action == 'released' || github.event.action == 'prereleased' || (github.event.action == 'published' && github.event.release.prerelease == false)
     steps:
       - run: echo ${{ github.event.action }}
 
@@ -105,7 +106,7 @@ jobs:
 
   unpublish-packages:
     runs-on: ubuntu-latest
-    if: github.event.action == 'unpublished' || github.event.action == 'deleted'
+    if: github.event.action == 'deleted' # unpublished never occurs.
     steps:
       - run: echo ${{ github.event.action }}
 
