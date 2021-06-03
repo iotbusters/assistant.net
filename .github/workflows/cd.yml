@@ -2,14 +2,13 @@ name: CD
 on:
   release:
     branches: [master]
-    #types: [created, released, prereleased]
+    types: [released, prereleased, deleted]
 
 jobs:
   pack-packages:
     runs-on: ubuntu-latest
+    if: github.event.action == 'released' || github.event.action == 'prereleased'
     steps:
-      - run: echo ${{ github.event.action }}
-
       - uses: actions/setup-dotnet@v1.7.2
         with: { dotnet-version: '5.0' }
 
@@ -23,8 +22,7 @@ jobs:
           restore-keys: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
         env:
           VERSION: ${{ github.event.release.tag_name }}
-
-      # todo: replace caching once actions/download-artifact supports cross workflow artifacts
+      # todo: uncomment once actions/download-artifact supports cross workflow artifacts
       # https://github.com/actions/toolkit/pull/517
       # - uses: actions/download-artifact@v2.0.9
       #   with:
@@ -38,13 +36,14 @@ jobs:
 
       - name: pack
         run: |
-          VERSION=${{ github.event.release.tag_name }}
-          NUGET_VERSION=$([ '${{ github.event.release.prerelease }}' == 'true' ] && echo ${VERSION}-prerelease || echo ${VERSION})
+          NUGET_VERSION=$([ '${{ github.event.release.prerelease }}' == 'true' ] && echo ${{ env.VERSION }}-prerelease || echo ${{ env.VERSION }})
           # todo: uncomment once actions/download-artifact supports cross workflow artifacts
           # https://github.com/actions/toolkit/pull/517
           #find . -name *.csproj |
           find release-binaries -name *.csproj |
           xargs -i dotnet pack -p:PackageVersion=${NUGET_VERSION} --include-source --include-symbols -p:SymbolPackageFormat=snupkg -o packages -c Release --no-restore --no-build --no-dependencies -v n {}
+        env:
+          VERSION: ${{ github.event.release.tag_name }}
 
       - uses: actions/upload-artifact@v2.2.3
         with:
@@ -53,6 +52,16 @@ jobs:
             packages/*.nupkg
             packages/*.snupkg
           retention-days: 30
+
+      # it duplicates actions/upload-artifact
+      # todo: remove once actions/download-artifact supports cross workflow artifacts.
+      # https://github.com/actions/toolkit/pull/517
+      - uses: actions/cache@v2.1.5
+        with:
+          path: release-packages
+          key: ${{ runner.os }}-${{ github.event.action }}-packages-${{ env.VERSION }}
+        env:
+          VERSION: ${{ github.event.release.tag_name }}
 
   publish-packages:
     runs-on: ubuntu-latest
@@ -69,3 +78,40 @@ jobs:
         run: |
           find . -name '*.nupkg' |
           xargs -i dotnet nuget push {} -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json -t 30 --skip-duplicate
+
+  unpublish-packages:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'deleted'
+    steps:
+      - uses: actions/setup-dotnet@v1.7.2
+        with: { dotnet-version: '5.0' }
+
+      # it duplicates actions/upload-artifact
+      # todo: remove once actions/download-artifact supports cross workflow artifacts.
+      # https://github.com/actions/toolkit/pull/517
+      - uses: actions/cache@v2.1.5
+        with:
+          path: release-packages
+          key: ${{ env.KEY }}
+          restore-keys: ${{ env.KEY }}
+        env:
+          KEY: ${{ runner.os }}-released-packages-${{ github.event.release.tag_name }}
+      # it duplicates actions/upload-artifact
+      # todo: remove once actions/download-artifact supports cross workflow artifacts.
+      # https://github.com/actions/toolkit/pull/517
+      - uses: actions/cache@v2.1.5
+        with:
+          path: release-packages
+          key: ${{ env.KEY }}
+          restore-keys: ${{ env.KEY }}
+        env:
+          KEY: ${{ runner.os }}-prereleased-packages-${{ github.event.release.tag_name }}
+
+      - name: delete-package
+        run: |
+          # todo: uncomment once actions/download-artifact supports cross workflow artifacts
+          # https://github.com/actions/toolkit/pull/517
+          #find . -name '*.nupkg' |
+          find release-packages -name '*.nupkg' |
+          xargs -i dotnet nuget delete {} -k ${{ secrets.NUGET_DELETE_API_KEY }} -s https://api.nuget.org/v3/index.json --non-interactive
+      - run: git push origin -d ${{ github.event.release.tag_name }}

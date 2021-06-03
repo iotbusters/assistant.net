@@ -117,7 +117,6 @@ jobs:
         with:
           path: release-binaries
           key: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
-          #restore-keys: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
 
     outputs:
       total-package-prepared-count: ${{ steps.count-changes.outputs.total-package-prepared-count }}
@@ -136,9 +135,10 @@ jobs:
           tag_name: ${{ env.VERSION }}
           release_name: Release ${{ env.VERSION }}
           prerelease: true
+          draft: false
           body: |
-            <h4>Released packages: ${{ needs.build.outputs.total-package-prepared-count }}</h4>
-            <h5>including ${{ needs.change-detect.outputs.total }} changes</h5>
+            Changed files: ${{ needs.change-detect.outputs.total }}
+            Packed packages: ${{ needs.build.outputs.total-package-prepared-count }}
             <details>
               <summary>Package changes</summary>
               <ul>
