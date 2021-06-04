@@ -19,7 +19,7 @@
   <PropertyGroup>
     <Product>Assistant.NET</Product>
     <RepositoryType>github</RepositoryType>
-    <PackageTags>system</PackageTags>
+    <PackageTags>common</PackageTags>
     <Description>Common system tools.</Description>
     <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
     <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetcore</PackageProjectUrl>

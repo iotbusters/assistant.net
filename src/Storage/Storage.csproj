@@ -14,7 +14,7 @@
   <PropertyGroup>
     <Product>Assistant.NET</Product>
     <RepositoryType>github</RepositoryType>
-    <PackageTags>system</PackageTags>
+    <PackageTags>storage store</PackageTags>
     <Description>A common storage abstraction, tools and its basic local (in-memory) implementation.</Description>
     <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
     <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetstorage</PackageProjectUrl>
