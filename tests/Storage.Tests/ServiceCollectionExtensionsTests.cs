@@ -12,83 +12,74 @@ namespace Assistant.Net.Storage.Tests
 {
     public class ServiceCollectionExtensionsTests
     {
-        [Test]
-        public void AddStorage_registersServiceDescriptors()
-        {
-            var services = new ServiceCollection().AddStorage(_ => { });
-
-            services.Should().BeEquivalentTo(
-                new
-                {
-                    ServiceType = typeof(IStorage<,>),
-                    ImplementationType = new { Name = "Storage`2" }
-                },
-                new
-                {
-                    ServiceType = typeof(IKeyConverter<string>),
-                    ImplementationType = new { Name = "StringKeyConverter" }
-                },
-                new
-                {
-                    ServiceType = typeof(IKeyConverter<>),
-                    ImplementationType = new { Name = "KeyConverter`1" }
-                });
-        }
+        private static IServiceProvider Provider => new ServiceCollection()
+            .AddStorage(_ => { })
+            .BuildServiceProvider();
 
         [Test]
         public void GetServiceOfIKeyConverterOfString_resolvesObject()
         {
-            var provider = new ServiceCollection().AddStorage(_ => { }).BuildServiceProvider();
-
-            provider.GetService<IKeyConverter<string>>()
+            Provider.GetService<IKeyConverter<StoreKey>>()
                 .Should().NotBeNull();
         }
 
         [Test]
         public void GetServiceOfIKeyConverterOfObject_resolvesObject()
         {
-            var provider = new ServiceCollection().AddStorage(_ => { }).BuildServiceProvider();
-
-            provider.GetService<IKeyConverter<object>>()
+            Provider.GetService<IKeyConverter<object>>()
                 .Should().NotBeNull();
         }
 
         [Test]
         public void GetServiceOfIStorage_null_StorageOfUnknownValue()
         {
-            var provider = new ServiceCollection().AddStorage(_ => { }).BuildServiceProvider();
-
-            provider.GetService<IStorage<object>>()
+            Provider.GetService<IStorageProvider<object>>()
                 .Should().BeNull();
         }
 
         [Test]
         public void GetServiceOfIStorage_throw_StorageOfUnknownValue()
         {
-            var provider = new ServiceCollection().AddStorage(_ => { }).BuildServiceProvider();
-
-            provider.Invoking(x => x.GetService<IStorage<object, object>>())
+            Provider.Invoking(x => x.GetService<IStorage<object, object>>())
                 .Should().Throw<InvalidOperationException>()
                 .WithMessage("Storage of 'Object' wasn't properly configured.");
         }
 
         [Test]
-        public async Task TryGet_Some_FromAnotherStorageOfTheSameValue()
+        public async Task TryGet_Some_FromStorageProviderOfTheSameValue()
         {
-            var testStorage = new TestStorage();
             var provider = new ServiceCollection()
-                .AddStorage(b => b.Services.AddSingleton<IStorage<object>>(testStorage))
+                .AddStorage(b => b.Services.AddSingleton<IStorageProvider<object>>(new TestStorage<object>()))
                 .BuildServiceProvider();
 
             var storage1 = provider.GetRequiredService<IStorage<TestKey, object>>();
-            var storage2 = provider.GetRequiredService<IStorage<string, object>>();
+            var storage2 = provider.GetRequiredService<IStorage<TestKey, object>>();
 
-            await storage1.AddOrGet(new TestKey("key"), new TestValue("value"));
-            var key = $"{nameof(TestKey)}-{new TestKey("key").GetSha1()}";
+            var key = new TestKey("key");
+            await storage1.AddOrGet(key, new TestValue("value"));
             var value = await storage2.TryGet(key);
 
             value.Should().Be(Option.Some<object>(new TestValue("value")));
         }
 
+        [Test]
+        public async Task TryGet_None_FromStorageOfAnotherValue()
+        {
+            var provider = new ServiceCollection()
+                .AddStorage(b => b.Services
+                    .AddSingleton<IStorageProvider<object>>(new TestStorage<object>())
+                    .AddSingleton<IStorageProvider<string>>(new TestStorage<string>()))
+                .BuildServiceProvider();
+
+            var storage1 = provider.GetRequiredService<IStorage<TestKey, object>>();
+            var storage2 = provider.GetRequiredService<IStorage<TestKey, string>>();
+
+            var irrelevant = Array.Empty<byte>();
+            var key = new TestKey("key");
+            await storage1.AddOrGet(key, "value");
+            var value = await storage2.TryGet(key);
+
+            value.Should().Be((Option<string>)Option.None);
+        }
     }
 }

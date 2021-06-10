@@ -14,7 +14,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
             RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
                 .Configure(b => b.UseRemoteWebCommandHandler())
-                .ConfigureServices(s => s.AddRemoteWebCommandHandler(b => b.ClearAll())));
+                .ConfigureServices(s => s.AddRemoteWebCommandHandler(b => b.ClearInterceptors())));
         }
 
         public IHostBuilder RemoteHostBuilder { get; init; }

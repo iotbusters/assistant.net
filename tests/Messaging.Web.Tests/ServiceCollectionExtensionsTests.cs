@@ -12,18 +12,6 @@ namespace Assistant.Net.Messaging.Web.Tests
     public class ServiceCollectionExtensionsTests
     {
         [Test]
-        public void AddJsonSerializerOptions_registersServiceDescriptors()
-        {
-            var services = new ServiceCollection().AddJsonSerializerOptions(_ => { });
-
-            services.Should().ContainEquivalentOf(new
-            {
-                ServiceType = typeof(CommandExceptionJsonConverter),
-                ImplementationType = typeof(CommandExceptionJsonConverter)
-            });
-        }
-
-        [Test]
         public void GetServiceOfCommandExceptionJsonConverter_resolvesObject()
         {
             var provider = new ServiceCollection()

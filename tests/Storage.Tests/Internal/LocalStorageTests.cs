@@ -14,13 +14,13 @@ namespace Assistant.Net.Storage.Internal.Tests
     {
         private IServiceProvider provider = null!;
 
-        private IStorage<TestKey, TestValue> Storage => provider.GetRequiredService<IStorage<TestKey, TestValue>>();
-
         [SetUp]
         public void Setup() =>
             provider = new ServiceCollection()
                 .AddStorage(builder => builder.AddLocal<TestValue>())
                 .BuildServiceProvider();
+
+        private IStorage<TestKey, TestValue> Storage => provider.GetRequiredService<IStorage<TestKey, TestValue>>();
 
         [Test]
         public async Task AddOrGet_addsAndGets()
@@ -72,6 +72,15 @@ namespace Assistant.Net.Storage.Internal.Tests
 
             var value = await Storage.TryRemove(new TestKey("key"));
             value.Should().Be(new Some<TestValue>(new TestValue("value")));
+        }
+
+        [Test]
+        public async Task GetKeys_listOfKeys()
+        {
+            await Storage.AddOrGet(new TestKey("key"), new TestValue("value"));
+
+            var value = await Storage.GetKeys().AsEnumerableAsync();
+            value.Should().BeEquivalentTo(new TestKey("key"));
         }
     }
 }
