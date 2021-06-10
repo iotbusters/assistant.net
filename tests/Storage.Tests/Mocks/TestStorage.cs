@@ -6,39 +6,47 @@ using Assistant.Net.Unions;
 
 namespace Assistant.Net.Storage.Tests.Mocks
 {
-    public class TestStorage : IStorage<object>
+    public class TestStorage<T> : IStorageProvider<T>
     {
-        private readonly Dictionary<string, object> stored = new();
+        private readonly Dictionary<StoreKey, byte[]> stored = new();
 
-        public IDictionary<string, object> Stored => stored;
+        public IDictionary<StoreKey, byte[]> Stored => stored;
 
-        public async Task<object> AddOrGet(string key, Func<string, Task<object>> addFactory)
+        public async Task<byte[]> AddOrGet(
+            StoreKey key,
+            Func<StoreKey, Task<byte[]>> addFactory)
         {
             stored.TryAdd(key, await addFactory(key));
             return stored[key];
         }
 
-        public async Task<object> AddOrUpdate(string key, Func<string, Task<object>> addFactory, Func<string, object, Task<object>> updateFactory)
+        public async Task<byte[]> AddOrUpdate(
+            StoreKey key,
+            Func<StoreKey, Task<byte[]>> addFactory,
+            Func<StoreKey, byte[], Task<byte[]>> updateFactory)
         {
             if (stored.TryAdd(key, await addFactory(key)))
                 stored[key] = await addFactory(key);
             return stored[key];
         }
 
-        public Task<Option<object>> TryGet(string key)
+        public Task<Option<byte[]>> TryGet(StoreKey key)
         {
             if(stored.TryGetValue(key, out var value))
                 return Task.FromResult(Option.Some(value));
-            return Task.FromResult<Option<object>>(Option.None);
+            return Task.FromResult<Option<byte[]>>(Option.None);
         }
 
-        public Task<Option<object>> TryRemove(string key)
+        public Task<Option<byte[]>> TryRemove(StoreKey key)
         {
             if(stored.Remove(key, out var value))
                 return Task.FromResult(Option.Some(value));
-            return Task.FromResult<Option<object>>(Option.None);
+            return Task.FromResult<Option<byte[]>>(Option.None);
         }
 
+        public IAsyncEnumerable<StoreKey> GetKeys() => stored.Keys.AsAsync();
+
         public void Dispose() { }
+
     }
 }

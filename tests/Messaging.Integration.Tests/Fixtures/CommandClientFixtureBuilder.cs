@@ -15,7 +15,7 @@ namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
         public CommandClientFixtureBuilder()
         {
             Services = new ServiceCollection()
-                .AddCommandClient(b => b.ClearAll())
+                .AddCommandClient(b => b.ClearInterceptors())
                 .AddRemoteWebCommandClient(o =>
                 {
                     o.BaseAddress = new Uri("http://localhost/command");
@@ -34,7 +34,7 @@ namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
 
         public CommandClientFixtureBuilder ClearHandlers()
         {
-            Services.ConfigureCommandClient(b => b.ClearAll());
+            Services.ConfigureCommandClient(b => b.ClearInterceptors());
             return this;
         }
 
@@ -47,7 +47,7 @@ namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
         public CommandClientFixtureBuilder AddRemote<THandler>() where THandler : class, IAbstractCommandHandler
         {
             RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureCommandClient(b => b.AddLocal<THandler>().ClearAll()));
+                .ConfigureCommandClient(b => b.AddLocal<THandler>().ClearInterceptors()));
 
             var commandType = typeof(THandler)
                 .GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICommandHandler<,>))

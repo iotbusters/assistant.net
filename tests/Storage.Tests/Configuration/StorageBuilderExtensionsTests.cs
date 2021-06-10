@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
 using NUnit.Framework;
@@ -20,8 +19,8 @@ namespace Assistant.Net.Storage.Configuration.Tests
 
             services.Should().BeEquivalentTo(new
             {
-                ServiceType = typeof(IStorage<object>),
-                ImplementationType = new { Name = "LocalStorage`1" }
+                ServiceType = typeof(IStorageProvider<object>),
+                ImplementationType = new { Name = "LocalStorageProvider`1" }
             });
         }
 
@@ -32,8 +31,8 @@ namespace Assistant.Net.Storage.Configuration.Tests
 
             services.Should().BeEquivalentTo(new
             {
-                ServiceType = typeof(IStorage<>),
-                ImplementationType = new { Name = "LocalStorage`1" }
+                ServiceType = typeof(IStorageProvider<>),
+                ImplementationType = new { Name = "LocalStorageProvider`1" }
             });
         }
 

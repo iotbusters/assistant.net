@@ -9,19 +9,6 @@ namespace Assistant.Net.Messaging.Web.Server.Tests
     public class ServiceCollectionExtensionsTests
     {
         [Test]
-        public void AddRemoteCommandHandlingServer_registersServiceDescriptors()
-        {
-            var services = new ServiceCollection()
-                .AddRemoteWebCommandHandler(opt => { });
-
-            services.Should().ContainEquivalentOf(new
-            {
-                ServiceType = typeof(ICommandClient),
-                ImplementationType = new { Name = "CommandClient" },
-            });
-        }
-
-        [Test]
         public void GetServiceOfICommandClient_resolvesObject()
         {
             var provider = new ServiceCollection()
