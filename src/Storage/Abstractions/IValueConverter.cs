@@ -1,10 +1,10 @@
 namespace Assistant.Net.Storage.Abstractions
 {
     /// <summary>
-    ///     An abstraction over a value conversion for <see cref="IBinaryStorage" /> implementation.
+    ///     An abstraction over a value conversion for <see cref="IBinaryStorageProvider" /> implementation.
     /// </summary>
     /// <typeparam name="TKey">Value object type.</typeparam>
-    public interface IValueBinaryConverter<TValue>
+    public interface IValueConverter<TValue>
     {
         /// <summary>
         ///     Converts <paramref name="value"/> object to binary.

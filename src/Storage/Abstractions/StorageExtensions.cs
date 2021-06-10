@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using Assistant.Net.Unions;
 
 namespace Assistant.Net.Storage.Abstractions
 {
@@ -13,11 +12,7 @@ namespace Assistant.Net.Storage.Abstractions
         public static Task<TValue?> GetOrDefault<TKey, TValue>(
             this IStorage<TKey, TValue> storage,
             TKey key) =>
-            storage.TryGet(key).ContinueWith(t => t.Result switch
-            {
-                Some<TValue>(var value) => value,
-                _                       => default
-            }, TaskContinuationOptions.OnlyOnRanToCompletion);
+            storage.TryGet(key).GetValueOrDefault();
 
         /// <summary>
         ///    Tries to add a value associated to the <paramref name="key"/> if it doesn't exist.
