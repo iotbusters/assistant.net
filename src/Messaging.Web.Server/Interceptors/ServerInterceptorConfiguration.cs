@@ -13,7 +13,7 @@ namespace Assistant.Net.Messaging.Interceptors
     {
         // todo: consider removing if disabled in configuration (https://github.com/iotbusters/assistant.net/issues/1)
         public void Configure(CommandClientBuilder builder) => builder
-            .ClearAll()
+            .ClearInterceptors()
             .AddInterceptor<DiagnosticsInterceptor>()
             .AddInterceptor<ErrorHandlingInterceptor>()
             .AddInterceptor<CachingInterceptor>()

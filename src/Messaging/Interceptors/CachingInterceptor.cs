@@ -12,45 +12,35 @@ namespace Assistant.Net.Messaging.Interceptors
     /// </summary>
     public sealed class CachingInterceptor : ICommandInterceptor
     {
-        private readonly IStorage<object, CachingResult> cache;
+        private readonly IStorage<ICommand<object>, CachingResult> cache;
 
-        public CachingInterceptor(IStorage<object, CachingResult> cache) =>
+        public CachingInterceptor(IStorage<ICommand<object>, CachingResult> cache) =>
             this.cache = cache;
 
-        public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
-        {
-            var result = await cache.AddOrGet(command, async _ =>
-            {
-                try
+        public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next) =>
+            await next(command).Pipe(
+                x => cache.AddOrGet(command, new CachingResult(x)),
+                x =>
                 {
-                    return new CachingResult(await next(command));
-                }
-                catch (Exception ex)
-                {
-                    if(IsCritical(ex))
-                        throw;
-                    return new CachingResult(ex);
-                }
-            });
-            return result.Get();
-        }
+                    if (IsCacheable(x))
+                        cache.AddOrGet(command, new CachingResult(x));
+                });
 
-        private static bool IsCritical(Exception ex)
+        private static bool IsCacheable(Exception ex)
         {
             // todo: resolve duplication in ErrorHandlingInterceptor (https://github.com/iotbusters/assistant.net/issues/4)
             // configurable
-            var criticalExceptionTypes = new Type[]
+            var transientExceptionTypes = new Type[]
             {
                 typeof(TimeoutException),
-                typeof(TaskCanceledException),
                 typeof(OperationCanceledException),
                 typeof(CommandDeferredException)
             };
 
             if (ex is AggregateException e)
-                return IsCritical(e.InnerException!);
+                return IsCacheable(e.InnerException!);
 
-            return criticalExceptionTypes.Any(x => x.IsAssignableFrom(ex.GetType()));
+            return !transientExceptionTypes.Any(x => x.IsAssignableFrom(ex.GetType()));
         }
 
     }

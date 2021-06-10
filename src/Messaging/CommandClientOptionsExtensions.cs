@@ -69,7 +69,7 @@ namespace Assistant.Net.Messaging
         public static CommandClientBuilder AddInterceptor<TInterceptor>(this CommandClientBuilder builder)
             where TInterceptor : class, IAbstractCommandInterceptor
         {
-            builder.Services.AddCommandClientOptions(o => o.Interceptors.Add(typeof(TInterceptor)));
+            builder.Services.ConfigureCommandClientOptions(o => o.Interceptors.Add(typeof(TInterceptor)));
             builder.Services.ReplaceTransient<TInterceptor>();
             return builder;
         }
@@ -87,9 +87,9 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Removes all interceptors from the list.
         /// </summary>
-        public static CommandClientBuilder ClearAll(this CommandClientBuilder builder)
+        public static CommandClientBuilder ClearInterceptors(this CommandClientBuilder builder)
         {
-            builder.Services.AddCommandClientOptions(o => o.Interceptors.Clear());
+            builder.Services.ConfigureCommandClientOptions(o => o.Interceptors.Clear());
             return builder;
         }
 
@@ -99,7 +99,7 @@ namespace Assistant.Net.Messaging
         public static CommandClientBuilder Remove<TInterceptor>(this CommandClientBuilder builder)
             where TInterceptor : class, IAbstractCommandInterceptor
         {
-            builder.Services.AddCommandClientOptions(o => o.Interceptors.Remove(typeof(TInterceptor)));
+            builder.Services.ConfigureCommandClientOptions(o => o.Interceptors.Remove(typeof(TInterceptor)));
             return builder;
         }
     }

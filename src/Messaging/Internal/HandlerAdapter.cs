@@ -12,16 +12,15 @@ namespace Assistant.Net.Messaging.Internal
     {
         private ICommandHandler<TCommand, TResponse>? handler;
 
-        private ICommandHandler<TCommand, TResponse> Handler =>
-            handler ?? throw new InvalidOperationException($"'{nameof(HandlerAdapter<TCommand, TResponse>)}' wasn't properly initialized.");
-
         void IHandlerAdaptorContext.Init(IAbstractCommandHandler handler) =>
             this.handler = handler as ICommandHandler<TCommand, TResponse>
                            ?? throw new InvalidOperationException("Unexpected handler type.");
 
-        public Task<TResponse> Handle(TCommand command) => Handler.Handle(command);
+        public Task<TResponse> Handle(TCommand command) =>
+            handler?.Handle(command)
+            ?? throw new InvalidOperationException($"'{nameof(HandlerAdapter<TCommand, TResponse>)}' wasn't properly initialized.");
 
         public Task<object> Handle(object command) =>
-            Handle((TCommand)command).ContinueWith(t => (object)t.Result!);
+            Handle((TCommand)command).Map(x => (object)x!);
     }
 }

@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Runtime.ExceptionServices;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 
@@ -20,9 +19,7 @@ namespace Assistant.Net.Messaging.Interceptors
             }
             catch (Exception ex)
             {
-                var exception = ToCommandException(ex);
-                ExceptionDispatchInfo.Capture(exception).Throw();
-                throw;
+                return ToCommandException(ex).Throw<object>();
             }
         }
 
@@ -35,7 +32,6 @@ namespace Assistant.Net.Messaging.Interceptors
             // configurable
             var supportedExceptionTypes = new[]
             {
-                typeof(TaskCanceledException),
                 typeof(OperationCanceledException),
                 typeof(TimeoutException),
                 typeof(CommandException)

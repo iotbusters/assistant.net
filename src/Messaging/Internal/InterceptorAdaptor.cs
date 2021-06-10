@@ -20,7 +20,7 @@ namespace Assistant.Net.Messaging.Internal
                            ?? throw new InvalidOperationException("Unexpected handler type.");
 
         public Task<object> Intercept(object command, Func<object, Task<object>> next) =>
-            Intercept((TCommand)command, async x => (TResponse)await next(x)).ContinueWith(t => (object)t.Result!);
+            Intercept((TCommand)command, async x => (TResponse)await next(x)).Map(x => (object)x!);
 
         public Task<TResponse> Intercept(TCommand command, Func<TCommand, Task<TResponse>> next) =>
             Interceptor.Intercept(command, next);
