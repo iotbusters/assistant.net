@@ -48,10 +48,10 @@ namespace Assistant.Net.Messaging.Internal
                 .Select(x =>
                 {
                     var adaptorType = typeof(InterceptorAdaptor<,>).MakeGenericTypeBoundToCommand(x.Key);
-                    var interceptor = provider.GetRequiredService(x.Value);
+                    var interceptor = (IAbstractCommandInterceptor)provider.GetRequiredService(x.Value);
 
                     var adaptor = provider.GetRequiredService(x.Value);
-                    ((IInterceptorAdaptorContext)adaptor).Init((dynamic)interceptor);
+                    ((IInterceptorAdaptorContext)adaptor).Init(interceptor);
 
                     return (adaptor as IAbstractInterceptor)!;
                 })

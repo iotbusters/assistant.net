@@ -8,7 +8,7 @@ namespace Assistant.Net.Messaging
 
         public DeferredCachingResult(Task<object> task) => this.task = task;
 
-        public Task<object> Get() => task;
+        public Task<object> GetTask() => task;
 
         public static implicit operator DeferredCachingResult(Task<object> task) => new(task);
     }

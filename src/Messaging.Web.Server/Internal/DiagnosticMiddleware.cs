@@ -30,10 +30,7 @@ namespace Assistant.Net.Messaging.Internal
                 operation.Fail();
                 throw;
             }
-            finally
-            {
-                operation.Complete();
-            }
+            operation.Complete();
         }
     }
 }
