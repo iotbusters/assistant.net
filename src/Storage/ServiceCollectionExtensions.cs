@@ -2,6 +2,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Internal;
+using Assistant.Net.Storage.Converters;
 using Assistant.Net.Storage.Configuration;
 
 namespace Assistant.Net.Storage
@@ -10,15 +11,18 @@ namespace Assistant.Net.Storage
     {
         /// <summary>
         ///     Adds common services required by storage implementation.
-        ///     Pay attention, all storing types should be registered.
+        ///     Pay attention, all storing types should be previously registered.
         /// </summary>
         public static IServiceCollection AddStorage(this IServiceCollection services, Action<StorageBuilder> configureOptions)
         {
             configureOptions(new StorageBuilder(services));
             return services
+                .AddTypeEncoder()
                 .TryAddScoped(typeof(IStorage<,>), typeof(Storage<,>))
+                .TryAddScoped(typeof(IPartitionedStorage<,>), typeof(PartitionedStorage<,>))
                 .TryAddSingleton<IKeyConverter<string>, StringKeyConverter>()
-                .TryAddSingleton(typeof(IKeyConverter<>), typeof(KeyConverter<>));
+                .TryAddSingleton(typeof(IKeyConverter<>), typeof(DefaultKeyConverter<>))
+                .TryAddSingleton(typeof(IValueConverter<>), typeof(DefaultValueConverter<>));
         }
     }
 }

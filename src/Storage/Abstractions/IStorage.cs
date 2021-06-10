@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Assistant.Net.Unions;
 
@@ -55,11 +56,10 @@ namespace Assistant.Net.Storage.Abstractions
         /// <param name="value">A removed value.</param>
         /// <returns>A removed value if it was found.</returns>
         Task<Option<TValue>> TryRemove(TKey key);
-    }
 
-    /// <summary>
-    ///    String key based value-centric storage.
-    /// </summary>
-    /// <typeparam name="TValue">A value object type which specific storage implementation is assigned to.</typeparam>
-    public interface IStorage<TValue> : IStorage<string, TValue>, IDisposable { }
+        /// <summary>
+        ///     Gets all keys in the storage.
+        /// </summary>
+        IAsyncEnumerable<TKey> GetKeys();
+    }
 }

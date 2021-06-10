@@ -1,9 +1,9 @@
 using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Storage.Utils;
+using Assistant.Net.Utils;
 
-namespace Assistant.Net.Storage.Internal
+namespace Assistant.Net.Storage.Converters
 {
-    internal class ValueConverter<TValue> : IValueBinaryConverter<TValue>
+    internal class DefaultValueConverter<TValue> : IValueConverter<TValue>
     {
         public byte[] Convert(TValue value) => value.Serialize();
 
