@@ -6,7 +6,7 @@ namespace Assistant.Net
 {
     public static class OptionExtensions
     {
-        public static Task<Option<TResult>> Map<TSource, TResult>(this Task<Option<TSource>> source, Func<TSource, TResult> mapper) => TaskExtensions.Map(source, x => Map(x, mapper));
+        public static Task<Option<TResult>> Map<TSource, TResult>(this Task<Option<TSource>> source, Func<TSource, TResult> mapper) => TaskExtensions.MapSuccess(source, x => Map(x, mapper));
 
         public static Option<TResult> Map<TSource, TResult>(this Option<TSource> option, Func<TSource, TResult> mapper) => option switch
         {
@@ -14,7 +14,7 @@ namespace Assistant.Net
             _                           => Option.None
         };
 
-        public static Task<TSource?> GetValueOrDefault<TSource>(this Task<Option<TSource>> source) => TaskExtensions.Map(source, GetValueOrDefault);
+        public static Task<TSource?> GetValueOrDefault<TSource>(this Task<Option<TSource>> source) => TaskExtensions.MapSuccess(source, GetValueOrDefault);
 
         public static TSource? GetValueOrDefault<TSource>(this Option<TSource> option) => option switch
         {

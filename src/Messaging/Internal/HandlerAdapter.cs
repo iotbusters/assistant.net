@@ -21,6 +21,6 @@ namespace Assistant.Net.Messaging.Internal
             ?? throw new InvalidOperationException($"'{nameof(HandlerAdapter<TCommand, TResponse>)}' wasn't properly initialized.");
 
         public Task<object> Handle(object command) =>
-            Handle((TCommand)command).Map(x => (object)x!);
+            Handle((TCommand)command).MapSuccess(x => (object)x!);
     }
 }

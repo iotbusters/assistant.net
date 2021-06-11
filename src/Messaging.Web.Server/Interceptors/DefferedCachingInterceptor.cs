@@ -18,7 +18,7 @@ namespace Assistant.Net.Messaging.Interceptors
         public Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
         {
             var key = command.GetSha1();
-            var task = next(command).PipeFaulted(x =>
+            var task = next(command).WhenFaulted(x =>
             {
                 if (!IsCacheable(x))
                     deferredCache.TryRemove(key, out _);
