@@ -32,14 +32,37 @@ var stoppingCancellationToken = provider.GetRequiredService<ISystemLifetime>().S
 
 It's common storage abstraction and related basic implementations and tools.
 
+Pay attention, using base types as storage value won't work as expected because of serialization. It will be improved as part of advanced serialization further.
+
 See also available extensions in `assistant.net.storage.*` packages for more information.
 
 ```csharp
-services.AddLocalStorage(opt => opt
+services.AddStorage(b => b
     .AddLocal<Model>()
-    .AddLocalAny());
+    .AddLocalAny()
+    .AddLocalPartitioned<Model>()
+    );
 
 var storage = provider.GetRequiredService<IStorage<Key, Model>>();
+var partitionedStorage = provider.GetRequiredService<IPartitionedStorage<Key, Model>>();
+```
+
+### assistant.net.serialization.json
+
+In progress. Coming soon..
+
+It's serialization abstraction with 'basic' and 'advanced' json implementations.
+
+Further I can be extended with other formats, e.g. protobuf. The main idea is to be able flexibly replace serialization format further.
+
+```csharp
+// coming soon..
+// services
+//     .AddSerializer(b => b
+//         .AddJson<Model>()
+//         .AddJsonAny());
+
+// var storage = provider.GetRequiredService<ISerializer<Model>>();
 ```
 
 ### assistant.net.diagnostics
