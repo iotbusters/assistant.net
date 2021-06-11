@@ -13,11 +13,10 @@ namespace Assistant.Net
             return source.ContinueWith(t =>
             {
                 if (t.IsFaulted)
-                    return faultSelector(t.Exception!).Throw<TResult>();
+                    return faultSelector(t.Exception!.InnerException!).Throw<TResult>();
                 if (t.IsCompletedSuccessfully)
                     return successSelector(t.Result);
-                var _ = t.Result; // fail if not success
-                return default!; // unreachable
+                throw new TaskCanceledException();
             });
         }
 
@@ -32,13 +31,13 @@ namespace Assistant.Net
             Action<TSource> successAction,
             Action<Exception> faultAction)
         {
-            return source.ContinueWith(t =>
+            return source.ContinueWith<TSource>(t =>
             {
                 if (t.IsFaulted)
                     faultAction(t.Exception!);
                 if (t.IsCompletedSuccessfully)
                     successAction(t.Result);
-                return t.Result; // fail if not success
+                throw new TaskCanceledException();
             });
         }
 
