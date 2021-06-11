@@ -21,13 +21,13 @@ namespace Assistant.Net
             });
         }
 
-        public static Task<TResult> Map<TSource, TResult>(this Task<TSource> source, Func<TSource, TResult> successSelector) => source
+        public static Task<TResult> MapSuccess<TSource, TResult>(this Task<TSource> source, Func<TSource, TResult> successSelector) => source
             .Map(successSelector, x => x);
 
         public static Task<TSource> MapFaulted<TSource>(this Task<TSource> source, Func<Exception, Exception> faultSelector) => source
             .Map(x => x, faultSelector);
 
-        public static Task<TSource> Pipe<TSource>(
+        public static Task<TSource> When<TSource>(
             this Task<TSource> source,
             Action<TSource> successAction,
             Action<Exception> faultAction)
@@ -42,10 +42,10 @@ namespace Assistant.Net
             });
         }
 
-        public static Task<TSource> Pipe<TSource>(this Task<TSource> source, Action<TSource> successAction) => source
-            .Pipe(successAction, x => { });
+        public static Task<TSource> WhenSuccess<TSource>(this Task<TSource> source, Action<TSource> successAction) => source
+            .When(successAction, x => { });
 
-        public static Task<TSource> PipeFaulted<TSource>(this Task<TSource> source, Action<Exception> faultAction) => source
-            .Pipe(x => { }, faultAction);
+        public static Task<TSource> WhenFaulted<TSource>(this Task<TSource> source, Action<Exception> faultAction) => source
+            .When(x => { }, faultAction);
     }
 }

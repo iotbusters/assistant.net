@@ -28,8 +28,8 @@ namespace Assistant.Net.Storage.Internal
         {
             var storeKey = keyConverter.Convert(key);
             return backedStorage
-                .AddOrGet(storeKey, _ => addFactory(key).Map(valueConverter.Convert))
-                .Map(x => valueConverter.Convert(x));
+                .AddOrGet(storeKey, _ => addFactory(key).MapSuccess(valueConverter.Convert))
+                .MapSuccess(x => valueConverter.Convert(x));
         }
 
         public Task<TValue> AddOrUpdate(
@@ -41,9 +41,9 @@ namespace Assistant.Net.Storage.Internal
             return backedStorage
                 .AddOrUpdate(
                     storeKey,
-                    _ => addFactory(key).Map(valueConverter.Convert),
-                    (_, old) => updateFactory(key, valueConverter.Convert(old)).Map(valueConverter.Convert))
-                .Map(x => valueConverter.Convert(x));
+                    _ => addFactory(key).MapSuccess(valueConverter.Convert),
+                    (_, old) => updateFactory(key, valueConverter.Convert(old)).MapSuccess(valueConverter.Convert))
+                .MapSuccess(x => valueConverter.Convert(x));
         }
 
         public Task<Option<TValue>> TryGet(TKey key)
@@ -55,7 +55,7 @@ namespace Assistant.Net.Storage.Internal
         public Task<Option<TValue>> TryRemove(TKey key)
         {
             var storeKey = keyConverter.Convert(key);
-            return backedStorage.TryRemove(storeKey).Map(x => x.Map(valueConverter.Convert));
+            return backedStorage.TryRemove(storeKey).MapSuccess(x => x.Map(valueConverter.Convert));
         }
 
         public IAsyncEnumerable<TKey> GetKeys() => 

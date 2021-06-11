@@ -5,7 +5,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Tests.Mocks;
-using Assistant.Net.Storage.Utils;
+using Assistant.Net.Utils;
 using Assistant.Net.Unions;
 
 namespace Assistant.Net.Storage.Tests

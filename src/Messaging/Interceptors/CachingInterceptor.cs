@@ -18,7 +18,7 @@ namespace Assistant.Net.Messaging.Interceptors
             this.cache = cache;
 
         public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next) =>
-            await next(command).Pipe(
+            await next(command).When(
                 x => cache.AddOrGet(command, new CachingResult(x)),
                 x =>
                 {
