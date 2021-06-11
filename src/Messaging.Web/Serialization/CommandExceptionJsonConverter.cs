@@ -5,7 +5,7 @@ using Assistant.Net.Messaging.Exceptions;
 namespace Assistant.Net.Messaging.Serialization
 {
     /// <summary>
-    ///     Json converter responsible for exception serialization.
+    ///     Json converter responsible for command exceptions serialization.
     /// </summary>
     /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-5-0"/> />
     public class CommandExceptionJsonConverter : ExceptionJsonConverter<CommandException>
@@ -19,11 +19,7 @@ namespace Assistant.Net.Messaging.Serialization
             return base.GetType(value);
         }
 
-        protected override Exception? GetInnerException(CommandException value)
-        {
-            if (value.InnerException as CommandException == null)
-                return null;
-            return base.GetInnerException(value);
-        }
+        protected override CommandException? DefaultException(string type, string message, Exception? inner) =>
+            new UnknownCommandException(type, message, inner);
     }
 }

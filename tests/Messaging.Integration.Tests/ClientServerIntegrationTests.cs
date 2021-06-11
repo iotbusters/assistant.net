@@ -31,7 +31,7 @@ namespace Assistant.Net.Messaging.Integration.Tests.Internal
                 .Create();
 
             fixture.Client.Awaiting(x => x.Send(new TestScenarioCommand(0)))
-                .Should().Throw<CommandNotRegisteredException>()
+                .Should().ThrowExactly<CommandNotRegisteredException>()
                 .WithMessage($"Command '{nameof(TestScenarioCommand)}' wasn't registered.")
                 .Which.InnerException.Should().BeNull();
         }
@@ -45,7 +45,7 @@ namespace Assistant.Net.Messaging.Integration.Tests.Internal
                 .Create();
 
             fixture.Client.Awaiting(x => x.Send(new TestScenarioCommand(0)))
-                .Should().Throw<CommandNotRegisteredException>()
+                .Should().ThrowExactly<CommandNotRegisteredException>()
                 .WithMessage($"Command '{nameof(TestScenarioCommand)}' wasn't registered.")
                 .Which.InnerException.Should().BeNull();
         }
@@ -61,7 +61,7 @@ namespace Assistant.Net.Messaging.Integration.Tests.Internal
                 .Create();
 
             fixture.Client.Awaiting(x => x.Send(new TestSuccessFailureCommand(exceptionType.AssemblyQualifiedName)))
-                .Should().Throw<CommandDeferredException>()
+                .Should().ThrowExactly<CommandDeferredException>()
                 .Which.InnerException.Should().BeNull();
         }
 
@@ -73,7 +73,7 @@ namespace Assistant.Net.Messaging.Integration.Tests.Internal
                 .Create();
 
             fixture.Client.Awaiting(x => x.Send(new TestScenarioCommand(1)))
-                .Should().Throw<CommandFailedException>()
+                .Should().ThrowExactly<CommandFailedException>()
                 .WithMessage("Command execution has failed.")
                 .Which.InnerException.Should().BeNull();
         }
@@ -86,7 +86,7 @@ namespace Assistant.Net.Messaging.Integration.Tests.Internal
                 .Create();
 
             fixture.Client.Awaiting(x => x.Send(new TestScenarioCommand(2)))
-                .Should().Throw<CommandFailedException>()
+                .Should().ThrowExactly<CommandFailedException>()
                 .WithMessage("2")
                 .Which.InnerException.Should().BeNull();
         }
@@ -99,9 +99,9 @@ namespace Assistant.Net.Messaging.Integration.Tests.Internal
                 .Create();
 
             fixture.Client.Awaiting(x => x.Send(new TestScenarioCommand(3)))
-                .Should().Throw<CommandFailedException>()
+                .Should().ThrowExactly<CommandFailedException>()
                 .WithMessage("3")
-                .WithInnerException<CommandFailedException>()
+                .WithInnerExceptionExactly<CommandFailedException>()
                 .Which.InnerException?.Message.Should().Be("inner");
         }
     }

@@ -5,7 +5,6 @@ using FluentAssertions;
 using NUnit.Framework;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Tests.Mocks;
-using Assistant.Net.Utils;
 using Assistant.Net.Unions;
 
 namespace Assistant.Net.Storage.Tests
@@ -49,17 +48,17 @@ namespace Assistant.Net.Storage.Tests
         public async Task TryGet_Some_FromStorageProviderOfTheSameValue()
         {
             var provider = new ServiceCollection()
-                .AddStorage(b => b.Services.AddSingleton<IStorageProvider<object>>(new TestStorage<object>()))
+                .AddStorage(b => b.Services.AddSingleton<IStorageProvider<TestValue>>(new TestStorage<TestValue>()))
                 .BuildServiceProvider();
 
-            var storage1 = provider.GetRequiredService<IStorage<TestKey, object>>();
-            var storage2 = provider.GetRequiredService<IStorage<TestKey, object>>();
+            var storage1 = provider.GetRequiredService<IStorage<TestKey, TestValue>>();
+            var storage2 = provider.GetRequiredService<IStorage<TestKey, TestValue>>();
 
             var key = new TestKey("key");
             await storage1.AddOrGet(key, new TestValue("value"));
             var value = await storage2.TryGet(key);
 
-            value.Should().Be(Option.Some<object>(new TestValue("value")));
+            value.Should().Be(Option.Some(new TestValue("value")));
         }
 
         [Test]

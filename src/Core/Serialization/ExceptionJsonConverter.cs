@@ -33,8 +33,7 @@ namespace Assistant.Net.Messaging.Serialization
 
             writer.WriteString(MessagePropertyName, GetMessage(value));
 
-            var inner = GetInnerException(value);
-            if (inner != null)
+            if (value.InnerException is TValue inner)
             {
                 writer.WritePropertyName(InnerExceptionPropertyName);
                 JsonSerializer.Serialize(writer, inner, options);
@@ -63,9 +62,9 @@ namespace Assistant.Net.Messaging.Serialization
                     .Where(x => x != null).Select(x => x!).ToArray();
                 return (TValue)Activator.CreateInstance(type!, ctorArguments)!;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new JsonException($"Cannot restore exception object by '{encodedType}', '{message}' and '{inner}'.", ex);
+                return DefaultException(encodedType, message, inner);
             }
         }
 
@@ -73,7 +72,7 @@ namespace Assistant.Net.Messaging.Serialization
 
         protected virtual string GetMessage(TValue value) => value.Message;
 
-        protected virtual Exception? GetInnerException(TValue value) => value.InnerException;
+        protected virtual TValue? DefaultException(string type, string message, Exception? inner) => null;
 
         private static (string? type, string? message, Exception? inner) ReadExceptionContent(
             ref Utf8JsonReader reader,
@@ -107,7 +106,7 @@ namespace Assistant.Net.Messaging.Serialization
                     case InnerExceptionPropertyName:
                         if (reader.TokenType != JsonTokenType.StartObject)
                             throw new JsonException("Start object token is expected.");
-                        inner = JsonSerializer.Deserialize<Exception>(ref reader, options);
+                        inner = JsonSerializer.Deserialize<TValue>(ref reader, options);
                         break;
 
                     //case StackTracePropertyName: throw new NotSupportedException();
