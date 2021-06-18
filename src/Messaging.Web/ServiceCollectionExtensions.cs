@@ -15,7 +15,7 @@ namespace Assistant.Net.Messaging
             .AddJsonSerializerOptions(delegate { });
 
         /// <summary>
-        ///     Registers default configuration for <see cref="JsonSerializer" /> customized by <paramref name="configureOptions" /> predicate.
+        ///     Registers default configuration for <see cref="JsonSerializer" /> customized by <paramref name="configureOptions" /> action.
         /// </summary>
         public static IServiceCollection AddJsonSerializerOptions(this IServiceCollection services, Action<JsonSerializerOptions> configureOptions) => services
             .AddLogging()

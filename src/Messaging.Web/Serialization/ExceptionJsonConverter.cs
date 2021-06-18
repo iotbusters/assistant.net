@@ -33,10 +33,11 @@ namespace Assistant.Net.Messaging.Serialization
 
             writer.WriteString(MessagePropertyName, GetMessage(value));
 
-            if (value.InnerException is TValue inner)
+            var inner = value.InnerException;
+            if (inner != null && inner.GetType().IsAssignableTo(typeof(TValue)))
             {
                 writer.WritePropertyName(InnerExceptionPropertyName);
-                JsonSerializer.Serialize(writer, inner, options);
+                JsonSerializer.Serialize(writer, inner, inner.GetType(), options);
             }
 
             writer.WriteEndObject();
