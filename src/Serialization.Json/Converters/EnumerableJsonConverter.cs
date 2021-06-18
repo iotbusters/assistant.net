@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Assistant.Net.Serialization.Exceptions;
 
 namespace Assistant.Net.Serialization.Converters
 {
@@ -21,11 +22,11 @@ namespace Assistant.Net.Serialization.Converters
             if (typeToConvert.IsAssignableTo(typeof(IEnumerable<byte>)))
                 return reader.GetBytesFromBase64();
             if (typeToConvert.IsAssignableTo(typeof(IEnumerable<char>)))
-                return reader.GetString();
+                return reader.GetString()!;
 
             if (reader.TokenType != JsonTokenType.StartArray)
                 throw new JsonException($"'{JsonTokenType.StartArray}' token is expected but found '{reader.TokenType}'.");
-            
+
             var arrayItemType = GetSequenceItemType(typeToConvert)!;
             dynamic list = Activator.CreateInstance(typeof(List<>).MakeGenericType(arrayItemType))!;
 
@@ -45,7 +46,7 @@ namespace Assistant.Net.Serialization.Converters
             }
             catch (Exception e)
             {
-                throw new JsonException($"Failed to instantiate type '{typeToConvert}'.", e);
+                throw new InstantiateFailedJsonException(typeToConvert.Name, $"Failed to instantiate type '{typeToConvert}'.", e);
             }
         }
 

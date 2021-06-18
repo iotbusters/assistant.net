@@ -21,16 +21,18 @@ namespace Assistant.Net.Serialization
         /// </summary>
         public static IServiceCollection AddSerializer(this IServiceCollection services, Action<SerializerBuilder> configure) => services
             .AddTypeEncoder()
-            .TryAddScoped<AdvancedJsonConverter>()
             .TryAddScoped<ExceptionJsonConverter>()
+            .TryAddScoped<AdvancedJsonConverter>()
             .Configure<JsonSerializerOptions>(options =>
             {
                 options.PropertyNameCaseInsensitive = true;
                 options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+                options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, false));
+                options.Converters.Add(new EnumerableJsonConverter());
             })
-            .Configure<JsonSerializerOptions, AdvancedJsonConverter>((options, converter) => options.Converters.Add(converter))
             .Configure<JsonSerializerOptions, ExceptionJsonConverter>((options, converter) => options.Converters.Add(converter))
+            .Configure<JsonSerializerOptions, AdvancedJsonConverter>((options, converter) => options.Converters.Add(converter))
             .ConfigureSerializer(configure);
 
         /// <summary>

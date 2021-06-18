@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Assistant.Net.Abstractions;
+using Assistant.Net.Serialization.Exceptions;
 
 namespace Assistant.Net.Serialization.Converters
 {
@@ -16,8 +17,7 @@ namespace Assistant.Net.Serialization.Converters
     /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-5-0"/> />
     public class AdvancedJsonConverter : JsonConverter<object>
     {
-        private static readonly ConcurrentDictionary<Type, IImmutableList<TypeMetadata>?>
-            TypeMetadata = new ConcurrentDictionary<Type, IImmutableList<TypeMetadata>?>();
+        private static readonly ConcurrentDictionary<Type, IImmutableList<TypeMetadata>?> TypeMetadata = new();
         private static readonly StringComparer IgnoreCase = StringComparer.InvariantCultureIgnoreCase;
 
         private const string TypePropertyName = "__type";
@@ -109,7 +109,10 @@ namespace Assistant.Net.Serialization.Converters
                 }
             }
 
-            throw new JsonException($"The type '{type}' failed to deserialize.", new AggregateException(initializationErrors));
+            throw new InstantiateFailedJsonException(
+                typeName,
+                $"The type '{type}' failed to deserialize.",
+                new AggregateException(initializationErrors));
         }
 
         private static IImmutableList<TypeMetadata> BuildMetadata(Type typeToConvert) => TypeMetadata.GetOrAdd(typeToConvert, type =>

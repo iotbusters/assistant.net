@@ -15,7 +15,7 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
 {
     public class AdvancedJsonConverterTests
     {
-        private readonly JsonSerializerOptions options = new JsonSerializerOptions
+        private readonly JsonSerializerOptions options = new()
         {
             Converters =
             {
