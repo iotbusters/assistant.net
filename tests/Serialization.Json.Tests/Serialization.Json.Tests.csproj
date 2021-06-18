@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Messaging.Web.Tests</RootNamespace>
+    <RootNamespace>Assistant.Net.Serialization.Json.Tests</RootNamespace>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -17,14 +17,14 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="JUnitTestLogger" Version="1.1.0" />
-    <PackageReference Include="NUnit" Version="3.13.2" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
-    <PackageReference Include="FluentAssertions" Version="5.10.3" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
+    <PackageReference Include="NUnit" Version="3.13.2"/>
+    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0"/>
+    <PackageReference Include="FluentAssertions" Version="5.10.3"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Messaging.Web\Messaging.Web.csproj" />
+    <ProjectReference Include="..\..\src\Serialization.Json\Serialization.Json.csproj"/>
   </ItemGroup>
 
 </Project>

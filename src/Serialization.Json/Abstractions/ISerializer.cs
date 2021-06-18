@@ -1,6 +1,4 @@
-using System.IO;
-
-namespace Assistant.Net.Serialization
+namespace Assistant.Net.Serialization.Abstractions
 {
     public interface ISerializer<TValue>
     {

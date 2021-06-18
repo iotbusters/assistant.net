@@ -4,13 +4,13 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using FluentAssertions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Serialization;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace Assistant.Net.Messaging.Web.Tests.Serialization
 {
