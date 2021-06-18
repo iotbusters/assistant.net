@@ -4,7 +4,7 @@ using Assistant.Net.Abstractions;
 namespace Assistant.Net.Internal
 {
     /// <summary>
-    ///     Default system clock implementation customized by a predicate.
+    ///     Default system clock implementation customized by a function.
     /// </summary>
     internal class SystemClock : ISystemClock
     {
