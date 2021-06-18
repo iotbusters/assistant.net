@@ -1,6 +1,9 @@
 using System;
+using System.Text.Json;
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Serialization.Converters;
+using Assistant.Net.Serialization.Exceptions;
 
 namespace Assistant.Net.Messaging.Serialization
 {
@@ -8,18 +11,23 @@ namespace Assistant.Net.Messaging.Serialization
     ///     Json converter responsible for command exceptions serialization.
     /// </summary>
     /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-5-0"/> />
-    public class CommandExceptionJsonConverter : ExceptionJsonConverter<CommandException>
+    public class CommandExceptionJsonConverter : ExceptionJsonConverter
     {
         public CommandExceptionJsonConverter(ITypeEncoder typeEncoder) : base(typeEncoder) { }
 
-        protected override string GetType(CommandException value)
-        {
-            if(value is UnknownCommandException ex)
-                return ex.Type;
-            return base.GetType(value);
-        }
+        public override bool CanConvert(Type typeToConvert) => typeToConvert
+            .IsAssignableTo(typeof(CommandException));
 
-        protected override CommandException? DefaultException(string type, string message, Exception? inner) =>
-            new UnknownCommandException(type, message, inner);
+        public override Exception Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            try
+            {
+                return base.Read(ref reader, typeToConvert, options);
+            }
+            catch(InstantiateFailedJsonException e)
+            {
+                return new UnknownCommandException(e.Type, e.Message, e.InnerException);
+            }
+        }
     }
 }
