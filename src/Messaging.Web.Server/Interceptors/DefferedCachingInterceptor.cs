@@ -40,7 +40,7 @@ namespace Assistant.Net.Messaging.Interceptors
             if (ex is AggregateException e)
                 return IsCacheable(e.InnerException!);
 
-            return !transientExceptionTypes.Any(x => x.IsAssignableFrom(ex.GetType()));
+            return !transientExceptionTypes.Any(x => x.IsInstanceOfType(ex));
         }
     }
 }

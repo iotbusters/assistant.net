@@ -9,6 +9,8 @@ using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Web.Server.Tests.Fixtures;
 using Assistant.Net.Messaging.Web.Server.Tests.Mocks;
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Serialization.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
 {
@@ -142,17 +144,18 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
             responseObject.Should().BeOfType<TestCommandException>();
         }
 
-        private static HttpRequestMessage Request<T>(T command) where T : IAbstractCommand
-        {
-            return new HttpRequestMessage(HttpMethod.Post, "http://localhost/command")
+        private static HttpRequestMessage Request<T>(T command) where T : IAbstractCommand =>
+            new(HttpMethod.Post, "http://localhost/command")
             {
                 Headers =
                 {
                     {HeaderNames.CommandName, command.GetType().Name},
                     {HeaderNames.CorrelationId, CorrelationId},
                 },
-                Content = JsonContent.Create(command)
+                Content = new ByteArrayContent(Binary(command))
             };
-        }
+
+        private static byte[] Binary<T>(T value) => Provider.GetRequiredService<ISerializer<T>>().Serialize(value);
+        private static readonly IServiceProvider Provider = new ServiceCollection().AddJsonSerialization().BuildServiceProvider();
     }
 }

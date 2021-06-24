@@ -3,6 +3,7 @@ using System.Linq;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
+using Assistant.Net.Serialization;
 
 namespace Assistant.Net.Messaging
 {
@@ -24,7 +25,6 @@ namespace Assistant.Net.Messaging
         ///     Registers remote handler of <typeparamref name="TCommand" />.
         ///     Pay attention, it requires <see cref="IRemoteCommandClient" /> remote handling provider implementation.
         /// </summary>
-        /// <param name="set">Set of existing command handler definitions.</param>
         /// <typeparam name="TCommand">Specific command type to be handled remotely.</typeparam>
         public static CommandClientBuilder AddRemote<TCommand>(this CommandClientBuilder builder)
             where TCommand : class, IAbstractCommand => builder.AddRemote(typeof(TCommand));
@@ -33,8 +33,6 @@ namespace Assistant.Net.Messaging
         ///     Registers remote handler of <paramref name="commandType" />.
         ///     Pay attention, it requires <see cref="IRemoteCommandClient" /> remote handling provider implementation.
         /// </summary>
-        /// <param name="set">Set of existing command handler definitions.</param>
-        /// <param name="commandType">Specific command type to be handled remotely.</param>
         public static CommandClientBuilder AddRemote(this CommandClientBuilder builder, Type commandType)
         {
             if (commandType.GetResponseType() == null)
@@ -43,7 +41,9 @@ namespace Assistant.Net.Messaging
             var handlerAbstractionType = typeof(ICommandHandler<,>).MakeGenericTypeBoundToCommand(commandType);
             var handlerImplementationType = typeof(RemoteCommandHandlerProxy<,>).MakeGenericTypeBoundToCommand(commandType);
 
-            builder.Services.ReplaceTransient(handlerAbstractionType, handlerImplementationType);
+            builder.Services
+                .ReplaceTransient(handlerAbstractionType, handlerImplementationType)
+                .ConfigureSerializer(b => b.AddJsonType(commandType));
             return builder;
         }
 

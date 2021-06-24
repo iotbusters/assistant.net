@@ -12,9 +12,9 @@ namespace Assistant.Net.Messaging.Interceptors
     /// </summary>
     public sealed class CachingInterceptor : ICommandInterceptor
     {
-        private readonly IStorage<ICommand<object>, CachingResult> cache;
+        private readonly IStorage<object, CachingResult> cache;
 
-        public CachingInterceptor(IStorage<ICommand<object>, CachingResult> cache) =>
+        public CachingInterceptor(IStorage<object, CachingResult> cache) =>
             this.cache = cache;
 
         public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next) =>

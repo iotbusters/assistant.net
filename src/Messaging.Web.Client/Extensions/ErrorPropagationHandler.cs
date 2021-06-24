@@ -1,24 +1,22 @@
 using System;
 using System.Net;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
 using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Messaging.Serialization;
+using Assistant.Net.Serialization.Abstractions;
 
 namespace Assistant.Net.Messaging.Extensions
 {
     /// <summary>
     ///     Remote command handling failure propagation.
     /// </summary>
-    internal class ErrorPropagationHandler : DelegatingHandler
+    public class ErrorPropagationHandler : DelegatingHandler
     {
-        private readonly IOptions<JsonSerializerOptions> options;
+        private readonly ISerializer<CommandException> serializer;
 
-        public ErrorPropagationHandler(IOptions<JsonSerializerOptions> options) =>
-            this.options = options;
+        public ErrorPropagationHandler(ISerializer<CommandException> serializer) =>
+            this.serializer = serializer;
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -43,11 +41,17 @@ namespace Assistant.Net.Messaging.Extensions
             };
         }
 
-        private async Task<Exception> ReadException(HttpResponseMessage response, CancellationToken cancellationToken)
+        private async Task<CommandException> ReadException(HttpResponseMessage response, CancellationToken cancellationToken)
         {
-            var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-            return await stream.ReadException(options.Value, cancellationToken)
-            ?? new CommandContractException(ErrorContentMessage(response.StatusCode));
+            var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+            try
+            {
+                return serializer.Deserialize(bytes);
+            }
+            catch (Exception e)
+            {
+                return new CommandContractException(ErrorContentMessage(response.StatusCode), e);
+            }
         }
 
         private static string InvalidStatusMessage(HttpStatusCode status) =>

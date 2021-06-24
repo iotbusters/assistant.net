@@ -10,21 +10,20 @@ namespace Assistant.Net.Messaging.Serialization
     /// <summary>
     ///     Json converter responsible for command exceptions serialization.
     /// </summary>
-    /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-5-0"/> />
-    public class CommandExceptionJsonConverter : ExceptionJsonConverter
+    public class CommandExceptionJsonConverter : ExceptionJsonConverter<CommandException>
     {
         public CommandExceptionJsonConverter(ITypeEncoder typeEncoder) : base(typeEncoder) { }
 
         public override bool CanConvert(Type typeToConvert) => typeToConvert
             .IsAssignableTo(typeof(CommandException));
 
-        public override Exception Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override CommandException Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             try
             {
                 return base.Read(ref reader, typeToConvert, options);
             }
-            catch(InstantiateFailedJsonException e)
+            catch(TypeResolvingFailedJsonException e)
             {
                 return new UnknownCommandException(e.Type, e.Message, e.InnerException);
             }

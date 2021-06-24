@@ -7,7 +7,7 @@ namespace Assistant.Net.Messaging.Exceptions
     /// </summary>
     public class CommandNotRegisteredException : CommandException
     {
-        public CommandNotRegisteredException() : base($"Command wasn't registered.") { }
+        public CommandNotRegisteredException() : base("Command wasn't registered.") { }
         public CommandNotRegisteredException(string message) : base(message) { }
         public CommandNotRegisteredException(Type commandType) : base($"Command '{commandType.Name}' wasn't registered.") { }
     }
