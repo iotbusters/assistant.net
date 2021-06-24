@@ -3,14 +3,16 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Assistant.Net.Abstractions;
+using Assistant.Net.Serialization.Exceptions;
 
 namespace Assistant.Net.Serialization.Converters
 {
     /// <summary>
     ///     Json converter responsible for exception serialization.
     /// </summary>
-    /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-5-0"/> />
-    public class ExceptionJsonConverter : JsonConverter<Exception>
+    /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-5-0"/>
+    public class ExceptionJsonConverter<T> : JsonConverter<T>
+        where T : Exception
     {
         private const string TypePropertyName = "type";
         private const string MessagePropertyName = "message";
@@ -22,9 +24,9 @@ namespace Assistant.Net.Serialization.Converters
             this.typeEncoder = typeEncoder;
 
         public override bool CanConvert(Type typeToConvert) =>
-            typeof(Exception).IsAssignableFrom(typeToConvert);
+            typeof(T).IsAssignableFrom(typeToConvert);
 
-        public override void Write(Utf8JsonWriter writer, Exception value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
 
@@ -33,7 +35,7 @@ namespace Assistant.Net.Serialization.Converters
 
             writer.WriteString(MessagePropertyName, value.Message);
 
-            if (value.InnerException != null)
+            if (value.InnerException != null && CanConvert(value.InnerException.GetType()))
             {
                 writer.WritePropertyName(InnerExceptionPropertyName);
                 JsonSerializer.Serialize(writer, value.InnerException, options);
@@ -42,7 +44,7 @@ namespace Assistant.Net.Serialization.Converters
             writer.WriteEndObject();
         }
 
-        public override Exception Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException("Start object token is expected.");
@@ -57,27 +59,27 @@ namespace Assistant.Net.Serialization.Converters
 
             var type = typeEncoder.Decode(encodedType!);
             if (type == null)
-                throw new JsonException($"Type '{encodedType}' wasn't found.");
+                throw new TypeResolvingFailedJsonException(encodedType, message, inner);
 
             var ctorArguments = new object?[] { message, inner }
                 .Where(x => x != null).Select(x => x!).ToArray();
             try
             {
-                return (Exception)Activator.CreateInstance(type!, ctorArguments)!;
+                return (T)Activator.CreateInstance(type!, ctorArguments)!;
             }
             catch (Exception)
             {
-                throw new JsonException($"Failed to instantiate '{type}'.");
+                throw new TypeResolvingFailedJsonException(encodedType, message, inner);
             }
         }
 
-        private static (string? type, string? message, Exception? inner) ReadExceptionContent(
+        private (string? type, string? message, T? inner) ReadExceptionContent(
             ref Utf8JsonReader reader,
             JsonSerializerOptions options)
         {
             string? encodedType = null;
             string? message = null;
-            Exception? inner = null;
+            T? inner = null;
 
             for (reader.Read(); reader.TokenType != JsonTokenType.EndObject; reader.Read())
             {
@@ -103,7 +105,10 @@ namespace Assistant.Net.Serialization.Converters
                     case InnerExceptionPropertyName:
                         if (reader.TokenType != JsonTokenType.StartObject)
                             throw new JsonException("Start object token is expected.");
-                        inner = JsonSerializer.Deserialize<Exception>(ref reader, options);
+
+                        var exception = JsonSerializer.Deserialize<T>(ref reader, options);
+                        if (exception != null && CanConvert(exception.GetType()))
+                            inner = exception;
                         break;
 
                     // todo: implement

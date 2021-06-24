@@ -109,7 +109,7 @@ namespace Assistant.Net.Serialization.Converters
                 }
             }
 
-            throw new InstantiateFailedJsonException(
+            throw new TypeResolvingFailedJsonException(
                 typeName,
                 $"The type '{type}' failed to deserialize.",
                 new AggregateException(initializationErrors));
@@ -119,27 +119,26 @@ namespace Assistant.Net.Serialization.Converters
         {
             var typeProperties = type.GetProperties().ToImmutableDictionary(x => x.Name, IgnoreCase);
             var typeInitMetadata = (from ctor in type.GetConstructors()
-                let cParams = (from p in ctor.GetParameters() select p.Name!).ToImmutableList()
-                let cParamsFound = (from p in ctor.GetParameters()
-                    let n = p.Name!
-                    let t = p.ParameterType
-                    where typeProperties.ContainsKey(n)
-                    where typeProperties[n].CanRead
-                    where typeProperties[n].PropertyType.IsAssignableFrom(t)
-                          || typeProperties[n].PropertyType.IsAssignableTo(t)
-                    select n).ToImmutableList()
-                let setters = (from n in typeProperties.Keys.Except(cParamsFound, IgnoreCase)
-                    where typeProperties[n].CanRead && typeProperties[n].CanWrite
-                    select n).ToImmutableDictionary(x => x, x => typeProperties[x], IgnoreCase)
-                let getters = setters.Keys.Concat(cParamsFound)
-                    .ToImmutableDictionary(x => x, x => typeProperties[x], IgnoreCase)
-                where cParams.Count == cParamsFound.Count // all ctor parameters are resolvable.
-                select new TypeMetadata(ctor, cParams, getters, setters)).ToImmutableList();
+                                    let cParams = (from p in ctor.GetParameters() select p.Name!).ToImmutableList()
+                                    let cParamsFound = (from p in ctor.GetParameters()
+                                        let n = p.Name!
+                                        let t = p.ParameterType
+                                        where typeProperties.ContainsKey(n)
+                                        where typeProperties[n].CanRead
+                                        where typeProperties[n].PropertyType.IsAssignableFrom(t)
+                                              || typeProperties[n].PropertyType.IsAssignableTo(t)
+                                        select n).ToImmutableList()
+                                    let setters = (from n in typeProperties.Keys.Except(cParamsFound, IgnoreCase)
+                                        where typeProperties[n].CanRead && typeProperties[n].CanWrite
+                                        select n).ToImmutableDictionary(x => x, x => typeProperties[x], IgnoreCase)
+                                    let getters = setters.Keys.Concat(cParamsFound)
+                                        .ToImmutableDictionary(x => x, x => typeProperties[x], IgnoreCase)
+                                    where cParams.Count == cParamsFound.Count // all ctor parameters are resolvable.
+                                    select new TypeMetadata(ctor, cParams, getters, setters)).ToImmutableList();
 
             if (!typeInitMetadata.Any())
                 return null;
             return typeInitMetadata;
-
         }) ?? throw new JsonException($"The type '{typeToConvert}' cannot be serialized or deserialized.");
 
         private static string ReadTypeName(ref Utf8JsonReader reader)

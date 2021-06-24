@@ -56,13 +56,13 @@ It's serialization abstraction with 'basic' and 'advanced' json implementations.
 Further I can be extended with other formats, e.g. protobuf. The main idea is to be able flexibly replace serialization format further.
 
 ```csharp
-// coming soon..
-// services
-//     .AddSerializer(b => b
-//         .AddJson<Model>()
-//         .AddJsonAny());
+services.AddSerializer(b => b
+    .AddJsonConverter<ModelJsonConverter>()
+    .AddJsonType<Model>()
+    .AddJsonTypeAny()
+    );
 
-// var storage = provider.GetRequiredService<ISerializer<Model>>();
+var storage = provider.GetRequiredService<ISerializer<Model>>();
 ```
 
 ### assistant.net.diagnostics
