@@ -16,7 +16,7 @@ namespace Assistant.Net.Messaging
         ///     Pay attention, you need to call explicitly <see cref="Assistant.Net.Messaging.ServiceCollectionExtensions.ConfigureCommandClient"/> to register handlers.
         /// </summary>
         public static IServiceCollection AddCommandClient(this IServiceCollection services) => services
-            .AddStorage(b => b.AddLocal<CachingResult>())
+            .AddStorage(b => b.AddLocal<object, CachingResult>())
             .AddDiagnostics()
             .AddSystemServicesDefaulted()
             .TryAddSingleton<IHandlerFactory, HandlerFactory>()

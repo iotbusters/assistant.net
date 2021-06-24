@@ -1,16 +1,14 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Net.Http.Headers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Messaging.Serialization;
+using Assistant.Net.Serialization.Abstractions;
 
 namespace Assistant.Net.Messaging.Internal
 {
@@ -54,7 +52,7 @@ namespace Assistant.Net.Messaging.Internal
         {
             var commandName = httpContext.GetCommandName();
             return httpContext.GetService<ITypeEncoder>().Decode(commandName)
-                ?? throw new CommandNotFoundException($"Couldn't resolve command type from its name.", commandName);
+                ?? throw new CommandNotFoundException("Couldn't resolve command type from its name.", commandName);
         }
 
         /// <summary>
@@ -64,11 +62,20 @@ namespace Assistant.Net.Messaging.Internal
         public static async Task<object> ReadCommandObject(this HttpContext httpContext)
         {
             var commandType = httpContext.GetCommandType();
-            var options = httpContext.GetService<IOptions<JsonSerializerOptions>>();
-            var lifetime = httpContext.GetService<ISystemLifetime>();
+            var factory = httpContext.GetService<ISerializerFactory>();
+            var serializer = factory.Create(commandType);
 
-            return await httpContext.Request.Body.ReadObject(commandType, options.Value, lifetime.Stopping)
-                ?? throw new CommandContractException("Unexpected null object.");
+            await using var stream = new MemoryStream();
+            await httpContext.Request.Body.CopyToAsync(stream);
+
+            try
+            {
+                return serializer.Deserialize(stream.ToArray());
+            }
+            catch (Exception e)
+            {
+                throw new CommandContractException($"Reading '{commandType.Name}' object has failed.", e);
+            }
         }
 
         /// <summary>
@@ -76,21 +83,21 @@ namespace Assistant.Net.Messaging.Internal
         /// </summary>
         public static async Task WriteCommandResponse(this HttpContext httpContext, int statusCode, object? content = null)
         {
-            var serializerOptions = httpContext.GetService<IOptions<JsonSerializerOptions>>();
-            var lifetime = httpContext.GetService<ISystemLifetime>();
-
             var commandName = httpContext.GetCommandName();
             var correlationId = httpContext.GetCorrelationId();
 
-            httpContext.Response.Headers.Add(HeaderNames.CommandName, commandName);
-            httpContext.Response.Headers.Add(HeaderNames.CorrelationId, correlationId);
+            httpContext.Response.Headers.TryAdd(HeaderNames.CommandName, commandName);
+            httpContext.Response.Headers.TryAdd(HeaderNames.CorrelationId, correlationId);
             httpContext.Response.StatusCode = statusCode;
 
-            if(content != null)
-                await httpContext.Response.WriteAsJsonAsync(
-                    content,
-                    serializerOptions.Value,
-                    lifetime.Stopping);
+            if(content == null)
+                return;
+
+            var factory = httpContext.GetService<ISerializerFactory>();
+            var serializer = factory.Create(content.GetType());
+
+            var bytes = serializer.Serialize(content);
+            await httpContext.Response.Body.WriteAsync(bytes);
         }
 
         /// <summary>
@@ -116,7 +123,13 @@ namespace Assistant.Net.Messaging.Internal
         /// </summary>
         /// <exception cref="InvalidOperationException" />
         public static T GetService<T>(this HttpContext context)
-            where T : class => context
-            .RequestServices.GetRequiredService<T>();
+            where T : class => (T) context.GetService(typeof(T));
+
+        /// <summary>
+        ///     Resolves a <paramref name="serviceType"/> configured in DI.
+        /// </summary>
+        /// <exception cref="InvalidOperationException" />
+        public static object GetService(this HttpContext context, Type serviceType) => context
+            .RequestServices.GetRequiredService(serviceType);
     }
 }

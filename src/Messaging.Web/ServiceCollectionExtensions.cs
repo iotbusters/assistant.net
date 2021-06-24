@@ -1,33 +1,18 @@
-using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Assistant.Net.Messaging.Serialization;
+using Assistant.Net.Serialization;
+using Assistant.Net.Serialization.Abstractions;
 
 namespace Assistant.Net.Messaging
 {
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        ///     Registers default configuration for <see cref="JsonSerializer" />.
+        ///     Registers default <see cref="ISerializer{TValue}" /> configuration.
         /// </summary>
-        public static IServiceCollection AddJsonSerializerOptions(this IServiceCollection services) => services
-            .AddJsonSerializerOptions(delegate { });
-
-        /// <summary>
-        ///     Registers default configuration for <see cref="JsonSerializer" /> customized by <paramref name="configureOptions" /> action.
-        /// </summary>
-        public static IServiceCollection AddJsonSerializerOptions(this IServiceCollection services, Action<JsonSerializerOptions> configureOptions) => services
-            .AddLogging()
-            .AddScoped<CommandExceptionJsonConverter>()
-            .AddTypeEncoder()
-            .Configure<JsonSerializerOptions, CommandExceptionJsonConverter>((options, converter) =>
-             {
-                 options.Converters.Add(converter);
-                 options.PropertyNameCaseInsensitive = true;
-                 options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                 options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-             })
-            .Configure(configureOptions);
+        public static IServiceCollection AddJsonSerialization(this IServiceCollection services) => services
+            .AddSerializer(b => b
+                .AddJsonConverter<CommandExceptionJsonConverter>()
+                .AddJsonTypeAny());
     }
 }

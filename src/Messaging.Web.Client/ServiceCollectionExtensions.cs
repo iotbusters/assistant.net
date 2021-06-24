@@ -6,6 +6,7 @@ using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Extensions;
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Internal;
 
 namespace Assistant.Net.Messaging
 {
@@ -23,7 +24,7 @@ namespace Assistant.Net.Messaging
                 .AddSystemLifetime()
                 .AddDiagnostics()
                 .AddTypeEncoder()
-                .AddJsonSerializerOptions()
+                .AddJsonSerialization()
                 .AddHttpClient<IRemoteCommandClient, RemoteWebCommandClient>((p, c) =>
                 {
                     var options = p.GetRequiredService<IOptions<RemoteWebCommandClientOptions>>().Value;

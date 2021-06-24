@@ -15,7 +15,7 @@ namespace Assistant.Net.Messaging.Web.Tests
         public void GetServiceOfCommandExceptionJsonConverter_resolvesObject()
         {
             var provider = new ServiceCollection()
-                .AddJsonSerializerOptions(_ => { })
+                .AddJsonSerialization()
                 .BuildServiceProvider();
 
             provider.GetService<CommandExceptionJsonConverter>()
@@ -26,7 +26,7 @@ namespace Assistant.Net.Messaging.Web.Tests
         public void GetServiceOfITypeEncoder_resolvesObject()
         {
             var provider = new ServiceCollection()
-                .AddJsonSerializerOptions(_ => { })
+                .AddJsonSerialization()
                 .BuildServiceProvider();
 
             provider.GetService<ITypeEncoder>()
@@ -37,7 +37,7 @@ namespace Assistant.Net.Messaging.Web.Tests
         public void GetServiceOfOptions_resolvesObject()
         {
             var provider = new ServiceCollection()
-                .AddJsonSerializerOptions(_ => { })
+                .AddJsonSerialization()
                 .BuildServiceProvider();
 
             provider.GetService<IOptions<JsonSerializerOptions>>()

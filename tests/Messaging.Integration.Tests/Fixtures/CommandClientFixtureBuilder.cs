@@ -26,7 +26,7 @@ namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
             RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
                 .Configure(b => b.UseRemoteWebCommandHandler()))
-                .ConfigureServices(b => b.AddRemoteWebCommandHandler(o => { }));
+                .ConfigureServices(b => b.AddRemoteWebCommandHandler(b => b.ClearInterceptors()));
         }
 
         public IServiceCollection Services { get; init; }
@@ -47,7 +47,7 @@ namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
         public CommandClientFixtureBuilder AddRemote<THandler>() where THandler : class, IAbstractCommandHandler
         {
             RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureCommandClient(b => b.AddLocal<THandler>().ClearInterceptors()));
+                .ConfigureCommandClient(b => b.AddLocal<THandler>()));
 
             var commandType = typeof(THandler)
                 .GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICommandHandler<,>))

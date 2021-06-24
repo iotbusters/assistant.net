@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging
+namespace Assistant.Net.Messaging.Interceptors
 {
     public class DeferredCachingResult
     {

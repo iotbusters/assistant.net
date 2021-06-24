@@ -8,7 +8,7 @@ namespace Assistant.Net.Messaging.Extensions
     /// <summary>
     ///     Operation tracking for remote command handling.
     /// </summary>
-    internal class OperationHandler : DelegatingHandler
+    public class OperationHandler : DelegatingHandler
     {
         private readonly IDiagnosticFactory diagnosticsFactory;
 

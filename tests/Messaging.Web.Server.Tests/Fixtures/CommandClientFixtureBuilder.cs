@@ -32,7 +32,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
             var provider = new ServiceCollection()
                 .AddSingleton(host)// to dispose all at once
                 .AddSingleton(new HttpClient(host.GetTestServer().CreateHandler()))
-                .AddJsonSerializerOptions()
+                .AddJsonSerialization()
                 .BuildServiceProvider();
             return new(provider);
         }
