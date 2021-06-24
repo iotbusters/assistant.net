@@ -1,9 +1,10 @@
+using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Storage.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
 using NUnit.Framework;
-using Assistant.Net.Storage.Abstractions;
 
-namespace Assistant.Net.Storage.Configuration.Tests
+namespace Assistant.Net.Storage.Tests.Configuration
 {
     public class StorageBuilderExtensionsTests
     {
@@ -15,9 +16,9 @@ namespace Assistant.Net.Storage.Configuration.Tests
         [Test]
         public void AddLocalOfType_registersLocalStorageOfType()
         {
-            new StorageBuilder(services).AddLocal<object>();
+            new StorageBuilder(services).AddLocal<object, object>();
 
-            services.Should().BeEquivalentTo(new
+            services.Should().ContainEquivalentOf(new
             {
                 ServiceType = typeof(IStorageProvider<object>),
                 ImplementationType = new { Name = "LocalStorageProvider`1" }
@@ -29,7 +30,7 @@ namespace Assistant.Net.Storage.Configuration.Tests
         {
             new StorageBuilder(services).AddLocalAny();
 
-            services.Should().BeEquivalentTo(new
+            services.Should().ContainEquivalentOf(new
             {
                 ServiceType = typeof(IStorageProvider<>),
                 ImplementationType = new { Name = "LocalStorageProvider`1" }

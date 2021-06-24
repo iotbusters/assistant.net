@@ -8,7 +8,7 @@ using Assistant.Net.Storage.Configuration;
 using Assistant.Net.Storage.Tests.Mocks;
 using Assistant.Net.Unions;
 
-namespace Assistant.Net.Storage.Internal.Tests
+namespace Assistant.Net.Storage.Tests.Internal
 {
     public class LocalStorageTests
     {
@@ -17,7 +17,7 @@ namespace Assistant.Net.Storage.Internal.Tests
         [SetUp]
         public void Setup() =>
             provider = new ServiceCollection()
-                .AddStorage(builder => builder.AddLocal<TestValue>())
+                .AddStorage(builder => builder.AddLocal<TestKey, TestValue>())
                 .BuildServiceProvider();
 
         private IStorage<TestKey, TestValue> Storage => provider.GetRequiredService<IStorage<TestKey, TestValue>>();
