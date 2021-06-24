@@ -1,12 +1,17 @@
+using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Utils;
 
 namespace Assistant.Net.Storage.Converters
 {
     internal class DefaultValueConverter<TValue> : IValueConverter<TValue>
     {
-        public byte[] Convert(TValue value) => value.Serialize();
+        private readonly ISerializer<TValue> serializer;
 
-        public TValue Convert(byte[] bytes) => bytes.Deserialize<TValue>();
+        public DefaultValueConverter(ISerializer<TValue> serializer) =>
+            this.serializer = serializer;
+
+        public byte[] Convert(TValue value) => serializer.Serialize(value);
+
+        public TValue Convert(byte[] bytes) => serializer.Deserialize(bytes);
     }
 }

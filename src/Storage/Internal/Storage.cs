@@ -10,19 +10,20 @@ namespace Assistant.Net.Storage.Internal
     internal class Storage<TKey, TValue> : IStorage<TKey, TValue>
     {
         private readonly IStorageProvider<TValue> backedStorage;
-        private readonly IKeyConverter<TKey> keyConverter;
         private readonly IValueConverter<TValue> valueConverter;
+        private readonly IKeyConverter<TKey> keyConverter;
 
         public Storage(
             IServiceProvider provider,
-            IKeyConverter<TKey> keyConverter,
-            IValueConverter<TValue> valueConverter)
+            IKeyConverter<TKey> keyConverter)
         {
-            this.backedStorage = provider.GetService<IStorageProvider<TValue>>()
-                                 ?? throw new InvalidOperationException($"Storage of '{typeof(TValue).Name}' wasn't properly configured.");
+            this.backedStorage = provider.GetService<IStorageProvider<TValue>>() ?? throw ImproperlyConfiguredException;
+            this.valueConverter = provider.GetService<IValueConverter<TValue>>() ?? throw ImproperlyConfiguredException;
             this.keyConverter = keyConverter;
-            this.valueConverter = valueConverter;
         }
+
+        private static InvalidOperationException ImproperlyConfiguredException =>
+            new InvalidOperationException($"Storage of '{typeof(TValue).Name}' wasn't properly configured.");
 
         public Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory)
         {

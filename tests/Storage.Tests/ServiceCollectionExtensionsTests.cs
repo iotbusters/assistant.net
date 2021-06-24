@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Assistant.Net.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
 using NUnit.Framework;
@@ -12,7 +13,7 @@ namespace Assistant.Net.Storage.Tests
     public class ServiceCollectionExtensionsTests
     {
         private static IServiceProvider Provider => new ServiceCollection()
-            .AddStorage(_ => { })
+            .AddStorage(b => b.AddLocal<TestKey, object>())
             .BuildServiceProvider();
 
         [Test]
@@ -32,23 +33,25 @@ namespace Assistant.Net.Storage.Tests
         [Test]
         public void GetServiceOfIStorage_null_StorageOfUnknownValue()
         {
-            Provider.GetService<IStorageProvider<object>>()
+            Provider.GetService<IStorageProvider<DateTime>>()
                 .Should().BeNull();
         }
 
         [Test]
         public void GetServiceOfIStorage_throw_StorageOfUnknownValue()
         {
-            Provider.Invoking(x => x.GetService<IStorage<object, object>>())
+            Provider.Invoking(x => x.GetService<IStorage<object, DateTime>>())
                 .Should().Throw<InvalidOperationException>()
-                .WithMessage("Storage of 'Object' wasn't properly configured.");
+                .WithMessage("Storage of 'DateTime' wasn't properly configured.");
         }
 
         [Test]
         public async Task TryGet_Some_FromStorageProviderOfTheSameValue()
         {
             var provider = new ServiceCollection()
-                .AddStorage(b => b.Services.AddSingleton<IStorageProvider<TestValue>>(new TestStorage<TestValue>()))
+                .AddSingleton<IStorageProvider<TestValue>>(new TestStorage<TestValue>())
+                .AddSerializer(b => b.AddJsonType<TestKey>().AddJsonType<TestValue>())
+                .AddStorage(b => { })
                 .BuildServiceProvider();
 
             var storage1 = provider.GetRequiredService<IStorage<TestKey, TestValue>>();
@@ -65,9 +68,10 @@ namespace Assistant.Net.Storage.Tests
         public async Task TryGet_None_FromStorageOfAnotherValue()
         {
             var provider = new ServiceCollection()
-                .AddStorage(b => b.Services
-                    .AddSingleton<IStorageProvider<object>>(new TestStorage<object>())
-                    .AddSingleton<IStorageProvider<string>>(new TestStorage<string>()))
+                .AddSingleton<IStorageProvider<object>>(new TestStorage<object>())
+                .AddSingleton<IStorageProvider<string>>(new TestStorage<string>())
+                .AddSerializer(b => b.AddJsonType<TestKey>().AddJsonType<object>().AddJsonType<string>())
+                .AddStorage(b => { })
                 .BuildServiceProvider();
 
             var storage1 = provider.GetRequiredService<IStorage<TestKey, object>>();

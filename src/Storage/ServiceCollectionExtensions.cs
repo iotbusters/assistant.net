@@ -1,5 +1,6 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
+using Assistant.Net.Serialization;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Internal;
 using Assistant.Net.Storage.Converters;
@@ -17,6 +18,7 @@ namespace Assistant.Net.Storage
         {
             configureOptions(new StorageBuilder(services));
             return services
+                .AddSerializer(b => b.AddJsonType<StoreKey>())
                 .AddTypeEncoder()
                 .TryAddScoped(typeof(IStorage<,>), typeof(Storage<,>))
                 .TryAddScoped(typeof(IPartitionedStorage<,>), typeof(PartitionedStorage<,>))
