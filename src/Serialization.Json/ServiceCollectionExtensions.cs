@@ -1,28 +1,31 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Assistant.Net.Serialization.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
+using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Configuration;
 using Assistant.Net.Serialization.Converters;
+using Assistant.Net.Serialization.Internal;
 
 namespace Assistant.Net.Serialization
 {
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        ///     Registers JSON serializer by default.
+        ///     Registers default serializer services only.
+        ///     Pay attention, all serializing types should be previously registered.
         /// </summary>
-        public static IServiceCollection AddJsonSerialization(this IServiceCollection services) => services
-            .AddSerializer(b => b.AddJsonAny());
+        public static IServiceCollection AddSerializer(this IServiceCollection services) => services
+            .AddSerializer(delegate { });
 
         /// <summary>
         ///     Registers default configuration for <see cref="ISerializer{TValue}" /> customized by <paramref name="configure" /> action.
         /// </summary>
         public static IServiceCollection AddSerializer(this IServiceCollection services, Action<SerializerBuilder> configure) => services
             .AddTypeEncoder()
-            .TryAddScoped<ExceptionJsonConverter>()
-            .TryAddScoped<AdvancedJsonConverter>()
+            .TryAddSingleton<ISerializerFactory, DefaultSerializerFactory>()
+            .TryAddSingleton<ExceptionJsonConverter<Exception>>()
+            .TryAddSingleton<AdvancedJsonConverter>()
             .Configure<JsonSerializerOptions>(options =>
             {
                 options.PropertyNameCaseInsensitive = true;
@@ -31,9 +34,9 @@ namespace Assistant.Net.Serialization
                 options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, false));
                 options.Converters.Add(new EnumerableJsonConverter());
             })
-            .Configure<JsonSerializerOptions, ExceptionJsonConverter>((options, converter) => options.Converters.Add(converter))
-            .Configure<JsonSerializerOptions, AdvancedJsonConverter>((options, converter) => options.Converters.Add(converter))
-            .ConfigureSerializer(configure);
+            .ConfigureSerializer(configure)
+            .Configure<JsonSerializerOptions, ExceptionJsonConverter<Exception>>((options, converter) => options.Converters.Add(converter))
+            .Configure<JsonSerializerOptions, AdvancedJsonConverter>((options, converter) => options.Converters.Add(converter));
 
         /// <summary>
         ///     Configures <see cref="ISerializer{TValue}" /> implementations for specific values.

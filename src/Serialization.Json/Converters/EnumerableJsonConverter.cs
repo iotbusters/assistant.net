@@ -46,7 +46,7 @@ namespace Assistant.Net.Serialization.Converters
             }
             catch (Exception e)
             {
-                throw new InstantiateFailedJsonException(typeToConvert.Name, $"Failed to instantiate type '{typeToConvert}'.", e);
+                throw new TypeResolvingFailedJsonException(typeToConvert.Name, $"Failed to instantiate type '{typeToConvert}'.", e);
             }
         }
 
