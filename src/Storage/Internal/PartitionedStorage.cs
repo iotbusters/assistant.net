@@ -26,16 +26,16 @@ namespace Assistant.Net.Storage.Internal
 
         public async Task<long> Add(TKey key, TValue value)
         {
-            var storeKey = keyConverter.Convert(key);
-            var storeValue = valueConverter.Convert(value);
+            var storeKey = await keyConverter.Convert(key);
+            var storeValue = await valueConverter.Convert(value);
             return await backedStorage.Add(storeKey, storeValue);
         }
 
         public async Task<Option<TValue>> TryGet(TKey key, long index)
         {
-            var storeKey = keyConverter.Convert(key);
+            var storeKey = await keyConverter.Convert(key);
             var value = await backedStorage.TryGet(storeKey, index);
-            return value.Map(valueConverter.Convert);
+            return await value.Map(valueConverter.Convert);
         }
 
         public IAsyncEnumerable<TKey> GetKeys() => backedStorage.GetKeys().Select(keyConverter.Convert);
