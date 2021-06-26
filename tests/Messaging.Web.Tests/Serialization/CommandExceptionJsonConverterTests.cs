@@ -105,7 +105,6 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
         }
 
         private static IServiceProvider Provider { get; } = new ServiceCollection()
-            .AddSingleton<ILogger<CommandExceptionJsonConverter>>(NullLogger<CommandExceptionJsonConverter>.Instance)
             .AddTypeEncoder()
             .AddTransient<CommandExceptionJsonConverter>()
             .BuildServiceProvider();

@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using FluentAssertions;
+using NUnit.Framework;
 using Assistant.Net.Serialization.Converters;
 using Assistant.Net.Serialization.Json.Tests.Mocks;
-using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using NUnit.Framework;
 
 namespace Assistant.Net.Serialization.Json.Tests.Converters
 {
@@ -46,17 +46,17 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
         private static IEnumerable<TestCaseData> SupportedObjects()
         {
             yield return new TestCaseData(
-                new TestObjectWithCtorInitialization(
-                    TestEnum.A,
-                    "test",
-                    11,
-                    11.1f,
-                    11.11m,
-                    DateTime.Now,
-                    new int?[] {1},
-                    new[] {"test"}.AsEnumerable(),
-                    new TestClass?[] {new TestClass(DateTime.Now)}))
-                {TestName = "InitializeByCtor" };
+                    new TestObjectWithCtorInitialization(
+                        TestEnum.A,
+                        "test",
+                        11,
+                        11.1f,
+                        11.11m,
+                        DateTime.Now,
+                        new int?[] {1},
+                        new[] {"test"}.AsEnumerable(),
+                        new[] {new TestClass(DateTime.Now)}))
+                {TestName = "InitializeByCtor"};
 
             yield return new TestCaseData(
                     new TestObjectWithCtorInitialization(
@@ -68,8 +68,8 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
                         null,
                         new int?[] {1},
                         new[] {"test"}.AsEnumerable(),
-                        new TestClass?[] {new TestClass(DateTime.Now)}))
-                {TestName = "InitializeByCtor_nullable" };
+                        new[] {new TestClass(DateTime.Now)}))
+                {TestName = "InitializeByCtor_nullable"};
 
             yield return new TestCaseData(
                     new TestObjectWithCtorInitialization(
@@ -81,8 +81,8 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
                         DateTime.Now,
                         new int?[] {null, 11},
                         new[] {null, "test"}.AsEnumerable(),
-                        new TestClass?[] {null, new TestClass(DateTime.Now)}))
-                {TestName = "InitializeByCtor_nullableArrays" };
+                        new[] {null, new TestClass(DateTime.Now)}))
+                {TestName = "InitializeByCtor_nullableArrays"};
 
             yield return new TestCaseData(
                     new TestObjectWithPropertyInitialization
@@ -96,7 +96,7 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
                         StringArray = new[] {"test"}.AsEnumerable(),
                         ObjectArray = new[] {new TestClass(DateTime.Now)}
                     })
-                {TestName = "InitializeBySetters" };
+                {TestName = "InitializeBySetters"};
 
             yield return new TestCaseData(
                     new TestObjectWithPropertyInitialization
@@ -104,7 +104,7 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
                         StringArray = new[] {"test"}.AsEnumerable(),
                         ObjectArray = new[] {new TestClass(DateTime.Now)}
                     })
-                {TestName = "InitializeBySetters_nullable" };
+                {TestName = "InitializeBySetters_nullable"};
 
             yield return new TestCaseData(
                     new TestObjectWithPropertyInitialization
@@ -117,31 +117,31 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
                         DateTime = DateTime.Now,
                         IntegerArray = new int?[] {null, 11},
                         StringArray = new[] {null, "test"}.AsEnumerable(),
-                        ObjectArray = new TestClass?[] {null, new TestClass(DateTime.Now)}
+                        ObjectArray = new[] {null, new TestClass(DateTime.Now)}
                     })
-                {TestName = "InitializeBySetters_nullableArrays" };
+                {TestName = "InitializeBySetters_nullableArrays"};
 
             yield return new TestCaseData(
                     new TestObjectWithMixedInitialization(TestEnum.A)
                     {
                         String = "test"
                     })
-                {TestName = "InitializeByCtorAndSetters" };
+                {TestName = "InitializeByCtorAndSetters"};
 
             yield return new TestCaseData(
-                    new TestObjectWithMixedInitialization((TestEnum?)null)
+                    new TestObjectWithMixedInitialization(null)
                     {
                         String = "test"
                     })
-                { TestName = "InitializeByCtorAndSetters_defaultValue" };
+                {TestName = "InitializeByCtorAndSetters_defaultValue"};
 
             yield return new TestCaseData(
-                    new TestObjectWithTypeCastingInitialization(TestEnum.A, 11, 12, new[] { "test" }))
-            { TestName = "Initialize_typeCasting" };
+                    new TestObjectWithTypeCastingInitialization(TestEnum.A, 11, 12, new[] {"test"}))
+                {TestName = "Initialize_typeCasting"};
 
             yield return new TestCaseData(
-                    new TestObjectWithTypeCastingInitialization(TestEnum.A, null, 12, new[] { "test" }))
-            { TestName = "Initialize_typeCastingAndDefaultValue" };
+                    new TestObjectWithTypeCastingInitialization(TestEnum.A, null, 12, new[] {"test"}))
+                {TestName = "Initialize_typeCastingAndDefaultValue"};
         }
     }
 }
