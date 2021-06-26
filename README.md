@@ -6,6 +6,8 @@ Currently, it's in design and implement stage, so the repository contains mostly
 
 Hopefully it will be useful for someone once main functional is ready.
 
+Please join also this [small survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
+
 ## Releases
 
 The paragraph isn't ready yet.
