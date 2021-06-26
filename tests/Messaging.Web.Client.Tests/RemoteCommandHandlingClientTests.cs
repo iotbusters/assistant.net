@@ -20,13 +20,13 @@ namespace Assistant.Net.Messaging.Web.Client.Tests
         private static readonly TestResponse SuccessResponse = new(true);
         private static readonly CommandFailedException FailedResponse = new("test");
 
-        private static byte[] Binary<T>(T value) => Provider.GetRequiredService<ISerializer<T>>().Serialize(value);
+        private static Task<byte[]> Binary<T>(T value) => Provider.GetRequiredService<ISerializer<T>>().Serialize(value);
         private static readonly IServiceProvider Provider = new ServiceCollection().AddJsonSerialization().BuildServiceProvider();
 
         [Test]
         public async Task DelegateHandling_sendsHttpRequestMessage()
         {
-            var handler = new TestDelegatingHandler(Binary(SuccessResponse), HttpStatusCode.OK);
+            var handler = new TestDelegatingHandler(await Binary(SuccessResponse), HttpStatusCode.OK);
             var client = Client(handler);
 
             await client.DelegateHandling(ValidCommand);
@@ -34,14 +34,14 @@ namespace Assistant.Net.Messaging.Web.Client.Tests
             handler.Request.Should().BeEquivalentTo(new HttpRequestMessage(HttpMethod.Post, RequestUri)
             {
                 Headers = { { HeaderNames.CommandName, nameof(TestScenarioCommand) } },
-                Content = new ByteArrayContent(Binary(SuccessResponse))
+                Content = new ByteArrayContent(await Binary(SuccessResponse))
             });
         }
 
         [Test]
         public async Task DelegateHandling_returnsTestResponse()
         {
-            var handler = new TestDelegatingHandler(Binary(SuccessResponse), HttpStatusCode.OK);
+            var handler = new TestDelegatingHandler(await Binary(SuccessResponse), HttpStatusCode.OK);
             var client = Client(handler);
 
             var response = await client.DelegateHandling(ValidCommand);
@@ -52,7 +52,7 @@ namespace Assistant.Net.Messaging.Web.Client.Tests
         [Test]
         public async Task DelegateHandling_throwCommandFailedException()
         {
-            var handler = new TestDelegatingHandler(Binary(FailedResponse), HttpStatusCode.InternalServerError);
+            var handler = new TestDelegatingHandler(await Binary(FailedResponse), HttpStatusCode.InternalServerError);
             var client = Client(handler);
 
            await client.Awaiting(x => x.DelegateHandling(ValidCommand))

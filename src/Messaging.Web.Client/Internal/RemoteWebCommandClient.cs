@@ -1,7 +1,5 @@
 using System.IO;
 using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
@@ -38,26 +36,22 @@ namespace Assistant.Net.Messaging.Internal
         {
             var commandType = command.GetType();
             var requestSerializer = factory.Create(commandType);
-            var responseSerializer = factory.Create<TResponse>();
+
+            var requestStream = new MemoryStream();
+            await requestSerializer.Serialize(requestStream, command);
+            requestStream.Position = 0;
 
             var commandName = typeEncoder.Encode(commandType);
-            var requestBytes = requestSerializer.Serialize(command);
 
             var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Post, "")
             {
-                Headers =
-                { 
-                    { HeaderNames.CommandName, commandName }
-                },
-                Content = new ByteArrayContent(requestBytes)
+                Headers = {{HeaderNames.CommandName, commandName}},
+                Content = new StreamContent(requestStream)
             }, lifetime.Stopping);
 
-            var stream = await response.Content.ReadAsStreamAsync(lifetime.Stopping);
-
-            await using var memory = new MemoryStream();
-            await stream.CopyToAsync(memory);
-
-            var responseObject = responseSerializer.Deserialize(memory.ToArray());
+            var responseSerializer = factory.Create(typeof(TResponse));
+            var responseStream = await response.Content.ReadAsStreamAsync(lifetime.Stopping);
+            var responseObject = (TResponse) await responseSerializer.Deserialize(responseStream);
             return responseObject!;
         }
     }

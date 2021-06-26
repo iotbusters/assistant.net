@@ -65,12 +65,9 @@ namespace Assistant.Net.Messaging.Internal
             var factory = httpContext.GetService<ISerializerFactory>();
             var serializer = factory.Create(commandType);
 
-            await using var stream = new MemoryStream();
-            await httpContext.Request.Body.CopyToAsync(stream);
-
             try
             {
-                return serializer.Deserialize(stream.ToArray());
+                return await serializer.Deserialize(httpContext.Request.Body);
             }
             catch (Exception e)
             {
@@ -81,7 +78,7 @@ namespace Assistant.Net.Messaging.Internal
         /// <summary>
         ///     Writes the <paramref name="content"/> object to response and set <paramref name="statusCode"/>.
         /// </summary>
-        public static async Task WriteCommandResponse(this HttpContext httpContext, int statusCode, object? content = null)
+        public static Task WriteCommandResponse(this HttpContext httpContext, int statusCode, object? content = null)
         {
             var commandName = httpContext.GetCommandName();
             var correlationId = httpContext.GetCorrelationId();
@@ -91,13 +88,11 @@ namespace Assistant.Net.Messaging.Internal
             httpContext.Response.StatusCode = statusCode;
 
             if(content == null)
-                return;
+                return Task.CompletedTask;
 
             var factory = httpContext.GetService<ISerializerFactory>();
             var serializer = factory.Create(content.GetType());
-
-            var bytes = serializer.Serialize(content);
-            await httpContext.Response.Body.WriteAsync(bytes);
+            return serializer.Serialize(httpContext.Response.Body, content);
         }
 
         /// <summary>
