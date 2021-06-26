@@ -1,4 +1,7 @@
-﻿namespace Assistant.Net.Serialization.Abstractions
+﻿using System.IO;
+using System.Threading.Tasks;
+
+namespace Assistant.Net.Serialization.Abstractions
 {
     /// <summary>
     ///     An abstraction over binary serializer of <typeparamref name="TValue" />.
@@ -7,13 +10,13 @@
     public interface ISerializer<TValue>
     {
         /// <summary>
-        ///     Serializes <paramref name="value"/> object to binary.
+        ///     Serializes <paramref name="value"/> object to <paramref name="stream"/>.
         /// </summary>
-        byte[] Serialize(TValue value);
+        Task Serialize(Stream stream, TValue value);
 
         /// <summary>
-        ///     Deserializes binary to <typeparamref name="TValue" /> object.
+        ///     Deserializes <paramref name="stream"/> to <typeparamref name="TValue" /> object.
         /// </summary>
-        TValue Deserialize(byte[] bytes);
+        Task<TValue> Deserialize(Stream stream);
     }
 }

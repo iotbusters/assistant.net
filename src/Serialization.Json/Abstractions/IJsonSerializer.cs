@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace Assistant.Net.Serialization.Abstractions
 {
@@ -8,13 +10,13 @@ namespace Assistant.Net.Serialization.Abstractions
     public interface IJsonSerializer
     {
         /// <summary>
-        ///     Serializes <paramref name="value"/> object to binary JSON.
+        ///     Serializes <paramref name="value"/> object as JSON to <paramref name="stream"/>.
         /// </summary>
-        byte[] Serialize(object value);
+        Task Serialize(Stream stream, object value);
 
         /// <summary>
-        ///     Deserializes binary JSON to <paramref name="type" /> object.
+        ///     Deserializes JSON from <paramref name="stream"/> to <paramref name="type" /> object.
         /// </summary>
-        object Deserialize(byte[] bytes, Type type);
+        Task<object> Deserialize(Stream stream, Type type);
     }
 }
