@@ -29,10 +29,10 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 .AddRemote<TestFailCommandHandler>()
                 .Create();
 
-            var request = Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var request = await Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
             var response = await fixture.Client.SendAsync(request);
 
-            response.Should().BeEquivalentTo(new HttpResponseMessage()
+            response.Should().BeEquivalentTo(new HttpResponseMessage
             {
                 StatusCode = HttpStatusCode.Accepted,
                 RequestMessage = request,
@@ -52,7 +52,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 .AddRemote<TestFailCommandHandler>()
                 .Create();
 
-            var request = Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var request = await Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
             var response = await fixture.Client.SendAsync(request);
 
             response.Should().BeEquivalentTo(new
@@ -77,7 +77,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 .AddRemote<TestFailCommandHandler>()
                 .Create();
 
-            var request = Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var request = await Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
             var response = await fixture.Client.SendAsync(request);
 
             response.Should().BeEquivalentTo(new
@@ -102,7 +102,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 .AddRemote<TestFailCommandHandler>()
                 .Create();
 
-            var request = Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var request = await Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
             var response = await fixture.Client.SendAsync(request);
 
             response.Should().BeEquivalentTo(new
@@ -127,7 +127,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 .AddRemote<TestFailCommandHandler>()
                 .Create();
 
-            var request = Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var request = await Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
             var response = await fixture.Client.SendAsync(request);
 
             response.Should().BeEquivalentTo(new
@@ -144,7 +144,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
             responseObject.Should().BeOfType<TestCommandException>();
         }
 
-        private static HttpRequestMessage Request<T>(T command) where T : IAbstractCommand =>
+        private static async Task<HttpRequestMessage> Request<T>(T command) where T : IAbstractCommand =>
             new(HttpMethod.Post, "http://localhost/command")
             {
                 Headers =
@@ -152,10 +152,11 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                     {HeaderNames.CommandName, command.GetType().Name},
                     {HeaderNames.CorrelationId, CorrelationId},
                 },
-                Content = new ByteArrayContent(Binary(command))
+                Content = new ByteArrayContent(await Binary(command))
             };
 
-        private static byte[] Binary<T>(T value) => Provider.GetRequiredService<ISerializer<T>>().Serialize(value);
+        private static Task<byte[]> Binary<T>(T value) => Provider.GetRequiredService<ISerializer<T>>().Serialize(value);
+
         private static readonly IServiceProvider Provider = new ServiceCollection().AddJsonSerialization().BuildServiceProvider();
     }
 }

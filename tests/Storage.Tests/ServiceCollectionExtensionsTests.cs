@@ -77,7 +77,6 @@ namespace Assistant.Net.Storage.Tests
             var storage1 = provider.GetRequiredService<IStorage<TestKey, object>>();
             var storage2 = provider.GetRequiredService<IStorage<TestKey, string>>();
 
-            var irrelevant = Array.Empty<byte>();
             var key = new TestKey("key");
             await storage1.AddOrGet(key, "value");
             var value = await storage2.TryGet(key);

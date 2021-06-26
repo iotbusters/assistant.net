@@ -43,10 +43,10 @@ namespace Assistant.Net.Messaging.Extensions
 
         private async Task<CommandException> ReadException(HttpResponseMessage response, CancellationToken cancellationToken)
         {
-            var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+            var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             try
             {
-                return serializer.Deserialize(bytes);
+                return await serializer.Deserialize(stream);
             }
             catch (Exception e)
             {
