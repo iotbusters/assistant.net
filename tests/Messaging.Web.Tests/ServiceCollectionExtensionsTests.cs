@@ -1,11 +1,8 @@
-
-using System.Text.Json;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using FluentAssertions;
-using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Serialization;
+using Assistant.Net.Serialization.Abstractions;
 
 namespace Assistant.Net.Messaging.Web.Tests
 {
@@ -23,24 +20,13 @@ namespace Assistant.Net.Messaging.Web.Tests
         }
 
         [Test]
-        public void GetServiceOfITypeEncoder_resolvesObject()
+        public void GetServiceOfSerializer_resolvesObject()
         {
             var provider = new ServiceCollection()
                 .AddJsonSerialization()
                 .BuildServiceProvider();
 
-            provider.GetService<ITypeEncoder>()
-                .Should().NotBeNull();
-        }
-
-        [Test]
-        public void GetServiceOfOptions_resolvesObject()
-        {
-            var provider = new ServiceCollection()
-                .AddJsonSerialization()
-                .BuildServiceProvider();
-
-            provider.GetService<IOptions<JsonSerializerOptions>>()
+            provider.GetService<ISerializer<object>>()
                 .Should().NotBeNull();
         }
     }
