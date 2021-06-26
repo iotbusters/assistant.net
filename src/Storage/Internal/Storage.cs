@@ -23,40 +23,45 @@ namespace Assistant.Net.Storage.Internal
         }
 
         private static InvalidOperationException ImproperlyConfiguredException =>
-            new InvalidOperationException($"Storage of '{typeof(TValue).Name}' wasn't properly configured.");
+            new($"Storage of '{typeof(TValue).Name}' wasn't properly configured.");
 
-        public Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory)
+        public async Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory)
         {
-            var storeKey = keyConverter.Convert(key);
-            return backedStorage
-                .AddOrGet(storeKey, _ => addFactory(key).MapSuccess(valueConverter.Convert))
-                .MapSuccess(x => valueConverter.Convert(x));
+            var storeKey = await keyConverter.Convert(key);
+            var value = await backedStorage.AddOrGet(storeKey, async _ => await valueConverter.Convert(await addFactory(key)));
+            return await valueConverter.Convert(value);
         }
 
-        public Task<TValue> AddOrUpdate(
+        public async Task<TValue> AddOrUpdate(
             TKey key,
             Func<TKey, Task<TValue>> addFactory,
             Func<TKey, TValue, Task<TValue>> updateFactory)
         {
-            var storeKey = keyConverter.Convert(key);
-            return backedStorage
-                .AddOrUpdate(
+            var storeKey = await keyConverter.Convert(key);
+            var value = await backedStorage.AddOrUpdate(
                     storeKey,
-                    _ => addFactory(key).MapSuccess(valueConverter.Convert),
-                    (_, old) => updateFactory(key, valueConverter.Convert(old)).MapSuccess(valueConverter.Convert))
-                .MapSuccess(x => valueConverter.Convert(x));
+                    async _ => await valueConverter.Convert(await addFactory(key)),
+                    async (_, old) =>
+                    {
+                        var oldValue = await valueConverter.Convert(old);
+                        var newValue = await updateFactory(key, oldValue);
+                        return await valueConverter.Convert(newValue);
+                    });
+            return await valueConverter.Convert(value);
         }
 
-        public Task<Option<TValue>> TryGet(TKey key)
+        public async Task<Option<TValue>> TryGet(TKey key)
         {
-            var storeKey = keyConverter.Convert(key);
-            return backedStorage.TryGet(storeKey).Map(valueConverter.Convert);
+            var storeKey = await keyConverter.Convert(key);
+            var value = await backedStorage.TryGet(storeKey);
+            return await value.Map(valueConverter.Convert);
         }
 
-        public Task<Option<TValue>> TryRemove(TKey key)
+        public async Task<Option<TValue>> TryRemove(TKey key)
         {
-            var storeKey = keyConverter.Convert(key);
-            return backedStorage.TryRemove(storeKey).MapSuccess(x => x.Map(valueConverter.Convert));
+            var storeKey = await keyConverter.Convert(key);
+            var value = await backedStorage.TryRemove(storeKey);
+            return await value.Map(valueConverter.Convert);
         }
 
         public IAsyncEnumerable<TKey> GetKeys() => 

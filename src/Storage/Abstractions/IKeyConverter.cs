@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+
 namespace Assistant.Net.Storage.Abstractions
 {
     /// <summary>
@@ -15,13 +17,13 @@ namespace Assistant.Net.Storage.Abstractions
         ///     Converts <paramref name="key"/> to internal key presentation object.
         /// </summary>
         /// <param name="key">Specific key object.</param>
-        StoreKey Convert(TKey key);
+        Task<StoreKey> Convert(TKey key);
 
 
         /// <summary>
         ///     Converts <paramref name="key"/> to specific key object.
         /// </summary>
         /// <param name="key">Internal key object.</param>
-        TKey Convert(StoreKey key);
+        Task<TKey> Convert(StoreKey key);
     }
 }

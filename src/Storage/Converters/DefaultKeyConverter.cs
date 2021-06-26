@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Assistant.Net.Abstractions;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Utils;
@@ -15,10 +16,10 @@ namespace Assistant.Net.Storage.Converters
             this.converter = converter;
         }
 
-        public StoreKey Convert(TKey key) =>
-            new(key.GetSha1(), KeyType, converter.Convert(key));
+        public Task<StoreKey> Convert(TKey key) =>
+            converter.Convert(key).MapSuccess(x => new StoreKey(key.GetSha1(), KeyType, x));
 
-        public TKey Convert(StoreKey key)
+        public Task<TKey> Convert(StoreKey key)
         {
             if (key.Type != KeyType)
                 throw new ArgumentException($"Expected key type '{KeyType}' instead of '{key.Type}'.");

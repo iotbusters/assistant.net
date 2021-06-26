@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Storage.Abstractions;
 
@@ -10,8 +11,8 @@ namespace Assistant.Net.Storage.Converters
         public DefaultValueConverter(ISerializer<TValue> serializer) =>
             this.serializer = serializer;
 
-        public byte[] Convert(TValue value) => serializer.Serialize(value);
+        public Task<byte[]> Convert(TValue value) => serializer.Serialize(value);
 
-        public TValue Convert(byte[] bytes) => serializer.Deserialize(bytes);
+        public Task<TValue> Convert(byte[] bytes) => serializer.Deserialize(bytes);
     }
 }
