@@ -13,7 +13,7 @@ namespace Assistant.Net.Serialization
     {
         /// <summary>
         ///     Registers default serializer services only.
-        ///     Pay attention, all serializing types should be previously registered.
+        ///     Pay attention, all serializing types should be separately registered.
         /// </summary>
         public static IServiceCollection AddSerializer(this IServiceCollection services) => services
             .AddSerializer(delegate { });
@@ -23,7 +23,8 @@ namespace Assistant.Net.Serialization
         /// </summary>
         public static IServiceCollection AddSerializer(this IServiceCollection services, Action<SerializerBuilder> configure) => services
             .AddTypeEncoder()
-            .TryAddSingleton<ISerializerFactory, DefaultSerializerFactory>()
+            .TryAddSingleton<ISerializerFactory, SerializerFactory>()
+            .TryAddScoped(typeof(ISerializer<>), typeof(DefaultSerializer<>))
             .TryAddSingleton<ExceptionJsonConverter<Exception>>()
             .TryAddSingleton<AdvancedJsonConverter>()
             .Configure<JsonSerializerOptions>(options =>

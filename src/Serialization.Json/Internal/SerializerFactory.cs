@@ -4,11 +4,11 @@ using Assistant.Net.Serialization.Exceptions;
 
 namespace Assistant.Net.Serialization.Internal
 {
-    public class DefaultSerializerFactory : ISerializerFactory
+    public class SerializerFactory : ISerializerFactory
     {
         private readonly IServiceProvider provider;
 
-        public DefaultSerializerFactory(IServiceProvider provider) =>
+        public SerializerFactory(IServiceProvider provider) =>
             this.provider = provider;
 
         public ISerializer<object> Create(Type serializingType)
