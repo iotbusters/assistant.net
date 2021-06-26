@@ -11,10 +11,8 @@ namespace Assistant.Net.Serialization.Internal
         public TypedJsonSerializer(IJsonSerializer serializer) =>
             this.serializer = serializer;
 
-        public Task Serialize(Stream stream, TValue value) =>
-            serializer.Serialize(stream, value!);
+        public Task Serialize(Stream stream, TValue value) => serializer.Serialize(stream, value!);
 
-        public Task<TValue> Deserialize(Stream stream) =>
-            serializer.Deserialize(stream, typeof(TValue)).MapSuccess(x => (TValue) x);
+        public Task<TValue> Deserialize(Stream stream) => serializer.Deserialize(stream, typeof(TValue)).MapSuccess(x => (TValue) x);
     }
 }
