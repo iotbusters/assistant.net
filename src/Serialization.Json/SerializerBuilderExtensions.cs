@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Configuration;
 using Assistant.Net.Serialization.Internal;
-using JsonSerializer = Assistant.Net.Serialization.Internal.JsonSerializer;
 
 namespace Assistant.Net.Serialization
 {
@@ -22,7 +21,7 @@ namespace Assistant.Net.Serialization
             var implementationType = typeof(TypedJsonSerializer<>).MakeGenericType(serializingType);
 
             builder.Services
-                .TryAddSingleton<IJsonSerializer, JsonSerializer>()
+                .TryAddSingleton<IJsonSerializer, DefaultJsonSerializer>()
                 .ReplaceScoped(serviceType, implementationType);
 
             return builder;
@@ -31,7 +30,7 @@ namespace Assistant.Net.Serialization
         public static SerializerBuilder AddJsonTypeAny(this SerializerBuilder builder)
         {
             builder.Services
-                .TryAddSingleton<IJsonSerializer, JsonSerializer>()
+                .TryAddSingleton<IJsonSerializer, DefaultJsonSerializer>()
                 .ReplaceScoped(typeof(ISerializer<>), typeof(TypedJsonSerializer<>));
             return builder;
         }

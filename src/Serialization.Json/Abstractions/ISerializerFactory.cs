@@ -3,7 +3,7 @@
 namespace Assistant.Net.Serialization.Abstractions
 {
     /// <summary>
-    ///     An abstraction over binary serializer factory.
+    ///     An abstraction over serializer factory.
     /// </summary>
     public interface ISerializerFactory
     {
@@ -11,10 +11,5 @@ namespace Assistant.Net.Serialization.Abstractions
         ///     Creates a serializer of <paramref name="serializingType"/>.
         /// </summary>
         ISerializer<object> Create(Type serializingType);
-
-        /// <summary>
-        ///     Creates a serializer of <typeparamref name="TValue"/>.
-        /// </summary>
-        ISerializer<TValue> Create<TValue>();
     }
 }
