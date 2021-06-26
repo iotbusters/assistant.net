@@ -7,7 +7,6 @@ using Microsoft.Extensions.Options;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Messaging.Interceptors;
 
 namespace Assistant.Net.Messaging.Internal
 {
@@ -37,43 +36,41 @@ namespace Assistant.Net.Messaging.Internal
             var provider = scope.ServiceProvider;
 
             var handler = CreateHandler(commandType, provider);
-            return CreateInterceptableHandle(commandType, provider, handler.Handle);
+            return CreateInterceptingHandler(commandType, provider, handler.Handle);
         }
 
-        private IAbstractHandler CreateInterceptableHandle(Type commandType, IServiceProvider provider, Func<object, Task<object>> commandHandle)
+        private IAbstractHandler CreateInterceptingHandler(Type commandType, IServiceProvider provider, Func<object, Task<object>> commandHandle)
         {
-            var interceptableHandle = interceptorMap
+            var interceptingHandle = interceptorMap
                 .Where(x => x.Key.IsAssignableFrom(commandType))
                 .Reverse()
                 .Select(x =>
                 {
-                    var adaptorType = typeof(InterceptorAdaptor<,>).MakeGenericTypeBoundToCommand(x.Key);
-                    var interceptor = (IAbstractCommandInterceptor)provider.GetRequiredService(x.Value);
+                    var adapter = provider.GetRequiredService(x.Value);
+                    var interceptor = (IAbstractCommandInterceptor) provider.GetRequiredService(x.Value);
+                    ((IInterceptorAdapterContext) adapter).Init(interceptor);
 
-                    var adaptor = provider.GetRequiredService(x.Value);
-                    ((IInterceptorAdaptorContext)adaptor).Init(interceptor);
-
-                    return (adaptor as IAbstractInterceptor)!;
+                    return (IAbstractInterceptor) adapter;
                 })
                 .Aggregate(commandHandle, (next, current) =>
                     x => current.Intercept(x, next));
 
-            return new DelegatingAbstractHandler(interceptableHandle);
+            return new DelegatingAbstractHandler(interceptingHandle);
         }
 
         private static IAbstractHandler CreateHandler(Type commandType, IServiceProvider provider)
         {
-            var adaptorType = typeof(HandlerAdapter<,>).MakeGenericTypeBoundToCommand(commandType);
+            var adapterType = typeof(HandlerAdapter<,>).MakeGenericTypeBoundToCommand(commandType);
             var handlerType = typeof(ICommandHandler<,>).MakeGenericTypeBoundToCommand(commandType);
 
             var handler = provider.GetService(handlerType);
             if (handler == null)
                 throw new CommandNotRegisteredException(commandType);
 
-            var adaptor = provider.GetRequiredService(adaptorType);
-            ((IHandlerAdaptorContext)adaptor).Init((dynamic)handler);
+            var adapter = provider.GetRequiredService(adapterType);
+            ((IHandlerAdapterContext) adapter).Init((dynamic) handler);
 
-            return (adaptor as IAbstractHandler)!;
+            return (IAbstractHandler) adapter;
         }
     }
 }

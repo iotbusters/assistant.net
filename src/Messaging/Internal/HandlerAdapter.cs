@@ -7,12 +7,12 @@ namespace Assistant.Net.Messaging.Internal
     /// <summary>
     ///     Adapter between de-typed and typed command handlers.
     /// </summary>
-    internal class HandlerAdapter<TCommand, TResponse> : IHandlerAdaptorContext, IAbstractHandler, ICommandHandler<TCommand, TResponse>
+    internal class HandlerAdapter<TCommand, TResponse> : IHandlerAdapterContext, IAbstractHandler, ICommandHandler<TCommand, TResponse>
         where TCommand : ICommand<TResponse>
     {
         private ICommandHandler<TCommand, TResponse>? handler;
 
-        void IHandlerAdaptorContext.Init(IAbstractCommandHandler handler) =>
+        void IHandlerAdapterContext.Init(IAbstractCommandHandler handler) =>
             this.handler = handler as ICommandHandler<TCommand, TResponse>
                            ?? throw new InvalidOperationException("Unexpected handler type.");
 

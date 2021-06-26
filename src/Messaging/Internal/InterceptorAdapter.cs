@@ -7,7 +7,7 @@ namespace Assistant.Net.Messaging.Internal
     /// <summary>
     ///     Adaptor between de-typed interceptors to strongly typed presentation.
     /// </summary>
-    internal class InterceptorAdaptor<TCommand, TResponse> : IInterceptorAdaptorContext, IAbstractInterceptor
+    internal class InterceptorAdapter<TCommand, TResponse> : IInterceptorAdapterContext, IAbstractInterceptor
         where TCommand : ICommand<TResponse>
     {
         private ICommandInterceptor<TCommand, TResponse>? interceptor;
@@ -15,7 +15,7 @@ namespace Assistant.Net.Messaging.Internal
         private ICommandInterceptor<TCommand, TResponse> Interceptor =>
             interceptor ?? throw new InvalidOperationException();
 
-        void IInterceptorAdaptorContext.Init(IAbstractCommandInterceptor interceptor) =>
+        void IInterceptorAdapterContext.Init(IAbstractCommandInterceptor interceptor) =>
             this.interceptor = interceptor as ICommandInterceptor<TCommand, TResponse>
                            ?? throw new InvalidOperationException("Unexpected handler type.");
 
