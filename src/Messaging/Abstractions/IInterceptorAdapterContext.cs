@@ -1,6 +1,6 @@
 namespace Assistant.Net.Messaging.Abstractions
 {
-    public interface IInterceptorAdaptorContext
+    public interface IInterceptorAdapterContext
     {
          void Init(IAbstractCommandInterceptor interceptor);
     }

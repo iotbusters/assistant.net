@@ -1,6 +1,6 @@
 namespace Assistant.Net.Messaging.Abstractions
 {
-    public interface IHandlerAdaptorContext
+    public interface IHandlerAdapterContext
     {
          void Init(IAbstractCommandHandler handler);
     }
