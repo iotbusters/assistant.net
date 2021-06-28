@@ -24,7 +24,7 @@ namespace Assistant.Net.Serialization
         public static IServiceCollection AddSerializer(this IServiceCollection services, Action<SerializerBuilder> configure) => services
             .AddTypeEncoder()
             .TryAddSingleton<ISerializerFactory, SerializerFactory>()
-            .TryAddScoped(typeof(ISerializer<>), typeof(DefaultSerializer<>))
+            .TryAddScoped(typeof(ISerializer<>), typeof(UnkownSerializer<>))
             .TryAddSingleton<ExceptionJsonConverter<Exception>>()
             .TryAddSingleton<AdvancedJsonConverter>()
             .Configure<JsonSerializerOptions>(options =>

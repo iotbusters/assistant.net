@@ -16,13 +16,12 @@ namespace Assistant.Net.Serialization.Converters
 
         public override IEnumerable Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            if(typeToConvert == typeof(IEnumerable))
-                throw new JsonException("System.Test.Json converters provided invalid type for a sequence type.");
+            // todo: raise an issue for System.Test.Json.
+            if (typeToConvert == typeof(IEnumerable))
+                throw new JsonException("System.Test.Json doesn't support interfaces during deserialization.");
 
             if (typeToConvert.IsAssignableTo(typeof(IEnumerable<byte>)))
                 return reader.GetBytesFromBase64();
-            if (typeToConvert.IsAssignableTo(typeof(IEnumerable<char>)))
-                return reader.GetString()!;
 
             if (reader.TokenType != JsonTokenType.StartArray)
                 throw new JsonException($"'{JsonTokenType.StartArray}' token is expected but found '{reader.TokenType}'.");
@@ -75,6 +74,9 @@ namespace Assistant.Net.Serialization.Converters
 
         private static Type? GetSequenceItemType(Type sequenceType) =>
             sequenceType.GetElementType() ?? sequenceType.GetInterfaces()
+                // note: System.Test.Json doesn't support interfaces during deserialization.
+                // the line below allows IEnumerable<T> as sequence type.
+                //.Append(sequenceType)
                 .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>))
                 .Select(x => x.GetGenericArguments().Single())
                 .FirstOrDefault();
