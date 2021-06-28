@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -9,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Serialization.Abstractions;
+using Assistant.Net.Serialization.Exceptions;
 
 namespace Assistant.Net.Messaging.Internal
 {
@@ -68,6 +68,10 @@ namespace Assistant.Net.Messaging.Internal
             try
             {
                 return await serializer.Deserialize(httpContext.Request.Body);
+            }
+            catch (SerializerTypeNotRegisteredException)
+            {
+                throw;
             }
             catch (Exception e)
             {
