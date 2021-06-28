@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
 using NUnit.Framework;
 using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Storage.Configuration;
 using Assistant.Net.Storage.Tests.Mocks;
 using Assistant.Net.Unions;
 
