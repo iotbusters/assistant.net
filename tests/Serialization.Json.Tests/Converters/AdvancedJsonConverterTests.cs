@@ -30,6 +30,26 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
             .AddTransient<AdvancedJsonConverter>()
             .BuildServiceProvider();
 
+        [TestCase(typeof(ServiceDescriptor), TestName = "CanConvert_true(some.microsoft.type)")]
+        [TestCase(typeof(TestClass), TestName = "CanConvert_true(some.custom.type)")]
+        public void CanConvert_true_otherType(Type otherType) =>
+            new AdvancedJsonConverter(null!).CanConvert(otherType).Should().BeTrue();
+
+        [TestCase(typeof(string), TestName = "CanConvert_false(String)")]
+        [TestCase(typeof(int), TestName = "CanConvert_false(Int32)")]
+        [TestCase(typeof(byte), TestName = "CanConvert_false(Byte)")]
+        [TestCase(typeof(DateTime), TestName = "CanConvert_false(DateTime)")]
+        [TestCase(typeof(object), TestName = "CanConvert_false(Object)")]
+        [TestCase(typeof(List<string>), TestName = "CanConvert_false(List)")]
+        [TestCase(typeof(Exception), TestName = "CanConvert_false(Exception)")]
+        [TestCase(typeof(Type), TestName = "CanConvert_false(Type)")]
+        public void CanConvert_false_systemType(Type systemType) =>
+            new AdvancedJsonConverter(null!).CanConvert(systemType).Should().BeFalse();
+
+        [TestCase(TestName = "CanConvert_false(Enumerable)")]
+        public void CanConvert_false_enumerable() =>
+            new AdvancedJsonConverter(null!).CanConvert(typeof(IEnumerable<string>)).Should().BeFalse();
+
         [TestCaseSource(nameof(SupportedObjects))]
         public async Task DeserializeObject(object value)
         {
@@ -56,7 +76,7 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
                         new int?[] {1},
                         new[] {"test"}.AsEnumerable(),
                         new[] {new TestClass(DateTime.Now)}))
-                {TestName = "InitializeByCtor"};
+                {TestName = "DeserializeObject(Initialize+Ctor)" };
 
             yield return new TestCaseData(
                     new TestObjectWithCtorInitialization(
@@ -69,7 +89,7 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
                         new int?[] {1},
                         new[] {"test"}.AsEnumerable(),
                         new[] {new TestClass(DateTime.Now)}))
-                {TestName = "InitializeByCtor_nullable"};
+                {TestName = "DeserializeObject(Initialize+Ctor+Nullable)" };
 
             yield return new TestCaseData(
                     new TestObjectWithCtorInitialization(
@@ -82,7 +102,7 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
                         new int?[] {null, 11},
                         new[] {null, "test"}.AsEnumerable(),
                         new[] {null, new TestClass(DateTime.Now)}))
-                {TestName = "InitializeByCtor_nullableArrays"};
+                {TestName = "DeserializeObject(Initialize+Ctor+NullableArrays)" };
 
             yield return new TestCaseData(
                     new TestObjectWithPropertyInitialization
@@ -96,7 +116,7 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
                         StringArray = new[] {"test"}.AsEnumerable(),
                         ObjectArray = new[] {new TestClass(DateTime.Now)}
                     })
-                {TestName = "InitializeBySetters"};
+                {TestName = "DeserializeObject(Initialize+Setters)" };
 
             yield return new TestCaseData(
                     new TestObjectWithPropertyInitialization
@@ -104,7 +124,7 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
                         StringArray = new[] {"test"}.AsEnumerable(),
                         ObjectArray = new[] {new TestClass(DateTime.Now)}
                     })
-                {TestName = "InitializeBySetters_nullable"};
+                {TestName = "DeserializeObject(Initialize+Setters+Nullable)" };
 
             yield return new TestCaseData(
                     new TestObjectWithPropertyInitialization
@@ -119,29 +139,29 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
                         StringArray = new[] {null, "test"}.AsEnumerable(),
                         ObjectArray = new[] {null, new TestClass(DateTime.Now)}
                     })
-                {TestName = "InitializeBySetters_nullableArrays"};
+                {TestName = "DeserializeObject(Initialize+Setters+NullableArrays)" };
 
             yield return new TestCaseData(
                     new TestObjectWithMixedInitialization(TestEnum.A)
                     {
                         String = "test"
                     })
-                {TestName = "InitializeByCtorAndSetters"};
+                {TestName = "DeserializeObject(Initialize)" };
 
             yield return new TestCaseData(
                     new TestObjectWithMixedInitialization(null)
                     {
                         String = "test"
                     })
-                {TestName = "InitializeByCtorAndSetters_defaultValue"};
+                {TestName = "DeserializeObject(Initialize+DefaultValue)" };
 
             yield return new TestCaseData(
                     new TestObjectWithTypeCastingInitialization(TestEnum.A, 11, 12, new[] {"test"}))
-                {TestName = "Initialize_typeCasting"};
+                {TestName = "DeserializeObject(Initialize+TypeCasting)" };
 
             yield return new TestCaseData(
                     new TestObjectWithTypeCastingInitialization(TestEnum.A, null, 12, new[] {"test"}))
-                {TestName = "Initialize_typeCastingAndDefaultValue"};
+                {TestName = "DeserializeObject(Initialize+TypeCasting+DefaultValue)" };
         }
     }
 }

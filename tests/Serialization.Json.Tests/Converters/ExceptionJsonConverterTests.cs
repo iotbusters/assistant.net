@@ -19,6 +19,18 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
             DefaultIgnoreCondition = JsonIgnoreCondition.Never
         };
 
+        [Test]
+        public void CanConvert_true_exactType() =>
+            new ExceptionJsonConverter<SystemException>(null!).CanConvert(typeof(SystemException)).Should().BeTrue();
+
+        [Test]
+        public void CanConvert_true_childType() =>
+            new ExceptionJsonConverter<SystemException>(null!).CanConvert(typeof(InvalidOperationException)).Should().BeTrue();
+
+        [Test]
+        public void CanConvert_false_unrelatedType() =>
+            new ExceptionJsonConverter<SystemException>(null!).CanConvert(typeof(Exception)).Should().BeFalse();
+
         [TestCase("")]
         [TestCase("Some non-json text")]
         [TestCase("{}")]

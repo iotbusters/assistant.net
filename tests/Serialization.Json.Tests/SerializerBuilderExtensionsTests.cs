@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Assistant.Net.Serialization.Abstractions;
-using Assistant.Net.Serialization.Configuration;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using FluentAssertions;
 using NUnit.Framework;
+using Assistant.Net.Serialization.Abstractions;
+using Assistant.Net.Serialization.Configuration;
 
 namespace Assistant.Net.Serialization.Json.Tests
 {
