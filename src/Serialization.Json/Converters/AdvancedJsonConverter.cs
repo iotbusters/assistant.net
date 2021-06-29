@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -15,33 +13,56 @@ namespace Assistant.Net.Serialization.Converters
     ///     Json converter responsible for advanced object serialization.
     /// </summary>
     /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-5-0"/> />
-    public class AdvancedJsonConverter : JsonConverter<object>
+    public sealed class AdvancedJsonConverter<T> : JsonConverter<T>
     {
-        private static readonly ConcurrentDictionary<Type, IImmutableList<TypeMetadata>?> TypeMetadata = new();
-        private static readonly StringComparer IgnoreCase = StringComparer.InvariantCultureIgnoreCase;
-
         private const string TypePropertyName = "__type";
 
+        private readonly IImmutableList<TypeMetadata> typeMetadata;
         private readonly ITypeEncoder typeEncoder;
 
-        public AdvancedJsonConverter(ITypeEncoder typeEncoder) =>
+        public AdvancedJsonConverter(ITypeEncoder typeEncoder)
+        {
             this.typeEncoder = typeEncoder;
 
-        public override bool CanConvert(Type typeToConvert) =>
-            (typeToConvert.Namespace == null || !typeToConvert.Namespace.StartsWith("System")) // ignore system types.
-            && !typeToConvert.IsAssignableTo(typeof(IEnumerable)); // ignore sequence types.
+            if(!CanConvert(typeof(T)))
+                throw new JsonException($"The type '{typeof(T)}' isn't supported.");
 
-        public override void Write(Utf8JsonWriter writer, object value, JsonSerializerOptions options)
+            var typeProperties = typeof(T).GetProperties().ToImmutableDictionary(x => x.Name, IgnoreCase);
+            typeMetadata = (from ctor in typeof(T).GetConstructors()
+                            let cParams = (from p in ctor.GetParameters() select p.Name!).ToImmutableList()
+                            let cParamsFound = (from p in ctor.GetParameters()
+                                let n = p.Name!
+                                let t = p.ParameterType
+                                where typeProperties.ContainsKey(n)
+                                where typeProperties[n].CanRead
+                                where typeProperties[n].PropertyType.IsAssignableFrom(t)
+                                      || typeProperties[n].PropertyType.IsAssignableTo(t)
+                                select n).ToImmutableList()
+                            let setters = (from n in typeProperties.Keys.Except(cParamsFound, IgnoreCase)
+                                where typeProperties[n].CanRead && typeProperties[n].CanWrite
+                                select n).ToImmutableDictionary(x => x, x => typeProperties[x], IgnoreCase)
+                            let getters = setters.Keys.Concat(cParamsFound)
+                                .ToImmutableDictionary(x => x, x => typeProperties[x], IgnoreCase)
+                            where cParams.Count == cParamsFound.Count // all ctor parameters are resolvable.
+                            select new TypeMetadata(ctor, cParams, getters, setters)).ToImmutableList();
+
+            if (!typeMetadata.Any())
+                throw new JsonException($"The type '{typeof(T)}' cannot be serialized or deserialized.");
+        }
+
+        public override bool CanConvert(Type typeToConvert) =>
+            base.CanConvert(typeToConvert) && !AdvancedJsonConverterFactory.IsSystemType(typeToConvert);
+
+        private static StringComparer IgnoreCase => StringComparer.InvariantCultureIgnoreCase;
+        
+        public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
-
-            var type = value.GetType();
-            var metadata = BuildMetadata(type);
-
-            var typeName = GetTypeName(type);
+            
+            var typeName = GetTypeName(typeof(T));
             writer.WriteString(TypePropertyName, typeName);
 
-            var getters = metadata.OrderByDescending(x => x.Getters.Count).First().Getters.Values;
+            var getters = typeMetadata.OrderByDescending(x => x.Getters.Count).First().Getters.Values;
             foreach (var getter in getters)
             {
                 var propertyValue = getter.GetValue(value);
@@ -57,18 +78,17 @@ namespace Assistant.Net.Serialization.Converters
             writer.WriteEndObject();
         }
 
-        public override object Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.StartObject)
                 throw new JsonException("Start object token is expected.");
 
             var typeName = ReadTypeName(ref reader);
             var type = GetTypeFromName(typeName);
-            var metadata = BuildMetadata(type);
 
-            var foundValues = ReadValues(ref reader, metadata, options);
+            var foundValues = ReadValues(ref reader, typeMetadata, options);
 
-            var initializationSets = (from m in metadata
+            var initializationSets = (from m in typeMetadata
                                       let cvs = (from n in m.CtorArguments
                                                  select foundValues.TryGetValue(n, out var v) ? v : default).ToArray()
                                       let pvs = (from n in m.Setters.Keys
@@ -101,7 +121,7 @@ namespace Assistant.Net.Serialization.Converters
                     foreach (var setterValue in initializationSet.setterValues)
                         setterValue.property.SetValue(valueToConvert, setterValue.value);
 
-                    return valueToConvert;
+                    return (T)valueToConvert;
                 }
                 catch (Exception e)
                 {
@@ -114,33 +134,7 @@ namespace Assistant.Net.Serialization.Converters
                 $"The type '{type}' failed to deserialize.",
                 new AggregateException(initializationErrors));
         }
-
-        private static IImmutableList<TypeMetadata> BuildMetadata(Type typeToConvert) => TypeMetadata.GetOrAdd(typeToConvert, type =>
-        {
-            var typeProperties = type.GetProperties().ToImmutableDictionary(x => x.Name, IgnoreCase);
-            var typeInitMetadata = (from ctor in type.GetConstructors()
-                                    let cParams = (from p in ctor.GetParameters() select p.Name!).ToImmutableList()
-                                    let cParamsFound = (from p in ctor.GetParameters()
-                                        let n = p.Name!
-                                        let t = p.ParameterType
-                                        where typeProperties.ContainsKey(n)
-                                        where typeProperties[n].CanRead
-                                        where typeProperties[n].PropertyType.IsAssignableFrom(t)
-                                              || typeProperties[n].PropertyType.IsAssignableTo(t)
-                                        select n).ToImmutableList()
-                                    let setters = (from n in typeProperties.Keys.Except(cParamsFound, IgnoreCase)
-                                        where typeProperties[n].CanRead && typeProperties[n].CanWrite
-                                        select n).ToImmutableDictionary(x => x, x => typeProperties[x], IgnoreCase)
-                                    let getters = setters.Keys.Concat(cParamsFound)
-                                        .ToImmutableDictionary(x => x, x => typeProperties[x], IgnoreCase)
-                                    where cParams.Count == cParamsFound.Count // all ctor parameters are resolvable.
-                                    select new TypeMetadata(ctor, cParams, getters, setters)).ToImmutableList();
-
-            if (!typeInitMetadata.Any())
-                return null;
-            return typeInitMetadata;
-        }) ?? throw new JsonException($"The type '{typeToConvert}' cannot be serialized or deserialized.");
-
+        
         private static string ReadTypeName(ref Utf8JsonReader reader)
         {
             reader.Read();

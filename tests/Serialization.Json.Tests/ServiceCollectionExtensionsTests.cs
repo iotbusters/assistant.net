@@ -7,6 +7,7 @@ using FluentAssertions;
 using Assistant.Net.Abstractions;
 using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Converters;
+using Assistant.Net.Serialization.Json.Tests.Mocks;
 
 namespace Assistant.Net.Serialization.Json.Tests
 {
@@ -30,7 +31,18 @@ namespace Assistant.Net.Serialization.Json.Tests
                 .AddSerializer(_ => {})
                 .BuildServiceProvider();
 
-            provider.GetService<AdvancedJsonConverter>()
+            provider.GetService<AdvancedJsonConverter<TestClass>>()
+                .Should().NotBeNull();
+        }
+
+        [Test]
+        public void GetServiceOfEnumerableJsonConverter_resolvesObject()
+        {
+            var provider = new ServiceCollection()
+                .AddSerializer(_ => {})
+                .BuildServiceProvider();
+
+            provider.GetService<EnumerableJsonConverter<TestClass>>()
                 .Should().NotBeNull();
         }
 

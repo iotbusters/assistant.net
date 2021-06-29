@@ -13,61 +13,44 @@ using Assistant.Net.Serialization.Json.Tests.Mocks;
 
 namespace Assistant.Net.Serialization.Json.Tests.Converters
 {
-    public class AdvancedJsonConverterTests
+    public class AdvancedJsonConverterFactoryTests
     {
+        private readonly JsonSerializerOptions options = new()
+        {
+            Converters =
+            {
+                new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, false),
+                Provider.GetRequiredService<AdvancedJsonConverterFactory>()
+            }
+        };
+
         private static IServiceProvider Provider { get; } = new ServiceCollection()
             .AddTypeEncoder()
-            .AddTransient(typeof(AdvancedJsonConverter<>), typeof(AdvancedJsonConverter<>))
+            .AddSingleton<AdvancedJsonConverterFactory>()
+            .TryAddSingleton(typeof(EnumerableJsonConverter<>), typeof(EnumerableJsonConverter<>))
+            .TryAddSingleton(typeof(AdvancedJsonConverter<>), typeof(AdvancedJsonConverter<>))
             .BuildServiceProvider();
 
         [TestCase(typeof(ServiceDescriptor), TestName = "CanConvert_true(some.microsoft.type)")]
         [TestCase(typeof(TestClass), TestName = "CanConvert_true(some.custom.type)")]
-        public void CanConvert_true_otherType(Type otherType)
-        {
-            ((JsonConverter?) ActivatorUtilities.CreateInstance(
-                    Provider,
-                    typeof(AdvancedJsonConverter<>).MakeGenericType(otherType)))
-                ?.CanConvert(otherType).Should().BeTrue();
-        }
+        public void CanConvert_true_otherType(Type otherType) =>
+            new AdvancedJsonConverterFactory(null!).CanConvert(otherType).Should().BeTrue();
 
-        [TestCase(typeof(string), TestName = "NewConverterOfSystemTypeFailed(String)")]
-        [TestCase(typeof(int), TestName = "NewConverterOfSystemTypeFailed(Int32)")]
-        [TestCase(typeof(byte), TestName = "NewConverterOfSystemTypeFailed(Byte)")]
-        [TestCase(typeof(DateTime), TestName = "NewConverterOfSystemTypeFailed(DateTime)")]
-        [TestCase(typeof(object), TestName = "NewConverterOfSystemTypeFailed(Object)")]
-        [TestCase(typeof(List<string>), TestName = "NewConverterOfSystemTypeFailed(List)")]
-        [TestCase(typeof(IEnumerable<string>), TestName = "NewConverterOfSystemTypeFailed(Enumerable)")]
-        [TestCase(typeof(Exception), TestName = "NewConverterOfSystemTypeFailed(Exception)")]
-        [TestCase(typeof(Type), TestName = "NewConverterOfSystemTypeFailed(Type)")]
-        public void NewConverterOfSystemType_failed(Type systemType)
-        {
-            this.Invoking(_ => (JsonConverter?) ActivatorUtilities.CreateInstance(
-                    Provider,
-                    typeof(AdvancedJsonConverter<>).MakeGenericType(systemType)))
-                .Should().Throw<JsonException>()
-                .WithMessage($"The type '{systemType}' isn't supported.");
-        }
-
-        [Test]
-        public void NewConverterOfUnserializableType_failed()
-        {
-            this.Invoking(_ => (JsonConverter?) ActivatorUtilities.CreateInstance(
-                    Provider,
-                    typeof(AdvancedJsonConverter<TestObjectUnserializable>)))
-                .Should().Throw<JsonException>()
-                .WithMessage($"The type '{typeof(TestObjectUnserializable)}' cannot be serialized or deserialized.");
-        }
+        [TestCase(typeof(string), TestName = "CanConvert_false(String)")]
+        [TestCase(typeof(int), TestName = "CanConvert_false(Int32)")]
+        [TestCase(typeof(byte), TestName = "CanConvert_false(Byte)")]
+        [TestCase(typeof(DateTime), TestName = "CanConvert_false(DateTime)")]
+        [TestCase(typeof(object), TestName = "CanConvert_false(Object)")]
+        [TestCase(typeof(List<string>), TestName = "CanConvert_false(List)")]
+        [TestCase(typeof(Exception), TestName = "CanConvert_false(Exception)")]
+        [TestCase(typeof(Type), TestName = "CanConvert_false(Type)")]
+        [TestCase(typeof(IEnumerable<string>), TestName = "CanConvert_false(Enumerable)")]
+        public void CanConvert_false_systemType(Type systemType) =>
+            new AdvancedJsonConverterFactory(null!).CanConvert(systemType).Should().BeFalse();
 
         [TestCaseSource(nameof(SupportedObjects))]
         public async Task DeserializeObject(object value)
         {
-            var converterType = typeof(AdvancedJsonConverter<>).MakeGenericType(value.GetType());
-            var converter = (JsonConverter) ActivatorUtilities.CreateInstance(Provider, converterType);
-            var options = new JsonSerializerOptions
-            {
-                Converters = {converter, new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, false)}
-            };
-
             await using var stream = new MemoryStream();
             await JsonSerializer.SerializeAsync(stream, value, options);
             stream.Position = 0;
@@ -77,7 +60,7 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
             deserialized.Should().BeOfType(value.GetType())
                 .And.BeEquivalentTo(value);
         }
-        
+
         private static IEnumerable<TestCaseData> SupportedObjects()
         {
             yield return new TestCaseData(
