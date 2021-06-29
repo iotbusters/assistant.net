@@ -25,19 +25,22 @@ namespace Assistant.Net.Serialization
             .AddTypeEncoder()
             .TryAddSingleton<ISerializerFactory, SerializerFactory>()
             .TryAddScoped(typeof(ISerializer<>), typeof(UnkownSerializer<>))
-            .TryAddSingleton<ExceptionJsonConverter<Exception>>()
-            .TryAddSingleton<AdvancedJsonConverter>()
+            .TryAddSingleton<AdvancedJsonConverterFactory>()
+            .TryAddSingleton(typeof(ExceptionJsonConverter<>), typeof(ExceptionJsonConverter<>))
+            .TryAddSingleton(typeof(EnumerableJsonConverter<>), typeof(EnumerableJsonConverter<>))
+            .TryAddSingleton(typeof(AdvancedJsonConverter<>), typeof(AdvancedJsonConverter<>))
             .Configure<JsonSerializerOptions>(options =>
             {
                 options.PropertyNameCaseInsensitive = true;
                 options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
                 options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, false));
-                options.Converters.Add(new EnumerableJsonConverter());
             })
             .ConfigureSerializer(configure)
-            .Configure<JsonSerializerOptions, ExceptionJsonConverter<Exception>>((options, converter) => options.Converters.Add(converter))
-            .Configure<JsonSerializerOptions, AdvancedJsonConverter>((options, converter) => options.Converters.Add(converter));
+            .Configure<JsonSerializerOptions, ExceptionJsonConverter<Exception>>((options, converter) =>
+                options.Converters.Add(converter))
+            .Configure<JsonSerializerOptions, AdvancedJsonConverterFactory>((options, converter) =>
+                options.Converters.Add(converter));
 
         /// <summary>
         ///     Configures <see cref="ISerializer{TValue}" /> implementations for specific values.
