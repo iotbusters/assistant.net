@@ -2,23 +2,31 @@
 
 The solution is planned to help with automation of your small-sized processes and flows using IoT devices.
 
-Currently, it's in design and implement stage, so the repository contains mostly tools and infrastructure parts only. And existing releases cannot be assumed as stable and backward compatible.
+Currently, it's in design and implement stage, so the repository contains mostly tools and infrastructure parts only.
+And existing releases cannot be assumed as stable and backward compatible.
 
 Hopefully it will be useful for someone once main functional is ready.
 
-Please join also this [small survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
+Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
 
-The paragraph isn't ready yet.
+[Release 0.1.42](https://github.com/iotbusters/assistant.net/releases/tag/0.1.42)
+    - Added `Serialization.Json`
+    - Refactoring and bug fixes
+[Release 0.1.40](https://github.com/iotbusters/assistant.net/releases/tag/0.1.40)
+    - Added partitioned storage
+    - Refactoring and bug fixes
 
 ## Packages
 
-A family of packages serve Assistant.NET needs and being distributed at [nuget.org](https://nuget.org). Each of them has own responsibility and solves some specific aspect of the solution.
+A family of packages serve Assistant.NET needs and being distributed at [nuget.org](https://nuget.org).
+Each of them has own responsibility and solves some specific aspect of the solution.
 
 ### assistant.net.core
 
-It's some basic abstractions and implementations which are commonly used across the solution. E.g. a system clock, an system lifetime management and improved overrides of .net extensions.
+It's some basic abstractions and implementations which are commonly used across the solution.
+E.g. a system clock, an system lifetime management and improved overrides of .net extensions.
 
 ```csharp
 services
@@ -34,7 +42,8 @@ var stoppingCancellationToken = provider.GetRequiredService<ISystemLifetime>().S
 
 It's common storage abstraction and related basic implementations and tools.
 
-Pay attention, using base types as storage value won't work as expected because of serialization. It will be improved as part of advanced serialization further.
+Pay attention, using base types as storage value won't work as expected because of serialization.
+It will be improved as part of advanced serialization further.
 
 See also available extensions in `assistant.net.storage.*` packages for more information.
 
@@ -51,11 +60,8 @@ var partitionedStorage = provider.GetRequiredService<IPartitionedStorage<Key, Mo
 
 ### assistant.net.serialization.json
 
-In progress. Coming soon..
-
-It's serialization abstraction with 'basic' and 'advanced' json implementations.
-
-Further I can be extended with other formats, e.g. protobuf. The main idea is to be able flexibly replace serialization format further.
+It's serialization abstraction with json implementation for now. Further it can be extended with other formats, e.g. protobuf.
+The main idea is to be able flexibly choose serialization format for each type.
 
 ```csharp
 services.AddSerializer(b => b
@@ -64,7 +70,10 @@ services.AddSerializer(b => b
     .AddJsonTypeAny()
     );
 
-var storage = provider.GetRequiredService<ISerializer<Model>>();
+var typedSerializer = provider.GetRequiredService<ISerializer<Model>>();
+
+var factory = provider.GetRequiredService<ISerializerFactory>();
+var objectSerializer = factory.Create(typeof(Model));
 ```
 
 ### assistant.net.diagnostics
@@ -78,21 +87,22 @@ var operation = provider.GetRequiredService<IDiagnosticFactory>().Start("operati
 // do something
 operation.Complete("the operation is complete");
 
-var currentCorrelationId = provider.GetRequiredService<IDiagnosticContext>().CorrelationId;
+var currentScopeCorrelationId = provider.GetRequiredService<IDiagnosticContext>().CorrelationId;
 ```
 
 ### assistant.net.messaging
 
-It's local (in-memory) message handling implementation which support simple extending mechanism and basic message (internal term `command`) intercepting out of box.
+It's local (in-memory) message handling implementation which support simple extending mechanism
+and basic message (internal term `command`) intercepting out of box.
 
 See also available extensions in `assistant.net.messaging.*` packages for more information.
 
 ```csharp
-services.AddCommandClient(b =>
-{
-    b.AddLocal<SomeCommandHandler>();
-    b.AddInterceptor<SomeCommandInterceptor>();
-});
+services.AddCommandClient(b => b
+    .AddLocal<SomeCommandHandler>()
+    .AddInterceptor<SomeCommandInterceptor>()
+    );
+
 var client = provider.GetRequiredService<ICommandClient>();
 var response = await client.Send(new SomeCommand())
 ```
@@ -123,11 +133,10 @@ See [server](#assistantnetmessagingwebserver) configuration for remote handling.
 It's a remote WEB oriented message handling server implementation. The server exposes API and accepts remote requests for further processing.
 
 ```csharp
-services.AddRemoteWebCommandHandler(b =>
-{
-    b.AddLocal<SomeCommandHandler>();
-    b.AddInterceptor<SomeCommandInterceptor>();
-}); // it reuses `.AddCommandClient(b => { })` behind the scenes so they are fully compatible.
+services.AddRemoteWebCommandHandler(b => b
+    .AddLocal<SomeCommandHandler>();
+    .AddInterceptor<SomeCommandInterceptor>()
+    ); // it reuses `.AddCommandClient()` behind the scenes so they are fully compatible.
 ```
 
 See [client](#assistantnetmessagingwebclient) configuration and remote command handling request.
