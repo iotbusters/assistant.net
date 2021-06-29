@@ -94,7 +94,7 @@ jobs:
         run: cp -r src/Core release-binaries/src/Core
         if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.core != '0'
       - name: upload binaries (prepare serialization.json)
-        run: cp -r src/Serialization.Json release-binaries/src/Serializtion.Json
+        run: cp -r src/Serialization.Json release-binaries/src/Serialization.Json
         if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.core != '0'
       - name: upload binaries (prepare storage)
         run: cp -r src/Storage release-binaries/src/Storage
