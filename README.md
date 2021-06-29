@@ -1,27 +1,31 @@
 # Assistant.NET
 
 The solution is planned to help with automation of your small-sized processes and flows using IoT devices.
+In order to get it working, some boiler plate is needed to be implemented first.
+Unfortunately existing solutions on a market didn't suit all needs or overcomplicated.
+Beyond that, they weren't flexible enough to support new requirements further, so the solution is based on own tools.
+Which although can be used as standalone packages too.
 
-Currently, it's in design and implement stage, so the repository contains mostly tools and infrastructure parts only.
-And existing releases cannot be assumed as stable and backward compatible.
+Currently, it's in design and implementation stage, so the repository contains mostly tools and infrastructure parts only.
+Existing releases cannot be assumed as stable and backward compatible too, so pay attention during package upgrade!
 
-Hopefully it will be useful for someone once main functional is ready.
+Hopefully, it will be useful for someone once main functional is ready.
 
 Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
 
-[Release 0.1.42](https://github.com/iotbusters/assistant.net/releases/tag/0.1.42)
-    - Added `Serialization.Json`
-    - Refactoring and bug fixes
-[Release 0.1.40](https://github.com/iotbusters/assistant.net/releases/tag/0.1.40)
-    - Added partitioned storage
-    - Refactoring and bug fixes
+- [Release 0.1.42](https://github.com/iotbusters/assistant.net/releases/tag/0.1.42)
+  - Added `Serialization.Json`
+  - Refactoring and bug fixes
+- [Release 0.1.40](https://github.com/iotbusters/assistant.net/releases/tag/0.1.40)
+  - Added partitioned `Storage`
+  - Refactoring and bug fixes
 
 ## Packages
 
-A family of packages serve Assistant.NET needs and being distributed at [nuget.org](https://nuget.org).
-Each of them has own responsibility and solves some specific aspect of the solution.
+A family of standalone packages serve Assistant.NET needs and being [freely](license) distributed
+at [nuget.org](https://nuget.org). Each of them has own responsibility and solves some specific aspect of the solution.
 
 ### assistant.net.core
 
@@ -109,7 +113,8 @@ var response = await client.Send(new SomeCommand())
 
 ### assistant.net.messaging.web
 
-It implements shared tools required by packages with remote WEB oriented handling implementation. E.g. json serialization.
+It implements shared tools required by packages with remote WEB oriented message handling implementation.
+E.g. json serialization.
 
 See `assistant.net.messaging.web.*` packages for more information.
 
