@@ -30,7 +30,7 @@ namespace Assistant.Net.Diagnostics.Internal
         void IDisposable.Dispose()
         {
             foreach (var key in Operations.Keys)
-                if (Operations.TryGetValue(key, out var disposable))
+                if (Operations.Remove(key, out var disposable))
                     disposable.Dispose();
         }
     }

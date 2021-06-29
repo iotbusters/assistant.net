@@ -18,8 +18,7 @@ namespace Assistant.Net.Serialization.Converters
 
         public override bool Equals(object? obj)
         {
-            var other = obj as PropertyId;
-            if (ReferenceEquals(null, other)) return false;
+            if (obj is not PropertyId other) return false;
             if (ReferenceEquals(this, other)) return true;
             return Equals(other);
         }

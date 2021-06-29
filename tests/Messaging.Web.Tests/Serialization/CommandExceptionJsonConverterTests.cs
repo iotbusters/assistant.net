@@ -5,8 +5,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using FluentAssertions;
 using Assistant.Net.Messaging.Exceptions;
@@ -30,7 +28,8 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
         public async Task DeserializeInvalidContent(string content)
         {
             await using var stream = new MemoryStream();
-            await new StreamWriter(stream).WriteAsync(content);
+            await using var writer = new StreamWriter(stream);
+            await writer.WriteAsync(content);
             stream.Position = 0;
 
             await this.Awaiting(_ => JsonSerializer.DeserializeAsync<CommandException>(stream, options))
@@ -41,7 +40,8 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
         public async Task DeserializeNotCommandExceptionContent(string content)
         {
             await using var stream = new MemoryStream();
-            await new StreamWriter(stream).WriteAsync(content);
+            await using var writer = new StreamWriter(stream);
+            await writer.WriteAsync(content);
             stream.Position = 0;
 
             await this.Awaiting(_ => JsonSerializer.DeserializeAsync<CommandException>(stream, options))
@@ -52,7 +52,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
         public async Task DeserializeAdditionalProperties(string content)
         {
             await using var stream = new MemoryStream();
-            var writer = new StreamWriter(stream);
+            await using var writer = new StreamWriter(stream);
             await writer.WriteAsync(content);
             await writer.FlushAsync();
             stream.Position = 0;
@@ -67,7 +67,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
         public async Task DeserializeUnknownException(string content)
         {
             await using var stream = new MemoryStream();
-            var writer = new StreamWriter(stream);
+            await using var writer = new StreamWriter(stream);
             await writer.WriteAsync(content);
             await writer.FlushAsync();
             stream.Position = 0;

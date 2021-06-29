@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -23,9 +22,9 @@ namespace Assistant.Net.Storage.Internal
 
         public Task<Option<byte[]>> TryGet(StoreKey key, long index)
         {
-            if (backedStorage.TryGetValue(key, out var partition))
-                if (partition.TryGetValue(index, out var value))
-                    return Task.FromResult(Option.Some(value));
+            if (backedStorage.TryGetValue(key, out var partition)
+                && partition.TryGetValue(index, out var value))
+                return Task.FromResult(Option.Some(value));
             return Task.FromResult<Option<byte[]>>(Option.None);
         }
 

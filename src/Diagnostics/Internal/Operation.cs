@@ -27,8 +27,8 @@ namespace Assistant.Net.Diagnostics.Internal
                 .Start();
 
             // the following can be called after operation is started only.
-            activity.AddCorrelationId(factory.Context.CorrelationId);
-            factory.Operations.Add(activity.Id!, this);
+            this.activity.AddCorrelationId(factory.Context.CorrelationId);
+            this.factory.Operations.Add(activity.Id!, this);
 
             WriteOperationStarted();
         }
@@ -53,6 +53,7 @@ namespace Assistant.Net.Diagnostics.Internal
                 .AddMessage(message)
                 .SetEndTime(factory.Clock.UtcNow.UtcDateTime)
                 .Stop();
+            activity.Dispose();
 
             WriteOperationStopped(status, message);
 

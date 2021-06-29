@@ -15,7 +15,7 @@ namespace Assistant.Net.Diagnostics.Internal
         public const string StatusName = "operation-status";
         public const string MessageName = "operation-message";
 
-        public static ISet<string> KnownNames = new HashSet<string>
+        public static readonly ISet<string> KnownNames = new HashSet<string>
         {
             CorrelationIdName, StatusName, MessageName
         };

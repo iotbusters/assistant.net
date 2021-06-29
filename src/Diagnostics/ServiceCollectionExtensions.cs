@@ -28,7 +28,7 @@ namespace Assistant.Net.Diagnostics
         public static IServiceCollection AddDiagnostics(this IServiceCollection services) => services
             .AddSystemClock()
             .AddDiagnosticContext()
-            .TryAddSingleton(x => OperationEventSource.Instance)
+            .TryAddSingleton(_ => OperationEventSource.Instance)
             .TryAddScoped<IDiagnosticFactory, DiagnosticFactory>();
 
         private static Func<IServiceProvider, IDiagnosticContext> InitializeWith(Func<IServiceProvider, string> getCorrelationId) =>

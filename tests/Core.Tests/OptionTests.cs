@@ -2,7 +2,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using Assistant.Net.Unions;
 
-namespace Assistant.Net.Tests
+namespace Assistant.Net.Core.Tests
 {
     public class OptionTests
     {
@@ -43,29 +43,27 @@ namespace Assistant.Net.Tests
         [Test]
         public void Some_equals_Some()
         {
-            Option.Some("test").Equals(Option.Some("test"))
-                .Should().BeTrue();
+            Option.Some("test").Equals(Option.Some("test")).Should().BeTrue();
         }
 
         [Test]
         public void Some_unequals_Some()
         {
-            Option.Some("test-1").Equals(Option.Some("test-2"))
-                .Should().BeFalse();
+            Option.Some("test-1").Equals(Option.Some("test-2")).Should().BeFalse();
         }
 
         [Test]
         public void Some_unequals_None()
         {
-            Option.Some("test").Equals(Option.None)
-                .Should().BeFalse();
+            Option.Some("test").Equals(Option.None).Should().BeFalse();
         }
 
         [Test]
         public void SomeOfString_unequals_SomeOfObject()
         {
-            Option.Some("test").Equals(Option.Some<object>("test"))
-                .Should().BeFalse();
+            object option1 = Option.Some("test");
+            object option2 = Option.Some<object>("test");
+            option1.Equals(option2).Should().BeFalse();
         }
     }
 }

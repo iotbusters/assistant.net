@@ -50,10 +50,10 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
         [TestCase(typeof(ImmutableList), TestName = "CanConvert_false(ImmutableList)")]
         [TestCase(typeof(IEnumerable), TestName = "CanConvert_false(Enumerable)")]
         [TestCase(typeof(object), TestName = "CanConvert_false(Object)")]
-        [TestCase(typeof(string[]), TestName = "CanConvert_true(StringArray)")]
-        [TestCase(typeof(ImmutableList<string>), TestName = "CanConvert_true(ImmutableListOfString)")]
-        [TestCase(typeof(IReadOnlyCollection<string>), TestName = "CanConvert_true(ReadOnlyCollectionOfString)")]
-        [TestCase(typeof(IEnumerable<string>), TestName = "CanConvert_true(EnumerableOfString)")]
+        [TestCase(typeof(string[]), TestName = "CanConvert_false(StringArray)")]
+        [TestCase(typeof(ImmutableList<string>), TestName = "CanConvert_false(ImmutableListOfString)")]
+        [TestCase(typeof(IReadOnlyCollection<string>), TestName = "CanConvert_false(ReadOnlyCollectionOfString)")]
+        [TestCase(typeof(IEnumerable<string>), TestName = "CanConvert_false(EnumerableOfString)")]
         public void CanConvert_false(Type type)
         {
             new EnumerableJsonConverter<TestClass>().CanConvert(type).Should().BeFalse();

@@ -14,16 +14,16 @@ namespace Assistant.Net.Storage.Internal
         public async Task<byte[]> AddOrGet(StoreKey key, Func<StoreKey, Task<byte[]>> addFactory) =>
             backedStorage.GetOrAdd(key, await addFactory(key));
 
-        public async Task<byte[]> AddOrUpdate(
-            StoreKey key,
+        public Task<byte[]> AddOrUpdate(
+            StoreKey keyObj,
             Func<StoreKey, Task<byte[]>> addFactory,
             Func<StoreKey, byte[], Task<byte[]>> updateFactory)
         {
-            var addValue = await addFactory(key);
-            return backedStorage.AddOrUpdate(
-                key,
-                key => addFactory(key).ConfigureAwait(false).GetAwaiter().GetResult(),
-                (key, old) => updateFactory(key, old).ConfigureAwait(false).GetAwaiter().GetResult());
+            return Task.FromResult(
+                backedStorage.AddOrUpdate(
+                    keyObj,
+                    key => addFactory(key).ConfigureAwait(false).GetAwaiter().GetResult(),
+                    (key, old) => updateFactory(key, old).ConfigureAwait(false).GetAwaiter().GetResult()));
         }
 
         public Task<Option<byte[]>> TryGet(StoreKey key) =>

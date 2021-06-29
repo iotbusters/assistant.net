@@ -107,7 +107,7 @@ namespace Assistant.Net.Core.Tests
         public async Task WhenSuccess_ignored_cancelled()
         {
             var list = new ConcurrentBag<string>();
-            var cancellationSource = new CancellationTokenSource();
+            using var cancellationSource = new CancellationTokenSource();
             cancellationSource.Cancel();
             var task = Task.FromCanceled<int>(cancellationSource.Token);
             _ = task.WhenSuccess(x => list.Add("#1"));
@@ -122,7 +122,7 @@ namespace Assistant.Net.Core.Tests
         public async Task WhenFaulted_ignored_cancelled()
         {
             var list = new ConcurrentBag<string>();
-            var cancellationSource = new CancellationTokenSource();
+            using var cancellationSource = new CancellationTokenSource();
             cancellationSource.Cancel();
             var task = Task.FromCanceled<int>(cancellationSource.Token);
             _ = task.WhenFaulted(x => list.Add("#1"));
