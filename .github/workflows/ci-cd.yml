@@ -168,7 +168,7 @@ jobs:
               <summary>Package changes</summary>
               <ul>
                 <li>Core: ${{ needs.change-detect.outputs.core }}</li>
-                <li>Serialization.Json: ${{ needs.change-detect.outputs.serialization.json }}</li>
+                <li>Serialization.Json: ${{ needs.change-detect.outputs.serialization-json }}</li>
                 <li>Storage: ${{ needs.change-detect.outputs.storage }}</li>
                 <li>Diagnostics: ${{ needs.change-detect.outputs.diagnostics }}</li>
                 <li>Messaging: ${{ needs.change-detect.outputs.messaging }}</li>
