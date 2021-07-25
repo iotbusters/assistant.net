@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Messaging\Messaging.csproj"/>
+    <ProjectReference Include="..\Messaging\Messaging.csproj"/>
   </ItemGroup>
 
   <PropertyGroup>

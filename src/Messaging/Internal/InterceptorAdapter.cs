@@ -5,7 +5,7 @@ using Assistant.Net.Messaging.Abstractions;
 namespace Assistant.Net.Messaging.Internal
 {
     /// <summary>
-    ///     Adaptor between de-typed interceptors to strongly typed presentation.
+    ///     Adapter between de-typed interceptors to strongly typed presentation.
     /// </summary>
     internal class InterceptorAdapter<TCommand, TResponse> : IInterceptorAdapterContext, IAbstractInterceptor
         where TCommand : ICommand<TResponse>
@@ -17,7 +17,7 @@ namespace Assistant.Net.Messaging.Internal
 
         void IInterceptorAdapterContext.Init(IAbstractCommandInterceptor interceptor) =>
             this.interceptor = interceptor as ICommandInterceptor<TCommand, TResponse>
-                           ?? throw new InvalidOperationException("Unexpected handler type.");
+                               ?? throw new InvalidOperationException("Unexpected handler type.");
 
         public Task<object> Intercept(object command, Func<object, Task<object>> next) =>
             Intercept((TCommand)command, async x => (TResponse)await next(x)).MapSuccess(x => (object)x!);
