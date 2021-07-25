@@ -7,10 +7,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Core\Core.csproj"/>
-  </ItemGroup>
-
   <PropertyGroup>
     <Product>Assistant.NET</Product>
     <RepositoryType>github</RepositoryType>
@@ -20,6 +16,11 @@
     <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetdiagnostics</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj"/>
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
   </ItemGroup>
