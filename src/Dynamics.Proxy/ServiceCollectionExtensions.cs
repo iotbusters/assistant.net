@@ -1,13 +1,25 @@
-﻿using System;
-using Assistant.Net.Dynamics.Internal;
+﻿using Assistant.Net.Dynamics.Internal;
 using Assistant.Net.Dynamics.Options;
-using Assistant.Net.Dynamics.ProxyAnalyzer.Abstractions;
+using Assistant.Net.Dynamics.Proxy.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
-namespace Assistant.Net.Dynamics
+namespace Assistant.Net.Dynamics.Proxy
 {
     public static class ServiceCollectionExtensions
     {
+        /// <summary>
+        ///     Registers all proxy type implementations from all loaded assemblies.
+        ///     This logic performs the role of module initializer if one of extensions was references.
+        /// </summary>
+        static ServiceCollectionExtensions()
+        {
+            AppDomain.CurrentDomain.AssemblyLoad += (_, a) => KnownProxy.RegisterFrom(a.LoadedAssembly);
+
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                KnownProxy.RegisterFrom(assembly);
+        }
+
         /// <summary>
         ///     Adds <see cref="IProxyFactory" /> implementation.
         ///     Pay attention, you may need to call explicitly <see cref="ConfigureProxyFactoryOptions" />

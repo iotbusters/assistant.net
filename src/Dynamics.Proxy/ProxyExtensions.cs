@@ -1,9 +1,9 @@
-﻿using Assistant.Net.Dynamics.ProxyAnalyzer;
+﻿using Assistant.Net.Dynamics.Proxy.Abstractions;
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Assistant.Net.Dynamics
+namespace Assistant.Net.Dynamics.Proxy
 {
     public static class ProxyExtensions
     {

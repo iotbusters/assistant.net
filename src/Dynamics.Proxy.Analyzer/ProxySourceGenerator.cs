@@ -1,7 +1,7 @@
-﻿using Assistant.Net.Dynamics.ProxyAnalyzer.Builders;
+﻿using Assistant.Net.Dynamics.Builder;
 using Microsoft.CodeAnalysis;
 
-namespace Assistant.Net.Dynamics.ProxyAnalyzer
+namespace Assistant.Net.Dynamics.Proxy
 {
     /// <summary>
     ///     Proxy source code generator.

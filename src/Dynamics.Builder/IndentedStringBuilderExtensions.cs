@@ -2,14 +2,14 @@
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
-namespace Assistant.Net.Dynamics.ProxyAnalyzer.Builders
+namespace Assistant.Net.Dynamics.Builder
 {
-    internal static class IndentedStringBuilderExtensions
+    public static class IndentedStringBuilderExtensions
     {
         /// <summary>
         ///     Adds a C# source code block.
         /// </summary>
-        internal static IndentedStringBuilder AddBlock(this IndentedStringBuilder builder, Action<IndentedStringBuilder> body)
+        public static IndentedStringBuilder AddBlock(this IndentedStringBuilder builder, Action<IndentedStringBuilder> body)
         {
             builder.AppendLine("{");
             body(builder.Indent());
