@@ -1,12 +1,11 @@
-﻿using Assistant.Net.Dynamics.ProxyAnalyzer;
+﻿using Assistant.Net.Dynamics.Proxy.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
-namespace Assistant.Net.Dynamics
+namespace Assistant.Net.Dynamics.Proxy
 {
     /// <summary>
     ///     Global proxy registry.
@@ -19,18 +18,6 @@ namespace Assistant.Net.Dynamics
         ///     Known proxy type implementations.
         /// </summary>
         public static ImmutableDictionary<Type, Type> ProxyTypes => Types.ToImmutableDictionary();
-
-        /// <summary>
-        ///     Registers all proxy type implementations from all loaded assemblies.
-        /// </summary>
-        [ModuleInitializer]
-        internal static void Initializer()
-        {
-            AppDomain.CurrentDomain.AssemblyLoad += (_, a) => RegisterFrom(a.LoadedAssembly);
-
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-                RegisterFrom(assembly);
-        }
 
         /// <summary>
         ///     Registers all proxy type implementations from the <paramref name="proxyAssembly"/>.

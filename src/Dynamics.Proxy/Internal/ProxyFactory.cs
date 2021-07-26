@@ -1,7 +1,5 @@
 ﻿using Assistant.Net.Dynamics.Options;
-using Assistant.Net.Dynamics.ProxyAnalyzer;
-using Assistant.Net.Dynamics.ProxyAnalyzer.Abstractions;
-using Assistant.Net.Dynamics.ProxyAnalyzer.Builders;
+using Assistant.Net.Dynamics.Proxy.Abstractions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Options;
@@ -9,6 +7,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Assistant.Net.Dynamics.Proxy;
 
 namespace Assistant.Net.Dynamics.Internal
 {

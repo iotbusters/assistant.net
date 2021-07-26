@@ -1,13 +1,15 @@
-﻿using System;
+﻿using Assistant.Net.Dynamics.Builder;
+using Assistant.Net.Dynamics.Proxy.Abstractions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 
-namespace Assistant.Net.Dynamics.ProxyAnalyzer.Builders
+namespace Assistant.Net.Dynamics.Proxy
 {
-    public static class SourceBuilderExtensions
+    public static class CompilationExtensions
     {
         /// <summary>
         ///     Adds a generated proxy for <typeparamref name="T"/> interface to new compilation.
@@ -27,7 +29,7 @@ namespace Assistant.Net.Dynamics.ProxyAnalyzer.Builders
                 //Path.Combine(assemblyPath, "mscorlib.dll"),
                 //Path.Combine(assemblyPath, "System.dll"),
                 //Path.Combine(assemblyPath, "System.Core.dll"),
-                Path.Combine(assemblyPath, "System.Runtime.dll"),
+                //Path.Combine(assemblyPath, "System.Runtime.dll"),
                 Path.Combine(assemblyPath, "netstandard.dll"),
                 proxyType.Assembly.Location
             }.Distinct().Select(x => MetadataReference.CreateFromFile(x));

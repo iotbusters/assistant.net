@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
-namespace Assistant.Net.Dynamics.ProxyAnalyzer.Builders
+namespace Assistant.Net.Dynamics.Builder
 {
     /// <summary>
     ///     C# source code builder.
