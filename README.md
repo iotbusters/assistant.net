@@ -42,6 +42,20 @@ var now = provider.GetRequiredService<ISystemClock>().UtcNow;
 var stoppingCancellationToken = provider.GetRequiredService<ISystemLifetime>().Stopping;
 ```
 
+### assistant.net.analyzers
+
+It's reserved for code usage analysis and compile-forward optimization. E.g. Proxies, mappings etc.
+
+```csharp
+services.AddProxyFactory(o => o.AddProxyFactory(o => o.Add<Interface>()));
+
+var factory = provider.GetRequiredService<IProxyFactory>();
+var proxy = factory.Create<Interface>()
+    .Intercept(x => x.Method(), (next, methodInfo, args) => "result")
+    .Object;
+var result = proxy.Method(); // "result"
+```
+
 ### assistant.net.storage
 
 It's common storage abstraction and related basic implementations and tools.

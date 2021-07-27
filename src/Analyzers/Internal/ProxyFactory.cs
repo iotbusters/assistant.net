@@ -1,15 +1,14 @@
-﻿using Assistant.Net.Dynamics.Options;
-using Assistant.Net.Dynamics.Proxy.Abstractions;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.Extensions.Options;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Assistant.Net.Dynamics.Proxy;
+using Assistant.Net.Analyzers.Abstractions;
+using Assistant.Net.Analyzers.Options;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.Extensions.Options;
 
-namespace Assistant.Net.Dynamics.Internal
+namespace Assistant.Net.Analyzers.Internal
 {
     /// <summary>
     ///     Default dynamic proxy factory implementation based on <see cref="KnownProxy"/> global proxy registry.

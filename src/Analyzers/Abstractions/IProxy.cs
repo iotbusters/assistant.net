@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Assistant.Net.Dynamics.Proxy.Abstractions
+namespace Assistant.Net.Analyzers.Abstractions
 {
     /// <summary>
     ///     Proxy abstraction.

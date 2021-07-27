@@ -1,7 +1,7 @@
-﻿using Assistant.Net.Dynamics.Builder;
+﻿using Assistant.Net.Analyzers.Builders;
 using Microsoft.CodeAnalysis;
 
-namespace Assistant.Net.Dynamics.Proxy
+namespace Assistant.Net.Analyzers.Generators
 {
     /// <summary>
     ///     Proxy source code generator.
@@ -23,6 +23,8 @@ namespace Assistant.Net.Dynamics.Proxy
             var proxyTypes = receiver.ProxyTypes;
             foreach (var proxyType in proxyTypes)
                 context.Compilation.GenerateProxy(builder, proxyType);
+
+            context.AddSource("proxies.g.cs", builder.ToString());
         }
     }
 }

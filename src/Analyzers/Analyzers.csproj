@@ -2,16 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Dynamics.Proxy</RootNamespace>
-    <AssemblyName>assistant.net.dynamics.proxy.analyzer</AssemblyName>
+    <RootNamespace>Assistant.Net.Analyzers</RootNamespace>
+    <AssemblyName>assistant.net.analyzers</AssemblyName>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
-    <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Dynamics.Proxy\Dynamics.Proxy.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.10.0" />
@@ -19,15 +14,17 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="5.0.0" />
   </ItemGroup>
 
   <PropertyGroup>
     <Product>Assistant.NET</Product>
     <RepositoryType>github</RepositoryType>
-    <PackageTags>dynamic proxy compile analyzer</PackageTags>
-    <Description>Code precompilation and analysis tool.</Description>
+    <PackageTags>dynamic proxy analyzer</PackageTags>
+    <Description>Code analysis and proxy generation tool.</Description>
     <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetdynamicsproxyanalyzer</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetanalyzers</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>

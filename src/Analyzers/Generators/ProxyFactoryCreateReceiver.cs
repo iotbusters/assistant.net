@@ -1,11 +1,10 @@
-﻿
-using Assistant.Net.Dynamics.Proxy.Abstractions;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Assistant.Net.Analyzers.Abstractions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace Assistant.Net.Dynamics.Proxy
+namespace Assistant.Net.Analyzers.Generators
 {
     /// <summary>
     ///     <see cref="IProxyFactory"/> usage analysis visitor.

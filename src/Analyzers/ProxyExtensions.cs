@@ -1,9 +1,9 @@
-﻿using Assistant.Net.Dynamics.Proxy.Abstractions;
-using System;
+﻿using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using Assistant.Net.Analyzers.Abstractions;
 
-namespace Assistant.Net.Dynamics.Proxy
+namespace Assistant.Net.Analyzers
 {
     public static class ProxyExtensions
     {
