@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
-namespace Assistant.Net.Dynamics.Builder
+namespace Assistant.Net.Analyzers.Builders
 {
     /// <summary>
     ///     C# source code builder.

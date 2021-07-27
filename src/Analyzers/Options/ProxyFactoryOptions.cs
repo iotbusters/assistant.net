@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Assistant.Net.Dynamics.Options
+namespace Assistant.Net.Analyzers.Options
 {
     /// <summary>
     ///     Required proxy configuration.

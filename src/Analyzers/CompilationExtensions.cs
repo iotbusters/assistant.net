@@ -1,13 +1,13 @@
-﻿using Assistant.Net.Dynamics.Builder;
-using Assistant.Net.Dynamics.Proxy.Abstractions;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Assistant.Net.Analyzers.Abstractions;
+using Assistant.Net.Analyzers.Builders;
 
-namespace Assistant.Net.Dynamics.Proxy
+namespace Assistant.Net.Analyzers
 {
     public static class CompilationExtensions
     {
@@ -22,18 +22,14 @@ namespace Assistant.Net.Dynamics.Proxy
         /// </summary>
         public static Compilation AddProxy(this Compilation compilation, Type proxyType, string? @namespace = null)
         {
-            var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location)!; 
+            var assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location)!;
             var systemAssemblies = new[]
             {
-                //typeof(object).Assembly.Location,
-                //Path.Combine(assemblyPath, "mscorlib.dll"),
-                //Path.Combine(assemblyPath, "System.dll"),
-                //Path.Combine(assemblyPath, "System.Core.dll"),
-                //Path.Combine(assemblyPath, "System.Runtime.dll"),
+                Path.Combine(assemblyPath, "System.Runtime.dll"),
                 Path.Combine(assemblyPath, "netstandard.dll"),
                 proxyType.Assembly.Location
             }.Distinct().Select(x => MetadataReference.CreateFromFile(x));
-            compilation = compilation.AddReferences(systemAssemblies);
+            compilation = compilation.AddReferences(systemAssemblies); 
 
             var proxyTypeSymbol = compilation.GetTypeSymbol(proxyType);
             return compilation.AddProxy(proxyTypeSymbol, @namespace);
