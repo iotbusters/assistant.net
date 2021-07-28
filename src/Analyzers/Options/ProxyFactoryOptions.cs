@@ -14,16 +14,18 @@ namespace Assistant.Net.Analyzers.Options
         /// <summary>
         ///     Registers the <typeparamref name="T"/> proxy type required to proxy.
         /// </summary>
-        public void Add<T>() => Add(typeof(T));
+        public ProxyFactoryOptions Add<T>() => Add(typeof(T));
 
         /// <summary>
         ///     Registers the <paramref name="proxyType"/> required to proxy.
         /// </summary>
-        public void Add(Type proxyType)
+        public ProxyFactoryOptions Add(Type proxyType)
         {
             if (!proxyType.IsInterface)
                 throw new ArgumentException($"Expected an interface type but provided `{proxyType.Name}` instead.", nameof(proxyType));
+
             proxyTypes.Add(proxyType);
+            return this;
         }
 
         /// <summary>

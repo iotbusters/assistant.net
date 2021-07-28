@@ -1,5 +1,5 @@
-using System;
 using Assistant.Net.Messaging.Abstractions;
+using System;
 
 namespace Assistant.Net.Messaging.Options
 {
@@ -13,7 +13,7 @@ namespace Assistant.Net.Messaging.Options
         public Type Type { get; }
 
 
-        public static InterceptorDefinition Create<TInterceptor>() where TInterceptor : class, IAbstractCommandInterceptor =>
+        public static InterceptorDefinition Create<TInterceptor>() where TInterceptor : class, IAbstractInterceptor =>
             new(typeof(TInterceptor));
     }
 }

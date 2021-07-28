@@ -1,5 +1,5 @@
-using System;
 using Assistant.Net.Messaging.Abstractions;
+using System;
 
 namespace Assistant.Net.Messaging.Options
 {
@@ -12,12 +12,12 @@ namespace Assistant.Net.Messaging.Options
 
         public Type Type { get; }
 
-        public static HandlerDefinition Create<THandler>() where THandler : class, IAbstractCommandHandler =>
+        public static HandlerDefinition Create<THandler>() where THandler : class, IAbstractHandler =>
             new(typeof(THandler));
 
         public static HandlerDefinition Create(Type handlerType)
         {
-            if (!handlerType.IsAssignableTo(typeof(IAbstractCommandHandler)))
+            if (!handlerType.IsAssignableTo(typeof(IAbstractHandler)))
                 throw new ArgumentException("Invalid handler", nameof(handlerType));
             return new(handlerType);
         }

@@ -25,7 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Analyzers\Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\Analyzers\Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="true" />
+    <!-- note: swap references if compilation started failing -->
+    <!--<ProjectReference Include="..\..\src\Analyzers\Analyzers.csproj" />-->
   </ItemGroup>
 
 </Project>

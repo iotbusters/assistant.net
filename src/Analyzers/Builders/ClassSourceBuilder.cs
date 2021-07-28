@@ -91,7 +91,7 @@ namespace Assistant.Net.Analyzers.Builders
             if (method.ReturnsVoid)
                 builder.Append("void");
             else
-                builder.Type((INamedTypeSymbol) method.ReturnType);
+                builder.Type(method.ReturnType);
 
             builder.Append(" ").Type(method.ContainingType).Append(".", method.Name);
 
