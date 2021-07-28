@@ -12,6 +12,29 @@ namespace Assistant.Net.Analyzers.Options
         private readonly HashSet<Type> proxyTypes = new();
 
         /// <summary>
+        ///     Is generating proxy during the runtime allowed?
+        /// </summary>
+        internal bool IsAllowedRuntimeGeneration { get; set; }
+
+        /// <summary>
+        ///     Allows generating proxy during the runtime.
+        /// </summary>
+        public ProxyFactoryOptions AllowRuntimeGeneration()
+        {
+            IsAllowedRuntimeGeneration = true;
+            return this;
+        }
+
+        /// <summary>
+        ///     Disallows generating proxy during the runtime. It's disallowed by default.
+        /// </summary>
+        public ProxyFactoryOptions DisallowRuntimeGeneration()
+        {
+            IsAllowedRuntimeGeneration = false;
+            return this;
+        }
+
+        /// <summary>
         ///     Registers the <typeparamref name="T"/> proxy type required to proxy.
         /// </summary>
         public ProxyFactoryOptions Add<T>() => Add(typeof(T));
