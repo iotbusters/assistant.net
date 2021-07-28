@@ -18,7 +18,7 @@ namespace Assistant.Net.Core.Tests
                 list.Add("start");
                 return 0;
             });
-            _ = task.When(x => list.Add("#1"), x => list.Add("#2"));
+            _ = task.When(_ => list.Add("#1"), _ => list.Add("#2"));
 
             await task;
             await Task.Yield();
@@ -35,7 +35,7 @@ namespace Assistant.Net.Core.Tests
                 list.Add("start");
                 throw new Exception();
             }));
-            _ = task.When(x => list.Add("#1"), x => list.Add("#2"));
+            _ = task.When(_ => list.Add("#1"), _ => list.Add("#2"));
 
             task.Awaiting(x => x).Should().ThrowExactly<Exception>();
             await Task.Yield();
@@ -52,8 +52,8 @@ namespace Assistant.Net.Core.Tests
                 list.Add("start");
                 return 0;
             });
-            _ = task.WhenSuccess(x => list.Add("#1"));
-            _ = task.WhenSuccess(x => list.Add("#2"));
+            _ = task.WhenSuccess(_ => list.Add("#1"));
+            _ = task.WhenSuccess(_ => list.Add("#2"));
 
             await task;
             await Task.Yield();
@@ -67,7 +67,7 @@ namespace Assistant.Net.Core.Tests
         {
             var list = new ConcurrentBag<string>();
             var task = Task.Run(new Func<int>(() => throw new Exception()));
-            _ = task.WhenSuccess(x => list.Add("#1"));
+            _ = task.WhenSuccess(_ => list.Add("#1"));
 
             task.Awaiting(x => x).Should().ThrowExactly<Exception>();
             await Task.Yield();
@@ -80,8 +80,8 @@ namespace Assistant.Net.Core.Tests
         {
             var list = new ConcurrentBag<string>();
             var task = Task.Run(new Func<int>(() => throw new Exception()));
-            _ = task.WhenFaulted(x => list.Add("#1"));
-            _ = task.WhenFaulted(x => list.Add("#2"));
+            _ = task.WhenFaulted(_ => list.Add("#1"));
+            _ = task.WhenFaulted(_ => list.Add("#2"));
 
             task.Awaiting(x => x).Should().ThrowExactly<Exception>();
             await Task.Yield();
@@ -95,7 +95,7 @@ namespace Assistant.Net.Core.Tests
         {
             var list = new ConcurrentBag<string>();
             var task = Task.Run(() => 0);
-            _ = task.WhenFaulted(x => list.Add("#1"));
+            _ = task.WhenFaulted(_ => list.Add("#1"));
 
             await task;
             await Task.Yield();
@@ -110,7 +110,7 @@ namespace Assistant.Net.Core.Tests
             using var cancellationSource = new CancellationTokenSource();
             cancellationSource.Cancel();
             var task = Task.FromCanceled<int>(cancellationSource.Token);
-            _ = task.WhenSuccess(x => list.Add("#1"));
+            _ = task.WhenSuccess(_ => list.Add("#1"));
 
             task.Awaiting(x => x).Should().ThrowExactly<TaskCanceledException>();
             await Task.Yield();
@@ -125,7 +125,7 @@ namespace Assistant.Net.Core.Tests
             using var cancellationSource = new CancellationTokenSource();
             cancellationSource.Cancel();
             var task = Task.FromCanceled<int>(cancellationSource.Token);
-            _ = task.WhenFaulted(x => list.Add("#1"));
+            _ = task.WhenFaulted(_ => list.Add("#1"));
 
             task.Awaiting(x => x).Should().ThrowExactly<TaskCanceledException>();
             await Task.Yield();
