@@ -1,7 +1,7 @@
+using Assistant.Net.Diagnostics.Abstractions;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Assistant.Net.Diagnostics.Abstractions;
 
 namespace Assistant.Net.Messaging.Extensions
 {

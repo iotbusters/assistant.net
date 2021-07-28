@@ -1,7 +1,7 @@
+using Assistant.Net.Messaging.Abstractions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Assistant.Net.Messaging.Abstractions;
 
 namespace Assistant.Net.Messaging.Interceptors
 {

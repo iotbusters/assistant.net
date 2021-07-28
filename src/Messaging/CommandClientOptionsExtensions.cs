@@ -1,9 +1,9 @@
-using System;
-using System.Linq;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Serialization;
+using System;
+using System.Linq;
 
 namespace Assistant.Net.Messaging
 {

@@ -1,10 +1,10 @@
+using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
-using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Utils;
 
 namespace Assistant.Net.Messaging.Interceptors
 {

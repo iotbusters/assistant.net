@@ -1,9 +1,9 @@
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Serialization.Abstractions;
+using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal
 {

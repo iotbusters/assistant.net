@@ -1,7 +1,7 @@
+using Assistant.Net.Messaging.Exceptions;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Assistant.Net.Messaging.Exceptions;
 
 namespace Assistant.Net.Messaging.Internal
 {
