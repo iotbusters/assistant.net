@@ -20,7 +20,7 @@ jobs:
           CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
           # it should be in build.if section but env.ALL_PACKAGES fails there
           echo ::set-output name=important-changes::echo ::set-output name=important-changes::$([ ${{ env.ALL_PACKAGES == 'true' }} ] && echo 1 || echo "$CHANGES" | grep -c -E '\.(cs|csproj|json)$')
-          echo ::set-output name=analizers::$(echo "$CHANGES" | grep -c src/Analizers/)
+          echo ::set-output name=analyzers::$(echo "$CHANGES" | grep -c src/Analyzers/)
           echo ::set-output name=core::$(echo "$CHANGES" | grep -c src/Core/)
           echo ::set-output name=serialization-json::$(echo "$CHANGES" | grep -c src/Serialization.Json/)
           echo ::set-output name=storage::$(echo "$CHANGES" | grep -c src/Storage/)
@@ -32,7 +32,7 @@ jobs:
           echo ::set-output name=total::$(echo "$CHANGES" | wc -l)
     outputs:
       important-changes: ${{ steps.change-detected.outputs.important-changes }}
-      analizers: ${{ steps.change-detected.outputs.analizers }}
+      analyzers: ${{ steps.change-detected.outputs.analyzers }}
       core: ${{ steps.change-detected.outputs.core }}
       serialization-json: ${{ steps.change-detected.outputs.serialization-json }}
       storage: ${{ steps.change-detected.outputs.storage }}
