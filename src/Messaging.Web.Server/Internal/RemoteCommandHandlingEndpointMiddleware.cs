@@ -16,9 +16,8 @@ namespace Assistant.Net.Messaging.Internal
 
         public virtual async Task Invoke(HttpContext context)
         {
-            dynamic command = await context.ReadCommandObject();
-
-            object response = await client.Send(command);
+            var command = await context.ReadCommandObject();
+            var response = await client.Send(command);
 
             await context.WriteCommandResponse(200, response);
         }

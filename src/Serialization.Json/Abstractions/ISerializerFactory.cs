@@ -8,8 +8,8 @@ namespace Assistant.Net.Serialization.Abstractions
     public interface ISerializerFactory
     {
         /// <summary>
-        ///     Creates a serializer of <paramref name="serializingType"/>.
+        ///     Creates a de-typed serializer of <paramref name="serializingType"/>.
         /// </summary>
-        ISerializer<object> Create(Type serializingType);
+        IAbstractSerializer Create(Type serializingType);
     }
 }
