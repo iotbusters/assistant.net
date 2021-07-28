@@ -5,13 +5,15 @@ namespace Assistant.Net.Messaging.Abstractions
     /// <summary>
     ///     Command handler abstraction that accepts <typeparamref name="TCommand" /> only and returns <typeparam name="TResponse" /> in response.
     /// </summary>
-    public interface ICommandHandler<TCommand, TResponse> : IAbstractCommandHandler
+    public interface ICommandHandler<TCommand, TResponse> : IAbstractHandler
         where TCommand : ICommand<TResponse>
     {
         /// <summary>
         ///     Handles <typeparam name="TCommand" /> object.
         /// </summary>
         Task<TResponse> Handle(TCommand command);
+
+        Task<object> IAbstractHandler.Handle(object command) => Handle((TCommand) command).MapSuccess(x => (object) x!);
     }
 
     /// <summary>
@@ -29,10 +31,4 @@ namespace Assistant.Net.Messaging.Abstractions
             return None.Instance;
         }
     }
-
-    /// <summary>
-    ///     Very generic handler abstraction used primarily for type restrictions
-    ///     in configuration and other internal logic.
-    /// </summary>
-    public interface IAbstractCommandHandler { }
 }

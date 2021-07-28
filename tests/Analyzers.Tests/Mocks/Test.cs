@@ -16,7 +16,7 @@ namespace Assistant.Net.Analyzers.Tests.Mocks
         public string Function() => "2";
         public string Function(string a) => "3";
         public int Function(string a, int b) => 4;
-        public void Method<T>(T a) where T : class, IEnumerable<char> { }
+        public T Method<T>(T a) where T : class, IEnumerable<char> => a;
         public Task Method() => Task.CompletedTask;
         public event Action Event = delegate { };
     }

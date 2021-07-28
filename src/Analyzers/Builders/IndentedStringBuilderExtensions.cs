@@ -46,9 +46,8 @@ namespace Assistant.Net.Analyzers.Builders
             if (type is not INamedTypeSymbol namedType || !namedType.IsGenericType)
                 return builder.Append(type.Name);
 
-            var name = type.Name.Substring(0, namedType.Name.IndexOf('`'));
             return builder
-                .Append(name, "Of")
+                .Append(type.Name, "Of")
                 .AppendJoin("And", namedType.TypeArguments.ToArray(), (b, argType) => b.TypeName(argType));
         }
 

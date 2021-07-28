@@ -182,31 +182,39 @@ namespace Assistant.Net.Analyzers
                     foreach (var method in proxyTypeMethods)
                     {
                         var argumentNames = method.Parameters.Select(x => x.Name!).ToArray();
-                        if (method.ReturnsVoid)
-                            cb.AddMethod(method, b => b
-                                .Append("var interceptor = GetImplementation(")
-                                .Append("this.").MethodName(method).AppendLine(");")
-                                .AppendLine("if (interceptor != null) ")
-                                .AddBlock(ib => ib
-                                    .Append("interceptor(new object[] {")
-                                    .AppendJoin(", ", argumentNames).AppendLine("});")
-                                    .AppendLine("return;"))
-                                .AppendLine("if (", instanceFieldName, " != null)")
-                                .AddBlock(ib => ib
-                                    .Append("this.", instanceFieldName, ".", method.Name, "(")
+                        cb.AddMethod(method, b =>
+                        {
+                            b.Append("var interceptor = GetImplementation(");
+                            if (method.IsGenericMethod)
+                                b.Append("this.").MethodName(method)
+                                    .Append(".MakeGenericMethod(")
+                                    .AppendJoin(", ", method.TypeArguments.ToArray(), (bt, type) => bt.Append("typeof(").Type(type).Append(")"))
+                                    .Append(")");
+                            else
+                                b.Append("this.").MethodName(method);
+                            b.AppendLine(");");
+
+                            if (method.ReturnsVoid)
+                                b.AppendLine("if (interceptor != null) ")
+                                    .AddBlock(ib => ib
+                                        .Append("interceptor(new object[] {")
+                                        .AppendJoin(", ", argumentNames).AppendLine("});")
+                                        .AppendLine("return;"))
+                                    .AppendLine("if (", instanceFieldName, " != null)")
+                                    .AddBlock(ib => ib
+                                        .Append("this.", instanceFieldName, ".", method.Name, "(")
+                                        .AppendJoin(", ", argumentNames).AppendLine(");")
+                                        .AppendLine("return;"))
+                                    .AppendLine("throw this.", errorFieldName, ";");
+                            else
+                                b.Append("if (interceptor != null) ")
+                                    .Append("return (").Type(method.ReturnType).Append(") interceptor((new object[] {")
+                                    .AppendJoin(", ", argumentNames).AppendLine("}));")
+                                    .Append("if (", instanceFieldName, " != null) ")
+                                    .Append("return this.", instanceFieldName, ".", method.Name, "(")
                                     .AppendJoin(", ", argumentNames).AppendLine(");")
-                                    .AppendLine("return;"))
-                                .AppendLine("throw this.", errorFieldName, ";"));
-                        else
-                            cb.AddMethod(method, b => b
-                                .Append("var interceptor = GetImplementation(").Append("this.").MethodName(method).AppendLine(");")
-                                .Append("if (interceptor != null) ")
-                                .Append("return (").Type(method.ReturnType).Append(") interceptor((new object[] {")
-                                .AppendJoin(", ", argumentNames).AppendLine("}));")
-                                .Append("if (", instanceFieldName, " != null) ")
-                                .Append("return this.", instanceFieldName, ".", method.Name, "(")
-                                .AppendJoin(", ", argumentNames).AppendLine(");")
-                                .AppendLine("throw this.", errorFieldName, ";"));
+                                    .AppendLine("throw this.", errorFieldName, ";");
+                        });
                     }
 
                     foreach (var @event in proxyTypeEvents)
@@ -234,6 +242,8 @@ namespace Assistant.Net.Analyzers
                     }
                 });
             });
+
+            var a = builder.ToString();
 
             return compilation;
         }

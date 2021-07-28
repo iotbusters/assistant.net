@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Assistant.Net.Analyzers.Abstractions;
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using Assistant.Net.Analyzers.Abstractions;
 
 namespace Assistant.Net.Analyzers
 {
@@ -31,7 +31,7 @@ namespace Assistant.Net.Analyzers
         public static Proxy<T> Intercept<T, TResult>(
             this Proxy<T> proxy,
             Expression<Func<T, TResult>> selector,
-            Func<Func<object?[], object?>, object?[], TResult> interceptor) =>
+            Func<Func<object?[], TResult>, object?[], TResult> interceptor) =>
             proxy.Intercept(selector, (next, _, args) => interceptor(next, args));
 
         /// <summary>
@@ -40,19 +40,21 @@ namespace Assistant.Net.Analyzers
         public static Proxy<T> Intercept<T, TResult>(
             this Proxy<T> proxy,
             Expression<Func<T, TResult>> selector,
-            Func<Func<object?[], object?>, MethodInfo, object?[], TResult> interceptor)
+            Func<Func<object?[], TResult>, MethodInfo, object?[], TResult> interceptor)
         {
             switch (selector.Body)
             {
-                case MemberExpression { Member: PropertyInfo { GetMethod: var getProperty, SetMethod: var setProperty } }:
+                case MemberExpression { Member: PropertyInfo { GetMethod: var getProperty/*, SetMethod: var setProperty*/ } }:
                     if (getProperty != null)
-                        proxy.AddOrUpdate(getProperty!, interceptor);
-                    if (setProperty != null)
-                        proxy.AddOrUpdate(setProperty!, interceptor);
+                        proxy.AddOrUpdate(getProperty!, (next, mi, args) => interceptor(x => (TResult) next(x)!, mi, args));
+                    // note: setters are ignored as they weren't properly planned
+                    // todo: implement setters
+                    //if (setProperty != null)
+                    //    proxy.AddOrUpdate(setProperty!, (next, method, args) => interceptor(x => (TResult) next(x)!, method, args));
                     return proxy;
 
                 case MethodCallExpression { Method: var method }:
-                    proxy.AddOrUpdate(method!, interceptor);
+                    proxy.AddOrUpdate(method!, (next, mi, args) => interceptor(x => (TResult)next(x)!, mi, args));
                     return proxy;
 
                 default:

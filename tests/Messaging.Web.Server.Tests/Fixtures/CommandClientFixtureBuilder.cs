@@ -1,9 +1,9 @@
-using System.Net.Http;
+using Assistant.Net.Messaging.Abstractions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Assistant.Net.Messaging.Abstractions;
+using System.Net.Http;
 
 namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
 {
@@ -19,7 +19,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
 
         public IHostBuilder RemoteHostBuilder { get; init; }
 
-        public CommandClientFixtureBuilder AddRemote<THandler>() where THandler : class, IAbstractCommandHandler
+        public CommandClientFixtureBuilder AddRemote<THandler>() where THandler : class, IAbstractHandler
         {
             RemoteHostBuilder.ConfigureServices(s => s
                 .ConfigureCommandClient(b => b.AddLocal<THandler>()));

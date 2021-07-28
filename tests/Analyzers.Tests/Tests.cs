@@ -15,7 +15,7 @@ namespace Assistant.Net.Analyzers.Tests
 {
     public class Tests
     {
-        [Test]
+        [Test, Ignore("Manual tests only")]
         public void Proxy_isNotSlowerThen100Times()
         {
             var @object = new Test();
@@ -83,6 +83,7 @@ namespace Assistant.Net.Analyzers.Tests
 
             var proxy = factory.Create<ITest>()
                 .Intercept(x => x.Method(), (_, _, _) => Task.CompletedTask)
+                .Intercept(x => x.Method(""), (_, _, _) => "3")
                 .Intercept(x => x.Property, "5")
                 .Intercept(x => x.Function(), _ => "6")
                 .Intercept(x => x.Function(default!), (_, _) => "7")
@@ -91,6 +92,7 @@ namespace Assistant.Net.Analyzers.Tests
 
             proxy.ToString().Should().Be(proxy.GetType().FullName);
             proxy.Method().Should().Be(Task.CompletedTask);
+            proxy.Method("1").Should().Be("3");
             proxy.Property.Should().Be("5");
             proxy.Function().Should().Be("6");
             proxy.Function(default!).Should().Be("7");

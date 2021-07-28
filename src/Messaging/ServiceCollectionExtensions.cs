@@ -1,4 +1,5 @@
 using System;
+using Assistant.Net.Analyzers;
 using Microsoft.Extensions.DependencyInjection;
 using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Abstractions;
@@ -19,9 +20,9 @@ namespace Assistant.Net.Messaging
             .AddStorage(b => b.AddLocal<object, CachingResult>())
             .AddDiagnostics()
             .AddSystemServicesDefaulted()
+            .AddProxyFactory(b => b.Add<IAbstractHandler>().Add<IAbstractInterceptor>())
             .TryAddSingleton<IHandlerFactory, HandlerFactory>()
             .TryAddSingleton<ICommandClient, CommandClient>()
-            .TryAddSingleton(typeof(HandlerAdapter<,>), typeof(HandlerAdapter<,>))
             .ConfigureCommandClient(b => b.AddConfiguration<DefaultInterceptorConfiguration>());
 
         /// <summary>
