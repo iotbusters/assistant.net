@@ -1,12 +1,12 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using Assistant.Net.Analyzers.Abstractions;
+﻿using Assistant.Net.Analyzers.Abstractions;
 using Assistant.Net.Analyzers.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Options;
+using System;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 
 namespace Assistant.Net.Analyzers.Internal
 {
@@ -30,6 +30,11 @@ namespace Assistant.Net.Analyzers.Internal
             //    return;
             //}
 
+            if (!options.Value.IsAllowedRuntimeGeneration)
+                throw new InvalidOperationException(
+                    "Runtime generation wasn't allowed. The following types weren't precompiled: "
+                    + string.Join(", ", unknownTypes.Select(x => x.FullName)));
+
             Compilation compilation = CSharpCompilation.Create(ProxyAssemblyName)
                 .WithOptions(new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
@@ -37,7 +42,7 @@ namespace Assistant.Net.Analyzers.Internal
 
             foreach (var proxyType in unknownTypes)
                 compilation = compilation.AddProxy(proxyType);
-            
+
             using var memory = new MemoryStream();
             var result = compilation.Emit(memory);
             if (!result.Success)
