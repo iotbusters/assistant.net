@@ -1,11 +1,11 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
@@ -65,7 +65,7 @@ namespace Assistant.Net.Messaging.Interceptors
         {
             // todo: resolve duplication in ErrorHandlingInterceptor (https://github.com/iotbusters/assistant.net/issues/4)
             // configurable
-            var transientExceptionTypes = new Type[]
+            var transientExceptionTypes = new[]
             {
                 typeof(CommandDeferredException)
             };
@@ -73,7 +73,7 @@ namespace Assistant.Net.Messaging.Interceptors
             if (ex is AggregateException e)
                 return CriticalExceptionOnly(e.InnerException!);
 
-            return !transientExceptionTypes.Any(x => x.IsAssignableFrom(ex.GetType()));
+            return !transientExceptionTypes.Any(x => x.IsInstanceOfType(ex));
         }
     }
 }

@@ -1,7 +1,7 @@
-using System.Linq;
-using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
+using System.Linq;
+using System.Net.Http;
 
 namespace Assistant.Net.Messaging
 {

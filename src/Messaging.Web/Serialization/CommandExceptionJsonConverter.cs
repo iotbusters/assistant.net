@@ -1,9 +1,9 @@
-using System;
-using System.Text.Json;
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Serialization.Converters;
 using Assistant.Net.Serialization.Exceptions;
+using System;
+using System.Text.Json;
 
 namespace Assistant.Net.Messaging.Serialization
 {

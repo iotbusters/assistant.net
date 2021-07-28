@@ -1,6 +1,6 @@
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Assistant.Net.Messaging.Abstractions;
+using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal
 {

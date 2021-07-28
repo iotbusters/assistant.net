@@ -1,10 +1,10 @@
+using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Serialization.Abstractions;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Serialization.Abstractions;
 
 namespace Assistant.Net.Messaging.Extensions
 {

@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Assistant.Net.Analyzers.Abstractions;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using Assistant.Net.Analyzers.Abstractions;
 
 namespace Assistant.Net.Analyzers
 {

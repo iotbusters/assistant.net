@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using Assistant.Net.Analyzers.Abstractions;
+﻿using Assistant.Net.Analyzers.Abstractions;
 using Assistant.Net.Analyzers.Internal;
 using Assistant.Net.Analyzers.Options;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using System;
 
 namespace Assistant.Net.Analyzers
 {

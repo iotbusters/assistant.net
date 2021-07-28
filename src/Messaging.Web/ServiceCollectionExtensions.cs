@@ -1,7 +1,7 @@
-using Microsoft.Extensions.DependencyInjection;
 using Assistant.Net.Messaging.Serialization;
 using Assistant.Net.Serialization;
 using Assistant.Net.Serialization.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Assistant.Net.Messaging
 {

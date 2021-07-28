@@ -1,11 +1,11 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using Assistant.Net.Analyzers.Abstractions;
+using Assistant.Net.Analyzers.Builders;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Assistant.Net.Analyzers.Abstractions;
-using Assistant.Net.Analyzers.Builders;
 
 namespace Assistant.Net.Analyzers
 {
@@ -242,8 +242,6 @@ namespace Assistant.Net.Analyzers
                     }
                 });
             });
-
-            var a = builder.ToString();
 
             return compilation;
         }

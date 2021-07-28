@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis;
+using System;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 
 namespace Assistant.Net.Analyzers.Builders
 {

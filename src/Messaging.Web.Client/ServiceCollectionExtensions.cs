@@ -1,12 +1,12 @@
-using System;
+using Assistant.Net.Diagnostics;
+using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Extensions;
+using Assistant.Net.Messaging.Internal;
+using Assistant.Net.Messaging.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Assistant.Net.Diagnostics;
-using Assistant.Net.Messaging.Options;
-using Assistant.Net.Messaging.Extensions;
-using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Internal;
+using System;
 
 namespace Assistant.Net.Messaging
 {

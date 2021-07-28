@@ -1,5 +1,5 @@
-using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
+using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal
 {
