@@ -1,20 +1,20 @@
+using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Web.Server.Tests.Fixtures;
+using Assistant.Net.Messaging.Web.Server.Tests.Mocks;
+using Assistant.Net.Serialization.Abstractions;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
 using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using FluentAssertions;
-using NUnit.Framework;
-using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Messaging.Web.Server.Tests.Fixtures;
-using Assistant.Net.Messaging.Web.Server.Tests.Mocks;
-using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Serialization.Abstractions;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
 {
-    [Timeout(4000)]
+    [Timeout(2000)]
     public class RemoteExceptionHandlingMiddlewareTests
     {
         private static readonly string CorrelationId = Guid.NewGuid().ToString();
@@ -23,7 +23,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
         [TestCase(typeof(TaskCanceledException))]
         [TestCase(typeof(OperationCanceledException))]
         [TestCase(typeof(CommandDeferredException))]
-        public async Task Post_Accepted_thrownInterraptingKindOfException(Type exceptionType)
+        public async Task Post_Accepted_thrownInterruptingKindOfException(Type exceptionType)
         {
             using var fixture = new CommandClientFixtureBuilder()
                 .AddRemote<TestFailCommandHandler>()
@@ -62,7 +62,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 Headers = new[]
                 {
                     new { Key = HeaderNames.CommandName, Value = new[] { nameof(TestFailCommand) } },
-                    new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } },
+                    new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } }
                 }
             });
             var responseObject = await response.Content.ReadFromJsonAsync<CommandException>(fixture.JsonSerializerOptions);
@@ -87,7 +87,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 Headers = new[]
                 {
                     new { Key = HeaderNames.CommandName, Value = new[] { nameof(TestFailCommand) } },
-                    new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } },
+                    new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } }
                 }
             });
             var responseObject = await response.Content.ReadFromJsonAsync<CommandException>(fixture.JsonSerializerOptions);
@@ -112,7 +112,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 Headers = new[]
                 {
                     new { Key = HeaderNames.CommandName, Value = new[] { nameof(TestFailCommand) } },
-                    new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } },
+                    new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } }
                 }
             });
             var responseObject = await response.Content.ReadFromJsonAsync<CommandException>(fixture.JsonSerializerOptions);
@@ -137,7 +137,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 Headers = new[]
                 {
                     new { Key = HeaderNames.CommandName, Value = new[] { nameof(TestFailCommand) } },
-                    new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } },
+                    new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } }
                 }
             });
             var responseObject = await response.Content.ReadFromJsonAsync<CommandException>(fixture.JsonSerializerOptions);
@@ -150,7 +150,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 Headers =
                 {
                     {HeaderNames.CommandName, command.GetType().Name},
-                    {HeaderNames.CorrelationId, CorrelationId},
+                    {HeaderNames.CorrelationId, CorrelationId}
                 },
                 Content = new ByteArrayContent(await Binary(command))
             };
