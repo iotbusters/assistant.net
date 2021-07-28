@@ -1,4 +1,5 @@
 using System;
+using Assistant.Net.Analyzers;
 using Microsoft.Extensions.DependencyInjection;
 using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Abstractions;
@@ -12,16 +13,16 @@ namespace Assistant.Net.Messaging
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        ///     Adds <see cref="ICommandClient"/> implementation, required services and default <see cref="CommandClientOptions"/> configuration.
-        ///     Pay attention, you need to call explicitly <see cref="Assistant.Net.Messaging.ServiceCollectionExtensions.ConfigureCommandClient"/> to register handlers.
+        ///     Adds <see cref="ICommandClient"/> implementation, required services and defaults.
+        ///     Pay attention, you need to call explicitly <see cref="ConfigureCommandClient"/> to register handlers.
         /// </summary>
         public static IServiceCollection AddCommandClient(this IServiceCollection services) => services
             .AddStorage(b => b.AddLocal<object, CachingResult>())
             .AddDiagnostics()
             .AddSystemServicesDefaulted()
+            .AddProxyFactory(b => b.Add<IAbstractHandler>().Add<IAbstractInterceptor>())
             .TryAddSingleton<IHandlerFactory, HandlerFactory>()
             .TryAddSingleton<ICommandClient, CommandClient>()
-            .TryAddSingleton(typeof(HandlerAdapter<,>), typeof(HandlerAdapter<,>))
             .ConfigureCommandClient(b => b.AddConfiguration<DefaultInterceptorConfiguration>());
 
         /// <summary>

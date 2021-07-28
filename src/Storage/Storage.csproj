@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Core\Core.csproj"/>
-    <ProjectReference Include="..\..\src\Serialization.Json\Serialization.Json.csproj"/>
+    <ProjectReference Include="..\Core\Core.csproj"/>
+    <ProjectReference Include="..\Serialization.Json\Serialization.Json.csproj"/>
   </ItemGroup>
 
   <PropertyGroup>

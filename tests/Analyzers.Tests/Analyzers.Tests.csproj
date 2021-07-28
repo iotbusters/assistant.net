@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Core.Tests</RootNamespace>
+    <RootNamespace>Assistant.Net.Analyzers.Tests</RootNamespace>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -17,14 +17,19 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="JUnitTestLogger" Version="1.1.0" />
-    <PackageReference Include="NUnit" Version="3.13.2"/>
-    <PackageReference Include="NUnit3TestAdapter" Version="4.0.0"/>
-    <PackageReference Include="FluentAssertions" Version="5.10.3"/>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0"/>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="NUnit" Version="3.13.2" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
+    <PackageReference Include="FluentAssertions" Version="5.10.3" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Core\Core.csproj" />
+    <ProjectReference Include="..\..\src\Analyzers\Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="true" />
+    <!-- note: swap references if compilation started failing -->
+    <!--<ProjectReference Include="..\..\src\Analyzers\Analyzers.csproj" />-->
   </ItemGroup>
 
 </Project>

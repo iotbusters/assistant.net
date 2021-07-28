@@ -13,7 +13,7 @@ namespace Assistant.Net.Messaging
         ///     Registers a local in-memory handler type <typeparamref name="THandler" />.
         /// </summary>
         public static CommandClientBuilder AddLocal<THandler>(this CommandClientBuilder builder)
-            where THandler : class, IAbstractCommandHandler
+            where THandler : class, IAbstractHandler
         {
             var abstractHandlerTypes = typeof(THandler).GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(ICommandHandler<,>));
             foreach (var abstractHandlerType in abstractHandlerTypes)
@@ -67,7 +67,7 @@ namespace Assistant.Net.Messaging
         ///     Adds an interceptor type <typeparamref name="TInterceptor" /> to the end of the list.
         /// </summary>
         public static CommandClientBuilder AddInterceptor<TInterceptor>(this CommandClientBuilder builder)
-            where TInterceptor : class, IAbstractCommandInterceptor
+            where TInterceptor : class, IAbstractInterceptor
         {
             builder.Services.ConfigureCommandClientOptions(o => o.Interceptors.Add(typeof(TInterceptor)));
             builder.Services.ReplaceTransient<TInterceptor>();
@@ -78,7 +78,7 @@ namespace Assistant.Net.Messaging
         ///     Adds an interceptor type <typeparamref name="TInterceptor" /> at the beginning of the list.
         /// </summary>
         public static CommandClientBuilder AddInterceptorOnTop<TInterceptor>(this CommandClientBuilder builder)
-            where TInterceptor : class, IAbstractCommandInterceptor
+            where TInterceptor : class, IAbstractInterceptor
         {
             builder.AddInterceptorOnTop<TInterceptor>();
             return builder;
@@ -97,7 +97,7 @@ namespace Assistant.Net.Messaging
         ///     Removes an interceptor type <typeparamref name="TInterceptor" /> from the list.
         /// </summary>
         public static CommandClientBuilder Remove<TInterceptor>(this CommandClientBuilder builder)
-            where TInterceptor : class, IAbstractCommandInterceptor
+            where TInterceptor : class, IAbstractInterceptor
         {
             builder.Services.ConfigureCommandClientOptions(o => o.Interceptors.Remove(typeof(TInterceptor)));
             return builder;

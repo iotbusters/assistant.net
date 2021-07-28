@@ -20,6 +20,7 @@ jobs:
           CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
           # it should be in build.if section but env.ALL_PACKAGES fails there
           echo ::set-output name=important-changes::echo ::set-output name=important-changes::$([ ${{ env.ALL_PACKAGES == 'true' }} ] && echo 1 || echo "$CHANGES" | grep -c -E '\.(cs|csproj|json)$')
+          echo ::set-output name=analizers::$(echo "$CHANGES" | grep -c src/Analizers/)
           echo ::set-output name=core::$(echo "$CHANGES" | grep -c src/Core/)
           echo ::set-output name=serialization-json::$(echo "$CHANGES" | grep -c src/Serialization.Json/)
           echo ::set-output name=storage::$(echo "$CHANGES" | grep -c src/Storage/)
@@ -31,6 +32,7 @@ jobs:
           echo ::set-output name=total::$(echo "$CHANGES" | wc -l)
     outputs:
       important-changes: ${{ steps.change-detected.outputs.important-changes }}
+      analizers: ${{ steps.change-detected.outputs.analizers }}
       core: ${{ steps.change-detected.outputs.core }}
       serialization-json: ${{ steps.change-detected.outputs.serialization-json }}
       storage: ${{ steps.change-detected.outputs.storage }}
@@ -90,6 +92,9 @@ jobs:
           mkdir -p release-binaries/src
           cp LICENSE release-binaries
         if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.core != '0'
+      - name: upload binaries (prepare analyzers)
+        run: cp -r src/Analyzers release-binaries/src/Analyzers
+        if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.analyzers != '0'
       - name: upload binaries (prepare core)
         run: cp -r src/Core release-binaries/src/Core
         if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.core != '0'
@@ -104,7 +109,7 @@ jobs:
         if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
       - name: upload binaries (prepare messaging)
         run: cp -r src/Messaging release-binaries/src/Messaging
-        if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.serialization-json != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
+        if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.serialization-json != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0' || needs.change-detect.outputs.analyzers != '0'
       - name: upload binaries (prepare messaging.web)
         run: cp -r src/Messaging.Web release-binaries/src/Messaging.Web
         if: env.ALL_PACKAGES == 'true' || needs.change-detect.outputs.web != '0' || needs.change-detect.outputs.messaging != '0' || needs.change-detect.outputs.storage != '0' || needs.change-detect.outputs.diagnostics != '0' || needs.change-detect.outputs.core != '0'
@@ -167,6 +172,7 @@ jobs:
             <details>
               <summary>Package changes</summary>
               <ul>
+                <li>Analyzers: ${{ needs.change-detect.outputs.analyzers }}</li>
                 <li>Core: ${{ needs.change-detect.outputs.core }}</li>
                 <li>Serialization.Json: ${{ needs.change-detect.outputs.serialization-json }}</li>
                 <li>Storage: ${{ needs.change-detect.outputs.storage }}</li>

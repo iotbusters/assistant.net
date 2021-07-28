@@ -8,10 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Core\Core.csproj"/>
-    <ProjectReference Include="..\..\src\Storage\Storage.csproj"/>
-    <ProjectReference Include="..\..\src\Diagnostics\Diagnostics.csproj"/>
-    <ProjectReference Include="..\..\src\Serialization.Json\Serialization.Json.csproj"/>
+    <ProjectReference Include="..\Analyzers\Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="true" />
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Storage\Storage.csproj" />
+    <ProjectReference Include="..\Diagnostics\Diagnostics.csproj" />
+    <ProjectReference Include="..\Serialization.Json\Serialization.Json.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -1,12 +1,12 @@
-using System;
-using System.Linq;
-using System.Diagnostics;
+using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Integration.Tests.Mocks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Integration.Tests.Mocks;
+using System;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
 {
@@ -26,7 +26,7 @@ namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
             RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
                 .Configure(b => b.UseRemoteWebCommandHandler()))
-                .ConfigureServices(b => b.AddRemoteWebCommandHandler(b => b.ClearInterceptors()));
+                .ConfigureServices(s => s.AddRemoteWebCommandHandler(b => b.ClearInterceptors()));
         }
 
         public IServiceCollection Services { get; init; }
@@ -38,13 +38,13 @@ namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
             return this;
         }
 
-        public CommandClientFixtureBuilder AddLocal<THandler>() where THandler : class, IAbstractCommandHandler
+        public CommandClientFixtureBuilder AddLocal<THandler>() where THandler : class, IAbstractHandler
         {
             Services.ConfigureCommandClient(b => b.AddLocal<THandler>());
             return this;
         }
 
-        public CommandClientFixtureBuilder AddRemote<THandler>() where THandler : class, IAbstractCommandHandler
+        public CommandClientFixtureBuilder AddRemote<THandler>() where THandler : class, IAbstractHandler
         {
             RemoteHostBuilder.ConfigureServices(s => s
                 .ConfigureCommandClient(b => b.AddLocal<THandler>()));
@@ -69,7 +69,7 @@ namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
         public CommandClientFixture Create()
         {
             var provider = Services
-                .AddHttpClientRedirect<IRemoteCommandClient>(p => RemoteHostBuilder.Start())
+                .AddHttpClientRedirect<IRemoteCommandClient>(_ => RemoteHostBuilder.Start())
                 .BuildServiceProvider();
             return new(provider);
         }
