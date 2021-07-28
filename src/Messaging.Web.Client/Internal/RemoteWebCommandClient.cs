@@ -38,7 +38,7 @@ namespace Assistant.Net.Messaging.Internal
             var requestSerializer = factory.Create(commandType);
 
             var requestStream = new MemoryStream();
-            await requestSerializer.Serialize(requestStream, command);
+            await requestSerializer.SerializeObject(requestStream, command);
             requestStream.Position = 0;
 
             var commandName = typeEncoder.Encode(commandType);
@@ -51,7 +51,7 @@ namespace Assistant.Net.Messaging.Internal
 
             var responseSerializer = factory.Create(typeof(TResponse));
             var responseStream = await response.Content.ReadAsStreamAsync(lifetime.Stopping);
-            var responseObject = (TResponse) await responseSerializer.Deserialize(responseStream);
+            var responseObject = (TResponse) await responseSerializer.DeserializeObject(responseStream);
             return responseObject!;
         }
     }

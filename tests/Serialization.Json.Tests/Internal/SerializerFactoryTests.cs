@@ -1,11 +1,11 @@
-﻿using System;
-using System.IO;
-using Microsoft.Extensions.DependencyInjection;
-using FluentAssertions;
-using NUnit.Framework;
-using Assistant.Net.Serialization.Abstractions;
+﻿using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Exceptions;
 using Assistant.Net.Serialization.Json.Tests.Mocks;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
+using System;
+using System.IO;
 
 namespace Assistant.Net.Serialization.Json.Tests.Internal
 {
@@ -32,13 +32,13 @@ namespace Assistant.Net.Serialization.Json.Tests.Internal
         [Test]
         public void Serialize_throws_unregistered() =>
             factory.Create(typeof(object))
-                .Invoking(x => x.Serialize(new MemoryStream(), new TestClass(DateTime.UtcNow)))
+                .Invoking(x => x.SerializeObject(new MemoryStream(), new TestClass(DateTime.UtcNow)))
                 .Should().Throw<SerializerTypeNotRegisteredException>();
 
         [Test]
         public void Deserialize_throws_unregistered() =>
             factory.Create(typeof(object))
-                .Invoking(x => x.Deserialize(new MemoryStream()))
+                .Invoking(x => x.DeserializeObject(new MemoryStream()))
                 .Should().Throw<SerializerTypeNotRegisteredException>();
     }
 }

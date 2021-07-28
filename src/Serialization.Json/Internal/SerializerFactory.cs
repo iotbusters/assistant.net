@@ -1,6 +1,6 @@
-﻿using System;
-using Assistant.Net.Serialization.Abstractions;
+﻿using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Exceptions;
+using System;
 
 namespace Assistant.Net.Serialization.Internal
 {
@@ -11,15 +11,11 @@ namespace Assistant.Net.Serialization.Internal
         public SerializerFactory(IServiceProvider provider) =>
             this.provider = provider;
 
-        public ISerializer<object> Create(Type serializingType)
+        public IAbstractSerializer Create(Type serializingType)
         {
             var serviceType = typeof(ISerializer<>).MakeGenericType(serializingType);
-            dynamic serializer = provider.GetService(serviceType)
-                                 ?? throw new SerializerTypeNotRegisteredException(serializingType);
-
-            return new DelegatingAbstractSerializer(
-                (s, x) => serializer.Serialize(s, (dynamic) x),
-                async x => await serializer.Deserialize(x));
+            return (IAbstractSerializer?) provider.GetService(serviceType)
+                   ?? throw new SerializerTypeNotRegisteredException(serializingType);
         }
     }
 }

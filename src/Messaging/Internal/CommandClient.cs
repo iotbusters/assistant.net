@@ -13,10 +13,7 @@ namespace Assistant.Net.Messaging.Internal
         public CommandClient(IHandlerFactory factory) =>
             this.factory = factory;
 
-        public async Task<TResponse> Send<TResponse>(ICommand<TResponse> command)
-        {
-            var handler = factory.Create(command.GetType());
-            return (TResponse)await handler.Handle(command);
-        }
+        public Task<object> Send(object command) =>
+            factory.Create(command.GetType()).Handle(command);
     }
 }

@@ -1,14 +1,14 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Exceptions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal
 {
@@ -67,7 +67,7 @@ namespace Assistant.Net.Messaging.Internal
 
             try
             {
-                return await serializer.Deserialize(httpContext.Request.Body);
+                return await serializer.DeserializeObject(httpContext.Request.Body);
             }
             catch (SerializerTypeNotRegisteredException)
             {
@@ -96,7 +96,7 @@ namespace Assistant.Net.Messaging.Internal
 
             var factory = httpContext.GetService<ISerializerFactory>();
             var serializer = factory.Create(content.GetType());
-            return serializer.Serialize(httpContext.Response.Body, content);
+            return serializer.SerializeObject(httpContext.Response.Body, content);
         }
 
         /// <summary>

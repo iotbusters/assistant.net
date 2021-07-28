@@ -17,14 +17,14 @@ namespace Assistant.Net.Utils
         public static string GetSha1<T>(this T value)
         {
             if (typeof(T).IsValueType)
-                return GetStructureSha1((dynamic)value!);
-            return GetClassSha1((dynamic)value!);
+                return GetStructureSha1(value!);
+            return GetClassSha1(value!);
         }
 
         /// <summary>
         ///     Generates <see cref="SHA1"/> hash code from <typeparamref name="T"/> reference type.
         /// </summary>
-        internal static string GetClassSha1<T>(this T value) where T : class
+        private static string GetClassSha1<T>(this T value)
         {
             using var sha = SHA1.Create();
 
@@ -38,7 +38,7 @@ namespace Assistant.Net.Utils
         /// <summary>
         ///     Generates <see cref="SHA1"/> hash code from <typeparamref name="T"/> value type.
         /// </summary>
-        internal static string GetStructureSha1<T>(this T value) where T : struct
+        private static string GetStructureSha1<T>(this T value)
         {
             using var sha = SHA1.Create();
 
@@ -57,8 +57,8 @@ namespace Assistant.Net.Utils
 
         private static byte[] SerializeStructure<T>(this T value)
         {
-            int size = Marshal.SizeOf(typeof(T));
-            byte[] bytes = new byte[size];
+            var size = Marshal.SizeOf(typeof(T));
+            var bytes = new byte[size];
             var pointer = Marshal.AllocHGlobal(size);
 
             Marshal.StructureToPtr(value!, pointer, true);
