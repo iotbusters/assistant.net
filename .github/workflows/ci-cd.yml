@@ -63,11 +63,11 @@ jobs:
           restore-keys: ${{ runner.os }}-nuget-
 
       - name: restore
-        run: dotnet restore -v n
+        run: dotnet restore assistant.net.sln -v n
       - name: build
-        run: dotnet build -p:Version=${{ env.VERSION }} -c Release --no-restore -v n
+        run: dotnet build assistant.net.sln -p:Version=${{ env.VERSION }} -c Release --no-restore -v n
       - name: test
-        run: dotnet test -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
+        run: dotnet test assistant.net.sln -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
       - name: publish test result
         uses: EnricoMi/publish-unit-test-result-action@v1
         with:
