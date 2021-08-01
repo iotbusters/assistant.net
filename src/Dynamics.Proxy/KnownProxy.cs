@@ -1,11 +1,11 @@
-﻿using Assistant.Net.Analyzers.Abstractions;
+﻿using Assistant.Net.Dynamics.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 
-namespace Assistant.Net.Analyzers
+namespace Assistant.Net.Dynamics
 {
     /// <summary>
     ///     Global proxy registry.

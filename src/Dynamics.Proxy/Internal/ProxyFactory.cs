@@ -1,5 +1,5 @@
-﻿using Assistant.Net.Analyzers.Abstractions;
-using Assistant.Net.Analyzers.Options;
+﻿using Assistant.Net.Dynamics.Abstractions;
+using Assistant.Net.Dynamics.Options;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Options;
@@ -8,15 +8,19 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace Assistant.Net.Analyzers.Internal
+namespace Assistant.Net.Dynamics.Internal
 {
     /// <summary>
     ///     Default dynamic proxy factory implementation based on <see cref="KnownProxy"/> global proxy registry.
     /// </summary>
     internal sealed class ProxyFactory : IProxyFactory
     {
+        private readonly ProxyGenerationStrategy strategy;
+
         public ProxyFactory(IOptions<ProxyFactoryOptions> options)
         {
+            strategy = options.Value.Strategy;
+
             var proxyTypes = options.Value.ProxyTypes;
             var unknownTypes = proxyTypes.Where(x => !KnownProxy.ProxyTypes.Keys.Contains(x)).ToArray();
             if (!unknownTypes.Any())
@@ -30,17 +34,38 @@ namespace Assistant.Net.Analyzers.Internal
             //    return;
             //}
 
-            if (!options.Value.IsAllowedRuntimeGeneration)
+            if (strategy != ProxyGenerationStrategy.PrecompiledAndConfigured)
                 throw new InvalidOperationException(
-                    "Runtime generation wasn't allowed. The following types weren't precompiled: "
+                    "Runtime generation wasn't allowed but the following types were configured: "
                     + string.Join(", ", unknownTypes.Select(x => x.FullName)));
 
+            GenerateProxies(unknownTypes);
+        }
+
+        Proxy<T> IProxyFactory.Create<T>(T? instance) where T : class
+        {
+            var type = typeof(T);
+            if (!KnownProxy.ProxyTypes.TryGetValue(type, out var proxyTypeImpl))
+            {
+                if (strategy != ProxyGenerationStrategy.ByRequest)
+                    throw new InvalidOperationException($"Proxy generation by request wasn't allowed but the type was requested: {type.FullName}");
+
+                GenerateProxies(type);
+                proxyTypeImpl = KnownProxy.ProxyTypes[type];
+            }
+
+            return (Proxy<T>?) Activator.CreateInstance(proxyTypeImpl, instance)
+                   ?? throw new InvalidOperationException($"Proxy '{proxyTypeImpl}' wasn't created.");
+        }
+
+        private static void GenerateProxies(params Type[] proxyTypes)
+        {
             Compilation compilation = CSharpCompilation.Create(ProxyAssemblyName)
                 .WithOptions(new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
                     optimizationLevel: OptimizationLevel.Release));
 
-            foreach (var proxyType in unknownTypes)
+            foreach (var proxyType in proxyTypes)
                 compilation = compilation.AddProxy(proxyType);
 
             using var memory = new MemoryStream();
@@ -56,15 +81,6 @@ namespace Assistant.Net.Analyzers.Internal
             //    file.Write(rawAssembly, 0, rawAssembly.Length);
 
             KnownProxy.RegisterFrom(Assembly.Load(rawAssembly));
-        }
-
-        Proxy<T> IProxyFactory.Create<T>(T? instance) where T : class
-        {
-            if (!KnownProxy.ProxyTypes.TryGetValue(typeof(T), out var proxyType))
-                throw new InvalidOperationException($"Proxy of instance type '{typeof(T)}' wasn't configured yet.");
-
-            return (Proxy<T>?) Activator.CreateInstance(proxyType, instance)
-                   ?? throw new InvalidOperationException($"Proxy '{proxyType}' wasn't created.");
         }
 
         // todo: implement compiled proxy caching

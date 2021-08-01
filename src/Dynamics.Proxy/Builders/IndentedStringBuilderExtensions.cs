@@ -1,8 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
-using System;
+﻿using System;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 
-namespace Assistant.Net.Analyzers.Builders
+namespace Assistant.Net.Dynamics.Builders
 {
     public static class IndentedStringBuilderExtensions
     {

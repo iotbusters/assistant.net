@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace Assistant.Net.Analyzers.Builders
+namespace Assistant.Net.Dynamics.Builders
 {
     /// <summary>
     ///     C# class source code builder.

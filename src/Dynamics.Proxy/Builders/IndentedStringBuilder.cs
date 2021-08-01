@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Assistant.Net.Analyzers.Builders
+namespace Assistant.Net.Dynamics.Builders
 {
     /// <summary>
     ///     String builder with defined indent.

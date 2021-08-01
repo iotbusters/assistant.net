@@ -2,9 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Analyzers</RootNamespace>
-    <AssemblyName>assistant.net.analyzers</AssemblyName>
-    <DevelopmentDependency>true</DevelopmentDependency>
+    <RootNamespace>Assistant.Net.Dynamics</RootNamespace>
+    <AssemblyName>assistant.net.dynamics.proxy</AssemblyName>
     <LangVersion>9.0</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -25,7 +24,7 @@
     <PackageTags>dynamic proxy analyzer</PackageTags>
     <Description>Code analysis and proxy generation tool.</Description>
     <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetanalyzers</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetdynamicsproxy</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>

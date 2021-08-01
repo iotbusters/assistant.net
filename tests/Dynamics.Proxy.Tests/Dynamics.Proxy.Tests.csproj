@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Analyzers.Tests</RootNamespace>
+    <RootNamespace>Assistant.Net.Dynamics.Proxy.Tests</RootNamespace>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -25,9 +25,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Analyzers\Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
-    <!-- note: swap references if compilation started failing -->
-    <!--<ProjectReference Include="..\..\src\Analyzers\Analyzers.csproj" />-->
+    <ProjectReference Include="..\..\src\Dynamics.Proxy\Dynamics.Proxy.csproj" />
   </ItemGroup>
 
 </Project>
+ 

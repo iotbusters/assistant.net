@@ -1,5 +1,5 @@
-using Assistant.Net.Analyzers;
-using Assistant.Net.Analyzers.Abstractions;
+using Assistant.Net.Dynamics;
+using Assistant.Net.Dynamics.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Options;

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Analyzers.Tests.Mocks
+namespace Assistant.Net.Dynamics.Proxy.Tests.Mocks
 {
     public interface ITest
     {

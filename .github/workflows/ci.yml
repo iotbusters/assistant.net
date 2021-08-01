@@ -15,9 +15,9 @@ jobs:
         id: change-detected
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
-          echo ::set-output name=important-changes::$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json)$')
+          echo ::set-output name=ci-changes::$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json)$')
     outputs:
-      important-changes: ${{ steps.change-detected.outputs.important-changes }}
+      ci-changes: ${{ steps.change-detected.outputs.ci-changes }}
 
   build:
     runs-on: ubuntu-latest
@@ -49,4 +49,4 @@ jobs:
             **/TestResults.xml
           retention-days: 60
         if: always()
-    if: needs.change-detect.outputs.important-changes != '0'
+    if: needs.change-detect.outputs.ci-changes != '0'
