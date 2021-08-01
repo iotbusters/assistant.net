@@ -3,9 +3,13 @@ on:
   push:
     branches: [master]
     paths:
+      - .github/workflows/analyzers-ci-cd.yml
+      - .github/workflows/analyzers-ci.yml
+      - .github/workflows/analyzers-pr.yml
+      - .github/workflows/cd.yml
       - analyzers-src
       - analyzers-tests
-      - LICENESE
+      - LICENSE
       - assistant.net.analyzers.sln
 env:
   VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'

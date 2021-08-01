@@ -3,9 +3,13 @@ on:
   push:
     branches: [master]
     paths:
+      - .github/workflows/cd.yml
+      - .github/workflows/ci-cd.yml
+      - .github/workflows/ci.yml
+      - .github/workflows/pr.yml
       - src
       - tests
-      - LICENESE
+      - LICENSE
       - assistant.net.sln
 env:
   VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
