@@ -9,13 +9,13 @@ on:
     # - deleted (delete release)
     # - published - covers prereleased and released (in fact, only initially and only released)
     # - unpublished - covers deleted (in fact, never triggered)
-    types: [published, released, prereleased, deleted]
+    types: [released, prereleased, deleted]
 
 jobs:
   pack-packages:
     runs-on: ubuntu-latest
     # published and released are triggered simultaneously.
-    if: github.event.action == 'released' || github.event.action == 'prereleased' || github.event.action == 'published'
+    if: github.event.action == 'released' || github.event.action == 'prereleased'
     steps:
       - run: echo ${{ github.event.action }}
 
