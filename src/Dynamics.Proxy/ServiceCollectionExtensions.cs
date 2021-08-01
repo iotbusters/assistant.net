@@ -1,11 +1,11 @@
-﻿using Assistant.Net.Analyzers.Abstractions;
-using Assistant.Net.Analyzers.Internal;
-using Assistant.Net.Analyzers.Options;
+﻿using Assistant.Net.Dynamics.Abstractions;
+using Assistant.Net.Dynamics.Internal;
+using Assistant.Net.Dynamics.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 
-namespace Assistant.Net.Analyzers
+namespace Assistant.Net.Dynamics
 {
     public static class ServiceCollectionExtensions
     {
@@ -38,7 +38,7 @@ namespace Assistant.Net.Analyzers
             .AddProxyFactory();
 
         /// <summary>
-        ///     Register an action used to configure <see cref="ProxyFactoryOptions"/> options.
+        ///     Registers an action used to configure <see cref="ProxyFactoryOptions"/> options.
         /// </summary>
         public static IServiceCollection ConfigureProxyFactoryOptions(this IServiceCollection services, Action<ProxyFactoryOptions> configureOptions) => services
             .Configure(configureOptions);

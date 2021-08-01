@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Assistant.Net.Analyzers.Abstractions
+namespace Assistant.Net.Dynamics.Abstractions
 {
     /// <summary>
     ///     Proxy builder abstraction.

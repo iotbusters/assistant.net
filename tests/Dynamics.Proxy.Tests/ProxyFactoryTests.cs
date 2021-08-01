@@ -1,4 +1,6 @@
-﻿using Assistant.Net.Analyzers.Abstractions;
+﻿using Assistant.Net.Dynamics;
+using Assistant.Net.Dynamics.Abstractions;
+using FluentAssertions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,10 +10,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using Assistant.Net.Analyzers.Tests.Mocks;
-using FluentAssertions;
+using Assistant.Net.Dynamics.Proxy.Tests.Mocks;
 
-namespace Assistant.Net.Analyzers.Tests
+namespace Assistant.Net.Dynamics.Proxy.Tests
 {
     public class Tests
     {
@@ -43,7 +44,7 @@ namespace Assistant.Net.Analyzers.Tests
 
             var watch = Stopwatch.StartNew();
 
-            for (int i = 0; i < 1_000_000; i++)
+            for (var i = 0; i < 1_000_000; i++)
             {
                 @object.Method("1");
                 var a = @object.Method();
@@ -80,6 +81,8 @@ namespace Assistant.Net.Analyzers.Tests
                 .AddProxyFactory(o => o.Add<ITest>())
                 .BuildServiceProvider()
                 .GetRequiredService<IProxyFactory>();
+
+            var _ = KnownProxy.ProxyTypes;
 
             var proxy = factory.Create<ITest>()
                 .Intercept(x => x.Method(), (_, _, _) => Task.CompletedTask)

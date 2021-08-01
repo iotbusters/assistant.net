@@ -1,13 +1,13 @@
-﻿using Assistant.Net.Analyzers.Abstractions;
-using Assistant.Net.Analyzers.Builders;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Assistant.Net.Dynamics.Abstractions;
+using Assistant.Net.Dynamics.Builders;
 
-namespace Assistant.Net.Analyzers
+namespace Assistant.Net.Dynamics
 {
     public static class CompilationExtensions
     {
@@ -56,11 +56,20 @@ namespace Assistant.Net.Analyzers
                     $"Expected an interface type but provided `{proxyType.Name}` instead.",
                     proxyType.Name);
 
+            var systemAssemblies = new[] {typeof(Proxy<>).Assembly.Location}.Select(x => MetadataReference.CreateFromFile(x));
+            compilation = compilation.AddReferences(systemAssemblies);
+
+            var baseProxyTypeDefinition = compilation.GetTypeSymbol(typeof(Proxy<>));
+            if(baseProxyTypeDefinition == null)
+                throw new ArgumentException(
+                    "Package `assistant.net.dynamics.proxy` is required. Please ensure it was installed.",
+                    proxyType.Name);
+
             var defaultNamespace = proxyType.ContainingNamespace.ToString();
             var localAssemblies = new[]
                 {
                     typeof(Func<>).Assembly.Location,
-                    typeof(Proxy<>).Assembly.Location,
+                    //typeof(Proxy<>).Assembly.Location,
                     typeof(Exception).Assembly.Location,
                     typeof(Enumerable).Assembly.Location,
                     typeof(MethodInfo).Assembly.Location
@@ -69,7 +78,8 @@ namespace Assistant.Net.Analyzers
             compilation = compilation.AddReferences(localAssemblies);
 
             var proxyTypeName = proxyType.Name + "Proxy";
-            var baseProxyType = compilation.GetTypeSymbol(typeof(Proxy<>))!.Construct(proxyType);
+            //var baseProxyType = compilation.GetTypeSymbol(typeof(Proxy<>))!.Construct(proxyType);
+            var baseProxyType = baseProxyTypeDefinition!.Construct(proxyType);
             // Source generator couldn't resolve type symbols for some reason.
             // assuming, multiple types are being resolved because framework mixture.
             var exceptionType = "System.Exception";//compilation.GetTypeSymbol(typeof(Exception))!;

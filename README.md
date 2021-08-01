@@ -42,9 +42,13 @@ var now = provider.GetRequiredService<ISystemClock>().UtcNow;
 var stoppingCancellationToken = provider.GetRequiredService<ISystemLifetime>().Stopping;
 ```
 
-### assistant.net.analyzers
+### assistant.net.dynamics
 
-It's reserved for code usage analysis and compile-forward optimization. E.g. Proxies, mappings etc.
+It's reserved for code usage analysis, runtime and compile-forward optimizations. E.g. Proxies, mappings etc.
+
+#### assistant.net.dynamics.proxy
+
+Proxy generation tool that supports runtime generation of configured proxies only if it was allowed.
 
 ```csharp
 services.AddProxyFactory(o => o.AddProxyFactory(o => o.Add<Interface>()));
@@ -55,6 +59,10 @@ var proxy = factory.Create<Interface>()
     .Object;
 var result = proxy.Method(); // "result"
 ```
+
+#### assistant.net.dynamics.proxy.analyzer
+
+Analysis based proxy generation tool that supports compile-forward proxy generation according to the usage `factory.Create<Interface>()`.
 
 ### assistant.net.storage
 
@@ -125,14 +133,14 @@ var client = provider.GetRequiredService<ICommandClient>();
 var response = await client.Send(new SomeCommand())
 ```
 
-### assistant.net.messaging.web
+#### assistant.net.messaging.web
 
 It implements shared tools required by packages with remote WEB oriented message handling implementation.
 E.g. json serialization.
 
 See `assistant.net.messaging.web.*` packages for more information.
 
-### assistant.net.messaging.web.client
+#### assistant.net.messaging.web.client
 
 It's a client implementation to remote WEB oriented message handling server.
 
@@ -147,7 +155,7 @@ var response = await client.Send(new SomeCommand())
 
 See [server](#assistantnetmessagingwebserver) configuration for remote handling.
 
-### assistant.net.messaging.web.server
+#### assistant.net.messaging.web.server
 
 It's a remote WEB oriented message handling server implementation. The server exposes API and accepts remote requests for further processing.
 

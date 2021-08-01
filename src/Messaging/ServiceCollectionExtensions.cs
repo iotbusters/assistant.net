@@ -1,4 +1,4 @@
-using Assistant.Net.Analyzers;
+using Assistant.Net.Dynamics;
 using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Interceptors;

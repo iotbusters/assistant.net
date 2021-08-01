@@ -1,4 +1,4 @@
-﻿namespace Assistant.Net.Analyzers.Abstractions
+﻿namespace Assistant.Net.Dynamics.Abstractions
 {
     /// <summary>
     ///     Dynamic proxy factory abstraction.
