@@ -36,8 +36,8 @@ jobs:
       - uses: actions/cache@v2.1.5
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-analyzers-nuget-${{ hashFiles('**/*.csproj') }}
-          restore-keys: ${{ runner.os }}-analyzers-nuget-
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
 
       - run: dotnet restore assistant.net.analyzers.sln -v n
       - run: dotnet build assistant.net.analyzers.sln -c Release --no-restore -v n
