@@ -15,7 +15,7 @@ jobs:
   pack-packages:
     runs-on: ubuntu-latest
     # published and released are triggered simultaneously.
-    if: github.event.action == 'released' || github.event.action == 'prereleased' || (github.event.action == 'published' && github.event.release.prerelease == false)
+    if: github.event.action == 'released' || github.event.action == 'prereleased' || github.event.action == 'published'
     steps:
       - run: echo ${{ github.event.action }}
 
