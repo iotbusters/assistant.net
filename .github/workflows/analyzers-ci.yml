@@ -1,12 +1,12 @@
-name: CI
+name: CI (Analyzers)
 on:
   push:
     branches: [develop]
     paths:
-      - src
-      - tests
+      - analyzers-src
+      - analyzers-tests
       - LICENESE
-      - assistant.net.sln
+      - assistant.net.analyzers.sln
 
 jobs:
   change-detect:
@@ -36,12 +36,12 @@ jobs:
       - uses: actions/cache@v2.1.5
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-          restore-keys: ${{ runner.os }}-nuget-
+          key: ${{ runner.os }}-analyzers-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-analyzers-nuget-
 
-      - run: dotnet restore assistant.net.sln -v n
-      - run: dotnet build assistant.net.sln -c Release --no-restore -v n
-      - run: dotnet test assistant.net.sln -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
+      - run: dotnet restore assistant.net.analyzers.sln -v n
+      - run: dotnet build assistant.net.analyzers.sln -c Release --no-restore -v n
+      - run: dotnet test assistant.net.analyzers.sln -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
       - uses: EnricoMi/publish-unit-test-result-action@v1
         with:
           files: |
@@ -49,7 +49,7 @@ jobs:
         if: always()
       - uses: actions/upload-artifact@v2.2.3
         with:
-          name: ci-results
+          name: ci-analyzers-results
           path: |
             **/TestResults.xml
           retention-days: 60

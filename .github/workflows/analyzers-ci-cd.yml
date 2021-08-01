@@ -1,12 +1,12 @@
-name: CI/CD
+name: CI/CD (Analyzers)
 on:
   push:
     branches: [master]
     paths:
-      - src
-      - tests
+      - analyzers-src
+      - analyzers-tests
       - LICENESE
-      - assistant.net.sln
+      - assistant.net.analyzers.sln
 env:
   VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
 
@@ -23,27 +23,11 @@ jobs:
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
           echo ::set-output name=ci-changes::echo ::set-output name=ci-changes::$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json)$')
-          echo ::set-output name=core::$(echo "$CHANGES" | grep -c src/Core/)
-          echo ::set-output name=serialization-json::$(echo "$CHANGES" | grep -c src/Serialization.Json/)
-          echo ::set-output name=storage::$(echo "$CHANGES" | grep -c src/Storage/)
-          echo ::set-output name=diagnostics::$(echo "$CHANGES" | grep -c src/Diagnostics/)
-          echo ::set-output name=dynamics-proxy::$(echo "$CHANGES" | grep -c src/Dynamics.Proxy/)
-          echo ::set-output name=messaging::$(echo "$CHANGES" | grep -c src/Messaging/)
-          echo ::set-output name=web::$(echo "$CHANGES" | grep -c src/Messaging.Web/)
-          echo ::set-output name=web-client::$(echo "$CHANGES" | grep -c src/Messaging.Web.Client/)
-          echo ::set-output name=web-server::$(echo "$CHANGES" | grep -c src/Messaging.Web.Server/)
+          echo ::set-output name=proxy::$(echo "$CHANGES" | grep -c src/Dynamics.Proxy.Analyzer/)
           echo ::set-output name=total::$(echo "$CHANGES" | wc -l)
     outputs:
       ci-changes: ${{ steps.change-detected.outputs.ci-changes }}
-      core: ${{ steps.change-detected.outputs.core }}
-      serialization-json: ${{ steps.change-detected.outputs.serialization-json }}
-      storage: ${{ steps.change-detected.outputs.storage }}
-      diagnostics: ${{ steps.change-detected.outputs.diagnostics }}
-      dynamics-proxy: ${{ steps.change-detected.outputs.dynamics-proxy }}
-      messaging: ${{ steps.change-detected.outputs.messaging }}
-      web: ${{ steps.change-detected.outputs.web }}
-      web-client: ${{ steps.change-detected.outputs.web-client }}
-      web-server: ${{ steps.change-detected.outputs.web-server }}
+      proxy: ${{ steps.change-detected.outputs.proxy }}
       total: ${{ steps.change-detected.outputs.total }}
 
   build:
@@ -59,15 +43,15 @@ jobs:
         uses: actions/cache@v2.1.5
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-          restore-keys: ${{ runner.os }}-nuget-
+          key: ${{ runner.os }}-analyzers-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-analyzers-nuget-
 
       - name: restore
-        run: dotnet restore -v n
+        run: dotnet restore assistant.net.analyzers.sln -v n
       - name: build
-        run: dotnet build -p:Version=${{ env.VERSION }} -c Release --no-restore -v n
+        run: dotnet build assistant.net.analyzers.sln -p:Version=${{ env.VERSION }} -c Release --no-restore -v n
       - name: test
-        run: dotnet test -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
+        run: dotnet test assistant.net.analyzers.sln -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
       - name: publish test result
         uses: EnricoMi/publish-unit-test-result-action@v1
         with:
@@ -83,7 +67,7 @@ jobs:
       - name: upload result
         uses: actions/upload-artifact@v2.2.3
         with:
-          name: ci-results
+          name: ci-analyzers-results
           path: |
             **/TestResults.xml
             **/coverage.opencover.xml
@@ -96,7 +80,7 @@ jobs:
           cp LICENSE release-binaries
         if: needs.change-detect.outputs.ci-changes != '0'
       - name: upload binaries
-        run: cp -r src release-binaries/src
+        run: cp -r analyzers-src release-binaries/src
         if: needs.change-detect.outputs.ci-changes != '0'
       - name: upload binaries (prepare package counter)
         id: count-changes
@@ -151,15 +135,7 @@ jobs:
             <details>
               <summary>Package changes</summary>
               <ul>
-                <li>Core: ${{ needs.change-detect.outputs.core }}</li>
-                <li>Serialization.Json: ${{ needs.change-detect.outputs.serialization-json }}</li>
-                <li>Storage: ${{ needs.change-detect.outputs.storage }}</li>
-                <li>Diagnostics: ${{ needs.change-detect.outputs.diagnostics }}</li>
-                <li>Dynamics.Proxy: ${{ needs.change-detect.outputs.dynamics.proxy }}</li>
-                <li>Messaging: ${{ needs.change-detect.outputs.messaging }}</li>
-                <li>Messaging.Web: ${{ needs.change-detect.outputs.web }}</li>
-                <li>Messaging.Web.Client: ${{ needs.change-detect.outputs.web-client }}</li>
-                <li>Messaging.Web.Server: ${{ needs.change-detect.outputs.web-server }}</li>
+                <li>Dynamics.Proxy.Analyzer: ${{ needs.change-detect.outputs.proxy }}</li>
               </ul>
             </details>
             <details>
