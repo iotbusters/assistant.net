@@ -15,6 +15,8 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
 
+- [Release 0.1.52](https://github.com/iotbusters/assistant.net/releases/tag/0.1.52)
+  - Minor refactorings
 - [Release 0.1.42](https://github.com/iotbusters/assistant.net/releases/tag/0.1.42)
   - Added `Serialization.Json`
   - Refactoring and bug fixes
