@@ -137,7 +137,7 @@ jobs:
         uses: actions/create-release@v1
         with:
           tag_name: ${{ env.VERSION }}
-          release_name: Release ${{ env.VERSION }}
+          release_name: Assistant.NET Release ${{ env.VERSION }}
           prerelease: true
           draft: true # published event isn't triggered automatically, so release is created as draft to publish manually.
           body: |
