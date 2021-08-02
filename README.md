@@ -42,28 +42,6 @@ var now = provider.GetRequiredService<ISystemClock>().UtcNow;
 var stoppingCancellationToken = provider.GetRequiredService<ISystemLifetime>().Stopping;
 ```
 
-### assistant.net.dynamics
-
-It's reserved for code usage analysis, runtime and compile-forward optimizations. E.g. Proxies, mappings etc.
-
-#### assistant.net.dynamics.proxy
-
-Proxy generation tool that supports runtime generation of configured proxies only if it was allowed.
-
-```csharp
-services.AddProxyFactory(o => o.AddProxyFactory(o => o.Add<Interface>()));
-
-var factory = provider.GetRequiredService<IProxyFactory>();
-var proxy = factory.Create<Interface>()
-    .Intercept(x => x.Method(), (next, methodInfo, args) => "result")
-    .Object;
-var result = proxy.Method(); // "result"
-```
-
-#### assistant.net.dynamics.proxy.analyzer
-
-Analysis based proxy generation tool that supports compile-forward proxy generation according to the usage `factory.Create<Interface>()`.
-
 ### assistant.net.storage
 
 It's common storage abstraction and related basic implementations and tools.

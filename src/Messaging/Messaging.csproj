@@ -8,8 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
-    <ProjectReference Include="..\Dynamics.Proxy\Dynamics.Proxy.csproj" /> 
+    <PackageReference Include="assistant.net.dynamics.proxy" Version="0.1.52" />
+    <PackageReference Include="assistant.net.dynamics.proxy.analyzer" Version="0.1.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" /> 
     <ProjectReference Include="..\Storage\Storage.csproj" />
     <ProjectReference Include="..\Diagnostics\Diagnostics.csproj" />
     <ProjectReference Include="..\Serialization.Json\Serialization.Json.csproj" />

@@ -3,10 +3,7 @@ on:
   push:
     branches: [master]
     paths:
-      - .github/workflows/cd.yml
-      - .github/workflows/ci-cd.yml
-      - .github/workflows/ci.yml
-      - .github/workflows/pr.yml
+      - .github
       - src
       - tests
       - LICENSE
