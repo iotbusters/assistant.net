@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
 {
-    [Timeout(4000)]
+    [Timeout(2000)]
     public class RemoteExceptionHandlingMiddlewareTests
     {
         private static readonly string CorrelationId = Guid.NewGuid().ToString();

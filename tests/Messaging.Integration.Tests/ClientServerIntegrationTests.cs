@@ -8,7 +8,7 @@ using NUnit.Framework;
 
 namespace Assistant.Net.Messaging.Integration.Tests
 {
-    [Timeout(4000)]
+    [Timeout(2000)]
     public class ClientServerIntegrationTests
     {
         [Test]
