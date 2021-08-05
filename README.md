@@ -1,13 +1,16 @@
-# Assistant.NET
+# Assistant.NET Common
 
-The solution is planned to help with automation of your small-sized processes and flows using IoT devices.
-In order to get it working, some boiler plate is needed to be implemented first.
-Unfortunately existing solutions on a market didn't suit all needs or overcomplicated.
-Beyond that, they weren't flexible enough to support new requirements further, so the solution is based on own tools.
+The list of common packages responsible for solving specific aspects of the Assistant.NET solution.
+
+Unfortunately existing solutions on a market didn't cover all needs or overcomplicated.
+Beyond that, they weren't flexible enough to support new requirements further,
+so the decision was to design and implement own set of tools.
 Which although can be used as standalone packages too.
 
-Currently, it's in design and implementation stage, so the repository contains mostly tools and infrastructure parts only.
-Existing releases cannot be assumed as stable and backward compatible too, so pay attention during package upgrade!
+Currently, it's in design and implementation stage, so the repository contains mostly tools
+and infrastructure parts only.
+Existing releases cannot be assumed as stable and backward compatible too.
+Pay attention during package upgrade!
 
 Hopefully, it will be useful for someone once main functional is ready.
 
@@ -31,7 +34,7 @@ at [nuget.org](https://nuget.org). Each of them has own responsibility and solve
 
 ### assistant.net.core
 
-It's some basic abstractions and implementations which are commonly used across the solution.
+Basic abstractions and implementations which are commonly used across the solution.
 E.g. a system clock, an system lifetime management and improved overrides of .net extensions.
 
 ```csharp
@@ -46,7 +49,7 @@ var stoppingCancellationToken = provider.GetRequiredService<ISystemLifetime>().S
 
 ### assistant.net.storage
 
-It's common storage abstraction and related basic implementations and tools.
+Common storage abstraction and related basic implementations and tools.
 
 Pay attention, using base types as storage value won't work as expected because of serialization.
 It will be improved as part of advanced serialization further.
@@ -66,7 +69,7 @@ var partitionedStorage = provider.GetRequiredService<IPartitionedStorage<Key, Mo
 
 ### assistant.net.serialization.json
 
-It's serialization abstraction with json implementation for now. Further it can be extended with other formats, e.g. protobuf.
+Simple serialization abstraction with json implementation for now. Further it can be extended with other formats, e.g. protobuf.
 The main idea is to be able flexibly choose serialization format for each type.
 
 ```csharp
@@ -84,7 +87,7 @@ var objectSerializer = factory.Create(typeof(Model));
 
 ### assistant.net.diagnostics
 
-It's diagnostics management tools including tracking operations, correlations, event tracing etc.
+Diagnostics management tools including tracking operations, correlations, event tracing etc.
 
 ```csharp
 services.AddDiagnostics();
@@ -98,7 +101,7 @@ var currentScopeCorrelationId = provider.GetRequiredService<IDiagnosticContext>(
 
 ### assistant.net.messaging
 
-It's local (in-memory) message handling implementation which support simple extending mechanism
+Local (in-memory) message handling implementation which support simple extending mechanism
 and basic message (internal term `command`) intercepting out of box.
 
 See also available extensions in `assistant.net.messaging.*` packages for more information.
@@ -115,14 +118,14 @@ var response = await client.Send(new SomeCommand())
 
 #### assistant.net.messaging.web
 
-It implements shared tools required by packages with remote WEB oriented message handling implementation.
-E.g. json serialization.
+Shared tools required by packages related to remote WEB oriented message handling.
+E.g. json serializer configuration.
 
 See `assistant.net.messaging.web.*` packages for more information.
 
 #### assistant.net.messaging.web.client
 
-It's a client implementation to remote WEB oriented message handling server.
+Remote WEB oriented message handling client implementation for [server](#assistantnetmessagingwebserver) API.
 
 ```csharp
 services
@@ -137,7 +140,7 @@ See [server](#assistantnetmessagingwebserver) configuration for remote handling.
 
 #### assistant.net.messaging.web.server
 
-It's a remote WEB oriented message handling server implementation. The server exposes API and accepts remote requests for further processing.
+Remote WEB oriented message handling server implementation. The server exposes API and accepts remote requests for further processing.
 
 ```csharp
 services.AddRemoteWebCommandHandler(b => b
