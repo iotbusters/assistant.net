@@ -1,11 +1,11 @@
-using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Microsoft.Extensions.DependencyInjection;
 using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Configuration;
 using Assistant.Net.Serialization.Converters;
 using Assistant.Net.Serialization.Internal;
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Assistant.Net.Serialization
 {
@@ -24,7 +24,7 @@ namespace Assistant.Net.Serialization
         public static IServiceCollection AddSerializer(this IServiceCollection services, Action<SerializerBuilder> configure) => services
             .AddTypeEncoder()
             .TryAddSingleton<ISerializerFactory, SerializerFactory>()
-            .TryAddScoped(typeof(ISerializer<>), typeof(UnkownSerializer<>))
+            .TryAddSingleton(typeof(ISerializer<>), typeof(UnkownSerializer<>))
             .TryAddSingleton<AdvancedJsonConverterFactory>()
             .TryAddSingleton(typeof(ExceptionJsonConverter<>), typeof(ExceptionJsonConverter<>))
             .TryAddSingleton(typeof(EnumerableJsonConverter<>), typeof(EnumerableJsonConverter<>))

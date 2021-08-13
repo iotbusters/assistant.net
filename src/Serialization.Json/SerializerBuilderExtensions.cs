@@ -1,9 +1,9 @@
-using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Configuration;
 using Assistant.Net.Serialization.Internal;
+using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Assistant.Net.Serialization
 {
@@ -22,7 +22,7 @@ namespace Assistant.Net.Serialization
 
             builder.Services
                 .TryAddSingleton<IJsonSerializer, DefaultJsonSerializer>()
-                .ReplaceScoped(serviceType, implementationType);
+                .ReplaceSingleton(serviceType, implementationType);
 
             return builder;
         }
@@ -31,7 +31,7 @@ namespace Assistant.Net.Serialization
         {
             builder.Services
                 .TryAddSingleton<IJsonSerializer, DefaultJsonSerializer>()
-                .ReplaceScoped(typeof(ISerializer<>), typeof(TypedJsonSerializer<>));
+                .ReplaceSingleton(typeof(ISerializer<>), typeof(TypedJsonSerializer<>));
             return builder;
         }
 
