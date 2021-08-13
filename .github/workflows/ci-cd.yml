@@ -108,6 +108,7 @@ jobs:
           name: release-binaries
           path: |
             release-binaries/**/*.csproj
+            release-binaries/**/*.xml
             release-binaries/**/*.dll
             release-binaries/**/*.pdb
             release-binaries/**/*.json
