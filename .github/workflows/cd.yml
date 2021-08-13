@@ -9,13 +9,15 @@ on:
     # - deleted (delete release)
     # - published - covers prereleased and released (in fact, only initially and only released)
     # - unpublished - covers deleted (in fact, never triggered)
-    types: [released, prereleased, deleted, published]
+    types: [released, deleted]
 
 jobs:
   pack-packages:
     runs-on: ubuntu-latest
     # published and released are triggered simultaneously.
-    if: github.event.action == 'released' || github.event.action == 'prereleased' || (github.event.action == 'published' && github.event.release.prerelease == true)
+    # if: github.event.action == 'released' || github.event.action == 'prereleased' || (github.event.action == 'published' && github.event.release.prerelease == true)
+    # prereleased isn't supported properly with automatic referencing as assembly version isn't equal to nuget package version.
+    if: github.event.action == 'released'
     steps:
       - run: echo ${{ github.event.action }}
 
