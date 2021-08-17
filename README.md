@@ -18,6 +18,10 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
 
+- [Assistant.NET Release 0.1.65](https://github.com/iotbusters/assistant.net/releases/tag/0.1.65)
+  - Bug fixes
+  - Unused files deleted
+  - Code docs updated
 - [Assistant.NET Release 0.1.59](https://github.com/iotbusters/assistant.net/releases/tag/0.1.59)
   - Updated proxy generation packages
 - [Release 0.1.42](https://github.com/iotbusters/assistant.net/releases/tag/0.1.42)
