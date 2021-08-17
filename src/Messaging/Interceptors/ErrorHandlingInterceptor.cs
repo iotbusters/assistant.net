@@ -11,6 +11,7 @@ namespace Assistant.Net.Messaging.Interceptors
     /// </summary>
     public class ErrorHandlingInterceptor : ICommandInterceptor<ICommand<object>, object>
     {
+        /// <inheritdoc/>
         public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
         {
             try

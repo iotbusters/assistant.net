@@ -4,6 +4,9 @@ using System.Linq;
 
 namespace Assistant.Net.Messaging
 {
+    /// <summary>
+    ///     System.Type extensions for command handling.
+    /// </summary>
     public static class TypeExtensions
     {
         /// <summary>

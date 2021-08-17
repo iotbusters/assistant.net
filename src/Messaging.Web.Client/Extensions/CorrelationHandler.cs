@@ -12,9 +12,11 @@ namespace Assistant.Net.Messaging.Extensions
     {
         private readonly IDiagnosticContext context;
 
+        /// <summary/>
         public CorrelationHandler(IDiagnosticContext context) =>
             this.context = context;
 
+        /// <inheritdoc/>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             request.SetCorrelationId(context.CorrelationId);

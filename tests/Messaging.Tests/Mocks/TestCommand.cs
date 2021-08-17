@@ -1,7 +1,6 @@
-using System;
 using Assistant.Net.Messaging.Abstractions;
 
-namespace Assistant.Net.Messaging.InMemory.Tests.Mocks
+namespace Assistant.Net.Messaging.Tests.Mocks
 {
     public record TestCommand(int Scenario) : ICommand<TestResponse>;
 }

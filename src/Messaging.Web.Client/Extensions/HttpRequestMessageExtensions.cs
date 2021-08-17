@@ -9,6 +9,10 @@ namespace Assistant.Net.Messaging.Extensions
     /// </summary>
     public static  class HttpRequestMessageExtensions
     {
+        /// <summary>
+        ///     Gets a header value from the request and fail if it's missing.
+        /// </summary>
+        /// <exception cref="InvalidOperationException" />
         public static string GetRequiredHeader(this HttpRequestMessage request, string name)
         {
             if (!request.Headers.TryGetValues(name, out var values) || !values.Any())
@@ -17,12 +21,22 @@ namespace Assistant.Net.Messaging.Extensions
             return values.First();
         }
 
+        /// <summary>
+        ///     Adds a header to the request.
+        /// </summary>
         public static void SetHeader(this HttpRequestMessage request, string name, string value) =>
             request.Headers.Add(name, value);
 
+        /// <summary>
+        ///     Gets a command name from the request headers.
+        /// </summary>
+        /// <exception cref="InvalidOperationException" />
         public static string GetCommandName(this HttpRequestMessage request) =>
             request.GetRequiredHeader(HeaderNames.CommandName);
 
+        /// <summary>
+        ///     Adds a correlation id to the request headers.
+        /// </summary>
         public static void SetCorrelationId(this HttpRequestMessage request, string correlationId) =>
             request.SetHeader(HeaderNames.CorrelationId, correlationId);
     }

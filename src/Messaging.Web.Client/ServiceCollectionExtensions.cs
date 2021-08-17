@@ -10,6 +10,9 @@ using System;
 
 namespace Assistant.Net.Messaging
 {
+    /// <summary>
+    ///     Service collection extensions for remote WEB command handling client.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
         private static TimeSpan DefaultTimeout => TimeSpan.FromSeconds(10);

@@ -7,6 +7,9 @@ using System.Linq;
 
 namespace Assistant.Net.Messaging
 {
+    /// <summary>
+    ///     Command client configuration extensions.
+    /// </summary>
     public static class CommandClientOptionsExtensions
     {
         /// <summary>
@@ -80,7 +83,7 @@ namespace Assistant.Net.Messaging
         public static CommandClientBuilder AddInterceptorOnTop<TInterceptor>(this CommandClientBuilder builder)
             where TInterceptor : class, IAbstractInterceptor
         {
-            builder.AddInterceptorOnTop<TInterceptor>();
+            builder.Services.ConfigureCommandClientOptions(o => o.Interceptors.Insert(0, typeof(TInterceptor)));
             return builder;
         }
 

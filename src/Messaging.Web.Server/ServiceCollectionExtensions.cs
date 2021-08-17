@@ -10,6 +10,9 @@ using System;
 
 namespace Assistant.Net.Messaging
 {
+    /// <summary>
+    ///     Service collection extensions for remote WEB command handling on a server.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
         /// <summary>

@@ -12,9 +12,11 @@ namespace Assistant.Net.Messaging.Interceptors
     {
         private readonly IDiagnosticFactory diagnosticsFactory;
 
+        /// <summary/>
         public DiagnosticsInterceptor(IDiagnosticFactory diagnosticsFactory) =>
             this.diagnosticsFactory = diagnosticsFactory;
 
+        /// <inheritdoc/>
         public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
         {
             var commandName = command.GetType().Name.ToLower();

@@ -5,6 +5,7 @@
     /// </summary>
     public static class EventNames
     {
-        public const string EventName = "Assistant.Net.Diagnostics.Operation";
+        /// <summary/>
+        public const string OperationEventName = "Assistant.Net.Diagnostics.Operation";
     }
 }

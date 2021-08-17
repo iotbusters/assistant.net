@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Builder;
 
 namespace Assistant.Net.Messaging
 {
+    /// <summary>
+    ///     Application builder extensions for remote command handling.
+    /// </summary>
     public static class ApplicationBuilderExtensions
     {
         /// <summary>

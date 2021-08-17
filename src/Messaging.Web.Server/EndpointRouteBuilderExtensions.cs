@@ -5,6 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Assistant.Net.Messaging
 {
+    /// <summary>
+    ///     Endpoint route builder extensions for remote command handling.
+    /// </summary>
     public static class EndpointRouteBuilderExtensions
     {
         /// <summary>

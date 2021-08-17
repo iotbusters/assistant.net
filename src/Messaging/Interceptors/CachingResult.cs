@@ -3,22 +3,44 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
+    /// <summary>
+    ///     Execution result for caching mechanism.
+    /// </summary>
     public sealed class CachingResult
     {
-        public CachingResult() { } // serialization
+        /// <summary>
+        ///     Ctor for successful result.
+        /// </summary>
         public CachingResult(object value) => Value = value;
+
+        /// <summary>
+        ///     Ctor for failed result.
+        /// </summary>
         public CachingResult(Exception exception) => Exception = exception;
 
-        public object? Value { get; set; } // serialization
-        public Exception? Exception { get; set; } // serialization
+        /// <summary>
+        ///     Successful result value.
+        /// </summary>
+        private object? Value { get; }
 
-        public object GetResult()
+        /// <summary>
+        ///     Failed result exception.
+        /// </summary>
+        private Exception? Exception { get; }
+
+        /// <summary>
+        ///     Restores result value or throws occurred exception.
+        /// </summary>
+        public object GetValue()
         {
             Exception?.Throw();
             return Value!;
         }
 
-        public Task<object> GetTask()
+        /// <summary>
+        ///     Restores result value or throws occurred exception.
+        /// </summary>
+        public Task<object> GetValueAsTask()
         {
             if (Exception != null)
                 return Task.FromException<object>(Exception!);

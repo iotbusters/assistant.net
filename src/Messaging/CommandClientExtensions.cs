@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging
 {
+    /// <summary>
+    ///     Command client facilitating extensions.
+    /// </summary>
     public static class CommandClientExtensions
     {
         /// <summary>

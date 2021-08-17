@@ -5,6 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Assistant.Net.Messaging
 {
+    /// <summary>
+    ///     Service collection extensions for json serialization.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
         /// <summary>

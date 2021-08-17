@@ -9,12 +9,16 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
+    /// <summary>
+    ///     Retrying Command handling interceptor.
+    /// </summary>
     public class RetryingInterceptor : ICommandInterceptor
     {
         private readonly ILogger<RetryingInterceptor> logger;
         private readonly IDiagnosticFactory diagnosticsFactory;
         private readonly ISystemLifetime lifetime;
 
+        /// <summary/>
         public RetryingInterceptor(
             ILogger<RetryingInterceptor> logger,
             IDiagnosticFactory diagnosticsFactory,
@@ -25,6 +29,8 @@ namespace Assistant.Net.Messaging.Interceptors
             this.lifetime = lifetime;
         }
 
+        /// <inheritdoc/>
+        /// <exception cref="CommandRetryLimitExceededException" />
         public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
         {
             // configurable

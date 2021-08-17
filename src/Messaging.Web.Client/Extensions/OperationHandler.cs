@@ -12,9 +12,11 @@ namespace Assistant.Net.Messaging.Extensions
     {
         private readonly IDiagnosticFactory diagnosticsFactory;
 
+        /// <summary/>
         public OperationHandler(IDiagnosticFactory diagnosticsFactory) =>
             this.diagnosticsFactory = diagnosticsFactory;
 
+        /// <inheritdoc/>
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var commandName = request.GetCommandName().ToLower();

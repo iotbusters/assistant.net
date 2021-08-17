@@ -1,6 +1,6 @@
 using Assistant.Net.Messaging.Exceptions;
 
-namespace Assistant.Net.Messaging.InMemory.Tests.Mocks
+namespace Assistant.Net.Messaging.Tests.Mocks
 {
     public class TestCommandExecutionException : CommandException
     {

@@ -14,7 +14,7 @@ namespace Assistant.Net.Diagnostics.EventSources
         private EventSourceOptions stopOptions = new() { Level = EventLevel.LogAlways, Opcode = EventOpcode.Stop, ActivityOptions = EventActivityOptions.Recursive | EventActivityOptions.Detachable };
         private Guid noId;
 
-        private OperationEventSource() : base(EventNames.EventName) { }
+        private OperationEventSource() : base(EventNames.OperationEventName) { }
 
         internal void WriteOperationStarted(string eventName, ref OperationStartedData data)
         {

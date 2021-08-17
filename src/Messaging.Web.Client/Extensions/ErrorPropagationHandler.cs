@@ -15,9 +15,11 @@ namespace Assistant.Net.Messaging.Extensions
     {
         private readonly ISerializer<CommandException> serializer;
 
+        /// <summary/>
         public ErrorPropagationHandler(ISerializer<CommandException> serializer) =>
             this.serializer = serializer;
 
+        /// <inheritdoc/>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var response = await base.SendAsync(request, cancellationToken);

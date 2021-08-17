@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net
 {
+    /// <summary>
+    ///     Async enumerable facilitating extensions.
+    /// </summary>
     public static class AsyncEnumerableExtensions
     {
         /// <summary>

@@ -5,6 +5,9 @@ using System.Net.Http;
 
 namespace Assistant.Net.Messaging
 {
+    /// <summary>
+    ///     HTTP client builder extensions for remote command handling.
+    /// </summary>
     public static class HttpClientBuilderExtensions
     {
         /// <summary>

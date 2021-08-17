@@ -2,6 +2,9 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Abstractions
 {
+    /// <summary>
+    ///     Command handling client abstraction.
+    /// </summary>
     public interface ICommandClient
     {
         /// <summary>

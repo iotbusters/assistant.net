@@ -1,5 +1,5 @@
-using Assistant.Net.Dynamics;
 using Assistant.Net.Diagnostics;
+using Assistant.Net.Dynamics;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Internal;
@@ -10,6 +10,9 @@ using System;
 
 namespace Assistant.Net.Messaging
 {
+    /// <summary>
+    ///     Service collection extensions for command handling client.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
         /// <summary>
@@ -21,7 +24,6 @@ namespace Assistant.Net.Messaging
             .AddDiagnostics()
             .AddSystemServicesDefaulted()
             .AddProxyFactory(b => b.Add<IAbstractHandler>())
-            .TryAddSingleton<IHandlerFactory, HandlerFactory>()
             .TryAddSingleton<ICommandClient, CommandClient>()
             .ConfigureCommandClient(b => b.AddConfiguration<DefaultInterceptorConfiguration>());
 

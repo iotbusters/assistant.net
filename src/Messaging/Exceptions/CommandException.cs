@@ -12,6 +12,8 @@ namespace Assistant.Net.Messaging.Exceptions
         ///     Otherwise, deserialization will fail.
         /// </summary>
         protected CommandException(string? message) : base(message) { }
+
+        /// <summary/>
         protected CommandException(string? message, Exception? ex) : base(message, ex) { }
     }
 }

@@ -15,6 +15,7 @@ namespace Assistant.Net.Messaging.Interceptors
     {
         private static readonly ConcurrentDictionary<string, DeferredCachingResult> deferredCache = new();
 
+        /// <inheritdoc/>
         public Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
         {
             var key = command.GetSha1();

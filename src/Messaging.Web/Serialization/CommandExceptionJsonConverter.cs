@@ -12,11 +12,14 @@ namespace Assistant.Net.Messaging.Serialization
     /// </summary>
     public class CommandExceptionJsonConverter : ExceptionJsonConverter<CommandException>
     {
+        /// <inheritdoc/>
         public CommandExceptionJsonConverter(ITypeEncoder typeEncoder) : base(typeEncoder) { }
 
+        /// <inheritdoc/>
         public override bool CanConvert(Type typeToConvert) => typeToConvert
             .IsAssignableTo(typeof(CommandException));
 
+        /// <inheritdoc/>
         public override CommandException Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             try

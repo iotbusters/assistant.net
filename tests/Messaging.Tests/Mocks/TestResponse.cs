@@ -1,4 +1,4 @@
-namespace Assistant.Net.Messaging.InMemory.Tests.Mocks
+namespace Assistant.Net.Messaging.Tests.Mocks
 {
     public record TestResponse(bool Fail);
 }

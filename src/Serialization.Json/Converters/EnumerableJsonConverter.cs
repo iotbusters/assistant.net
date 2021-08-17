@@ -1,27 +1,34 @@
-﻿using System;
+﻿using Assistant.Net.Serialization.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Assistant.Net.Serialization.Exceptions;
 
 namespace Assistant.Net.Serialization.Converters
 {
+    /// <summary>
+    ///     Json converter responsible for enumerable objects serialization.
+    /// </summary>
+    /// <typeparam name="T">Enumerated, non-system item type.</typeparam>
     public sealed class EnumerableJsonConverter<T> : JsonConverter<IEnumerable<T>>
     {
+        /// <summary/>
         public EnumerableJsonConverter()
         {
             if (AdvancedJsonConverterFactory.IsSystemType(typeof(T)))
                 throw new JsonException($"The type '{typeof(T)}' isn't supported.");
         }
 
+        /// <inheritdoc/>
         public override bool CanConvert(Type typeToConvert)
         {
             var itemType = AdvancedJsonConverterFactory.GetSequenceItemType(typeToConvert);
             return itemType != null && !AdvancedJsonConverterFactory.IsSystemType(itemType);
         }
 
+        /// <inheritdoc/>
         public override IEnumerable<T> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.StartArray)
@@ -58,6 +65,7 @@ namespace Assistant.Net.Serialization.Converters
             }
         }
 
+        /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, IEnumerable<T> value, JsonSerializerOptions options)
         {
             if(!IsSupportedSequenceType(value.GetType()))

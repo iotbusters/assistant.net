@@ -12,7 +12,7 @@ namespace Assistant.Net.Serialization.Converters
     /// <summary>
     ///     Json converter responsible for advanced object serialization.
     /// </summary>
-    /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-5-0"/> />
+    /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to"/> />
     public sealed class AdvancedJsonConverter<T> : JsonConverter<T>
     {
         private const string TypePropertyName = "__type";
@@ -20,6 +20,7 @@ namespace Assistant.Net.Serialization.Converters
         private readonly IImmutableList<TypeMetadata> typeMetadata;
         private readonly ITypeEncoder typeEncoder;
 
+        /// <summary/>
         public AdvancedJsonConverter(ITypeEncoder typeEncoder)
         {
             this.typeEncoder = typeEncoder;
@@ -50,11 +51,13 @@ namespace Assistant.Net.Serialization.Converters
                 throw new JsonException($"The type '{typeof(T)}' cannot be serialized or deserialized.");
         }
 
+        /// <inheritdoc/>
         public override bool CanConvert(Type typeToConvert) =>
             base.CanConvert(typeToConvert) && !AdvancedJsonConverterFactory.IsSystemType(typeToConvert);
 
         private static StringComparer IgnoreCase => StringComparer.InvariantCultureIgnoreCase;
-        
+
+        /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
@@ -78,6 +81,7 @@ namespace Assistant.Net.Serialization.Converters
             writer.WriteEndObject();
         }
 
+        /// <inheritdoc/>
         public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.StartObject)

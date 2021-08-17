@@ -5,8 +5,13 @@ namespace Assistant.Net.Messaging.Exceptions
     /// </summary>
     public class CommandNotFoundException : CommandException
     {
-        public CommandNotFoundException() : base($"Command wasn't found.") { }
+        /// <summary/>
+        public CommandNotFoundException() : base("Command wasn't found.") { }
+
+        /// <summary/>
         public CommandNotFoundException(string message) : base(message) { }
+
+        /// <summary/>
         public CommandNotFoundException(string message, string commandName) : base($"Command '{commandName}' wasn't found. {message}") { }
     }
 }

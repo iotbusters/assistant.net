@@ -3,13 +3,15 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Abstractions
 {
     /// <summary>
-    ///     Command handler abstraction that accepts <typeparamref name="TCommand" /> only and returns <typeparam name="TResponse" /> in response.
+    ///     Command handler abstraction that accepts <typeparamref name="TCommand" /> only and returns <typeparamref name="TResponse" /> in response.
     /// </summary>
-    public interface ICommandHandler<TCommand, TResponse> : IAbstractHandler
+    /// <typeparam name="TCommand">Specific command implementation type.</typeparam>
+    /// <typeparam name="TResponse">Response type of <typeparamref name="TCommand"/>.</typeparam>
+    public interface ICommandHandler<in TCommand, TResponse> : IAbstractHandler
         where TCommand : ICommand<TResponse>
     {
         /// <summary>
-        ///     Handles <typeparam name="TCommand" /> object.
+        ///     Handles <typeparamref name="TCommand" /> object.
         /// </summary>
         Task<TResponse> Handle(TCommand command);
 
@@ -17,12 +19,15 @@ namespace Assistant.Net.Messaging.Abstractions
     }
 
     /// <summary>
-    ///     Command handler abstraction that accepts <typeparam name="TCommand" /> only when no object in response is expected.
+    ///     Command handler abstraction that accepts <typeparamref name="TCommand" /> only when no object in response is expected.
     /// </summary>
-    /// <typeparam name="TCommand"></typeparam>
-    public interface ICommandHandler<TCommand> : ICommandHandler<TCommand, None>
+    /// <typeparam name="TCommand">Specific command implementation type.</typeparam>
+    public interface ICommandHandler<in TCommand> : ICommandHandler<TCommand, None>
         where TCommand : ICommand
     {
+        /// <summary>
+        ///     Handles <typeparamref name="TCommand" /> object.
+        /// </summary>
         new Task Handle(TCommand command);
 
         async Task<None> ICommandHandler<TCommand, None>.Handle(TCommand command)

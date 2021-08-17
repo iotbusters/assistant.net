@@ -1,19 +1,24 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Assistant.Net.Serialization.Converters
 {
+    /// <summary>
+    ///     JSON converter factory for advanced serialization.
+    /// </summary>
     public class AdvancedJsonConverterFactory : JsonConverterFactory
     {
         private readonly IServiceProvider provider;
 
+        /// <inheritdoc/>
         public AdvancedJsonConverterFactory(IServiceProvider provider) =>
             this.provider = provider;
 
+        /// <inheritdoc/>
         public override bool CanConvert(Type typeToConvert)
         {
             var itemType = GetSequenceItemType(typeToConvert);
@@ -23,6 +28,7 @@ namespace Assistant.Net.Serialization.Converters
             return !IsSystemType(typeToConvert);
         }
 
+        /// <inheritdoc/>
         public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
             var itemType = GetSequenceItemType(typeToConvert);

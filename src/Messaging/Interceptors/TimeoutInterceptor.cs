@@ -10,6 +10,7 @@ namespace Assistant.Net.Messaging.Interceptors
     /// </summary>
     public class TimeoutInterceptor : ICommandInterceptor
     {
+        /// <inheritdoc/>
         public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
         {
             // todo: configurable (https://github.com/iotbusters/assistant.net/issues/4)

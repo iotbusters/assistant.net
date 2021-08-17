@@ -8,9 +8,15 @@ namespace Assistant.Net.Messaging.Options
     /// </summary>
     public class RemoteWebCommandClientOptions
     {
+        /// <summary>
+        ///     Remote WEB server URL.
+        /// </summary>
         [Required]
         public Uri BaseAddress { get; set; } = null!;
 
-        public TimeSpan? Timeout { get; set; }
+        /// <summary>
+        ///     Remote WEB request timeout.
+        /// </summary>
+        public TimeSpan? Timeout { get; set; } = null!;
     }
 }

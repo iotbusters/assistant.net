@@ -1,16 +1,16 @@
+using Assistant.Net.Abstractions;
+using Assistant.Net.Serialization.Exceptions;
 using System;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Assistant.Net.Abstractions;
-using Assistant.Net.Serialization.Exceptions;
 
 namespace Assistant.Net.Serialization.Converters
 {
     /// <summary>
     ///     Json converter responsible for exception serialization.
     /// </summary>
-    /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-5-0"/>
+    /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to"/>
     public class ExceptionJsonConverter<T> : JsonConverter<T>
         where T : Exception
     {
@@ -20,12 +20,15 @@ namespace Assistant.Net.Serialization.Converters
 
         private readonly ITypeEncoder typeEncoder;
 
+        /// <summary/>
         public ExceptionJsonConverter(ITypeEncoder typeEncoder) =>
             this.typeEncoder = typeEncoder;
 
+        /// <inheritdoc/>
         public override bool CanConvert(Type typeToConvert) =>
             typeof(T).IsAssignableFrom(typeToConvert);
 
+        /// <inheritdoc/>
         public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
         {
             writer.WriteStartObject();
@@ -44,6 +47,7 @@ namespace Assistant.Net.Serialization.Converters
             writer.WriteEndObject();
         }
 
+        /// <inheritdoc/>
         public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.StartObject)

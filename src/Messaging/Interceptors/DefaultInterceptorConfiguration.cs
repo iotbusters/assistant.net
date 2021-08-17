@@ -12,6 +12,7 @@ namespace Assistant.Net.Messaging.Interceptors
     public class DefaultInterceptorConfiguration : ICommandConfiguration
     {
         // todo: consider removing if disabled in configuration (https://github.com/iotbusters/assistant.net/issues/1)
+        /// <inheritdoc/>
         public void Configure(CommandClientBuilder builder) => builder
             .ClearInterceptors()
             .AddInterceptor<DiagnosticsInterceptor>()
