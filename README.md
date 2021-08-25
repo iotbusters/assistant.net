@@ -18,6 +18,10 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
 
+- [Assistant.NET Release 0.1.68](https://github.com/iotbusters/assistant.net/releases/tag/0.1.68)
+  - introduced none backward compatible change to messaging related packages
+    - `command` related files were renamed to `message` to avoid ambiguity with patterns
+
 - [Assistant.NET Release 0.1.65](https://github.com/iotbusters/assistant.net/releases/tag/0.1.65)
   - Bug fixes
   - Unused files deleted
