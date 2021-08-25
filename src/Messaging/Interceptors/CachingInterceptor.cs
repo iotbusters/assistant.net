@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Interceptors
 {
     /// <summary>
-    ///     Command response (including failures) caching interceptor.
+    ///     Message response (including failures) caching interceptor.
     /// </summary>
-    public sealed class CachingInterceptor : ICommandInterceptor
+    public sealed class CachingInterceptor : IMessageInterceptor
     {
         private readonly IStorage<object, CachingResult> cache;
 
@@ -20,17 +20,17 @@ namespace Assistant.Net.Messaging.Interceptors
             this.cache = cache;
 
         /// <inheritdoc/>
-        public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
+        public async Task<object> Intercept(IMessage<object> message, Func<IMessage<object>, Task<object>> next)
         {
-            if (await cache.TryGet(command) is Some<CachingResult>(var result))
+            if (await cache.TryGet(message) is Some<CachingResult>(var result))
                 return result.GetValue();
 
-            return await next(command).When(
-                x => cache.AddOrGet(command, new CachingResult(x)),
-                x =>
+            return await next(message).When(
+                successAction: x => cache.AddOrGet(message, new CachingResult(x)),
+                faultAction: x =>
                 {
                     if (IsCacheable(x))
-                        cache.AddOrGet(command, new CachingResult(x));
+                        cache.AddOrGet(message, new CachingResult(x));
                 });
         }
 
@@ -42,7 +42,7 @@ namespace Assistant.Net.Messaging.Interceptors
             {
                 typeof(TimeoutException),
                 typeof(OperationCanceledException),
-                typeof(CommandDeferredException)
+                typeof(MessageDeferredException)
             };
 
             if (ex is AggregateException e)

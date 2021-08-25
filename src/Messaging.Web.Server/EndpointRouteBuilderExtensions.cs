@@ -6,20 +6,20 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Assistant.Net.Messaging
 {
     /// <summary>
-    ///     Endpoint route builder extensions for remote command handling.
+    ///     Endpoint route builder extensions for remote message handling.
     /// </summary>
     public static class EndpointRouteBuilderExtensions
     {
         /// <summary>
-        ///     Adds command handling endpoint to existing endpoint middleware.
-        ///     Pay attention, it duplicates <see cref="ApplicationBuilderExtensions.UseRemoteWebCommandHandler" /> behavior.
+        ///     Adds message handling endpoint to existing endpoint middleware.
+        ///     Pay attention, it duplicates <see cref="ApplicationBuilderExtensions.UseRemoteWebMessageHandler" /> behavior.
         /// </summary>
-        public static IEndpointConventionBuilder MapRemoteCommandHandling(this IEndpointRouteBuilder builder)
+        public static IEndpointConventionBuilder MapRemoteMessageHandling(this IEndpointRouteBuilder builder)
         {
-            return builder.MapPost("/command", async context =>
+            return builder.MapPost("/messages", async context =>
             {
                 await ActivatorUtilities
-                    .CreateInstance<RemoteCommandHandlingEndpointMiddleware>(context.RequestServices)
+                    .CreateInstance<RemoteMessageHandlingEndpointMiddleware>(context.RequestServices)
                     .Invoke(context);
             });
         }

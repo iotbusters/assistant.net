@@ -4,24 +4,24 @@ using Microsoft.AspNetCore.Builder;
 namespace Assistant.Net.Messaging
 {
     /// <summary>
-    ///     Application builder extensions for remote command handling.
+    ///     Application builder extensions for remote message handling.
     /// </summary>
     public static class ApplicationBuilderExtensions
     {
         /// <summary>
-        ///     Adds command handling middleware to pipeline intercepting remote command handling requests.
+        ///     Adds message handling middleware to pipeline intercepting remote message handling requests.
         ///     It should be registered before routing middlewares.
-        ///     Pay attention, it duplicates <see cref="EndpointRouteBuilderExtensions.MapRemoteCommandHandling" /> behavior.
+        ///     Pay attention, it duplicates <see cref="EndpointRouteBuilderExtensions.MapRemoteMessageHandling" /> behavior.
         /// </summary>
-        public static IApplicationBuilder UseRemoteWebCommandHandler(this IApplicationBuilder builder) => builder
+        public static IApplicationBuilder UseRemoteWebMessageHandler(this IApplicationBuilder builder) => builder
             .UseRemoteExceptionHandling()
             .UseMiddleware<DiagnosticMiddleware>()
-            .UseMiddleware<RemoteCommandHandlingMiddleware>();
+            .UseMiddleware<RemoteMessageHandlingMiddleware>();
 
         /// <summary>
-        ///     Adds exception handling middleware to pipeline handling occurred exceptions during remote command handling requests.
+        ///     Adds exception handling middleware to pipeline handling occurred exceptions during remote message handling requests.
         ///     It should be registered before routing middlewares.
-        ///     Pay attention, it duplicates <see cref="UseRemoteWebCommandHandler" /> behavior.
+        ///     Pay attention, it duplicates <see cref="UseRemoteWebMessageHandler" /> behavior.
         /// </summary>
         public static IApplicationBuilder UseRemoteExceptionHandling(this IApplicationBuilder builder) => builder
             .UseMiddleware<RemoteExceptionHandlingMiddleware>();

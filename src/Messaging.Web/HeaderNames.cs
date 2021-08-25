@@ -6,12 +6,12 @@
     public static class HeaderNames
     {
         /// <summary>
-        ///     Defines a header for identification of requested command.
+        ///     Defines a header for identification of requested message.
         /// </summary>
-        public const string CommandName = "command-name";
+        public const string MessageName = "message-name";
 
         /// <summary>
-        ///     Defines a header for correlation of requested command.
+        ///     Defines a header for correlation of requested message.
         /// </summary>
         public const string CorrelationId = "correlation-id";
     }

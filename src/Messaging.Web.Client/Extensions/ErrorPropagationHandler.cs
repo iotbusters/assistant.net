@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Extensions
 {
     /// <summary>
-    ///     Remote command handling failure propagation.
+    ///     Remote message handling failure propagation.
     /// </summary>
     public class ErrorPropagationHandler : DelegatingHandler
     {
-        private readonly ISerializer<CommandException> serializer;
+        private readonly ISerializer<MessageException> serializer;
 
         /// <summary/>
-        public ErrorPropagationHandler(ISerializer<CommandException> serializer) =>
+        public ErrorPropagationHandler(ISerializer<MessageException> serializer) =>
             this.serializer = serializer;
 
         /// <inheritdoc/>
@@ -28,8 +28,8 @@ namespace Assistant.Net.Messaging.Extensions
             {
                 (true, HttpStatusCode.NotModified)  => response,
                 (true, HttpStatusCode.OK)           => response,
-                (true, HttpStatusCode.Accepted)     => throw new CommandDeferredException(),
-                (true, var x)                       => throw new CommandContractException(InvalidStatusMessage(x)),
+                (true, HttpStatusCode.Accepted)     => throw new MessageDeferredException(),
+                (true, var x)                       => throw new MessageContractException(InvalidStatusMessage(x)),
 
                 (false, HttpStatusCode.NotFound)            => throw await ReadException(response, cancellationToken),
                 (false, HttpStatusCode.InternalServerError) => throw await ReadException(response, cancellationToken),
@@ -39,11 +39,11 @@ namespace Assistant.Net.Messaging.Extensions
                 (false, HttpStatusCode.RequestTimeout)      => throw await ReadException(response, cancellationToken),
                 (false, HttpStatusCode.ServiceUnavailable)  => throw await ReadException(response, cancellationToken),
                 (false, HttpStatusCode.Unauthorized)        => throw await ReadException(response, cancellationToken),
-                (false, var x)                              => throw new CommandContractException(InvalidStatusMessage(x)),
+                (false, var x)                              => throw new MessageContractException(InvalidStatusMessage(x)),
             };
         }
 
-        private async Task<CommandException> ReadException(HttpResponseMessage response, CancellationToken cancellationToken)
+        private async Task<MessageException> ReadException(HttpResponseMessage response, CancellationToken cancellationToken)
         {
             var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             try
@@ -52,7 +52,7 @@ namespace Assistant.Net.Messaging.Extensions
             }
             catch (Exception e)
             {
-                return new CommandContractException(ErrorContentMessage(response.StatusCode), e);
+                return new MessageContractException(ErrorContentMessage(response.StatusCode), e);
             }
         }
 

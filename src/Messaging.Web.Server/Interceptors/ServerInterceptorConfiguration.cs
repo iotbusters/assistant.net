@@ -9,11 +9,11 @@ namespace Assistant.Net.Messaging.Interceptors
     ///     <see cref="CachingInterceptor" />, <see cref="DeferredCachingInterceptor" />,
     ///     <see cref="TimeoutInterceptor" />
     /// </summary>
-    public class ServerInterceptorConfiguration : ICommandConfiguration
+    public class ServerInterceptorConfiguration : IMessageConfiguration
     {
         // todo: consider removing if disabled in configuration (https://github.com/iotbusters/assistant.net/issues/1)
         /// <inheritdoc/>
-        public void Configure(CommandClientBuilder builder) => builder
+        public void Configure(MessagingClientBuilder builder) => builder
             .ClearInterceptors()
             .AddInterceptor<DiagnosticsInterceptor>()
             .AddInterceptor<ErrorHandlingInterceptor>()

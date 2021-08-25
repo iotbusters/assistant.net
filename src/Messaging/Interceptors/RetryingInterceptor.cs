@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Interceptors
 {
     /// <summary>
-    ///     Retrying Command handling interceptor.
+    ///     Retrying message handling interceptor.
     /// </summary>
-    public class RetryingInterceptor : ICommandInterceptor
+    public class RetryingInterceptor : IMessageInterceptor
     {
         private readonly ILogger<RetryingInterceptor> logger;
         private readonly IDiagnosticFactory diagnosticsFactory;
@@ -30,8 +30,8 @@ namespace Assistant.Net.Messaging.Interceptors
         }
 
         /// <inheritdoc/>
-        /// <exception cref="CommandRetryLimitExceededException" />
-        public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
+        /// <exception cref="MessageRetryLimitExceededException" />
+        public async Task<object> Intercept(IMessage<object> message, Func<IMessage<object>, Task<object>> next)
         {
             // configurable
             var maxRetryLimit = 5;
@@ -46,7 +46,7 @@ namespace Assistant.Net.Messaging.Interceptors
 
                 try
                 {
-                    return await next(command);
+                    return await next(message);
                 }
                 catch (Exception ex)
                 {
@@ -64,7 +64,7 @@ namespace Assistant.Net.Messaging.Interceptors
                 }
             }
 
-            throw new CommandRetryLimitExceededException();
+            throw new MessageRetryLimitExceededException();
         }
 
         private static bool CriticalExceptionOnly(Exception ex)
@@ -73,7 +73,7 @@ namespace Assistant.Net.Messaging.Interceptors
             // configurable
             var transientExceptionTypes = new[]
             {
-                typeof(CommandDeferredException)
+                typeof(MessageDeferredException)
             };
 
             if (ex is AggregateException e)

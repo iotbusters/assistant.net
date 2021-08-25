@@ -20,50 +20,50 @@ namespace Assistant.Net.Messaging.Internal
         /// <summary>
         ///     Gets a header by <paramref name="name"/> and fails if not found.
         /// </summary>
-        /// <exception cref="CommandContractException" />
+        /// <exception cref="MessageContractException" />
         public static string GetRequiredHeader(this HttpContext httpContext, string name)
         {
             if (!httpContext.Request.Headers.TryGetValue(name, out var values))
-                throw new CommandContractException($"Header '{name}' is required.");
+                throw new MessageContractException($"Header '{name}' is required.");
 
             return values.First();
         }
 
         /// <summary>
-        ///     Gets a command name from headers.
+        ///     Gets a message name from headers.
         /// </summary>
-        /// <exception cref="CommandContractException" />
-        public static string GetCommandName(this HttpContext httpContext) =>
-            httpContext.GetRequiredHeader(HeaderNames.CommandName);
+        /// <exception cref="MessageContractException" />
+        public static string GetMessageName(this HttpContext httpContext) =>
+            httpContext.GetRequiredHeader(HeaderNames.MessageName);
 
         /// <summary>
         ///     Gets a correlation ID from headers.
         /// </summary>
-        /// <exception cref="CommandContractException" />
+        /// <exception cref="MessageContractException" />
         public static string GetCorrelationId(this HttpContext httpContext) => httpContext
             .GetRequiredHeader(HeaderNames.CorrelationId);
 
         /// <summary>
-        ///     Resolves a command type.
+        ///     Resolves a message type.
         /// </summary>
-        /// <exception cref="CommandContractException" />
-        /// <exception cref="CommandNotFoundException" />
-        public static Type GetCommandType(this HttpContext httpContext)
+        /// <exception cref="MessageContractException" />
+        /// <exception cref="MessageNotFoundException" />
+        public static Type GetMessageType(this HttpContext httpContext)
         {
-            var commandName = httpContext.GetCommandName();
-            return httpContext.GetService<ITypeEncoder>().Decode(commandName)
-                ?? throw new CommandNotFoundException("Couldn't resolve command type from its name.", commandName);
+            var messageName = httpContext.GetMessageName();
+            return httpContext.GetService<ITypeEncoder>().Decode(messageName)
+                ?? throw new MessageNotFoundException("Couldn't resolve message type from its name.", messageName);
         }
 
         /// <summary>
-        ///     Reads command object from request body stream.
+        ///     Reads message object from request body stream.
         /// </summary>
-        /// <exception cref="CommandContractException" />
-        public static async Task<object> ReadCommandObject(this HttpContext httpContext)
+        /// <exception cref="MessageContractException" />
+        public static async Task<object> ReadMessageObject(this HttpContext httpContext)
         {
-            var commandType = httpContext.GetCommandType();
+            var messageType = httpContext.GetMessageType();
             var factory = httpContext.GetService<ISerializerFactory>();
-            var serializer = factory.Create(commandType);
+            var serializer = factory.Create(messageType);
 
             try
             {
@@ -75,19 +75,19 @@ namespace Assistant.Net.Messaging.Internal
             }
             catch (Exception e)
             {
-                throw new CommandContractException($"Reading '{commandType.Name}' object has failed.", e);
+                throw new MessageContractException($"Reading '{messageType.Name}' object has failed.", e);
             }
         }
 
         /// <summary>
         ///     Writes the <paramref name="content"/> object to response and set <paramref name="statusCode"/>.
         /// </summary>
-        public static Task WriteCommandResponse(this HttpContext httpContext, int statusCode, object? content = null)
+        public static Task WriteMessageResponse(this HttpContext httpContext, int statusCode, object? content = null)
         {
-            var commandName = httpContext.GetCommandName();
+            var messageName = httpContext.GetMessageName();
             var correlationId = httpContext.GetCorrelationId();
 
-            httpContext.Response.Headers.TryAdd(HeaderNames.CommandName, commandName);
+            httpContext.Response.Headers.TryAdd(HeaderNames.MessageName, messageName);
             httpContext.Response.Headers.TryAdd(HeaderNames.CorrelationId, correlationId);
             httpContext.Response.StatusCode = statusCode;
 
@@ -102,11 +102,11 @@ namespace Assistant.Net.Messaging.Internal
         /// <summary>
         ///     Writes the <paramref name="exception"/> failure object to response and set error <paramref name="statusCode"/>.
         /// </summary>
-        public static async Task WriteCommandResponse(this HttpContext context, int statusCode, CommandException exception)
+        public static async Task WriteMessageResponse(this HttpContext context, int statusCode, MessageException exception)
         {
-            context.GetLogger().LogError(exception, "Remote command handling has failed.");
+            context.GetLogger().LogError(exception, "Remote message handling has failed.");
 
-            await context.WriteCommandResponse(statusCode, (object)exception);
+            await context.WriteMessageResponse(statusCode, (object)exception);
         }
 
         /// <summary>

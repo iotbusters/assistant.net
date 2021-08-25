@@ -15,7 +15,7 @@ namespace Assistant.Net.Messaging
         /// </summary>
         public static IServiceCollection AddJsonSerialization(this IServiceCollection services) => services
             .AddSerializer(b => b
-                .AddJsonConverter<CommandExceptionJsonConverter>()
+                .AddJsonConverter<MessageExceptionJsonConverter>()
                 .AddJsonTypeAny());
     }
 }

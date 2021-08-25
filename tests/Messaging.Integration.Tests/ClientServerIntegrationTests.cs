@@ -1,10 +1,10 @@
-using System;
-using System.Threading.Tasks;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Integration.Tests.Fixtures;
 using Assistant.Net.Messaging.Integration.Tests.Mocks;
 using FluentAssertions;
 using NUnit.Framework;
+using System;
+using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Integration.Tests
 {
@@ -14,94 +14,94 @@ namespace Assistant.Net.Messaging.Integration.Tests
         [Test]
         public async Task Send_returnsResponse()
         {
-            using var fixture = new CommandClientFixtureBuilder()
-                .AddRemote<TestScenarioCommandHandler>()
+            using var fixture = new MessageClientFixtureBuilder()
+                .AddRemote<TestScenarioMessageHandler>()
                 .Create();
 
-            var response = await fixture.Client.Send(new TestScenarioCommand(0));
+            var response = await fixture.Client.Send(new TestScenarioMessage(0));
 
             response.Should().Be(new TestResponse(false));
         }
 
         [Test]
-        public void Send_throwsCommandNotRegisteredException_NoLocalHandler()
+        public void Send_throwsMessageNotRegisteredException_NoLocalHandler()
         {
-            using var fixture = new CommandClientFixtureBuilder()
-                .AddRemote<TestSuccessFailureCommandHandler>()
+            using var fixture = new MessageClientFixtureBuilder()
+                .AddRemote<TestSuccessFailureMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.Send(new TestScenarioCommand(0)))
-                .Should().ThrowExactly<CommandNotRegisteredException>()
-                .WithMessage($"Command '{nameof(TestScenarioCommand)}' wasn't registered.")
+            fixture.Client.Awaiting(x => x.Send(new TestScenarioMessage(0)))
+                .Should().ThrowExactly<MessageNotRegisteredException>()
+                .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
                 .Which.InnerException.Should().BeNull();
         }
 
         [Test]
-        public void Send_throwsCommandNotRegisteredException_NoRemoteHandler()
+        public void Send_throwsMessageNotRegisteredException_NoRemoteHandler()
         {
-            using var fixture = new CommandClientFixtureBuilder()
-                .AddRemoteCommandRegistrationOnly<TestScenarioCommand>()
-                .AddRemote<TestSuccessFailureCommandHandler>()// to have at least one handler configured
+            using var fixture = new MessageClientFixtureBuilder()
+                .AddRemoteMessageRegistrationOnly<TestScenarioMessage>()
+                .AddRemote<TestSuccessFailureMessageHandler>()// to have at least one handler configured
                 .Create();
 
-            fixture.Client.Awaiting(x => x.Send(new TestScenarioCommand(0)))
-                .Should().ThrowExactly<CommandNotRegisteredException>()
-                .WithMessage($"Command '{nameof(TestScenarioCommand)}' wasn't registered.")
+            fixture.Client.Awaiting(x => x.Send(new TestScenarioMessage(0)))
+                .Should().ThrowExactly<MessageNotRegisteredException>()
+                .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
                 .Which.InnerException.Should().BeNull();
         }
 
         [TestCase(typeof(TimeoutException))]
         [TestCase(typeof(TaskCanceledException))]
         [TestCase(typeof(OperationCanceledException))]
-        [TestCase(typeof(CommandDeferredException))]
-        public void Send_throwsInterraptingKindOfException_thrownCommandDeferredException(Type exceptionType)
+        [TestCase(typeof(MessageDeferredException))]
+        public void Send_throwsInterruptingKindOfException_thrownMessageDeferredException(Type exceptionType)
         {
-            using var fixture = new CommandClientFixtureBuilder()
-                .AddRemote<TestSuccessFailureCommandHandler>()
+            using var fixture = new MessageClientFixtureBuilder()
+                .AddRemote<TestSuccessFailureMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.Send(new TestSuccessFailureCommand(exceptionType.AssemblyQualifiedName)))
-                .Should().ThrowExactly<CommandDeferredException>()
+            fixture.Client.Awaiting(x => x.Send(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
+                .Should().ThrowExactly<MessageDeferredException>()
                 .Which.InnerException.Should().BeNull();
         }
 
         [Test]
-        public void Send_throwsCommandFailedException_thrownInvalidOperationException()
+        public void Send_throwsMessageFailedException_thrownInvalidOperationException()
         {
-            using var fixture = new CommandClientFixtureBuilder()
-                .AddRemote<TestScenarioCommandHandler>()
+            using var fixture = new MessageClientFixtureBuilder()
+                .AddRemote<TestScenarioMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.Send(new TestScenarioCommand(1)))
-                .Should().ThrowExactly<CommandFailedException>()
-                .WithMessage("Command execution has failed.")
+            fixture.Client.Awaiting(x => x.Send(new TestScenarioMessage(1)))
+                .Should().ThrowExactly<MessageFailedException>()
+                .WithMessage("Message handling has failed.")
                 .Which.InnerException.Should().BeNull();
         }
 
         [Test]
-        public void Send_throwsCommandFailedException_thrownCommandFailedException()
+        public void Send_throwsMessageFailedException_thrownMessageFailedException()
         {
-            using var fixture = new CommandClientFixtureBuilder()
-                .AddRemote<TestScenarioCommandHandler>()
+            using var fixture = new MessageClientFixtureBuilder()
+                .AddRemote<TestScenarioMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.Send(new TestScenarioCommand(2)))
-                .Should().ThrowExactly<CommandFailedException>()
+            fixture.Client.Awaiting(x => x.Send(new TestScenarioMessage(2)))
+                .Should().ThrowExactly<MessageFailedException>()
                 .WithMessage("2")
                 .Which.InnerException.Should().BeNull();
         }
 
         [Test]
-        public void Send_throwsCommandFailedException_thrownCommandFailedExceptionWithInnerException()
+        public void Send_throwsMessageFailedException_thrownMessageFailedExceptionWithInnerException()
         {
-            using var fixture = new CommandClientFixtureBuilder()
-                .AddRemote<TestScenarioCommandHandler>()
+            using var fixture = new MessageClientFixtureBuilder()
+                .AddRemote<TestScenarioMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.Send(new TestScenarioCommand(3)))
-                .Should().ThrowExactly<CommandFailedException>()
+            fixture.Client.Awaiting(x => x.Send(new TestScenarioMessage(3)))
+                .Should().ThrowExactly<MessageFailedException>()
                 .WithMessage("3")
-                .WithInnerExceptionExactly<CommandFailedException>()
+                .WithInnerExceptionExactly<MessageFailedException>()
                 .Which.InnerException?.Message.Should().Be("inner");
         }
     }

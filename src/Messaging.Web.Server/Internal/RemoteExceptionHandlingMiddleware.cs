@@ -32,22 +32,22 @@ namespace Assistant.Net.Messaging.Internal
             if (ex is AggregateException e)
                 return HandleException(context, e.InnerException!);
 
-            if (ex is CommandDeferredException
+            if (ex is MessageDeferredException
                 || ex is TimeoutException
                 || ex is OperationCanceledException)
-                return context.WriteCommandResponse(202);
+                return context.WriteMessageResponse(202);
 
-            if (ex is CommandNotFoundException
-                || ex is CommandNotRegisteredException)
-                return context.WriteCommandResponse(404, ex);
+            if (ex is MessageNotFoundException
+                || ex is MessageNotRegisteredException)
+                return context.WriteMessageResponse(404, ex);
 
-            if (ex is CommandContractException)
-                return context.WriteCommandResponse(400, ex);
+            if (ex is MessageContractException)
+                return context.WriteMessageResponse(400, ex);
 
-            if (ex is CommandException)
-                return context.WriteCommandResponse(500, ex);
+            if (ex is MessageException)
+                return context.WriteMessageResponse(500, ex);
 
-            return context.WriteCommandResponse(500, new CommandFailedException(ex));
+            return context.WriteMessageResponse(500, new MessageFailedException(ex));
         }
     }
 }

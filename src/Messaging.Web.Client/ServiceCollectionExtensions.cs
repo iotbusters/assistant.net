@@ -11,26 +11,26 @@ using System;
 namespace Assistant.Net.Messaging
 {
     /// <summary>
-    ///     Service collection extensions for remote WEB command handling client.
+    ///     Service collection extensions for remote WEB messaging handling client.
     /// </summary>
     public static class ServiceCollectionExtensions
     {
         private static TimeSpan DefaultTimeout => TimeSpan.FromSeconds(10);
 
         /// <summary>
-        ///     Registers empty remote command handling configuration.
-        ///     Assuming <see cref="RemoteWebCommandClientOptions" /> is configured separately.
+        ///     Registers empty remote messaging handling configuration.
+        ///     Assuming <see cref="RemoteWebMessagingClientOptions" /> is configured separately.
         /// </summary>
-        public static IHttpClientBuilder AddRemoteWebCommandClient(this IServiceCollection services)
+        public static IHttpClientBuilder AddRemoteWebMessagingClient(this IServiceCollection services)
         {
             return services
                 .AddSystemLifetime()
                 .AddDiagnostics()
                 .AddTypeEncoder()
                 .AddJsonSerialization()
-                .AddHttpClient<IRemoteCommandClient, RemoteWebCommandClient>((p, c) =>
+                .AddHttpClient<IRemoteMessagingClient, RemoteWebMessagingClient>((p, c) =>
                 {
-                    var options = p.GetRequiredService<IOptions<RemoteWebCommandClientOptions>>().Value;
+                    var options = p.GetRequiredService<IOptions<RemoteWebMessagingClientOptions>>().Value;
                     c.BaseAddress = options.BaseAddress;
                     c.Timeout = options.Timeout ?? DefaultTimeout;
                 })
@@ -41,29 +41,29 @@ namespace Assistant.Net.Messaging
         }
 
         /// <summary>
-        ///     Registers <see cref="IConfigurationSection" /> based remote command handling configuration.
+        ///     Registers <see cref="IConfigurationSection" /> based remote messaging handling configuration.
         /// </summary>
-        public static IHttpClientBuilder AddRemoteWebCommandClient(this IServiceCollection services, IConfigurationSection configuration) => services
-            .AddRemoteWebCommandClientOptions(configuration)
-            .AddRemoteWebCommandClient();
+        public static IHttpClientBuilder AddRemoteWebMessagingClient(this IServiceCollection services, IConfigurationSection configuration) => services
+            .AddRemoteWebMessagingClientOptions(configuration)
+            .AddRemoteWebMessagingClient();
 
         /// <summary>
-        ///     Registers remote command handling configuration customized by <paramref name="configureOptions" />.
+        ///     Registers remote messaging handling configuration customized by <paramref name="configureOptions" />.
         /// </summary>
-        public static IHttpClientBuilder AddRemoteWebCommandClient(this IServiceCollection services, Action<RemoteWebCommandClientOptions> configureOptions) => services
-            .AddRemoteWebCommandClientOptions(configureOptions)
-            .AddRemoteWebCommandClient();
+        public static IHttpClientBuilder AddRemoteWebMessagingClient(this IServiceCollection services, Action<RemoteWebMessagingClientOptions> configureOptions) => services
+            .AddRemoteWebMessagingClientOptions(configureOptions)
+            .AddRemoteWebMessagingClient();
 
         /// <summary>
-        ///     Registers a configuration instance which <see cref="RemoteWebCommandClientOptions"/> will bind against.
+        ///     Registers a configuration instance which <see cref="RemoteWebMessagingClientOptions"/> will bind against.
         /// </summary>
-        internal static IServiceCollection AddRemoteWebCommandClientOptions(this IServiceCollection services, IConfigurationSection configuration) => services
-            .Configure<RemoteWebCommandClientOptions>(configuration);
+        internal static IServiceCollection AddRemoteWebMessagingClientOptions(this IServiceCollection services, IConfigurationSection configuration) => services
+            .Configure<RemoteWebMessagingClientOptions>(configuration);
 
         /// <summary>
-        ///     Registers an action used to configure <see cref="RemoteWebCommandClientOptions"/> options.
+        ///     Registers an action used to configure <see cref="RemoteWebMessagingClientOptions"/> options.
         /// </summary>
-        internal static IServiceCollection AddRemoteWebCommandClientOptions(this IServiceCollection services, Action<RemoteWebCommandClientOptions> configureOptions) => services
+        internal static IServiceCollection AddRemoteWebMessagingClientOptions(this IServiceCollection services, Action<RemoteWebMessagingClientOptions> configureOptions) => services
             .Configure(configureOptions);
     }
 }

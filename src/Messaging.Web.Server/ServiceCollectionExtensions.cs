@@ -11,7 +11,7 @@ using System;
 namespace Assistant.Net.Messaging
 {
     /// <summary>
-    ///     Service collection extensions for remote WEB command handling on a server.
+    ///     Service collection extensions for remote WEB message handling on a server.
     /// </summary>
     public static class ServiceCollectionExtensions
     {
@@ -23,9 +23,9 @@ namespace Assistant.Net.Messaging
             .AddSystemLifetime(p => p.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping);
 
         /// <summary>
-        ///     Registers remote command handling server configuration customized by <paramref name="configure" />.
+        ///     Registers remote message handling server configuration customized by <paramref name="configure" />.
         /// </summary>
-        public static IServiceCollection AddRemoteWebCommandHandler(this IServiceCollection services, Action<CommandClientBuilder> configure) => services
+        public static IServiceCollection AddRemoteWebMessageHandler(this IServiceCollection services, Action<MessagingClientBuilder> configure) => services
             .AddSystemServicesHosted()
             .AddJsonSerialization()
             .AddTypeEncoder()
@@ -33,9 +33,9 @@ namespace Assistant.Net.Messaging
             .AddDiagnosticContext(InitializeFromHttpContext)
             .AddHttpContextAccessor()
             .AddStorage(b => b.AddLocal<string, DeferredCachingResult>())
-            .AddCommandClient()
-            .ConfigureCommandClient(b => b.AddConfiguration<ServerInterceptorConfiguration>())
-            .ConfigureCommandClient(configure);
+            .AddMessagingClient()
+            .ConfigureMessageClient(b => b.AddConfiguration<ServerInterceptorConfiguration>())
+            .ConfigureMessageClient(configure);
 
         private static string InitializeFromHttpContext(IServiceProvider provider)
         {
