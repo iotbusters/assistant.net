@@ -47,7 +47,7 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
         }
 
         [TestCase("{\"type\":\"Exception\",\"message\":\"1\"}")]
-        public async Task DeserializeNotCommandExceptionContent(string content)
+        public async Task DeserializeNotMessageExceptionContent(string content)
         {
             await using var stream = new MemoryStream();
             await new StreamWriter(stream).WriteAsync(content);

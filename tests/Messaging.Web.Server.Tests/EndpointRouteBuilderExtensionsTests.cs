@@ -9,15 +9,15 @@ namespace Assistant.Net.Messaging.Web.Server.Tests
     public class EndpointRouteBuilderExtensionsTests
     {
         [Test]
-        public void MapRemoteCommandHandling_registersRoutePatternAndRequestDelegate()
+        public void MapRemoteMessageHandling_registersRoutePatternAndRequestDelegate()
         {
             var builder = new TestEndpointRouteBuilder();
 
-            builder.MapRemoteCommandHandling();
+            builder.MapRemoteMessageHandling();
 
             builder.DataSources.Should().BeEquivalentTo(new
             {
-                Endpoints = new[] { new { RoutePattern = RoutePatternFactory.Parse("/command") } }
+                Endpoints = new[] { new { RoutePattern = RoutePatternFactory.Parse("/messages") } }
             });
             builder.DataSources.Single().Endpoints.Single().RequestDelegate
                 .Should().NotBeNull();

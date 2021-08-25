@@ -9,14 +9,14 @@ namespace Assistant.Net.Messaging.Web.Server.Tests
     public class ServiceCollectionExtensionsTests
     {
         [Test]
-        public void GetServiceOfICommandClient_resolvesObject()
+        public void GetServiceOfIMessageClient_resolvesObject()
         {
             var provider = new ServiceCollection()
-                .AddRemoteWebCommandHandler(b => b
-                    .AddLocal<TestFailCommandHandler>()) // to have at least one handler configured
+                .AddRemoteWebMessageHandler(b => b
+                    .AddLocal<TestFailMessageHandler>()) // to have at least one handler configured
                 .BuildServiceProvider();
 
-            provider.GetService<ICommandClient>()
+            provider.GetService<IMessagingClient>()
                 .Should().NotBeNull();
         }
     }

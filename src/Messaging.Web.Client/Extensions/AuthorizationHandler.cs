@@ -4,7 +4,7 @@ namespace Assistant.Net.Messaging.Extensions
 {
     /// <summary>
     ///     [NOT IMPLEMENTED]
-    ///     Default web authorizing implementation for remote command handling.
+    ///     Default web authorizing implementation for remote message handling.
     /// </summary>
     public class AuthorizationHandler : DelegatingHandler
     {

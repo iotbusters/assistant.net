@@ -3,14 +3,14 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Abstractions
 {
     /// <summary>
-    ///     De-typed command handler abstraction that helps handling unknown commands 
+    ///     De-typed message handler abstraction that helps handling unknown messages
     ///     during runtime without reflection related performance drop.
     /// </summary>
     public interface IAbstractHandler
     {
         /// <summary>
-        ///     Handles <paramref name="command" /> object.
+        ///     Handles <paramref name="message" /> object.
         /// </summary>
-        Task<object> Handle(object command);
+        Task<object> Handle(object message);
     }
 }

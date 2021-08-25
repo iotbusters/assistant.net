@@ -106,18 +106,18 @@ var currentScopeCorrelationId = provider.GetRequiredService<IDiagnosticContext>(
 ### assistant.net.messaging
 
 Local (in-memory) message handling implementation which support simple extending mechanism
-and basic message (internal term `command`) intercepting out of box.
+and basic message intercepting out of box.
 
 See also available extensions in `assistant.net.messaging.*` packages for more information.
 
 ```csharp
-services.AddCommandClient(b => b
-    .AddLocal<SomeCommandHandler>()
-    .AddInterceptor<SomeCommandInterceptor>()
+services.AddMessagingClient(b => b
+    .AddLocal<SomeMessageHandler>()
+    .AddInterceptor<SomeMessageInterceptor>()
     );
 
-var client = provider.GetRequiredService<ICommandClient>();
-var response = await client.Send(new SomeCommand())
+var client = provider.GetRequiredService<IMessagingClient>();
+var response = await client.Send(new SomeMessage())
 ```
 
 #### assistant.net.messaging.web
@@ -133,11 +133,11 @@ Remote WEB oriented message handling client implementation for [server](#assista
 
 ```csharp
 services
-    .AddCommandClient(b => b.AddRemote<SomeCommand>())
-    .AddRemoteWebCommandClient(opt => opt.BaseAddress = "https://localhost");
+    .AddMessagingClient(b => b.AddRemote<SomeMessage>())
+    .AddRemoteWebMessageClient(opt => opt.BaseAddress = "https://localhost");
 
-var client = provider.GetRequiredService<ICommandClient>();
-var response = await client.Send(new SomeCommand())
+var client = provider.GetRequiredService<IMessagingClient>();
+var response = await client.Send(new SomeMessage())
 ```
 
 See [server](#assistantnetmessagingwebserver) configuration for remote handling.
@@ -147,10 +147,10 @@ See [server](#assistantnetmessagingwebserver) configuration for remote handling.
 Remote WEB oriented message handling server implementation. The server exposes API and accepts remote requests for further processing.
 
 ```csharp
-services.AddRemoteWebCommandHandler(b => b
-    .AddLocal<SomeCommandHandler>();
-    .AddInterceptor<SomeCommandInterceptor>()
-    ); // it reuses `.AddCommandClient()` behind the scenes so they are fully compatible.
+services.AddRemoteWebMessageHandler(b => b
+    .AddLocal<SomeMessageHandler>();
+    .AddInterceptor<SomeMessageInterceptor>()
+    ); // it reuses `.AddMessagingClient()` behind the scenes so they are fully compatible.
 ```
 
-See [client](#assistantnetmessagingwebclient) configuration and remote command handling request.
+See [client](#assistantnetmessagingwebclient) configuration and remote message handling request.

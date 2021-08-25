@@ -22,14 +22,14 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
         [TestCase(typeof(TimeoutException))]
         [TestCase(typeof(TaskCanceledException))]
         [TestCase(typeof(OperationCanceledException))]
-        [TestCase(typeof(CommandDeferredException))]
+        [TestCase(typeof(MessageDeferredException))]
         public async Task Post_Accepted_thrownInterruptingKindOfException(Type exceptionType)
         {
-            using var fixture = new CommandClientFixtureBuilder()
-                .AddRemote<TestFailCommandHandler>()
+            using var fixture = new MessageClientFixtureBuilder()
+                .AddRemote<TestFailMessageHandler>()
                 .Create();
 
-            var request = await Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var request = await Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
             var response = await fixture.Client.SendAsync(request);
 
             response.Should().BeEquivalentTo(new HttpResponseMessage
@@ -38,21 +38,21 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 RequestMessage = request,
                 Headers =
                 {
-                    {HeaderNames.CommandName, nameof(TestFailCommand)},
+                    {HeaderNames.MessageName, nameof(TestFailMessage)},
                     {HeaderNames.CorrelationId, CorrelationId},
                 }
             });
         }
 
         [Test]
-        public async Task Post_NotFound_thrownCommandNotFoundException()
+        public async Task Post_NotFound_thrownMessageNotFoundException()
         {
-            var exceptionType = typeof(CommandNotFoundException);
-            using var fixture = new CommandClientFixtureBuilder()
-                .AddRemote<TestFailCommandHandler>()
+            var exceptionType = typeof(MessageNotFoundException);
+            using var fixture = new MessageClientFixtureBuilder()
+                .AddRemote<TestFailMessageHandler>()
                 .Create();
 
-            var request = await Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var request = await Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
             var response = await fixture.Client.SendAsync(request);
 
             response.Should().BeEquivalentTo(new
@@ -61,23 +61,23 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 RequestMessage = request,
                 Headers = new[]
                 {
-                    new { Key = HeaderNames.CommandName, Value = new[] { nameof(TestFailCommand) } },
+                    new { Key = HeaderNames.MessageName, Value = new[] { nameof(TestFailMessage) } },
                     new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } }
                 }
             });
-            var responseObject = await response.Content.ReadFromJsonAsync<CommandException>(fixture.JsonSerializerOptions);
-            responseObject.Should().BeOfType<CommandNotFoundException>();
+            var responseObject = await response.Content.ReadFromJsonAsync<MessageException>(fixture.JsonSerializerOptions);
+            responseObject.Should().BeOfType<MessageNotFoundException>();
         }
 
         [Test]
-        public async Task Post_NotFound_thrownCommandNotRegisteredException()
+        public async Task Post_NotFound_thrownMessageNotRegisteredException()
         {
-            var exceptionType = typeof(CommandNotRegisteredException);
-            using var fixture = new CommandClientFixtureBuilder()
-                .AddRemote<TestFailCommandHandler>()
+            var exceptionType = typeof(MessageNotRegisteredException);
+            using var fixture = new MessageClientFixtureBuilder()
+                .AddRemote<TestFailMessageHandler>()
                 .Create();
 
-            var request = await Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var request = await Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
             var response = await fixture.Client.SendAsync(request);
 
             response.Should().BeEquivalentTo(new
@@ -86,23 +86,23 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 RequestMessage = request,
                 Headers = new[]
                 {
-                    new { Key = HeaderNames.CommandName, Value = new[] { nameof(TestFailCommand) } },
+                    new { Key = HeaderNames.MessageName, Value = new[] { nameof(TestFailMessage) } },
                     new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } }
                 }
             });
-            var responseObject = await response.Content.ReadFromJsonAsync<CommandException>(fixture.JsonSerializerOptions);
-            responseObject.Should().BeOfType<CommandNotRegisteredException>();
+            var responseObject = await response.Content.ReadFromJsonAsync<MessageException>(fixture.JsonSerializerOptions);
+            responseObject.Should().BeOfType<MessageNotRegisteredException>();
         }
 
         [Test]
-        public async Task Post_BadRequest_thrownCommandContractException()
+        public async Task Post_BadRequest_thrownMessageContractException()
         {
-            var exceptionType = typeof(CommandContractException);
-            using var fixture = new CommandClientFixtureBuilder()
-                .AddRemote<TestFailCommandHandler>()
+            var exceptionType = typeof(MessageContractException);
+            using var fixture = new MessageClientFixtureBuilder()
+                .AddRemote<TestFailMessageHandler>()
                 .Create();
 
-            var request = await Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var request = await Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
             var response = await fixture.Client.SendAsync(request);
 
             response.Should().BeEquivalentTo(new
@@ -111,23 +111,23 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 RequestMessage = request,
                 Headers = new[]
                 {
-                    new { Key = HeaderNames.CommandName, Value = new[] { nameof(TestFailCommand) } },
+                    new { Key = HeaderNames.MessageName, Value = new[] { nameof(TestFailMessage) } },
                     new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } }
                 }
             });
-            var responseObject = await response.Content.ReadFromJsonAsync<CommandException>(fixture.JsonSerializerOptions);
-            responseObject.Should().BeOfType<CommandContractException>();
+            var responseObject = await response.Content.ReadFromJsonAsync<MessageException>(fixture.JsonSerializerOptions);
+            responseObject.Should().BeOfType<MessageContractException>();
         }
 
         [Test]
-        public async Task Post_InternalServerError_throwAnyOtherCommandException()
+        public async Task Post_InternalServerError_throwAnyOtherMessageException()
         {
-            var exceptionType = typeof(TestCommandException);
-            using var fixture = new CommandClientFixtureBuilder()
-                .AddRemote<TestFailCommandHandler>()
+            var exceptionType = typeof(TestMessageException);
+            using var fixture = new MessageClientFixtureBuilder()
+                .AddRemote<TestFailMessageHandler>()
                 .Create();
 
-            var request = await Request(new TestFailCommand(exceptionType.AssemblyQualifiedName));
+            var request = await Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
             var response = await fixture.Client.SendAsync(request);
 
             response.Should().BeEquivalentTo(new
@@ -136,23 +136,23 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
                 RequestMessage = request,
                 Headers = new[]
                 {
-                    new { Key = HeaderNames.CommandName, Value = new[] { nameof(TestFailCommand) } },
+                    new { Key = HeaderNames.MessageName, Value = new[] { nameof(TestFailMessage) } },
                     new { Key = HeaderNames.CorrelationId, Value = new[] { CorrelationId } }
                 }
             });
-            var responseObject = await response.Content.ReadFromJsonAsync<CommandException>(fixture.JsonSerializerOptions);
-            responseObject.Should().BeOfType<TestCommandException>();
+            var responseObject = await response.Content.ReadFromJsonAsync<MessageException>(fixture.JsonSerializerOptions);
+            responseObject.Should().BeOfType<TestMessageException>();
         }
 
-        private static async Task<HttpRequestMessage> Request<T>(T command) where T : IAbstractCommand =>
-            new(HttpMethod.Post, "http://localhost/command")
+        private static async Task<HttpRequestMessage> Request<T>(T message) where T : IAbstractMessage =>
+            new(HttpMethod.Post, "http://localhost/messages")
             {
                 Headers =
                 {
-                    {HeaderNames.CommandName, command.GetType().Name},
+                    {HeaderNames.MessageName, message.GetType().Name},
                     {HeaderNames.CorrelationId, CorrelationId}
                 },
-                Content = new ByteArrayContent(await Binary(command))
+                Content = new ByteArrayContent(await Binary(message))
             };
 
         private static Task<byte[]> Binary<T>(T value) => Provider.GetRequiredService<ISerializer<T>>().Serialize(value);

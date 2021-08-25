@@ -8,7 +8,7 @@ namespace Assistant.Net.Messaging.Interceptors
     /// <summary>
     ///     Operation tracking interceptor.
     /// </summary>
-    public class DiagnosticsInterceptor : ICommandInterceptor<ICommand<object>, object>
+    public class DiagnosticsInterceptor : IMessageInterceptor<IMessage<object>, object>
     {
         private readonly IDiagnosticFactory diagnosticsFactory;
 
@@ -17,14 +17,14 @@ namespace Assistant.Net.Messaging.Interceptors
             this.diagnosticsFactory = diagnosticsFactory;
 
         /// <inheritdoc/>
-        public async Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
+        public async Task<object> Intercept(IMessage<object> message, Func<IMessage<object>, Task<object>> next)
         {
-            var commandName = command.GetType().Name.ToLower();
-            var operation = diagnosticsFactory.Start($"{commandName}-local-handling");
+            var messageName = message.GetType().Name.ToLower();
+            var operation = diagnosticsFactory.Start($"{messageName}-local-handling");
 
             try
             {
-                return await next(command);
+                return await next(message);
             }
             catch (Exception)
             {

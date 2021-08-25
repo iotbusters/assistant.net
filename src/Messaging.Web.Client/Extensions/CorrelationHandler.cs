@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Extensions
 {
     /// <summary>
-    ///     Spreads current correlation context on remote command handling.
+    ///     Spreads current correlation context on remote message handling.
     /// </summary>
     public class CorrelationHandler : DelegatingHandler
     {

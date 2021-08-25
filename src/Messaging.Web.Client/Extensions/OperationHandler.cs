@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Extensions
 {
     /// <summary>
-    ///     Operation tracking for remote command handling.
+    ///     Operation tracking for remote message handling.
     /// </summary>
     public class OperationHandler : DelegatingHandler
     {
@@ -19,8 +19,8 @@ namespace Assistant.Net.Messaging.Extensions
         /// <inheritdoc/>
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var commandName = request.GetCommandName().ToLower();
-            var operation = diagnosticsFactory.Start($"{commandName}-remote-client-handling");
+            var messageName = request.GetMessageName().ToLower();
+            var operation = diagnosticsFactory.Start($"{messageName}-remote-client-handling");
 
             try
             {

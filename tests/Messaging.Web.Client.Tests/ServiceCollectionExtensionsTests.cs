@@ -1,21 +1,21 @@
-using System;
-using Microsoft.Extensions.DependencyInjection;
-using FluentAssertions;
-using NUnit.Framework;
 using Assistant.Net.Messaging.Abstractions;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
+using System;
 
 namespace Assistant.Net.Messaging.Web.Client.Tests
 {
     public class ServiceCollectionExtensionsTests
     {
         [Test]
-        public void GetServiceOfRemoteCommandHandlingClient_resolvesObject()
+        public void GetServiceOfRemoteMessageHandlingClient_resolvesObject()
         {
             var provider = new ServiceCollection()
-                .AddRemoteWebCommandClient(opt => opt.BaseAddress = new Uri("http://localhost")).Services
+                .AddRemoteWebMessagingClient(opt => opt.BaseAddress = new Uri("http://localhost")).Services
                 .BuildServiceProvider();
 
-            provider.GetService<IRemoteCommandClient>()
+            provider.GetService<IRemoteMessagingClient>()
                 .Should().NotBeNull();
         }
     }

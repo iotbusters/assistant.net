@@ -5,44 +5,44 @@ using System.Linq;
 namespace Assistant.Net.Messaging
 {
     /// <summary>
-    ///     System.Type extensions for command handling.
+    ///     System.Type extensions for messaging handling.
     /// </summary>
     public static class TypeExtensions
     {
         /// <summary>
         ///     Makes a generic type from the definition <paramref name="genericTypeDefinition" />
-        ///     and its type parameters resolved from <paramref name="commandType" />
+        ///     and its type parameters resolved from <paramref name="messagingType" />
         /// </summary>
-        /// <param name="genericTypeDefinition">Generic type definition that requires two parameters: command type and command response type.</param>
-        /// <param name="commandType">Specific command type.</param>
-        public static Type MakeGenericTypeBoundToCommand(this Type genericTypeDefinition, Type commandType)
+        /// <param name="genericTypeDefinition">Generic type definition that requires two parameters: message type and message response type.</param>
+        /// <param name="messagingType">Specific message type.</param>
+        public static Type MakeGenericTypeBoundToMessage(this Type genericTypeDefinition, Type messagingType)
         {
             if (!genericTypeDefinition.IsGenericTypeDefinition)
                 throw new ArgumentException("Invalid generic type definition.", nameof(genericTypeDefinition));
 
-            var responseType = commandType.GetResponseType()
-                               ?? throw new ArgumentException("Invalid command type.", nameof(commandType));
-            return genericTypeDefinition.MakeGenericType(commandType, responseType);
+            var responseType = messagingType.GetResponseType()
+                               ?? throw new ArgumentException("Invalid message type.", nameof(messagingType));
+            return genericTypeDefinition.MakeGenericType(messagingType, responseType);
         }
 
         /// <summary>
-        ///     Resolves command response type from command type.
+        ///     Resolves message response type from message type.
         /// </summary>
-        public static Type? GetResponseType(this Type commandType)
+        public static Type? GetResponseType(this Type messagingType)
         {
-            if (commandType.IsClass)
-                return commandType.GetInterfaces().Select(x => x.GetResponseType()).SingleOrDefault(x => x != null);
+            if (messagingType.IsClass)
+                return messagingType.GetInterfaces().Select(x => x.GetResponseType()).SingleOrDefault(x => x != null);
 
-            if (commandType.IsInterface && commandType.IsCommandInterface())
-                return commandType.GetGenericArguments().Single();
+            if (messagingType.IsInterface && messagingType.IsMessageInterface())
+                return messagingType.GetGenericArguments().Single();
 
             return null;
         }
 
         /// <summary>
-        ///     Verifies if provided <paramref name="type" /> implements a command interface.
+        ///     Verifies if provided <paramref name="type" /> implements a message interface.
         /// </summary>
-        private static bool IsCommandInterface(this Type type) =>
-            type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ICommand<>);
+        private static bool IsMessageInterface(this Type type) =>
+            type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IMessage<>);
     }
 }

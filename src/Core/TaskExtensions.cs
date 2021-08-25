@@ -100,12 +100,12 @@ namespace Assistant.Net
         ///     Callbacks <paramref name="successAction"/> when <paramref name="source"/> task completed successfully.
         /// </summary>
         public static Task<TSource> WhenSuccess<TSource>(this Task<TSource> source, Action<TSource> successAction) => source
-            .When(successAction, null);
+            .When(successAction, faultAction: null);
 
         /// <summary>
         ///     Callbacks <paramref name="faultAction"/> when <paramref name="source"/> task faulted.
         /// </summary>
         public static Task<TSource> WhenFaulted<TSource>(this Task<TSource> source, Action<Exception> faultAction) => source
-            .When(null, faultAction);
+            .When(successAction: null, faultAction);
     }
 }

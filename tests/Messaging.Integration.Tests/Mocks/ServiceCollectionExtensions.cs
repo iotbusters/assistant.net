@@ -1,8 +1,8 @@
-using System;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http;
+using System;
 
 namespace Assistant.Net.Messaging.Integration.Tests.Mocks
 {

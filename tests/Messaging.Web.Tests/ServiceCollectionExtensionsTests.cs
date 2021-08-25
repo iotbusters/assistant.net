@@ -9,13 +9,13 @@ namespace Assistant.Net.Messaging.Web.Tests
     public class ServiceCollectionExtensionsTests
     {
         [Test]
-        public void GetServiceOfCommandExceptionJsonConverter_resolvesObject()
+        public void GetServiceOfMessageExceptionJsonConverter_resolvesObject()
         {
             var provider = new ServiceCollection()
                 .AddJsonSerialization()
                 .BuildServiceProvider();
 
-            provider.GetService<CommandExceptionJsonConverter>()
+            provider.GetService<MessageExceptionJsonConverter>()
                 .Should().NotBeNull();
         }
 

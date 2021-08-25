@@ -17,9 +17,9 @@ namespace Assistant.Net.Messaging.Internal
 
         public async Task Invoke(HttpContext context, IDiagnosticFactory operationFactory)
         {
-            var commandName = context.GetCommandName().ToLower();
+            var messageName = context.GetMessageName().ToLower();
 
-            var operation = operationFactory.Start($"{commandName}-remote-server-handling");
+            var operation = operationFactory.Start($"{messageName}-remote-server-handling");
 
             try
             {

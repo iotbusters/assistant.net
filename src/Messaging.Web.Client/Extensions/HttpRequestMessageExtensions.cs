@@ -28,11 +28,11 @@ namespace Assistant.Net.Messaging.Extensions
             request.Headers.Add(name, value);
 
         /// <summary>
-        ///     Gets a command name from the request headers.
+        ///     Gets a message name from the request headers.
         /// </summary>
         /// <exception cref="InvalidOperationException" />
-        public static string GetCommandName(this HttpRequestMessage request) =>
-            request.GetRequiredHeader(HeaderNames.CommandName);
+        public static string GetMessageName(this HttpRequestMessage request) =>
+            request.GetRequiredHeader(HeaderNames.MessageName);
 
         /// <summary>
         ///     Adds a correlation id to the request headers.

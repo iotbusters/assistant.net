@@ -9,22 +9,22 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Interceptors
 {
     /// <summary>
-    ///     Deferred command response (including failures) caching interceptor.
+    ///     Deferred message response (including failures) caching interceptor.
     /// </summary>
-    public sealed class DeferredCachingInterceptor : ICommandInterceptor
+    public sealed class DeferredCachingInterceptor : IMessageInterceptor
     {
-        private static readonly ConcurrentDictionary<string, DeferredCachingResult> deferredCache = new();
+        private static readonly ConcurrentDictionary<string, DeferredCachingResult> DeferredCache = new();
 
         /// <inheritdoc/>
-        public Task<object> Intercept(ICommand<object> command, Func<ICommand<object>, Task<object>> next)
+        public Task<object> Intercept(IMessage<object> message, Func<IMessage<object>, Task<object>> next)
         {
-            var key = command.GetSha1();
-            var task = next(command).WhenFaulted(x =>
+            var key = message.GetSha1();
+            var task = next(message).WhenFaulted(x =>
             {
                 if (!IsCacheable(x))
-                    deferredCache.TryRemove(key, out _);
+                    DeferredCache.TryRemove(key, out _);
             });
-            return deferredCache.GetOrAdd(key, _ => task).GetTask();
+            return DeferredCache.GetOrAdd(key, _ => task).GetTask();
         }
 
         private static bool IsCacheable(Exception ex)
@@ -35,7 +35,7 @@ namespace Assistant.Net.Messaging.Interceptors
             {
                 typeof(TimeoutException),
                 typeof(OperationCanceledException),
-                typeof(CommandDeferredException)
+                typeof(MessageDeferredException)
             };
 
             if (ex is AggregateException e)
