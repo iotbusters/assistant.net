@@ -28,7 +28,6 @@ jobs:
           echo ::set-output name=serialization-json::$(echo "$CHANGES" | grep -c src/Serialization.Json/)
           echo ::set-output name=storage::$(echo "$CHANGES" | grep -c src/Storage/)
           echo ::set-output name=diagnostics::$(echo "$CHANGES" | grep -c src/Diagnostics/)
-          echo ::set-output name=dynamics-proxy::$(echo "$CHANGES" | grep -c src/Dynamics.Proxy/)
           echo ::set-output name=messaging::$(echo "$CHANGES" | grep -c src/Messaging/)
           echo ::set-output name=web::$(echo "$CHANGES" | grep -c src/Messaging.Web/)
           echo ::set-output name=web-client::$(echo "$CHANGES" | grep -c src/Messaging.Web.Client/)
@@ -40,7 +39,6 @@ jobs:
       serialization-json: ${{ steps.change-detected.outputs.serialization-json }}
       storage: ${{ steps.change-detected.outputs.storage }}
       diagnostics: ${{ steps.change-detected.outputs.diagnostics }}
-      dynamics-proxy: ${{ steps.change-detected.outputs.dynamics-proxy }}
       messaging: ${{ steps.change-detected.outputs.messaging }}
       web: ${{ steps.change-detected.outputs.web }}
       web-client: ${{ steps.change-detected.outputs.web-client }}
@@ -157,7 +155,6 @@ jobs:
                 <li>Serialization.Json: ${{ needs.change-detect.outputs.serialization-json }}</li>
                 <li>Storage: ${{ needs.change-detect.outputs.storage }}</li>
                 <li>Diagnostics: ${{ needs.change-detect.outputs.diagnostics }}</li>
-                <li>Dynamics.Proxy: ${{ needs.change-detect.outputs.dynamics.proxy }}</li>
                 <li>Messaging: ${{ needs.change-detect.outputs.messaging }}</li>
                 <li>Messaging.Web: ${{ needs.change-detect.outputs.web }}</li>
                 <li>Messaging.Web.Client: ${{ needs.change-detect.outputs.web-client }}</li>
