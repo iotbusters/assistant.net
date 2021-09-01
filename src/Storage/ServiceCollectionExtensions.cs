@@ -1,13 +1,16 @@
-using System;
-using Microsoft.Extensions.DependencyInjection;
 using Assistant.Net.Serialization;
 using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Storage.Internal;
-using Assistant.Net.Storage.Converters;
 using Assistant.Net.Storage.Configuration;
+using Assistant.Net.Storage.Converters;
+using Assistant.Net.Storage.Internal;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Assistant.Net.Storage
 {
+    /// <summary>
+    ///     Service collection extensions for storages.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
         /// <summary>

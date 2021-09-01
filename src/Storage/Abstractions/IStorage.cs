@@ -1,7 +1,7 @@
+using Assistant.Net.Unions;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Assistant.Net.Unions;
 
 namespace Assistant.Net.Storage.Abstractions
 {
@@ -20,7 +20,7 @@ namespace Assistant.Net.Storage.Abstractions
         ///    A factory method that resolves a value.
         ///    Pay attention, it will be called only if key doesn't exists.
         /// </param>
-        /// <returns>An added or existed value.<returns>
+        /// <returns>An added or existed value.</returns>
         Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory);
 
         /// <summary>
@@ -35,25 +35,23 @@ namespace Assistant.Net.Storage.Abstractions
         ///    A factory method that resolves a value to be updated.
         ///    Pay attention, it can be called multiple times.
         /// </param>
-        /// <returns>An added or updated value.<returns>
+        /// <returns>An added or updated value.</returns>
         Task<TValue> AddOrUpdate(
             TKey key,
             Func<TKey, Task<TValue>> addFactory,
             Func<TKey, TValue, Task<TValue>> updateFactory);
 
         /// <summary>
-        ///     Tries to find a <paramref name="value"/> associated to the <paramref name="key"/>.
+        ///     Tries to find a value associated to the <paramref name="key"/>.
         /// </summary>
         /// <param name="key">A key object.</param>
-        /// <param name="value">A found value.</param>
         /// <returns>An existed value if it was found.</returns>
         Task<Option<TValue>> TryGet(TKey key);
 
         /// <summary>
-        ///     Tries to remove <paramref name="value"/> associated to the <paramref name="key"/>.
+        ///     Tries to remove a value associated to the <paramref name="key"/>.
         /// </summary>
         /// <param name="key">A key object.</param>
-        /// <param name="value">A removed value.</param>
         /// <returns>A removed value if it was found.</returns>
         Task<Option<TValue>> TryRemove(TKey key);
 

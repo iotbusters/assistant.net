@@ -1,8 +1,8 @@
+using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Unions;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Unions;
 
 namespace Assistant.Net.Storage.Internal
 {

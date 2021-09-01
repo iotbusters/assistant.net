@@ -7,8 +7,10 @@ namespace Assistant.Net.Storage.Configuration
     /// </summary>
     public class StorageBuilder
     {
+        /// <summary/>
         public StorageBuilder(IServiceCollection services) => Services = services;
 
+        /// <summary/>
         public IServiceCollection Services { get; }
     }
 }

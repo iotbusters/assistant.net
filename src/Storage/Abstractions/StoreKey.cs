@@ -5,7 +5,10 @@ namespace Assistant.Net.Storage.Abstractions
     /// </summary>
     public sealed class StoreKey
     {
+        /// <summary/>
         public StoreKey() { }
+
+        /// <summary/>
         public StoreKey(string id, string type, byte[] keyValue)
         {
             Id = id;
@@ -28,9 +31,11 @@ namespace Assistant.Net.Storage.Abstractions
         /// </summary>
         public byte[] KeyValue { get; init; } = null!;
 
+        /// <inheritdoc/>
         public override bool Equals(object? obj) =>
             obj is StoreKey key && Type.Equals(key.Type) && Id.Equals(key.Id);
 
+        /// <inheritdoc/>
         public override int GetHashCode() => Id.GetHashCode();
     }
 }

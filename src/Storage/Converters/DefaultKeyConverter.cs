@@ -1,8 +1,8 @@
-using System;
-using System.Threading.Tasks;
 using Assistant.Net.Abstractions;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Utils;
+using System;
+using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Converters
 {
@@ -26,6 +26,6 @@ namespace Assistant.Net.Storage.Converters
             return converter.Convert(key.KeyValue);
         }
 
-        public string KeyType { get; private set; }
+        public string KeyType { get; }
     }
 }

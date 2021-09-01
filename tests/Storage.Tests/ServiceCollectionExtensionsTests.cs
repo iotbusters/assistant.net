@@ -1,12 +1,12 @@
-using System;
-using System.Threading.Tasks;
 using Assistant.Net.Serialization;
-using Microsoft.Extensions.DependencyInjection;
-using FluentAssertions;
-using NUnit.Framework;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Tests.Mocks;
 using Assistant.Net.Unions;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
+using System;
+using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Tests
 {

@@ -1,6 +1,6 @@
-using System.Threading.Tasks;
 using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Storage.Abstractions;
+using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Converters
 {
