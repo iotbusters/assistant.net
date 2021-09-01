@@ -1,11 +1,14 @@
-﻿using System;
-using Microsoft.Extensions.DependencyInjection;
-using Assistant.Net.Diagnostics.Abstractions;
+﻿using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Diagnostics.EventSources;
 using Assistant.Net.Diagnostics.Internal;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Assistant.Net.Diagnostics
 {
+    /// <summary>
+    ///     Service collection extensions for diagnostics.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
         /// <summary>

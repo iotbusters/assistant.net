@@ -1,7 +1,7 @@
-﻿using System;
-using System.Diagnostics;
-using Assistant.Net.Diagnostics.Abstractions;
+﻿using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Diagnostics.EventSources;
+using System;
+using System.Diagnostics;
 
 namespace Assistant.Net.Diagnostics.Internal
 {

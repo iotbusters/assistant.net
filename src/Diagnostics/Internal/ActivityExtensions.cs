@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Assistant.Net.Diagnostics.EventSources;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Assistant.Net.Diagnostics.EventSources;
 
 namespace Assistant.Net.Diagnostics.Internal
 {
