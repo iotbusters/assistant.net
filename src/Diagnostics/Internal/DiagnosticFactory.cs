@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using Assistant.Net.Abstractions;
+﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Diagnostics.EventSources;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 
 namespace Assistant.Net.Diagnostics.Internal
 {

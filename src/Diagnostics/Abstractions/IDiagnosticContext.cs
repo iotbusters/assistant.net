@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Assistant.Net.Diagnostics.Abstractions
+﻿namespace Assistant.Net.Diagnostics.Abstractions
 {
 
     /// <summary>
