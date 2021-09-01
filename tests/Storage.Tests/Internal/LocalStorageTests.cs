@@ -1,11 +1,11 @@
-using System;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using FluentAssertions;
-using NUnit.Framework;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Tests.Mocks;
 using Assistant.Net.Unions;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
+using System;
+using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Tests.Internal
 {
@@ -19,7 +19,8 @@ namespace Assistant.Net.Storage.Tests.Internal
                 .AddStorage(builder => builder.AddLocal<TestKey, TestValue>())
                 .BuildServiceProvider();
 
-        private IStorage<TestKey, TestValue> Storage => provider.GetRequiredService<IStorage<TestKey, TestValue>>();
+        private IStorage<TestKey, TestValue> Storage =>
+            provider.CreateScope().ServiceProvider.GetRequiredService<IStorage<TestKey, TestValue>>();
 
         [Test]
         public async Task AddOrGet_addsAndGets()

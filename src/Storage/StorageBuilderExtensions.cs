@@ -1,11 +1,14 @@
-using System;
 using Assistant.Net.Serialization;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Configuration;
 using Assistant.Net.Storage.Internal;
+using System;
 
 namespace Assistant.Net.Storage
 {
+    /// <summary>
+    ///     Storage builder extensions for configuring local storages.
+    /// </summary>
     public static class StorageBuilderExtensions
     {
         /// <summary>
@@ -23,7 +26,7 @@ namespace Assistant.Net.Storage
             var implementationType = typeof(LocalStorageProvider<>).MakeGenericType(valueType);
 
             builder.Services
-                .ReplaceScoped(serviceType, implementationType)
+                .ReplaceSingleton(serviceType, implementationType)
                 .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
             return builder;
         }
@@ -34,7 +37,7 @@ namespace Assistant.Net.Storage
         public static StorageBuilder AddLocalAny(this StorageBuilder builder)
         {
             builder.Services
-                .ReplaceScoped(typeof(IStorageProvider<>), typeof(LocalStorageProvider<>))
+                .ReplaceSingleton(typeof(IStorageProvider<>), typeof(LocalStorageProvider<>))
                 .ConfigureSerializer(b => b.AddJsonTypeAny());
             return builder;
         }
@@ -54,7 +57,7 @@ namespace Assistant.Net.Storage
             var implementationType = typeof(LocalPartitionedStorageProvider<>).MakeGenericType(valueType);
 
             builder.Services
-                .ReplaceScoped(serviceType, implementationType)
+                .ReplaceSingleton(serviceType, implementationType)
                 .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
             return builder;
         }
@@ -65,7 +68,7 @@ namespace Assistant.Net.Storage
         public static StorageBuilder AddLocalPartitionedAny(this StorageBuilder builder)
         {
             builder.Services
-                .ReplaceScoped(typeof(IPartitionedStorageProvider<>), typeof(LocalPartitionedStorageProvider<>))
+                .ReplaceSingleton(typeof(IPartitionedStorageProvider<>), typeof(LocalPartitionedStorageProvider<>))
                 .ConfigureSerializer(b => b.AddJsonTypeAny());
             return builder;
         }

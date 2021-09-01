@@ -1,9 +1,9 @@
+using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Unions;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Unions;
 
 namespace Assistant.Net.Storage.Internal
 {

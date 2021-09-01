@@ -3,12 +3,14 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Abstractions
 {
+    /// <summary>
+    ///     Storage extensions.
+    /// </summary>
     public static class StorageExtensions
     {
         /// <summary>
-        ///     Tries to find a <paramref name="value"/> by associated to the <paramref name="key"/> or return a default value.
+        ///     Tries to find a value by associated to the <paramref name="key"/> or return a default value.
         /// </summary>
-        /// <param name="key">A key object.</param>
         public static Task<TValue?> GetOrDefault<TKey, TValue>(
             this IStorage<TKey, TValue> storage,
             TKey key) =>
@@ -21,7 +23,7 @@ namespace Assistant.Net.Storage.Abstractions
             this IStorage<TKey, TValue> storage,
             TKey key,
             Func<TKey, TValue> addFactory) =>
-            storage.AddOrGet(key, key => Task.FromResult(addFactory(key)));
+            storage.AddOrGet(key, x => Task.FromResult(addFactory(x)));
 
         /// <summary>
         ///    Tries to add a value associated to the <paramref name="key"/> if it doesn't exist.
