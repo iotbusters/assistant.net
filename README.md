@@ -18,9 +18,13 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
 
+- [Assistant.NET Release 0.1.70](https://github.com/iotbusters/assistant.net/releases/tag/0.1.70)
+    - introduced none backward compatible change to messaging related packages
+        - added cancellation token to messaging async operations
+    - obsoleted task mapping extensions
+
 - [Assistant.NET Release 0.1.69](https://github.com/iotbusters/assistant.net/releases/tag/0.1.69)
   - fixed local storage lifetime issue
-
 - [Assistant.NET Release 0.1.68](https://github.com/iotbusters/assistant.net/releases/tag/0.1.68)
   - introduced none backward compatible change to messaging related packages
     - `command` related files were renamed to `message` to avoid ambiguity with patterns
