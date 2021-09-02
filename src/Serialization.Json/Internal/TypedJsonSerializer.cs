@@ -1,5 +1,6 @@
 ﻿using Assistant.Net.Serialization.Abstractions;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Serialization.Internal
@@ -11,9 +12,10 @@ namespace Assistant.Net.Serialization.Internal
         public TypedJsonSerializer(IJsonSerializer serializer) =>
             this.serializer = serializer;
 
-        public Task Serialize(Stream stream, TValue value) => serializer.Serialize(stream, value!);
+        public Task Serialize(Stream stream, TValue value, CancellationToken token) =>
+            serializer.Serialize(stream, value!, token);
 
-        public async Task<TValue> Deserialize(Stream stream) =>
-            (TValue) await serializer.Deserialize(stream, typeof(TValue));
+        public async Task<TValue> Deserialize(Stream stream, CancellationToken token) =>
+            (TValue) await serializer.Deserialize(stream, typeof(TValue), token);
     }
 }

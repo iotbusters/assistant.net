@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Serialization.Abstractions
@@ -11,11 +12,11 @@ namespace Assistant.Net.Serialization.Abstractions
         /// <summary>
         ///     Serializes <paramref name="value"/> object to <paramref name="stream"/>.
         /// </summary>
-        Task SerializeObject(Stream stream, object value);
+        Task SerializeObject(Stream stream, object value, CancellationToken token = default);
 
         /// <summary>
         ///     Deserializes <paramref name="stream"/> to object.
         /// </summary>
-        Task<object> DeserializeObject(Stream stream);
+        Task<object> DeserializeObject(Stream stream, CancellationToken token = default);
     }
 }
