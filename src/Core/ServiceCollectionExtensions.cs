@@ -1,13 +1,16 @@
-using System;
-using System.Threading;
+using Assistant.Net.Abstractions;
+using Assistant.Net.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Assistant.Net.Abstractions;
-using Assistant.Net.Internal;
+using System;
+using System.Threading;
 
 namespace Assistant.Net
 {
+    /// <summary>
+    ///     Service collection extensions for core services and tools.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
         /// <summary>
@@ -23,7 +26,7 @@ namespace Assistant.Net
         ///     if it hasn't been already registered.
         /// </summary>
         public static IServiceCollection AddSystemClock(this IServiceCollection services) =>
-            services.TryAddSingleton<ISystemClock>(p => new SystemClock(() => DateTimeOffset.UtcNow));
+            services.TryAddSingleton<ISystemClock>(_ => new SystemClock(() => DateTimeOffset.UtcNow));
 
         /// <summary>
         ///     Adds or replaces <see cref="ISystemClock"/> implementation with configured behavior.
@@ -36,7 +39,7 @@ namespace Assistant.Net
         ///     if it hasn't been already registered.
         /// </summary>
         public static IServiceCollection AddSystemLifetime(this IServiceCollection services) =>
-            services.TryAddSingleton<ISystemLifetime>(p => new SystemLifetime(CancellationToken.None));
+            services.TryAddSingleton<ISystemLifetime>(_ => new SystemLifetime(CancellationToken.None));
 
         /// <summary>
         ///     Adds or replaces <see cref="ISystemLifetime"/> implementation with configured behavior.
@@ -104,12 +107,24 @@ namespace Assistant.Net
             .ValidateDataAnnotations()
             .Services;
 
+        /// <summary>
+        ///     Adds the specified <paramref name="serviceType" /> as a <see cref="ServiceLifetime.Transient" /> service
+        ///     with the <paramref name="implementationType" /> implementation
+        ///     to the <paramref name="services" /> if the service type hasn't already been registered.
+        /// </summary>
         public static IServiceCollection TryAddTransient(this IServiceCollection services, Type serviceType, Type implementationType)
         {
             ServiceCollectionDescriptorExtensions.TryAddTransient(services, serviceType, implementationType);
             return services;
         }
 
+        /// <summary>
+        ///     Adds the specified <typeparamref name="TService" /> as a <see cref="ServiceLifetime.Transient" /> service
+        ///     implementation type specified in <typeparamref name="TImplementation" />
+        ///     to the <paramref name="services" /> if the service type hasn't already been registered.
+        /// </summary>
+        /// <typeparam name="TService">The type of the service to add.</typeparam>
+        /// <typeparam name="TImplementation">The type of the implementation to use.</typeparam>
         public static IServiceCollection TryAddTransient<TService, TImplementation>(this IServiceCollection services)
             where TImplementation : class, TService
             where TService : class
@@ -118,6 +133,12 @@ namespace Assistant.Net
             return services;
         }
 
+        /// <summary>
+        ///     Adds the specified <typeparamref name="TService" /> as a <see cref="ServiceLifetime.Transient" /> service
+        ///     using the factory specified in <paramref name="implementationFactory" />
+        ///     to the <paramref name="services" /> if the service type hasn't already been registered.
+        /// </summary>
+        /// <typeparam name="TService">The type of the service to add.</typeparam>
         public static IServiceCollection TryAddTransient<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
             where TService : class
         {
@@ -125,16 +146,34 @@ namespace Assistant.Net
             return services;
         }
 
+        /// <summary>
+        ///     Adds the specified <typeparamref name="TService" /> as a <see cref="ServiceLifetime.Transient" /> service
+        ///     implementation type specified in <typeparamref name="TService" />
+        ///     to the <paramref name="services" /> if the service type hasn't already been registered.
+        /// </summary>
+        /// <typeparam name="TService">The type of the service to add.</typeparam>
         public static IServiceCollection TryAddTransient<TService>(this IServiceCollection services)
             where TService : class =>
             services.TryAddTransient<TService, TService>();
 
+        /// <summary>
+        ///     Adds the specified <paramref name="serviceType" /> as a <see cref="ServiceLifetime.Scoped" /> service
+        ///     with the <paramref name="implementationType" /> implementation
+        ///     to the <paramref name="services" /> if the service type hasn't already been registered.
+        /// </summary>
         public static IServiceCollection TryAddScoped(this IServiceCollection services, Type serviceType, Type implementationType)
         {
             ServiceCollectionDescriptorExtensions.TryAddScoped(services, serviceType, implementationType);
             return services;
         }
 
+        /// <summary>
+        ///     Adds the specified <typeparamref name="TService" /> as a <see cref="ServiceLifetime.Scoped" /> service
+        ///     implementation type specified in <typeparamref name="TImplementation" />
+        ///     to the <paramref name="services" /> if the service type hasn't already been registered.
+        /// </summary>
+        /// <typeparam name="TService">The type of the service to add.</typeparam>
+        /// <typeparam name="TImplementation">The type of the implementation to use.</typeparam>
         public static IServiceCollection TryAddScoped<TService, TImplementation>(this IServiceCollection services)
             where TImplementation : class, TService
             where TService : class
@@ -143,6 +182,12 @@ namespace Assistant.Net
             return services;
         }
 
+        /// <summary>
+        ///     Adds the specified <typeparamref name="TService" /> as a <see cref="ServiceLifetime.Scoped" /> service
+        ///     using the factory specified in <paramref name="implementationFactory" />
+        ///     to the <paramref name="services" /> if the service type hasn't already been registered.
+        /// </summary>
+        /// <typeparam name="TService">The type of the service to add.</typeparam>
         public static IServiceCollection TryAddScoped<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
             where TService : class
         {
@@ -150,16 +195,33 @@ namespace Assistant.Net
             return services;
         }
 
+        /// <summary>
+        ///     Adds the specified <typeparamref name="TService" /> as a <see cref="ServiceLifetime.Scoped" /> service
+        ///     implementation type specified in <typeparamref name="TService" />
+        ///     to the <paramref name="services" /> if the service type hasn't already been registered.
+        /// </summary>
+        /// <typeparam name="TService">The type of the service to add.</typeparam>
         public static IServiceCollection TryAddScoped<TService>(this IServiceCollection services)
             where TService : class =>
             services.TryAddScoped<TService, TService>();
 
+        /// <summary>
+        ///     Adds the specified <paramref name="serviceType" /> as a <see cref="ServiceLifetime.Singleton" /> service
+        ///     with the <paramref name="implementationType" /> implementation
+        ///     to the <paramref name="services" /> if the service type hasn't already been registered.
+        /// </summary>
         public static IServiceCollection TryAddSingleton(this IServiceCollection services, Type serviceType, Type implementationType)
         {
             ServiceCollectionDescriptorExtensions.TryAddSingleton(services, serviceType, implementationType);
             return services;
         }
 
+        /// <summary>
+        ///     Adds the specified <typeparamref name="TService" /> as a <see cref="ServiceLifetime.Singleton" /> service
+        ///     using the factory specified in <paramref name="implementationFactory" />
+        ///     to the <paramref name="services" /> if the service type hasn't already been registered.
+        /// </summary>
+        /// <typeparam name="TService">The type of the service to add.</typeparam>
         public static IServiceCollection TryAddSingleton<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
             where TService : class
         {
@@ -167,6 +229,13 @@ namespace Assistant.Net
             return services;
         }
 
+        /// <summary>
+        ///     Adds the specified <typeparamref name="TService" /> as a <see cref="ServiceLifetime.Singleton" /> service
+        ///     implementation type specified in <typeparamref name="TImplementation" />
+        ///     to the <paramref name="services" /> if the service type hasn't already been registered.
+        /// </summary>
+        /// <typeparam name="TService">The type of the service to add.</typeparam>
+        /// <typeparam name="TImplementation">The type of the implementation to use.</typeparam>
         public static IServiceCollection TryAddSingleton<TService, TImplementation>(this IServiceCollection services)
             where TImplementation : class, TService
             where TService : class
@@ -175,54 +244,118 @@ namespace Assistant.Net
             return services;
         }
 
+        /// <summary>
+        ///     Adds the specified <typeparamref name="TService" /> as a <see cref="ServiceLifetime.Singleton" /> service
+        ///     implementation type specified in <typeparamref name="TService" />
+        ///     to the <paramref name="services" /> if the service type hasn't already been registered.
+        /// </summary>
+        /// <typeparam name="TService">The type of the service to add.</typeparam>
         public static IServiceCollection TryAddSingleton<TService>(this IServiceCollection services)
             where TService : class =>
             services.TryAddSingleton<TService, TService>();
 
+        /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <typeparamref name="TService" />
+        ///     and adds it as a <see cref="ServiceLifetime.Transient" /> service implementation type
+        ///     specified in <typeparamref name="TImplementation" />.
+        /// </summary>
         public static IServiceCollection ReplaceTransient<TService, TImplementation>(this IServiceCollection services)
             where TImplementation : class, TService
             where TService : class =>
             services.Replace(ServiceDescriptor.Transient<TService, TImplementation>());
 
+        /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <typeparamref name="TService" />
+        ///     and adds it as a <see cref="ServiceLifetime.Transient" /> service using the factory
+        ///     specified in <paramref name="implementationFactory" />.
+        /// </summary>
         public static IServiceCollection ReplaceTransient<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
             where TService : class =>
             services.Replace(ServiceDescriptor.Transient(implementationFactory));
 
+        /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <typeparamref name="TService" />
+        ///     and adds it as a <see cref="ServiceLifetime.Transient" /> service implementation type
+        ///     specified in <typeparamref name="TService" />.
+        /// </summary>
         public static IServiceCollection ReplaceTransient<TService>(this IServiceCollection services)
             where TService : class =>
             services.ReplaceTransient<TService, TService>();
 
+        /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <paramref name="serviceType"/>
+        ///     and adds it as a <see cref="ServiceLifetime.Transient" /> with the <paramref name="implementationType" />.
+        /// </summary>
         public static IServiceCollection ReplaceTransient(this IServiceCollection services, Type serviceType, Type implementationType) =>
             services.Replace(ServiceDescriptor.Transient(serviceType, implementationType));
 
+        /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <typeparamref name="TService" />
+        ///     and adds it as a <see cref="ServiceLifetime.Scoped" /> service implementation type
+        ///     specified in <typeparamref name="TImplementation" />.
+        /// </summary>
         public static IServiceCollection ReplaceScoped<TService, TImplementation>(this IServiceCollection services)
             where TImplementation : class, TService
             where TService : class =>
             services.Replace(ServiceDescriptor.Scoped<TService, TImplementation>());
 
+        /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <typeparamref name="TService" />
+        ///     and adds it as a <see cref="ServiceLifetime.Scoped" /> service using the factory
+        ///     specified in <paramref name="implementationFactory" />.
+        /// </summary>
         public static IServiceCollection ReplaceScoped<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
             where TService : class =>
             services.Replace(ServiceDescriptor.Scoped(implementationFactory));
 
+        /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <typeparamref name="TService" />
+        ///     and adds it as a <see cref="ServiceLifetime.Scoped" /> service implementation type
+        ///     specified in <typeparamref name="TService" />.
+        /// </summary>
         public static IServiceCollection ReplaceScoped<TService>(this IServiceCollection services)
             where TService : class =>
             services.ReplaceScoped<TService, TService>();
 
+        /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <paramref name="serviceType"/>
+        ///     and adds it as a <see cref="ServiceLifetime.Scoped" /> with the <paramref name="implementationType" />.
+        /// </summary>
         public static IServiceCollection ReplaceScoped(this IServiceCollection services, Type serviceType, Type implementationType) =>
             services.Replace(ServiceDescriptor.Scoped(serviceType, implementationType));
+
+        /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <typeparamref name="TService" />
+        ///     and adds it as a <see cref="ServiceLifetime.Singleton" /> service implementation type
+        ///     specified in <typeparamref name="TImplementation" />.
+        /// </summary>
         public static IServiceCollection ReplaceSingleton<TService, TImplementation>(this IServiceCollection services)
             where TImplementation : class, TService
             where TService : class =>
             services.Replace(ServiceDescriptor.Singleton<TService, TImplementation>());
 
+        /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <typeparamref name="TService" />
+        ///     and adds it as a <see cref="ServiceLifetime.Singleton" /> service using the factory
+        ///     specified in <paramref name="implementationFactory" />.
+        /// </summary>
         public static IServiceCollection ReplaceSingleton<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
             where TService : class =>
             services.Replace(ServiceDescriptor.Singleton(implementationFactory));
 
+        /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <typeparamref name="TService" />
+        ///     and adds it as a <see cref="ServiceLifetime.Singleton" /> service implementation type
+        ///     specified in <typeparamref name="TService" />.
+        /// </summary>
         public static IServiceCollection ReplaceSingleton<TService>(this IServiceCollection services)
             where TService : class =>
             services.ReplaceSingleton<TService, TService>();
 
+        /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <paramref name="serviceType"/>
+        ///     and adds it as a <see cref="ServiceLifetime.Singleton" /> with the <paramref name="implementationType" />.
+        /// </summary>
         public static IServiceCollection ReplaceSingleton(this IServiceCollection services, Type serviceType, Type implementationType) =>
             services.Replace(ServiceDescriptor.Singleton(serviceType, implementationType));
     }

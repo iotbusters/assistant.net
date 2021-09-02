@@ -1,17 +1,20 @@
+using Assistant.Net.Unions;
 using System;
 using System.Threading.Tasks;
-using Assistant.Net.Unions;
 
 namespace Assistant.Net
 {
+    /// <summary>
+    ///     Option usage facilitating extensions.
+    /// </summary>
     public static class OptionExtensions
     {
         /// <summary>
         ///     Converts a value wrapped in <see cref="Option{T}"/> from <typeparamref name="TSource"/> to <typeparamref name="TResult"/>
         ///     with <paramref name="mapper"/> function.
         /// </summary>
-        public static Task<Option<TResult>> Map<TSource, TResult>(this Task<Option<TSource>> source, Func<TSource, TResult> mapper) => source
-            .MapSuccess(x => Map(x, mapper));
+        public static async Task<Option<TResult>> Map<TSource, TResult>(this Task<Option<TSource>> source, Func<TSource, TResult> mapper) =>
+            (await source).Map(mapper);
 
         /// <summary>
         ///     Converts a value wrapped in <see cref="Option{T}"/> from <typeparamref name="TSource"/> to <typeparamref name="TResult"/>
@@ -46,7 +49,8 @@ namespace Assistant.Net
         /// <summary>
         ///     Gets a wrapped value from <see cref="Some{T}"/> or default if <see cref="None"/>.
         /// </summary>
-        public static Task<TSource?> GetValueOrDefault<TSource>(this Task<Option<TSource>> source) => source.MapSuccess(GetValueOrDefault);
+        public static async Task<TSource?> GetValueOrDefault<TSource>(this Task<Option<TSource>> source) =>
+            (await source).GetValueOrDefault();
 
         /// <summary>
         ///     Gets a wrapped value from <see cref="Some{T}"/> or default if <see cref="None"/>.

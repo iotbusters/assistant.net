@@ -6,6 +6,7 @@
     <AssemblyName>assistant.net.core</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Nullable>enable</Nullable>
+    <WarningsAsErrors>nullbale</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

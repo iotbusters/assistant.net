@@ -12,6 +12,7 @@ namespace Assistant.Net.Unions
     {
         private None() { }
 
+        /// <summary/>
         public static implicit operator bool(None _) => false;
     }
 }

@@ -11,6 +11,7 @@ namespace Assistant.Net
         /// <summary>
         ///     Substitutes original exception or result depending on a task status when <paramref name="source"/> task completed.
         /// </summary>
+        [Obsolete("Counterproductive compared to async/await.")]
         public static Task<TResult> Map<TSource, TResult>(
             this Task<TSource> source,
             Func<TSource, TResult> successSelector,
@@ -33,18 +34,21 @@ namespace Assistant.Net
         /// <summary>
         ///     Substitutes original result with <paramref name="successSelector"/> function when <paramref name="source"/> task completed.
         /// </summary>
+        [Obsolete("Counterproductive compared to async/await")]
         public static Task<TResult> MapSuccess<TSource, TResult>(this Task<TSource> source, Func<TSource, TResult> successSelector) => source
             .Map(successSelector, null);
 
         /// <summary>
         ///     Substitutes original exception with <paramref name="faultSelector"/> function when <paramref name="source"/> task faulted.
         /// </summary>
+        [Obsolete("Counterproductive compared to async/await")]
         public static Task<TSource> MapFaulted<TSource>(this Task<TSource> source, Func<Exception, Exception> faultSelector) => source
             .Map(x => x, faultSelector);
 
         /// <summary>
         ///     Substitutes original exception or generates new result depending on a task status when <paramref name="source"/> task completed.
         /// </summary>
+        [Obsolete("Counterproductive compared to async/await")]
         public static Task<TResult> Map<TResult>(
             this Task source,
             Func<TResult> successSelector,
@@ -67,6 +71,7 @@ namespace Assistant.Net
         /// <summary>
         ///     Generates new result with <paramref name="successSelector"/> function when <paramref name="source"/> task completed.
         /// </summary>
+        [Obsolete("Counterproductive compared to async/await")]
         public static Task<TResult> MapSuccess<TResult>(this Task source, Func<TResult> successSelector) => source
             .Map(successSelector, x => x);
 
@@ -79,6 +84,23 @@ namespace Assistant.Net
             Action<TSource>? successAction = null,
             Action<Exception>? faultAction = null)
         {
+
+
+
+
+
+
+
+            //todo
+
+
+
+
+
+
+
+
+
             if (source == null) throw new ArgumentNullException(nameof(source));
             return source.ContinueWith(t =>
             {

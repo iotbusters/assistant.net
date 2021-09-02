@@ -15,8 +15,10 @@ namespace Assistant.Net.Unions
         /// </summary>
         public bool IsNone => !IsSome;
 
+        /// <summary/>
         public static implicit operator bool(Option<T> option) => option.IsSome;
 
+        /// <summary/>
         public static implicit operator Option<T>(None _) => new None<T>();
     }
 
@@ -25,8 +27,14 @@ namespace Assistant.Net.Unions
     /// </summary>
     public static class Option
     {
+        /// <summary>
+        ///     Creates some value of maybe monad.
+        /// </summary>
         public static Option<T> Some<T>(T value) => new Some<T>(value);
 
-        public static None None { get; } = null!;
+        /// <summary>
+        ///     Creates none value of maybe monad.
+        /// </summary>
+        public static None None => null!;
     }
 }
