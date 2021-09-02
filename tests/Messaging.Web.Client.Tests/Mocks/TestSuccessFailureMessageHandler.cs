@@ -1,12 +1,13 @@
-using System;
-using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Web.Client.Tests.Mocks
 {
     public class TestSuccessFailureMessageHandler : IMessageHandler<TestSuccessFailureMessage>
     {
-        public Task Handle(TestSuccessFailureMessage message)
+        public Task Handle(TestSuccessFailureMessage message, CancellationToken token)
         {
             if (message.AssemblyQualifiedExceptionType != null)
             {

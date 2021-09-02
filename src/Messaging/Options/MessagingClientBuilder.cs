@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Assistant.Net.Messaging.Options
 {
     /// <summary>
-    ///     Messaging client building container for <see cref="MessagingClientExtensions"/>.
+    ///     Type marker designed to be hooked by associated messaging extensions methods.
     /// </summary>
     public class MessagingClientBuilder
     {

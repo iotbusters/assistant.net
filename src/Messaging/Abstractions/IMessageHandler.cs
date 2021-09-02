@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Abstractions
@@ -13,9 +14,9 @@ namespace Assistant.Net.Messaging.Abstractions
         /// <summary>
         ///     Handles <typeparamref name="TMessage" /> object.
         /// </summary>
-        Task<TResponse> Handle(TMessage message);
+        Task<TResponse> Handle(TMessage message, CancellationToken token = default);
 
-        Task<object> IAbstractHandler.Handle(object message) => Handle((TMessage) message).MapSuccess(x => (object) x!);
+        async Task<object> IAbstractHandler.Handle(object message, CancellationToken token) => (await Handle((TMessage) message, token))!;
     }
 
     /// <summary>
@@ -28,11 +29,11 @@ namespace Assistant.Net.Messaging.Abstractions
         /// <summary>
         ///     Handles <typeparamref name="TMessage" /> object.
         /// </summary>
-        new Task Handle(TMessage message);
+        new Task Handle(TMessage message, CancellationToken token = default);
 
-        async Task<None> IMessageHandler<TMessage, None>.Handle(TMessage message)
+        async Task<None> IMessageHandler<TMessage, None>.Handle(TMessage message, CancellationToken token)
         {
-            await Handle(message);
+            await Handle(message, token);
             return None.Instance;
         }
     }

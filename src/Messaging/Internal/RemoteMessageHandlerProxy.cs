@@ -1,4 +1,5 @@
 using Assistant.Net.Messaging.Abstractions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal
@@ -14,7 +15,7 @@ namespace Assistant.Net.Messaging.Internal
         public RemoteMessageHandlerProxy(IRemoteMessagingClient client) =>
             this.client = client;
 
-        public async Task<TResponse> Handle(TMessage message) =>
-            await client.DelegateHandling(message);
+        public async Task<TResponse> Handle(TMessage message, CancellationToken token) =>
+            await client.DelegateHandling(message, token);
     }
 }

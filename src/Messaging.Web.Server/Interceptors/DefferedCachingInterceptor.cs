@@ -4,6 +4,7 @@ using Assistant.Net.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors
@@ -16,10 +17,11 @@ namespace Assistant.Net.Messaging.Interceptors
         private static readonly ConcurrentDictionary<string, DeferredCachingResult> DeferredCache = new();
 
         /// <inheritdoc/>
-        public Task<object> Intercept(IMessage<object> message, Func<IMessage<object>, Task<object>> next)
+        public Task<object> Intercept(
+            Func<IMessage<object>, CancellationToken, Task<object>> next, IMessage<object> message, CancellationToken token)
         {
             var key = message.GetSha1();
-            var task = next(message).WhenFaulted(x =>
+            var task = next(message, token).WhenFaulted(x =>
             {
                 if (!IsCacheable(x))
                     DeferredCache.TryRemove(key, out _);

@@ -4,6 +4,7 @@ using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Unions;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors
@@ -20,12 +21,13 @@ namespace Assistant.Net.Messaging.Interceptors
             this.cache = cache;
 
         /// <inheritdoc/>
-        public async Task<object> Intercept(IMessage<object> message, Func<IMessage<object>, Task<object>> next)
+        public async Task<object> Intercept(
+            Func<IMessage<object>, CancellationToken, Task<object>> next, IMessage<object> message, CancellationToken token)
         {
             if (await cache.TryGet(message) is Some<CachingResult>(var result))
                 return result.GetValue();
 
-            return await next(message).When(
+            return await next(message, token).When(
                 successAction: x => cache.AddOrGet(message, new CachingResult(x)),
                 faultAction: x =>
                 {

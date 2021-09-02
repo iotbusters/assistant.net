@@ -73,7 +73,7 @@ namespace Assistant.Net.Messaging
             where TInterceptor : class, IAbstractInterceptor
         {
             builder.Services.ConfigureMessagingClientOptions(o => o.Interceptors.Add(typeof(TInterceptor)));
-            builder.Services.ReplaceTransient<TInterceptor>();
+            builder.Services.TryAddTransient<TInterceptor>();
             return builder;
         }
 

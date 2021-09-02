@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Abstractions
@@ -10,6 +11,6 @@ namespace Assistant.Net.Messaging.Abstractions
          /// <summary>
         ///     Delegates <paramref name="message"/> handling to remote handler.
         /// </summary>
-        Task<TResponse> DelegateHandling<TResponse>(IMessage<TResponse> message);
+        Task<TResponse> DelegateHandling<TResponse>(IMessage<TResponse> message, CancellationToken token = default);
     }
 }

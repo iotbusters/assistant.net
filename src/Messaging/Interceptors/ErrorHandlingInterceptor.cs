@@ -2,6 +2,7 @@ using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors
@@ -12,11 +13,12 @@ namespace Assistant.Net.Messaging.Interceptors
     public class ErrorHandlingInterceptor : IMessageInterceptor<IMessage<object>, object>
     {
         /// <inheritdoc/>
-        public async Task<object> Intercept(IMessage<object> message, Func<IMessage<object>, Task<object>> next)
+        public async Task<object> Intercept(
+            Func<IMessage<object>, CancellationToken, Task<object>> next, IMessage<object> message, CancellationToken token)
         {
             try
             {
-                return await next(message);
+                return await next(message, token);
             }
             catch (Exception ex)
             {

@@ -3,6 +3,7 @@ using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Serialization.Abstractions;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal
@@ -13,18 +14,15 @@ namespace Assistant.Net.Messaging.Internal
     internal class RemoteWebMessagingClient : IRemoteMessagingClient
     {
         private readonly HttpClient client;
-        private readonly ISystemLifetime lifetime;
         private readonly ITypeEncoder typeEncoder;
         private readonly ISerializerFactory factory;
 
         public RemoteWebMessagingClient(
             HttpClient client,
-            ISystemLifetime lifetime,
             ITypeEncoder typeEncoder,
             ISerializerFactory factory)
         {
             this.client = client;
-            this.lifetime = lifetime;
             this.typeEncoder = typeEncoder;
             this.factory = factory;
         }
@@ -32,7 +30,7 @@ namespace Assistant.Net.Messaging.Internal
         /// <summary>
         ///     Delegates <paramref name="message"/> handling to remote WEB server.
         /// </summary>
-        public async Task<TResponse> DelegateHandling<TResponse>(IMessage<TResponse> message)
+        public async Task<TResponse> DelegateHandling<TResponse>(IMessage<TResponse> message, CancellationToken token)
         {
             var messageType = message.GetType();
             var requestSerializer = factory.Create(messageType);
@@ -47,10 +45,10 @@ namespace Assistant.Net.Messaging.Internal
             {
                 Headers = {{HeaderNames.MessageName, messageName}},
                 Content = new StreamContent(requestStream)
-            }, lifetime.Stopping);
+            }, token);
 
             var responseSerializer = factory.Create(typeof(TResponse));
-            var responseStream = await response.Content.ReadAsStreamAsync(lifetime.Stopping);
+            var responseStream = await response.Content.ReadAsStreamAsync(token);
             var responseObject = (TResponse) await responseSerializer.DeserializeObject(responseStream);
             return responseObject!;
         }

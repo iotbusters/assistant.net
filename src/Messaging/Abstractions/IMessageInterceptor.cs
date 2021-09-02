@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Abstractions
@@ -14,10 +15,12 @@ namespace Assistant.Net.Messaging.Abstractions
         ///     Intercepts the <paramref name="message" /> or one of its children
         ///     and delegates the call to the <paramref name="next" /> interceptor if needed.
         /// </summary>
-        Task<TResponse> Intercept(TMessage message, Func<TMessage, Task<TResponse>> next);
+        Task<TResponse> Intercept(
+            Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token = default);
 
-        Task<object> IAbstractInterceptor.Intercept(object message, Func<object, Task<object>> next) =>
-            Intercept((TMessage) message, x => next(x).MapSuccess(y => (TResponse) y)).MapSuccess(y => (object) y!);
+        async Task<object> IAbstractInterceptor.Intercept(
+            Func<object, CancellationToken, Task<object>> next, object message, CancellationToken token) =>
+            await Intercept(next, (TMessage) message, token);
     }
 
     /// <summary>
@@ -31,11 +34,12 @@ namespace Assistant.Net.Messaging.Abstractions
         ///     Intercepts the <paramref name="message" /> or one of its children
         ///     and delegates the call to the <paramref name="next" /> interceptor if needed.
         /// </summary>
-        Task Intercept(TMessage message, Func<TMessage, Task> next);
+        Task Intercept(Func<TMessage, CancellationToken, Task> next, TMessage message, CancellationToken token = default);
 
-        async Task<None> IMessageInterceptor<TMessage, None>.Intercept(TMessage message, Func<TMessage, Task<None>> next)
+        async Task<None> IMessageInterceptor<TMessage, None>.Intercept(
+            Func<TMessage, CancellationToken, Task<None>> next, TMessage message, CancellationToken token)
         {
-            await Intercept(message, next);
+            await Intercept(next, message, token);
             return None.Instance;
         }
     }
@@ -43,7 +47,5 @@ namespace Assistant.Net.Messaging.Abstractions
     /// <summary>
     ///     Simple alias to interceptor that can handle all types of messages.
     /// </summary>
-    public interface IMessageInterceptor : IMessageInterceptor<IMessage<object>, object>
-    {
-    }
+    public interface IMessageInterceptor : IMessageInterceptor<IMessage<object>, object> { }
 }

@@ -12,8 +12,8 @@ namespace Assistant.Net.Messaging
         ///     Sends asynchronously a request to associated request handler expecting a specific object in respond.
         /// </summary>
         /// <typeparam name="TResponse">Response object type.</typeparam>
-        public static Task<TResponse> SendAs<TResponse>(this IMessagingClient client, IMessage<TResponse> message) =>
-            client.Send(message).MapSuccess(x => (TResponse)x);
+        public static async Task<TResponse> SendAs<TResponse>(this IMessagingClient client, IMessage<TResponse> message) =>
+            (TResponse) await client.Send(message);
 
         /// <summary>
         ///     Sends asynchronously a request to associated request handler.

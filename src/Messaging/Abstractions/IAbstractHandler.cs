@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Abstractions
@@ -11,6 +12,6 @@ namespace Assistant.Net.Messaging.Abstractions
         /// <summary>
         ///     Handles <paramref name="message" /> object.
         /// </summary>
-        Task<object> Handle(object message);
+        Task<object> Handle(object message, CancellationToken token = default);
     }
 }

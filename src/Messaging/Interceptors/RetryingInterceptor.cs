@@ -5,6 +5,7 @@ using Assistant.Net.Messaging.Exceptions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors
@@ -31,7 +32,8 @@ namespace Assistant.Net.Messaging.Interceptors
 
         /// <inheritdoc/>
         /// <exception cref="MessageRetryLimitExceededException" />
-        public async Task<object> Intercept(IMessage<object> message, Func<IMessage<object>, Task<object>> next)
+        public async Task<object> Intercept(
+            Func<IMessage<object>, CancellationToken, Task<object>> next, IMessage<object> message, CancellationToken token)
         {
             // configurable
             var maxRetryLimit = 5;
@@ -46,7 +48,7 @@ namespace Assistant.Net.Messaging.Interceptors
 
                 try
                 {
-                    return await next(message);
+                    return await next(message, token);
                 }
                 catch (Exception ex)
                 {

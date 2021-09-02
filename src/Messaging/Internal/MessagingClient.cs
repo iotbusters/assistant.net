@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal
@@ -34,13 +35,13 @@ namespace Assistant.Net.Messaging.Internal
             this.proxyFactory = proxyFactory;
             this.scopeFactory = scopeFactory;
         }
-        public Task<object> Send(object message)
+        public Task<object> Send(object message, CancellationToken token)
         {
             using var scope = scopeFactory.CreateScope();
             var provider = scope.ServiceProvider;
 
             var handler = CreateInterceptingHandler(message.GetType(), provider);
-            return handler.Handle(message);
+            return handler.Handle(message, token);
         }
 
         private IAbstractHandler CreateInterceptingHandler(Type messageType, IServiceProvider provider)
@@ -60,8 +61,8 @@ namespace Assistant.Net.Messaging.Internal
 
             foreach (var interceptor in interceptors)
                 proxy.Intercept(
-                    selector: x => x.Handle(default!),
-                    interceptor: (next, args) => interceptor.Intercept(args[0]!, x => next(new[] { x })));
+                    selector: x => x.Handle(default!, default!),
+                    interceptor: (next, args) => interceptor.Intercept((m, t) => next(new[] {m, t}), args[0]!, (CancellationToken) args[1]!));
 
             return proxy.Object;
         }

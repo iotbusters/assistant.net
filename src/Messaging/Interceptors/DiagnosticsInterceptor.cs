@@ -1,6 +1,7 @@
 using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors
@@ -17,14 +18,17 @@ namespace Assistant.Net.Messaging.Interceptors
             this.diagnosticsFactory = diagnosticsFactory;
 
         /// <inheritdoc/>
-        public async Task<object> Intercept(IMessage<object> message, Func<IMessage<object>, Task<object>> next)
+        public async Task<object> Intercept(
+            Func<IMessage<object>, CancellationToken, Task<object>> next,
+            IMessage<object> message,
+            CancellationToken token)
         {
             var messageName = message.GetType().Name.ToLower();
             var operation = diagnosticsFactory.Start($"{messageName}-local-handling");
 
             try
             {
-                return await next(message);
+                return await next(message, token);
             }
             catch (Exception)
             {

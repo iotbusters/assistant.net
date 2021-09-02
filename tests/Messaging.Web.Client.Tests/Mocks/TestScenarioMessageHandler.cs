@@ -1,13 +1,14 @@
-using System;
-using System.Threading.Tasks;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Web.Client.Tests.Mocks
 {
     public class TestScenarioMessageHandler : IMessageHandler<TestScenarioMessage, TestResponse>
     {
-        public Task<TestResponse> Handle(TestScenarioMessage message)
+        public Task<TestResponse> Handle(TestScenarioMessage message, CancellationToken token)
         {
             return message.Scenario switch
             {
