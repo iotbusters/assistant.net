@@ -1,6 +1,7 @@
 using Assistant.Net.Unions;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Abstractions
@@ -20,8 +21,9 @@ namespace Assistant.Net.Storage.Abstractions
         ///    A factory method that resolves a value.
         ///    Pay attention, it will be called only if key doesn't exists.
         /// </param>
+        /// <param name="token">A cancellation token.</param>
         /// <returns>An added or existed value.</returns>
-        Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory);
+        Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory, CancellationToken token = default);
 
         /// <summary>
         ///    Tries to add or update an existing value associated to the <paramref name="key"/>.
@@ -35,29 +37,32 @@ namespace Assistant.Net.Storage.Abstractions
         ///    A factory method that resolves a value to be updated.
         ///    Pay attention, it can be called multiple times.
         /// </param>
+        /// <param name="token">A cancellation token.</param>
         /// <returns>An added or updated value.</returns>
         Task<TValue> AddOrUpdate(
             TKey key,
             Func<TKey, Task<TValue>> addFactory,
-            Func<TKey, TValue, Task<TValue>> updateFactory);
+            Func<TKey, TValue, Task<TValue>> updateFactory, CancellationToken token = default);
 
         /// <summary>
         ///     Tries to find a value associated to the <paramref name="key"/>.
         /// </summary>
         /// <param name="key">A key object.</param>
+        /// <param name="token">A cancellation token.</param>
         /// <returns>An existed value if it was found.</returns>
-        Task<Option<TValue>> TryGet(TKey key);
+        Task<Option<TValue>> TryGet(TKey key, CancellationToken token = default);
 
         /// <summary>
         ///     Tries to remove a value associated to the <paramref name="key"/>.
         /// </summary>
         /// <param name="key">A key object.</param>
+        /// <param name="token">A cancellation token.</param>
         /// <returns>A removed value if it was found.</returns>
-        Task<Option<TValue>> TryRemove(TKey key);
+        Task<Option<TValue>> TryRemove(TKey key, CancellationToken token = default);
 
         /// <summary>
         ///     Gets all keys in the storage.
         /// </summary>
-        IAsyncEnumerable<TKey> GetKeys();
+        IAsyncEnumerable<TKey> GetKeys(CancellationToken token = default);
     }
 }

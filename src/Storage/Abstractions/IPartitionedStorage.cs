@@ -1,5 +1,6 @@
 using Assistant.Net.Unions;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Abstractions
@@ -16,20 +17,22 @@ namespace Assistant.Net.Storage.Abstractions
         /// </summary>
         /// <param name="key">A key object.</param>
         /// <param name="value">A value object.</param>
+        /// <param name="token">A cancellation token.</param>
         /// <returns>An added or existed value.</returns>
-        Task<long> Add(TKey key, TValue value);
+        Task<long> Add(TKey key, TValue value, CancellationToken token = default);
 
         /// <summary>
         ///     Tries to find a value in partition associated to the <paramref name="key"/>.
         /// </summary>
         /// <param name="key">A key object.</param>
         /// <param name="index">An index of specific object under the <paramref name="key"/>.</param>
+        /// <param name="token">A cancellation token.</param>
         /// <returns>An existed value if it was found in partition.</returns>
-        Task<Option<TValue>> TryGet(TKey key, long index);
+        Task<Option<TValue>> TryGet(TKey key, long index, CancellationToken token = default);
 
         /// <summary>
         ///     Gets all keys in the storage.
         /// </summary>
-        IAsyncEnumerable<TKey> GetKeys();
+        IAsyncEnumerable<TKey> GetKeys(CancellationToken token = default);
     }
 }

@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Abstractions
@@ -12,12 +13,14 @@ namespace Assistant.Net.Storage.Abstractions
         ///     Converts <paramref name="value"/> object to binary.
         /// </summary>
         /// <param name="value">Value object.</param>
-        Task<byte[]> Convert(TValue value);
+        /// <param name="token">A cancellation token.</param>
+        Task<byte[]> Convert(TValue value, CancellationToken token = default);
 
         /// <summary>
         ///     Converts <paramref name="value"/> binary to object.
         /// </summary>
         /// <param name="value">Value binary.</param>
-        Task<TValue> Convert(byte[] value);
+        /// <param name="token">A cancellation token.</param>
+        Task<TValue> Convert(byte[] value, CancellationToken token = default);
     }
 }

@@ -3,6 +3,7 @@ using Assistant.Net.Unions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Internal
@@ -25,48 +26,50 @@ namespace Assistant.Net.Storage.Internal
         private static InvalidOperationException ImproperlyConfiguredException =>
             new($"Storage of '{typeof(TValue).Name}' wasn't properly configured.");
 
-        public async Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory)
+        public async Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory, CancellationToken token)
         {
-            var storeKey = await keyConverter.Convert(key);
-            var value = await backedStorage.AddOrGet(storeKey, async _ => await valueConverter.Convert(await addFactory(key)));
-            return await valueConverter.Convert(value);
+            var storeKey = await keyConverter.Convert(key, token);
+            var value = await backedStorage.AddOrGet(storeKey, async _ => await valueConverter.Convert(await addFactory(key)), token);
+            return await valueConverter.Convert(value, token);
         }
 
         public async Task<TValue> AddOrUpdate(
             TKey key,
             Func<TKey, Task<TValue>> addFactory,
-            Func<TKey, TValue, Task<TValue>> updateFactory)
+            Func<TKey, TValue, Task<TValue>> updateFactory,
+            CancellationToken token)
         {
-            var storeKey = await keyConverter.Convert(key);
+            var storeKey = await keyConverter.Convert(key, token);
             var value = await backedStorage.AddOrUpdate(
                     storeKey,
-                    async _ => await valueConverter.Convert(await addFactory(key)),
+                    async _ => await valueConverter.Convert(await addFactory(key), token),
                     async (_, old) =>
                     {
-                        var oldValue = await valueConverter.Convert(old);
+                        var oldValue = await valueConverter.Convert(old, token);
                         var newValue = await updateFactory(key, oldValue);
-                        return await valueConverter.Convert(newValue);
-                    });
-            return await valueConverter.Convert(value);
+                        return await valueConverter.Convert(newValue, token);
+                    },
+                    token);
+            return await valueConverter.Convert(value, token);
         }
 
-        public async Task<Option<TValue>> TryGet(TKey key)
+        public async Task<Option<TValue>> TryGet(TKey key, CancellationToken token)
         {
-            var storeKey = await keyConverter.Convert(key);
-            var value = await backedStorage.TryGet(storeKey);
-            return await value.Map(valueConverter.Convert);
+            var storeKey = await keyConverter.Convert(key, token);
+            var value = await backedStorage.TryGet(storeKey, token);
+            return await value.Map(k => valueConverter.Convert(k, token));
         }
 
-        public async Task<Option<TValue>> TryRemove(TKey key)
+        public async Task<Option<TValue>> TryRemove(TKey key, CancellationToken token)
         {
-            var storeKey = await keyConverter.Convert(key);
-            var value = await backedStorage.TryRemove(storeKey);
-            return await value.Map(valueConverter.Convert);
+            var storeKey = await keyConverter.Convert(key, token);
+            var value = await backedStorage.TryRemove(storeKey, token);
+            return await value.Map(k => valueConverter.Convert(k, token));
         }
 
-        public IAsyncEnumerable<TKey> GetKeys() => 
-            backedStorage.GetKeys()
+        public IAsyncEnumerable<TKey> GetKeys(CancellationToken token) => 
+            backedStorage.GetKeys(token)
                 .Where(x => x.Type == keyConverter.KeyType)
-                .Select(keyConverter.Convert);
+                .Select(key => keyConverter.Convert(key, token));
     }
 }

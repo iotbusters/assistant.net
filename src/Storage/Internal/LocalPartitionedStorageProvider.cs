@@ -2,6 +2,7 @@ using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Unions;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Internal
@@ -10,7 +11,7 @@ namespace Assistant.Net.Storage.Internal
     {
         private readonly ConcurrentDictionary<StoreKey, ConcurrentDictionary<long, byte[]>> backedStorage = new();
 
-        public Task<long> Add(StoreKey key, byte[] value)
+        public Task<long> Add(StoreKey key, byte[] value, CancellationToken token)
         {
             var partition = backedStorage.GetOrAdd(key, _ => new ConcurrentDictionary<long, byte[]>());
 
@@ -20,7 +21,7 @@ namespace Assistant.Net.Storage.Internal
             return Task.FromResult((long)partition.Count);
         }
 
-        public Task<Option<byte[]>> TryGet(StoreKey key, long index)
+        public Task<Option<byte[]>> TryGet(StoreKey key, long index, CancellationToken token)
         {
             if (backedStorage.TryGetValue(key, out var partition)
                 && partition.TryGetValue(index, out var value))
@@ -28,7 +29,7 @@ namespace Assistant.Net.Storage.Internal
             return Task.FromResult<Option<byte[]>>(Option.None);
         }
 
-        public IAsyncEnumerable<StoreKey> GetKeys() => backedStorage.Keys.AsAsync();
+        public IAsyncEnumerable<StoreKey> GetKeys(CancellationToken token) => backedStorage.Keys.AsAsync();
 
         public void Dispose() { }
     }

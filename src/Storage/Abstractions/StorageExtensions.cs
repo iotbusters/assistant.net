@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Abstractions
@@ -13,8 +14,9 @@ namespace Assistant.Net.Storage.Abstractions
         /// </summary>
         public static Task<TValue?> GetOrDefault<TKey, TValue>(
             this IStorage<TKey, TValue> storage,
-            TKey key) =>
-            storage.TryGet(key).GetValueOrDefault();
+            TKey key,
+            CancellationToken token = default) =>
+            storage.TryGet(key, token).GetValueOrDefault();
 
         /// <summary>
         ///    Tries to add a value associated to the <paramref name="key"/> if it doesn't exist.
@@ -31,8 +33,9 @@ namespace Assistant.Net.Storage.Abstractions
         public static Task<TValue> AddOrGet<TKey, TValue>(
             this IStorage<TKey, TValue> storage,
             TKey key,
-            TValue value) =>
-            storage.AddOrGet(key, _ => Task.FromResult(value));
+            TValue value,
+            CancellationToken token = default) =>
+            storage.AddOrGet(key, _ => Task.FromResult(value), token);
 
         /// <summary>
         ///    Tries to add or update an existing value associated to the <paramref name="key"/>.
@@ -41,11 +44,13 @@ namespace Assistant.Net.Storage.Abstractions
             this IStorage<TKey, TValue> storage,
             TKey key,
             Func<TKey, TValue> addFactory,
-            Func<TKey, TValue, TValue> updateFactory) =>
+            Func<TKey, TValue, TValue> updateFactory,
+            CancellationToken token = default) =>
             storage.AddOrUpdate(
                 key,
-                key => Task.FromResult(addFactory(key)),
-                (key, old) => Task.FromResult(updateFactory(key, old)));
+                k => Task.FromResult(addFactory(k)),
+                (k, old) => Task.FromResult(updateFactory(k, old)),
+                token);
 
         /// <summary>
         ///    Tries to add or update an existing value associated to the <paramref name="key"/>.
@@ -53,10 +58,12 @@ namespace Assistant.Net.Storage.Abstractions
         public static Task<TValue> AddOrUpdate<TKey, TValue>(
             this IStorage<TKey, TValue> storage,
             TKey key,
-            TValue value) =>
+            TValue value,
+            CancellationToken token = default) =>
             storage.AddOrUpdate(
                 key,
                 _ => Task.FromResult(value),
-                (_, _) => Task.FromResult(value));
+                (_, _) => Task.FromResult(value),
+                token);
     }
 }

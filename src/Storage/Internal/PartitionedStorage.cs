@@ -3,6 +3,7 @@ using Assistant.Net.Unions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Internal
@@ -24,20 +25,21 @@ namespace Assistant.Net.Storage.Internal
             this.valueConverter = valueConverter;
         }
 
-        public async Task<long> Add(TKey key, TValue value)
+        public async Task<long> Add(TKey key, TValue value, CancellationToken token)
         {
-            var storeKey = await keyConverter.Convert(key);
-            var storeValue = await valueConverter.Convert(value);
-            return await backedStorage.Add(storeKey, storeValue);
+            var storeKey = await keyConverter.Convert(key, token);
+            var storeValue = await valueConverter.Convert(value, token);
+            return await backedStorage.Add(storeKey, storeValue, token);
         }
 
-        public async Task<Option<TValue>> TryGet(TKey key, long index)
+        public async Task<Option<TValue>> TryGet(TKey key, long index, CancellationToken token)
         {
-            var storeKey = await keyConverter.Convert(key);
-            var value = await backedStorage.TryGet(storeKey, index);
-            return await value.Map(valueConverter.Convert);
+            var storeKey = await keyConverter.Convert(key, token);
+            var value = await backedStorage.TryGet(storeKey, index, token);
+            return await value.Map(k => valueConverter.Convert(k, token));
         }
 
-        public IAsyncEnumerable<TKey> GetKeys() => backedStorage.GetKeys().Select(keyConverter.Convert);
+        public IAsyncEnumerable<TKey> GetKeys(CancellationToken token) =>
+            backedStorage.GetKeys(token).Select(key => keyConverter.Convert(key, token));
     }
 }
