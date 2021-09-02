@@ -12,7 +12,7 @@ namespace Assistant.Net.Serialization.Converters
     /// <summary>
     ///     Json converter responsible for advanced object serialization.
     /// </summary>
-    /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to"/> />
+    /// https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to
     public sealed class AdvancedJsonConverter<T> : JsonConverter<T>
     {
         private const string TypePropertyName = "__type";

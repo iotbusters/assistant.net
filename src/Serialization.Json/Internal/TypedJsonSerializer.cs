@@ -1,6 +1,6 @@
-﻿using System.IO;
+﻿using Assistant.Net.Serialization.Abstractions;
+using System.IO;
 using System.Threading.Tasks;
-using Assistant.Net.Serialization.Abstractions;
 
 namespace Assistant.Net.Serialization.Internal
 {
@@ -13,6 +13,7 @@ namespace Assistant.Net.Serialization.Internal
 
         public Task Serialize(Stream stream, TValue value) => serializer.Serialize(stream, value!);
 
-        public Task<TValue> Deserialize(Stream stream) => serializer.Deserialize(stream, typeof(TValue)).MapSuccess(x => (TValue) x);
+        public async Task<TValue> Deserialize(Stream stream) =>
+            (TValue) await serializer.Deserialize(stream, typeof(TValue));
     }
 }

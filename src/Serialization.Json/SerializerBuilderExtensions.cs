@@ -7,11 +7,21 @@ using System.Text.Json.Serialization;
 
 namespace Assistant.Net.Serialization
 {
+    /// <summary>
+    ///     Serializer builder extensions for configuring JSON serialization.
+    /// </summary>
     public static class SerializerBuilderExtensions
     {
+        /// <summary>
+        ///     Configures JSON serialization of <typeparamref name="TValue"/> type.
+        /// </summary>
+        /// <typeparam name="TValue">Serializing value type.</typeparam>
         public static SerializerBuilder AddJsonType<TValue>(this SerializerBuilder builder) => builder
             .AddJsonType(typeof(TValue));
 
+        /// <summary>
+        ///     Configures JSON serialization of <paramref name="serializingType"/>.
+        /// </summary>
         public static SerializerBuilder AddJsonType(this SerializerBuilder builder, Type serializingType)
         {
             if (serializingType.IsAssignableTo(typeof(Exception)))
@@ -27,6 +37,9 @@ namespace Assistant.Net.Serialization
             return builder;
         }
 
+        /// <summary>
+        ///     Configures JSON serialization of all types which weren't configured explicitly.
+        /// </summary>
         public static SerializerBuilder AddJsonTypeAny(this SerializerBuilder builder)
         {
             builder.Services
@@ -35,6 +48,9 @@ namespace Assistant.Net.Serialization
             return builder;
         }
 
+        /// <summary>
+        ///     Adds type converter for JSON serialization.
+        /// </summary>
         public static SerializerBuilder AddJsonConverter<TConverter>(this SerializerBuilder builder)
             where TConverter : JsonConverter
         {

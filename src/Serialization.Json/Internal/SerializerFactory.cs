@@ -4,13 +4,20 @@ using System;
 
 namespace Assistant.Net.Serialization.Internal
 {
+    /// <summary>
+    ///     Serializer factory responsible for resolving serializers due to a configuration.
+    /// </summary>
     public class SerializerFactory : ISerializerFactory
     {
         private readonly IServiceProvider provider;
 
+        /// <summary/>
         public SerializerFactory(IServiceProvider provider) =>
             this.provider = provider;
 
+        /// <summary>
+        ///     Resolves an instance of serializer for <paramref name="serializingType"/>.
+        /// </summary>
         public IAbstractSerializer Create(Type serializingType)
         {
             var serviceType = typeof(ISerializer<>).MakeGenericType(serializingType);

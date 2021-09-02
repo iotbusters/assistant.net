@@ -9,6 +9,9 @@ using System.Text.Json.Serialization;
 
 namespace Assistant.Net.Serialization
 {
+    /// <summary>
+    /// Service collection extensions for serialization.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
         /// <summary>
@@ -24,7 +27,7 @@ namespace Assistant.Net.Serialization
         public static IServiceCollection AddSerializer(this IServiceCollection services, Action<SerializerBuilder> configure) => services
             .AddTypeEncoder()
             .TryAddSingleton<ISerializerFactory, SerializerFactory>()
-            .TryAddSingleton(typeof(ISerializer<>), typeof(UnkownSerializer<>))
+            .TryAddSingleton(typeof(ISerializer<>), typeof(UnknownSerializer<>))
             .TryAddSingleton<AdvancedJsonConverterFactory>()
             .TryAddSingleton(typeof(ExceptionJsonConverter<>), typeof(ExceptionJsonConverter<>))
             .TryAddSingleton(typeof(EnumerableJsonConverter<>), typeof(EnumerableJsonConverter<>))

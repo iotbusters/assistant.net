@@ -16,8 +16,11 @@ namespace Assistant.Net.Storage.Converters
             this.converter = converter;
         }
 
-        public Task<StoreKey> Convert(TKey key) =>
-            converter.Convert(key).MapSuccess(x => new StoreKey(key.GetSha1(), KeyType, x));
+        public async Task<StoreKey> Convert(TKey key)
+        {
+            var value = await converter.Convert(key);
+            return new StoreKey(key.GetSha1(), KeyType, value);
+        }
 
         public Task<TKey> Convert(StoreKey key)
         {

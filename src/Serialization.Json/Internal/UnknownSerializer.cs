@@ -5,7 +5,8 @@ using Assistant.Net.Serialization.Exceptions;
 
 namespace Assistant.Net.Serialization.Internal
 {
-    internal class UnkownSerializer<TValue> : ISerializer<TValue>
+    internal class UnknownSerializer<TValue> : ISerializer<TValue>
+        where TValue : class
     {
         public Task Serialize(Stream stream, TValue value) =>
             throw new SerializerTypeNotRegisteredException(typeof(TValue));

@@ -21,6 +21,6 @@ namespace Assistant.Net.Serialization.Abstractions
 
         Task IAbstractSerializer.SerializeObject(Stream stream, object value) => Serialize(stream, (TValue) value);
 
-        Task<object> IAbstractSerializer.DeserializeObject(Stream stream) => Deserialize(stream).MapSuccess(x => (object) x!);
+        async Task<object> IAbstractSerializer.DeserializeObject(Stream stream) => (await Deserialize(stream))!;
     }
 }

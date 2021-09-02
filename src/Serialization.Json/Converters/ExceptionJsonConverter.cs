@@ -10,7 +10,7 @@ namespace Assistant.Net.Serialization.Converters
     /// <summary>
     ///     Json converter responsible for exception serialization.
     /// </summary>
-    /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to"/>
+    /// https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to
     public class ExceptionJsonConverter<T> : JsonConverter<T>
         where T : Exception
     {
