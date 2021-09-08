@@ -18,9 +18,13 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
 
+- [Assistant.NET Release 0.1.72](https://github.com/iotbusters/assistant.net/releases/tag/0.1.72)
+    - refactored `Serialization.Json` to support polimorphic and generic value types
+    - refactored key-value storing mechanism in `Storage`
+    - fixed caching interceptor issues related to serialization in `Storage`
+
 - [Assistant.NET Release 0.1.71](https://github.com/iotbusters/assistant.net/releases/tag/0.1.71)
     - introduced none backward compatible change to serialization and storage related packages
-
 - [Assistant.NET Release 0.1.70](https://github.com/iotbusters/assistant.net/releases/tag/0.1.70)
     - introduced none backward compatible change to messaging related packages
         - added cancellation token to messaging async operations
