@@ -15,6 +15,7 @@ namespace Assistant.Net.Messaging
         /// </summary>
         /// <param name="genericTypeDefinition">Generic type definition that requires two parameters: message type and message response type.</param>
         /// <param name="messagingType">Specific message type.</param>
+        /// <exception cref="ArgumentException"/>
         public static Type MakeGenericTypeBoundToMessage(this Type genericTypeDefinition, Type messagingType)
         {
             if (!genericTypeDefinition.IsGenericTypeDefinition)

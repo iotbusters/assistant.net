@@ -35,6 +35,8 @@ namespace Assistant.Net.Messaging.Internal
             this.proxyFactory = proxyFactory;
             this.scopeFactory = scopeFactory;
         }
+
+        /// <exception cref="MessageNotRegisteredException"/>
         public Task<object> Send(object message, CancellationToken token)
         {
             using var scope = scopeFactory.CreateScope();
@@ -44,6 +46,7 @@ namespace Assistant.Net.Messaging.Internal
             return handler.Handle(message, token);
         }
 
+        /// <exception cref="MessageNotRegisteredException"/>
         private IAbstractHandler CreateInterceptingHandler(Type messageType, IServiceProvider provider)
         {
             var handlerType = typeof(IMessageHandler<,>).MakeGenericTypeBoundToMessage(messageType);
@@ -62,7 +65,14 @@ namespace Assistant.Net.Messaging.Internal
             foreach (var interceptor in interceptors)
                 proxy.Intercept(
                     selector: x => x.Handle(default!, default!),
-                    interceptor: (next, args) => interceptor.Intercept((m, t) => next(new[] {m, t}), args[0]!, (CancellationToken) args[1]!));
+                    interceptor: (next, args) =>
+                    {
+                        var message = args[0]!;
+                        var token = (CancellationToken) args[1]!;
+                        token.ThrowIfCancellationRequested();
+
+                        return interceptor.Intercept((m, t) => next(new[] {m, t}), message, token);
+                    });
 
             return proxy.Object;
         }

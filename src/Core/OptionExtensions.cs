@@ -11,38 +11,38 @@ namespace Assistant.Net
     {
         /// <summary>
         ///     Converts a value wrapped in <see cref="Option{T}"/> from <typeparamref name="TSource"/> to <typeparamref name="TResult"/>
-        ///     with <paramref name="mapper"/> function.
+        ///     with <paramref name="selector"/> function.
         /// </summary>
-        public static async Task<Option<TResult>> Map<TSource, TResult>(this Task<Option<TSource>> source, Func<TSource, TResult> mapper) =>
-            (await source).Map(mapper);
+        public static async Task<Option<TResult>> MapOption<TSource, TResult>(this Task<Option<TSource>> source, Func<TSource, TResult> selector) =>
+            (await source).MapOption(selector);
 
         /// <summary>
         ///     Converts a value wrapped in <see cref="Option{T}"/> from <typeparamref name="TSource"/> to <typeparamref name="TResult"/>
-        ///     with <paramref name="mapper"/> function.
+        ///     with <paramref name="selector"/> function.
         /// </summary>
-        public static async Task<Option<TResult>> Map<TSource, TResult>(this Task<Option<TSource>> source, Func<TSource, Task<TResult>> mapper) => await source switch
+        public static async Task<Option<TResult>> MapOption<TSource, TResult>(this Task<Option<TSource>> source, Func<TSource, Task<TResult>> selector) => await source switch
         {
-            Some<TSource>(var value)    => Option.Some(await mapper(value)),
+            Some<TSource>(var value)    => Option.Some(await selector(value)),
             _                           => Option.None
         };
 
         /// <summary>
         ///     Converts a value wrapped in <see cref="Option{T}"/> from <typeparamref name="TSource"/> to <typeparamref name="TResult"/>
-        ///     with <paramref name="mapper"/> function.
+        ///     with <paramref name="selector"/> function.
         /// </summary>
-        public static async Task<Option<TResult>> Map<TSource, TResult>(this Option<TSource> source, Func<TSource, Task<TResult>> mapper) => source switch
+        public static async Task<Option<TResult>> MapOption<TSource, TResult>(this Option<TSource> source, Func<TSource, Task<TResult>> selector) => source switch
         {
-            Some<TSource>(var value)    => Option.Some(await mapper(value)),
+            Some<TSource>(var value)    => Option.Some(await selector(value)),
             _                           => Option.None
         };
 
         /// <summary>
         ///     Converts a value wrapped in <see cref="Option{T}"/> from <typeparamref name="TSource"/> to <typeparamref name="TResult"/>
-        ///     with <paramref name="mapper"/> function.
+        ///     with <paramref name="selector"/> function.
         /// </summary>
-        public static Option<TResult> Map<TSource, TResult>(this Option<TSource> option, Func<TSource, TResult> mapper) => option switch
+        public static Option<TResult> MapOption<TSource, TResult>(this Option<TSource> option, Func<TSource, TResult> selector) => option switch
         {
-            Some<TSource>(var value)    => Option.Some(mapper(value)),
+            Some<TSource>(var value)    => Option.Some(selector(value)),
             _                           => Option.None
         };
 

@@ -1,7 +1,7 @@
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Unions;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,27 +9,29 @@ namespace Assistant.Net.Storage.Internal
 {
     internal class LocalPartitionedStorageProvider<TValue> : IPartitionedStorageProvider<TValue>
     {
-        private readonly ConcurrentDictionary<StoreKey, ConcurrentDictionary<long, byte[]>> backedStorage = new();
+        private readonly ConcurrentDictionary<KeyRecord, ConcurrentDictionary<long, ValueRecord>> backedStorage = new();
 
-        public Task<long> Add(StoreKey key, byte[] value, CancellationToken token)
+        public Task<long> Add(KeyRecord key, ValueRecord value, CancellationToken _)
         {
-            var partition = backedStorage.GetOrAdd(key, _ => new ConcurrentDictionary<long, byte[]>());
+            var partition = backedStorage.GetOrAdd(key, _ => new ConcurrentDictionary<long, ValueRecord>());
 
             // ignore chance of blocking.
-            while (!partition.TryAdd(partition.Count, value)) ;
+            long index = partition.Count;
+            while (!partition.TryAdd(index, value))
+                index = partition.Count;
 
-            return Task.FromResult((long)partition.Count);
+            return Task.FromResult(index);
         }
 
-        public Task<Option<byte[]>> TryGet(StoreKey key, long index, CancellationToken token)
+        public Task<Option<ValueRecord>> TryGet(KeyRecord key, long index, CancellationToken _)
         {
             if (backedStorage.TryGetValue(key, out var partition)
                 && partition.TryGetValue(index, out var value))
                 return Task.FromResult(Option.Some(value));
-            return Task.FromResult<Option<byte[]>>(Option.None);
+            return Task.FromResult<Option<ValueRecord>>(Option.None);
         }
 
-        public IAsyncEnumerable<StoreKey> GetKeys(CancellationToken token) => backedStorage.Keys.AsAsync();
+        public IQueryable<KeyRecord> GetKeys() => backedStorage.Keys.AsQueryable();
 
         public void Dispose() { }
     }

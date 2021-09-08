@@ -43,6 +43,7 @@ namespace Assistant.Net.Diagnostics.Internal
             Stop(OperationStatus.Incomplete, LostOperationMessage);
 
         // todo: consider failing with user-data (https://github.com/iotbusters/assistant.net/issues/3)
+        /// <exception cref="ArgumentException"/>
         private void Stop(string status, string message)
         {
             if (isStopped) return;
@@ -60,6 +61,7 @@ namespace Assistant.Net.Diagnostics.Internal
             factory.Operations.Remove(activity.Id!);
         }
 
+        /// <exception cref="ArgumentException"/>
         private void WriteOperationStarted()
         {
             var data = new OperationStartedData
@@ -72,6 +74,7 @@ namespace Assistant.Net.Diagnostics.Internal
             factory.EventSource.WriteOperationStarted(activity.OperationName, ref data);
         }
 
+        /// <exception cref="ArgumentException"/>
         private void WriteOperationStopped(string status, string message)
         {
             var data = new OperationStoppedData

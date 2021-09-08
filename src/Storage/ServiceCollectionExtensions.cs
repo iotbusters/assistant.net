@@ -21,9 +21,12 @@ namespace Assistant.Net.Storage
         {
             configureOptions(new StorageBuilder(services));
             return services
-                .AddSerializer(b => b.AddJsonType<StoreKey>())
+                // todo: is still needed?
+                .AddSerializer(b => b.AddJsonType<KeyRecord>())
                 .AddTypeEncoder()
+                // todo: resolve single instance per storage type
                 .TryAddScoped(typeof(IStorage<,>), typeof(Storage<,>))
+                .TryAddScoped(typeof(IAdminStorage<,>), typeof(Storage<,>))
                 .TryAddScoped(typeof(IPartitionedStorage<,>), typeof(PartitionedStorage<,>))
                 .TryAddSingleton<IKeyConverter<string>, StringKeyConverter>()
                 .TryAddSingleton(typeof(IKeyConverter<>), typeof(DefaultKeyConverter<>))

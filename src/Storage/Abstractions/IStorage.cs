@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Storage.Abstractions
 {
     /// <summary>
-    ///     An abstraction of storing mechanism for specific <typeparamref name="TKey"/> and <typeparamref name="TValue"/>.
+    ///     An abstraction over storing mechanism for specific <typeparamref name="TKey"/> and <typeparamref name="TValue"/>.
     /// </summary>
     /// <typeparam name="TKey">A key object type that uniquely associated with <typeparamref name="TValue"/>.</typeparam>
     /// <typeparam name="TValue">A value object type is stored.</typeparam>
@@ -59,10 +59,5 @@ namespace Assistant.Net.Storage.Abstractions
         /// <param name="token">A cancellation token.</param>
         /// <returns>A removed value if it was found.</returns>
         Task<Option<TValue>> TryRemove(TKey key, CancellationToken token = default);
-
-        /// <summary>
-        ///     Gets all keys in the storage.
-        /// </summary>
-        IAsyncEnumerable<TKey> GetKeys(CancellationToken token = default);
     }
 }

@@ -22,6 +22,7 @@ namespace Assistant.Net.Serialization
         /// <summary>
         ///     Configures JSON serialization of <paramref name="serializingType"/>.
         /// </summary>
+        /// <exception cref="ArgumentException"/>
         public static SerializerBuilder AddJsonType(this SerializerBuilder builder, Type serializingType)
         {
             if (serializingType.IsAssignableTo(typeof(Exception)))

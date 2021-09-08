@@ -20,6 +20,7 @@ namespace Assistant.Net.Diagnostics.Internal
             CorrelationIdName, StatusName, MessageName
         };
 
+        /// <exception cref="ArgumentException"/>
         public static Activity AddCorrelationId(this Activity activity, string correlationId) => activity
             .SetTag(CorrelationIdName, correlationId)
             .TryAddBaggage(CorrelationIdName, correlationId);
@@ -27,6 +28,7 @@ namespace Assistant.Net.Diagnostics.Internal
         /// <summary>
         ///    Gets a current correlation ID of the activity.
         /// </summary>
+        /// <exception cref="ArgumentException"/>
         public static string GetCorrelationId(this Activity activity) => activity
             .Tags.SingleOrDefault(x => x.Key == CorrelationIdName).Value
             ?? throw new ArgumentException($"Activity({activity.OperationName}) doesn't have {CorrelationIdName} baggage value.");
@@ -34,6 +36,7 @@ namespace Assistant.Net.Diagnostics.Internal
         /// <summary>
         ///    Gets parent correlation IDs of the activity.
         /// </summary>
+        /// <exception cref="ArgumentException"/>
         public static ItemData[] GetParentCorrelationIds(this Activity activity)
         {
             return activity.Baggage
@@ -53,6 +56,7 @@ namespace Assistant.Net.Diagnostics.Internal
         /// <summary>
         ///    Gets an operation status message of the activity.
         /// </summary>
+        /// <exception cref="ArgumentException"/>
         public static string GetMessage(this Activity activity) => activity
             .Tags.SingleOrDefault(x => x.Key == MessageName).Value
             ?? throw new ArgumentException($"Activity({activity.OperationName}) doesn't have {MessageName} tag value.");
@@ -66,6 +70,7 @@ namespace Assistant.Net.Diagnostics.Internal
         /// <summary>
         ///    Gets an operation status of the activity.
         /// </summary>
+        /// <exception cref="ArgumentException"/>
         public static string GetOperationStatus(this Activity activity) => activity
             .Tags.SingleOrDefault(x => x.Key == StatusName).Value
             ?? throw new ArgumentException($"Activity({activity.OperationName}) doesn't have {StatusName} tag value.");

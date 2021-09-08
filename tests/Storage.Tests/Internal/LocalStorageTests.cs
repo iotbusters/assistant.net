@@ -16,11 +16,12 @@ namespace Assistant.Net.Storage.Tests.Internal
         [SetUp]
         public void Setup() =>
             provider = new ServiceCollection()
+                .AddSystemClock()
                 .AddStorage(builder => builder.AddLocal<TestKey, TestValue>())
                 .BuildServiceProvider();
 
-        private IStorage<TestKey, TestValue> Storage =>
-            provider.CreateScope().ServiceProvider.GetRequiredService<IStorage<TestKey, TestValue>>();
+        private IAdminStorage<TestKey, TestValue> Storage =>
+            provider.CreateScope().ServiceProvider.GetRequiredService<IAdminStorage<TestKey, TestValue>>();
 
         [Test]
         public async Task AddOrGet_addsAndGets()

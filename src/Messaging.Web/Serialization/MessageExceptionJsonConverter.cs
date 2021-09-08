@@ -16,8 +16,7 @@ namespace Assistant.Net.Messaging.Serialization
         public MessageExceptionJsonConverter(ITypeEncoder typeEncoder) : base(typeEncoder) { }
 
         /// <inheritdoc/>
-        public override bool CanConvert(Type typeToConvert) => typeToConvert
-            .IsAssignableTo(typeof(MessageException));
+        public override bool CanConvert(Type typeToConvert) => typeToConvert.IsAssignableTo(typeof(MessageException));
 
         /// <inheritdoc/>
         public override MessageException Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

@@ -15,7 +15,7 @@ namespace Assistant.Net.Messaging.Internal
         public RemoteMessageHandlerProxy(IRemoteMessagingClient client) =>
             this.client = client;
 
-        public async Task<TResponse> Handle(TMessage message, CancellationToken token) =>
-            await client.DelegateHandling(message, token);
+        public Task<TResponse> Handle(TMessage message, CancellationToken token) =>
+            client.DelegateHandling(message, token);
     }
 }

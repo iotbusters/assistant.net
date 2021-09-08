@@ -12,8 +12,8 @@ namespace Assistant.Net.Storage.Converters
         public DefaultValueConverter(ISerializer<TValue> serializer) =>
             this.serializer = serializer;
 
-        public Task<byte[]> Convert(TValue value, CancellationToken token) => serializer.Serialize(value);
+        public Task<byte[]> Convert(TValue value, CancellationToken token) => serializer.Serialize(value, token);
 
-        public Task<TValue> Convert(byte[] bytes, CancellationToken token) => serializer.Deserialize(bytes);
+        public Task<TValue> Convert(byte[] bytes, CancellationToken token) => serializer.Deserialize(bytes, token);
     }
 }

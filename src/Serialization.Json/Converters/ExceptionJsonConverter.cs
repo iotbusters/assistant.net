@@ -48,6 +48,8 @@ namespace Assistant.Net.Serialization.Converters
         }
 
         /// <inheritdoc/>
+        /// <exception cref="TypeResolvingFailedJsonException"/>
+        /// <exception cref="JsonException"/>
         public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.StartObject)
@@ -77,6 +79,7 @@ namespace Assistant.Net.Serialization.Converters
             }
         }
 
+        /// <exception cref="JsonException"/>
         private (string? type, string? message, T? inner) ReadExceptionContent(
             ref Utf8JsonReader reader,
             JsonSerializerOptions options)

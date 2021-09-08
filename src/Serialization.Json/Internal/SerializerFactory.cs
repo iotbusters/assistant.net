@@ -18,6 +18,7 @@ namespace Assistant.Net.Serialization.Internal
         /// <summary>
         ///     Resolves an instance of serializer for <paramref name="serializingType"/>.
         /// </summary>
+        /// <exception cref="SerializerTypeNotRegisteredException"/>
         public IAbstractSerializer Create(Type serializingType)
         {
             var serviceType = typeof(ISerializer<>).MakeGenericType(serializingType);
