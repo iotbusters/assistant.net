@@ -25,7 +25,7 @@ namespace Assistant.Net.Messaging.Tests.Interceptors
         }
 
         [Test]
-        public async Task ReturnsResponse()
+        public async Task Intercept_returnsResponse()
         {
             var response = await interceptor.Intercept((_,_) => Task.FromResult<object>(new TestResponse(false)), Message);
 
@@ -33,35 +33,35 @@ namespace Assistant.Net.Messaging.Tests.Interceptors
         }
 
         [Test]
-        public async Task ThrowsMessageExecutionException()
+        public async Task Intercept_throwsMessageExecutionException()
         {
             await interceptor.Awaiting(x => x.Intercept(Fail(new TestMessageExecutionException()), Message))
                 .Should().ThrowAsync<TestMessageExecutionException>();
         }
 
         [Test]
-        public async Task ThrowsOperationCanceledException()
+        public async Task Intercept_throwsOperationCanceledException()
         {
             await interceptor.Awaiting(x => x.Intercept(Fail(new OperationCanceledException()), Message))
                 .Should().ThrowAsync<OperationCanceledException>();
         }
 
         [Test]
-        public async Task ThrowsTaskCanceledException()
+        public async Task Intercept_throwsTaskCanceledException()
         {
             await interceptor.Awaiting(x => x.Intercept(Fail(new TaskCanceledException()), Message))
                 .Should().ThrowAsync<TaskCanceledException>();
         }
 
         [Test]
-        public async Task ThrowsTimeoutException()
+        public async Task Intercept_throwsTimeoutException()
         {
             await interceptor.Awaiting(x => x.Intercept(Fail(new TimeoutException()), Message))
                 .Should().ThrowAsync<TimeoutException>();
         }
 
         [Test]
-        public async Task ThrowsException()
+        public async Task Intercept_throwsException()
         {
             await interceptor.Awaiting(x => x.Intercept(Fail(new Exception()), Message))
                 .Should().ThrowAsync<Exception>();

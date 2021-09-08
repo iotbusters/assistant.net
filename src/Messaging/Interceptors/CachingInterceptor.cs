@@ -2,6 +2,7 @@ using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Unions;
+using Assistant.Net.Utils;
 using System;
 using System.Linq;
 using System.Threading;
@@ -14,25 +15,25 @@ namespace Assistant.Net.Messaging.Interceptors
     /// </summary>
     public sealed class CachingInterceptor : IMessageInterceptor
     {
-        private readonly IStorage<object, CachingResult> cache;
+        private readonly IStorage<string, CachingResult> cache;
 
         /// <summary/>
-        public CachingInterceptor(IStorage<object, CachingResult> cache) =>
+        public CachingInterceptor(IStorage<string, CachingResult> cache) =>
             this.cache = cache;
 
         /// <inheritdoc/>
         public async Task<object> Intercept(
             Func<IMessage<object>, CancellationToken, Task<object>> next, IMessage<object> message, CancellationToken token)
         {
-            if (await cache.TryGet(message) is Some<CachingResult>(var result))
-                return result.GetValue();
+            var key = message.GetSha1();
+            if (await cache.TryGet(key, token) is Some<CachingResult>(var cached))
+                return cached.GetValue();
 
             return await next(message, token).When(
-                successAction: x => cache.AddOrGet(message, new CachingResult(x)),
+                completeAction: x => cache.AddOrGet(key, new CachingValueResult<dynamic>(x), token),
                 faultAction: x =>
                 {
-                    if (IsCacheable(x))
-                        cache.AddOrGet(message, new CachingResult(x));
+                    if (IsCacheable(x)) cache.AddOrGet(key, new CachingExceptionResult(x), token);
                 });
         }
 

@@ -11,123 +11,144 @@ namespace Assistant.Net
         /// <summary>
         ///     Substitutes original exception or result depending on a task status when <paramref name="source"/> task completed.
         /// </summary>
-        [Obsolete("Counterproductive compared to async/await.")]
-        public static Task<TResult> Map<TSource, TResult>(
+        /// <exception cref="ArgumentNullException"/>
+        public static async Task<TResult> Map<TSource, TResult>(
             this Task<TSource> source,
-            Func<TSource, TResult> successSelector,
-            Func<Exception, Exception>? faultSelector = null)
+            Func<TSource, TResult> completeSelector,
+            Func<Exception, Exception>? faultSelector)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
-            if (successSelector == null) throw new ArgumentNullException(nameof(successSelector));
-            return source.ContinueWith(t =>
+            if (completeSelector == null) throw new ArgumentNullException(nameof(completeSelector));
+            try
             {
-                if (t.IsCompletedSuccessfully)
-                    return successSelector(t.Result);
-                if (t.IsFaulted)
-                    return faultSelector == null
-                        ? t.Exception!.InnerException!.Throw<TResult>()
-                        : faultSelector(t.Exception!.InnerException!).Throw<TResult>();
-                throw new TaskCanceledException();
-            });
+                return completeSelector(await source);
+            }
+            catch (TaskCanceledException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                if (faultSelector == null)
+                    throw;
+                return faultSelector(e).Throw<TResult>();
+            }
         }
 
         /// <summary>
-        ///     Substitutes original result with <paramref name="successSelector"/> function when <paramref name="source"/> task completed.
+        ///     Substitutes original result with <paramref name="completeSelector"/> function when <paramref name="source"/> task completed.
         /// </summary>
-        [Obsolete("Counterproductive compared to async/await")]
-        public static Task<TResult> MapSuccess<TSource, TResult>(this Task<TSource> source, Func<TSource, TResult> successSelector) => source
-            .Map(successSelector, null);
+        /// <exception cref="ArgumentNullException"/>
+        public static Task<TResult> MapCompleted<TSource, TResult>(this Task<TSource> source, Func<TSource, TResult> completeSelector) => source
+            .Map(completeSelector, faultSelector: null);
 
         /// <summary>
         ///     Substitutes original exception with <paramref name="faultSelector"/> function when <paramref name="source"/> task faulted.
         /// </summary>
-        [Obsolete("Counterproductive compared to async/await")]
+        /// <exception cref="ArgumentNullException"/>
         public static Task<TSource> MapFaulted<TSource>(this Task<TSource> source, Func<Exception, Exception> faultSelector) => source
-            .Map(x => x, faultSelector);
+            .Map(completeSelector: x => x, faultSelector);
+
+        /// <summary>
+        ///     Substitutes original result with <paramref name="completeSelector"/> function when <paramref name="source"/> task completed.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"/>
+        public static async Task<TResult> MapCompleted<TSource, TResult>(this Task<TSource> source, Func<TSource, Task<TResult>> completeSelector)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (completeSelector == null) throw new ArgumentNullException(nameof(completeSelector));
+
+            return await await source.MapCompleted<TSource, Task<TResult>>(completeSelector);
+        }
 
         /// <summary>
         ///     Substitutes original exception or generates new result depending on a task status when <paramref name="source"/> task completed.
         /// </summary>
-        [Obsolete("Counterproductive compared to async/await")]
-        public static Task<TResult> Map<TResult>(
+        /// <exception cref="ArgumentNullException"/>
+        public static async Task<TResult> Map<TResult>(
             this Task source,
-            Func<TResult> successSelector,
-            Func<Exception, Exception>? faultSelector = null)
+            Func<TResult> completeSelector,
+            Func<Exception, Exception>? faultSelector)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
-            if (successSelector == null) throw new ArgumentNullException(nameof(successSelector));
-            return source.ContinueWith(t =>
+            if (completeSelector == null) throw new ArgumentNullException(nameof(completeSelector));
+            try
             {
-                if (t.IsCompletedSuccessfully)
-                    return successSelector();
-                if (t.IsFaulted)
-                    return faultSelector == null
-                        ? t.Exception!.InnerException!.Throw<TResult>()
-                        : faultSelector(t.Exception!.InnerException!).Throw<TResult>();
-                throw new TaskCanceledException();
-            });
+                await source;
+                return completeSelector();
+            }
+            catch (TaskCanceledException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                if (faultSelector == null)
+                    throw;
+                
+                return faultSelector(e).Throw<TResult>();
+            }
         }
 
         /// <summary>
-        ///     Generates new result with <paramref name="successSelector"/> function when <paramref name="source"/> task completed.
+        ///     Generates new result with <paramref name="completeFactory"/> function when <paramref name="source"/> task completed.
         /// </summary>
-        [Obsolete("Counterproductive compared to async/await")]
-        public static Task<TResult> MapSuccess<TResult>(this Task source, Func<TResult> successSelector) => source
-            .Map(successSelector, x => x);
+        /// <exception cref="ArgumentNullException"/>
+        public static Task<TResult> MapCompleted<TResult>(this Task source, Func<TResult> completeFactory) => source
+            .Map(completeFactory, faultSelector: null);
 
         /// <summary>
-        ///     Callbacks <paramref name="successAction"/> or <paramref name="faultAction"/> depending on a task status
+        ///     Generates new result with <paramref name="completeFactory"/> function when <paramref name="source"/> task completed.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"/>
+        public static async Task<TResult> MapCompleted<TResult>(this Task source, Func<Task<TResult>> completeFactory)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (completeFactory == null) throw new ArgumentNullException(nameof(completeFactory));
+
+            return await await source.MapCompleted<Task<TResult>>(completeFactory);
+        }
+
+        /// <summary>
+        ///     Callbacks <paramref name="completeAction"/> or <paramref name="faultAction"/> depending on a task status
         ///     when <paramref name="source"/> task completed.
         /// </summary>
-        public static Task<TSource> When<TSource>(
+        /// <exception cref="ArgumentNullException"/>
+        public static async Task<TSource> When<TSource>(
             this Task<TSource> source,
-            Action<TSource>? successAction = null,
+            Action<TSource>? completeAction = null,
             Action<Exception>? faultAction = null)
         {
-
-
-
-
-
-
-
-            //todo
-
-
-
-
-
-
-
-
-
             if (source == null) throw new ArgumentNullException(nameof(source));
-            return source.ContinueWith(t =>
+            try
             {
-                if (t.IsCompletedSuccessfully)
-                {
-                    successAction?.Invoke(t.Result);
-                    return t.Result;
-                }
-                if (t.IsFaulted)
-                {
-                    faultAction?.Invoke(t.Exception!);
-                    return t.Exception!.Throw<TSource>();
-                }
-                throw new TaskCanceledException();
-            });
+                var result = await source;
+                completeAction?.Invoke(result);
+                return result;
+            }
+            catch (TaskCanceledException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                faultAction?.Invoke(e);
+                throw;
+            }
         }
 
         /// <summary>
-        ///     Callbacks <paramref name="successAction"/> when <paramref name="source"/> task completed successfully.
+        ///     Callbacks <paramref name="completeAction"/> when <paramref name="source"/> task completed successfully.
         /// </summary>
-        public static Task<TSource> WhenSuccess<TSource>(this Task<TSource> source, Action<TSource> successAction) => source
-            .When(successAction, faultAction: null);
+        /// <exception cref="ArgumentNullException"/>
+        public static Task<TSource> WhenComplete<TSource>(this Task<TSource> source, Action<TSource> completeAction) => source
+            .When(completeAction, faultAction: null);
 
         /// <summary>
         ///     Callbacks <paramref name="faultAction"/> when <paramref name="source"/> task faulted.
         /// </summary>
+        /// <exception cref="ArgumentNullException"/>
         public static Task<TSource> WhenFaulted<TSource>(this Task<TSource> source, Action<Exception> faultAction) => source
-            .When(successAction: null, faultAction);
+            .When(completeAction: null, faultAction);
     }
 }

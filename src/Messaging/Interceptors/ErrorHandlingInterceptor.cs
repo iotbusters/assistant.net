@@ -14,17 +14,8 @@ namespace Assistant.Net.Messaging.Interceptors
     {
         /// <inheritdoc/>
         public async Task<object> Intercept(
-            Func<IMessage<object>, CancellationToken, Task<object>> next, IMessage<object> message, CancellationToken token)
-        {
-            try
-            {
-                return await next(message, token);
-            }
-            catch (Exception ex)
-            {
-                return ToMessageException(ex).Throw<object>();
-            }
-        }
+            Func<IMessage<object>, CancellationToken, Task<object>> next, IMessage<object> message, CancellationToken token) =>
+            await next(message, token).MapFaulted(ToMessageException);
 
         /// <summary>
         ///     Converts any occurred exception to <see cref="MessageException" /> due to convention.
@@ -40,8 +31,8 @@ namespace Assistant.Net.Messaging.Interceptors
                 typeof(MessageException)
             };
 
-            if (ex is AggregateException e)
-                return ToMessageException(e.InnerException!);
+            if (ex is AggregateException)
+                return ToMessageException(ex.InnerException!);
 
             if (supportedExceptionTypes.Any(x => x.IsInstanceOfType(ex)))
                 return ex;

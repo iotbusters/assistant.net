@@ -1,4 +1,3 @@
-using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
@@ -17,17 +16,14 @@ namespace Assistant.Net.Messaging.Interceptors
     {
         private readonly ILogger<RetryingInterceptor> logger;
         private readonly IDiagnosticFactory diagnosticsFactory;
-        private readonly ISystemLifetime lifetime;
 
         /// <summary/>
         public RetryingInterceptor(
             ILogger<RetryingInterceptor> logger,
-            IDiagnosticFactory diagnosticsFactory,
-            ISystemLifetime lifetime)
+            IDiagnosticFactory diagnosticsFactory)
         {
             this.logger = logger;
             this.diagnosticsFactory = diagnosticsFactory;
-            this.lifetime = lifetime;
         }
 
         /// <inheritdoc/>
@@ -44,11 +40,13 @@ namespace Assistant.Net.Messaging.Interceptors
             {
                 var operation = diagnosticsFactory.Start($"retry-attempt-{attempt}");
 
-                lifetime.Stopping.ThrowIfCancellationRequested();
+                token.ThrowIfCancellationRequested();
 
                 try
                 {
-                    return await next(message, token);
+                    var result = await next(message, token);
+                    operation.Complete();
+                    return result;
                 }
                 catch (Exception ex)
                 {
@@ -58,11 +56,7 @@ namespace Assistant.Net.Messaging.Interceptors
                         throw;
 
                     logger.LogWarning(ex, "#{Attempt}. Transient error occurred.", attempt);
-                    await Task.Delay(delayingStrategy(attempt));
-                }
-                finally
-                {
-                    operation.Complete();
+                    await Task.Delay(delayingStrategy(attempt), token);
                 }
             }
 
@@ -78,8 +72,8 @@ namespace Assistant.Net.Messaging.Interceptors
                 typeof(MessageDeferredException)
             };
 
-            if (ex is AggregateException e)
-                return CriticalExceptionOnly(e.InnerException!);
+            if (ex is AggregateException)
+                return CriticalExceptionOnly(ex.InnerException!);
 
             return !transientExceptionTypes.Any(x => x.IsInstanceOfType(ex));
         }

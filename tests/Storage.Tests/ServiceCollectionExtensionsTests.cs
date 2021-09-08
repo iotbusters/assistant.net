@@ -13,13 +13,14 @@ namespace Assistant.Net.Storage.Tests
     public class ServiceCollectionExtensionsTests
     {
         private static IServiceProvider Provider => new ServiceCollection()
+            .AddSystemClock()
             .AddStorage(b => b.AddLocal<TestKey, object>())
             .BuildServiceProvider();
 
         [Test]
         public void GetServiceOfIKeyConverterOfString_resolvesObject()
         {
-            Provider.GetService<IKeyConverter<StoreKey>>()
+            Provider.GetService<IKeyConverter<KeyRecord>>()
                 .Should().NotBeNull();
         }
 
@@ -41,7 +42,7 @@ namespace Assistant.Net.Storage.Tests
         public void GetServiceOfIStorage_throw_StorageOfUnknownValue()
         {
             Provider.Invoking(x => x.GetService<IStorage<object, DateTime>>())
-                .Should().Throw<InvalidOperationException>()
+                .Should().Throw<ArgumentException>()
                 .WithMessage("Storage of 'DateTime' wasn't properly configured.");
         }
 
@@ -49,9 +50,10 @@ namespace Assistant.Net.Storage.Tests
         public async Task TryGet_Some_FromStorageProviderOfTheSameValue()
         {
             var provider = new ServiceCollection()
+                .AddSystemClock()
                 .AddSingleton<IStorageProvider<TestValue>>(new TestStorage<TestValue>())
                 .AddSerializer(b => b.AddJsonType<TestKey>().AddJsonType<TestValue>())
-                .AddStorage(b => { })
+                .AddStorage(_ => { })
                 .BuildServiceProvider();
 
             var storage1 = provider.GetRequiredService<IStorage<TestKey, TestValue>>();
@@ -68,10 +70,11 @@ namespace Assistant.Net.Storage.Tests
         public async Task TryGet_None_FromStorageOfAnotherValue()
         {
             var provider = new ServiceCollection()
+                .AddSystemClock()
                 .AddSingleton<IStorageProvider<object>>(new TestStorage<object>())
                 .AddSingleton<IStorageProvider<string>>(new TestStorage<string>())
                 .AddSerializer(b => b.AddJsonType<TestKey>().AddJsonType<object>().AddJsonType<string>())
-                .AddStorage(b => { })
+                .AddStorage(_ => { })
                 .BuildServiceProvider();
 
             var storage1 = provider.GetRequiredService<IStorage<TestKey, object>>();

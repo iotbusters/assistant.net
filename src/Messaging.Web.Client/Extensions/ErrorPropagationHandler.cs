@@ -20,6 +20,9 @@ namespace Assistant.Net.Messaging.Extensions
             this.serializer = serializer;
 
         /// <inheritdoc/>
+        /// <exception cref="MessageDeferredException"/>
+        /// <exception cref="MessageContractException"/>
+        /// <exception cref="MessageException"/>
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var response = await base.SendAsync(request, cancellationToken);
@@ -43,12 +46,13 @@ namespace Assistant.Net.Messaging.Extensions
             };
         }
 
-        private async Task<MessageException> ReadException(HttpResponseMessage response, CancellationToken cancellationToken)
+        /// <exception cref="MessageContractException"/>
+        private async Task<MessageException> ReadException(HttpResponseMessage response, CancellationToken token)
         {
-            var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            var stream = await response.Content.ReadAsStreamAsync(token);
             try
             {
-                return await serializer.Deserialize(stream);
+                return await serializer.Deserialize(stream, token);
             }
             catch (Exception e)
             {

@@ -29,6 +29,7 @@ namespace Assistant.Net.Messaging
         ///     Pay attention, it requires <see cref="IRemoteMessagingClient" /> remote handling provider implementation.
         /// </summary>
         /// <typeparam name="TMessage">Specific message type to be handled remotely.</typeparam>
+        /// <exception cref="ArgumentException"/>
         public static MessagingClientBuilder AddRemote<TMessage>(this MessagingClientBuilder builder)
             where TMessage : class, IAbstractMessage => builder.AddRemote(typeof(TMessage));
 
@@ -36,6 +37,7 @@ namespace Assistant.Net.Messaging
         ///     Registers remote handler of <paramref name="messageType" />.
         ///     Pay attention, it requires <see cref="IRemoteMessagingClient" /> remote handling provider implementation.
         /// </summary>
+        /// <exception cref="ArgumentException"/>
         public static MessagingClientBuilder AddRemote(this MessagingClientBuilder builder, Type messageType)
         {
             if (messageType.GetResponseType() == null)

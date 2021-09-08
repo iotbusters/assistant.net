@@ -23,20 +23,27 @@ namespace Assistant.Net.Messaging
             .AddSystemLifetime(p => p.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping);
 
         /// <summary>
+        ///     Registers diagnostic services with self-hosted WEB service based behavior.
+        /// </summary>
+        public static IServiceCollection AddDiagnosticsWebHosted(this IServiceCollection services) => services
+            .AddHttpContextAccessor()
+            .AddDiagnosticContext(InitializeFromHttpContext)
+            .AddDiagnostics();
+
+        /// <summary>
         ///     Registers remote message handling server configuration customized by <paramref name="configure" />.
         /// </summary>
         public static IServiceCollection AddRemoteWebMessageHandler(this IServiceCollection services, Action<MessagingClientBuilder> configure) => services
             .AddSystemServicesHosted()
+            .AddDiagnosticsWebHosted()
             .AddJsonSerialization()
             .AddTypeEncoder()
-            .AddDiagnostics()
-            .AddDiagnosticContext(InitializeFromHttpContext)
-            .AddHttpContextAccessor()
             .AddStorage(b => b.AddLocal<string, DeferredCachingResult>())
             .AddMessagingClient()
             .ConfigureMessageClient(b => b.AddConfiguration<ServerInterceptorConfiguration>())
             .ConfigureMessageClient(configure);
 
+        /// <exception cref="InvalidOperationException" />
         private static string InitializeFromHttpContext(IServiceProvider provider)
         {
             var accessor = provider.GetRequiredService<IHttpContextAccessor>();

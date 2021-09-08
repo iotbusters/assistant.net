@@ -4,7 +4,6 @@ using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
@@ -20,7 +19,6 @@ namespace Assistant.Net.Messaging
         ///     Pay attention, you need to call explicitly <see cref="ConfigureMessageClient"/> to register handlers.
         /// </summary>
         public static IServiceCollection AddMessagingClient(this IServiceCollection services) => services
-            .AddStorage(b => b.AddLocal<object, CachingResult>())
             .AddDiagnostics()
             .AddSystemServicesDefaulted()
             .AddProxyFactory(b => b.Add<IAbstractHandler>())

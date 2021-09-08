@@ -40,10 +40,10 @@ namespace Assistant.Net.Serialization
                 options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, false));
             })
             .ConfigureSerializer(configure)
-            .Configure<JsonSerializerOptions, ExceptionJsonConverter<Exception>>((options, converter) =>
-                options.Converters.Add(converter))
-            .Configure<JsonSerializerOptions, AdvancedJsonConverterFactory>((options, converter) =>
-                options.Converters.Add(converter));
+            .Configure<JsonSerializerOptions, ExceptionJsonConverter<Exception>>((options, converter) => options
+                .Converters.Add(converter))
+            .Configure<JsonSerializerOptions, AdvancedJsonConverterFactory>((options, converter) => options
+                .Converters.Add(converter));
 
         /// <summary>
         ///     Configures <see cref="ISerializer{TValue}" /> implementations for specific values.

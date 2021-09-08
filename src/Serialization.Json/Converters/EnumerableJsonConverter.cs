@@ -8,6 +8,22 @@ using System.Text.Json.Serialization;
 
 namespace Assistant.Net.Serialization.Converters
 {
+    internal static class EnumerableJsonConverter
+    {
+        public static bool CanConvert(Type typeToConvert, out Type? itemType)
+        {
+            itemType = GetSequenceItemType(typeToConvert);
+            return itemType != null && !IsSystemType(itemType);
+        }
+
+        private static Type? GetSequenceItemType(Type sequenceType) =>
+            sequenceType.GetElementType() ?? sequenceType.GetInterfaces().Append(sequenceType)
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                .Select(x => x.GetGenericArguments().Single())
+                .FirstOrDefault();
+        public  static bool IsSystemType(Type type) => type.Namespace != null && type.Namespace.StartsWith("System");
+    }
+
     /// <summary>
     ///     Json converter responsible for enumerable objects serialization.
     /// </summary>
@@ -17,18 +33,16 @@ namespace Assistant.Net.Serialization.Converters
         /// <summary/>
         public EnumerableJsonConverter()
         {
-            if (AdvancedJsonConverterFactory.IsSystemType(typeof(T)))
+            if (EnumerableJsonConverter.IsSystemType(typeof(T)))
                 throw new JsonException($"The type '{typeof(T)}' isn't supported.");
         }
 
         /// <inheritdoc/>
-        public override bool CanConvert(Type typeToConvert)
-        {
-            var itemType = AdvancedJsonConverterFactory.GetSequenceItemType(typeToConvert);
-            return itemType != null && !AdvancedJsonConverterFactory.IsSystemType(itemType);
-        }
+        public override bool CanConvert(Type typeToConvert) => EnumerableJsonConverter.CanConvert(typeToConvert, out _);
 
         /// <inheritdoc/>
+        /// <exception cref="TypeResolvingFailedJsonException"/>
+        /// <exception cref="JsonException"/>
         public override IEnumerable<T> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.StartArray)
@@ -66,12 +80,14 @@ namespace Assistant.Net.Serialization.Converters
         }
 
         /// <inheritdoc/>
+        /// <exception cref="JsonException"/>
         public override void Write(Utf8JsonWriter writer, IEnumerable<T> value, JsonSerializerOptions options)
         {
-            if(!IsSupportedSequenceType(value.GetType()))
+            // todo: remove?
+            if (!IsSupportedSequenceType(value.GetType()))
                 throw new JsonException($"The type '{typeof(T)}' isn't supported.");
 
-            var arrayItemType = AdvancedJsonConverterFactory.GetSequenceItemType(value.GetType())!;
+            var arrayItemType = GetSequenceItemType(value.GetType())!;
             writer.WriteStartArray();
 
             foreach (var item in value)
@@ -80,6 +96,7 @@ namespace Assistant.Net.Serialization.Converters
             writer.WriteEndArray();
         }
 
+        // todo: move into EnumerableJsonConverter.CanConvert?
         private static bool IsSupportedSequenceType(Type sequenceType) =>
             sequenceType.IsArray
             || sequenceType == typeof(ImmutableArray<T>)
@@ -91,5 +108,12 @@ namespace Assistant.Net.Serialization.Converters
             || sequenceType.GetConstructors().Any(x =>
                 x.GetParameters().Length == 1
                 && x.GetParameters().Single().ParameterType.IsAssignableFrom(typeof(T[])));
+
+        // todo: move into EnumerableJsonConverter.CanConvert?
+        private static Type? GetSequenceItemType(Type sequenceType) =>
+            sequenceType.GetElementType() ?? sequenceType.GetInterfaces().Append(sequenceType)
+                .Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                .Select(x => x.GetGenericArguments().Single())
+                .FirstOrDefault();
     }
 }
