@@ -5,12 +5,11 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Converters
 {
-    internal class DefaultValueConverter<TValue> : IValueConverter<TValue>
+    internal class TypedValueConverter<TValue> : IValueConverter<TValue>
     {
         private readonly ISerializer<TValue> serializer;
 
-        public DefaultValueConverter(ISerializer<TValue> serializer) =>
-            this.serializer = serializer;
+        public TypedValueConverter(ISerializer<TValue> serializer) => this.serializer = serializer;
 
         public Task<byte[]> Convert(TValue value, CancellationToken token) => serializer.Serialize(value, token);
 
