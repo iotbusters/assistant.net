@@ -18,20 +18,6 @@ namespace Assistant.Net.Storage.Tests
             .BuildServiceProvider();
 
         [Test]
-        public void GetServiceOfIKeyConverterOfString_resolvesObject()
-        {
-            Provider.GetService<IKeyConverter<KeyRecord>>()
-                .Should().NotBeNull();
-        }
-
-        [Test]
-        public void GetServiceOfIKeyConverterOfObject_resolvesObject()
-        {
-            Provider.GetService<IKeyConverter<object>>()
-                .Should().NotBeNull();
-        }
-
-        [Test]
         public void GetServiceOfIStorage_null_StorageOfUnknownValue()
         {
             Provider.GetService<IStorageProvider<DateTime>>()

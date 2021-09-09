@@ -15,7 +15,7 @@ namespace Assistant.Net.Storage.Internal
     {
         private readonly string keyType;
         private readonly ISystemClock clock;
-        private readonly IKeyConverter<TKey> keyConverter;
+        private readonly IValueConverter<TKey> keyConverter;
         private readonly IValueConverter<TValue> valueConverter;
         private readonly IPartitionedStorageProvider<TValue> backedStorage;
 
@@ -24,7 +24,7 @@ namespace Assistant.Net.Storage.Internal
             IServiceProvider provider,
             ISystemClock clock,
             ITypeEncoder typeEncoder,
-            IKeyConverter<TKey> keyConverter)
+            IValueConverter<TKey> keyConverter)
         {
             this.backedStorage = provider.GetService<IPartitionedStorageProvider<TValue>>() ?? throw ImproperlyConfiguredException();
             this.valueConverter = provider.GetService<IValueConverter<TValue>>() ?? throw ImproperlyConfiguredException();

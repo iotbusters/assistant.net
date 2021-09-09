@@ -25,9 +25,6 @@ namespace Assistant.Net.Serialization
         /// <exception cref="ArgumentException"/>
         public static SerializerBuilder AddJsonType(this SerializerBuilder builder, Type serializingType)
         {
-            if (serializingType.IsAssignableTo(typeof(Exception)))
-                throw new ArgumentException("Invalid method for exception type.");
-
             var serviceType = typeof(ISerializer<>).MakeGenericType(serializingType);
             var implementationType = typeof(TypedJsonSerializer<>).MakeGenericType(serializingType);
 

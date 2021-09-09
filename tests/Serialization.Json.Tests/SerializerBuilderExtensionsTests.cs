@@ -74,19 +74,7 @@ namespace Assistant.Net.Serialization.Json.Tests
                     ImplementationType = new {Name = "TypedJsonSerializer`1"}
                 });
         }
-
-        [Test]
-        public void AddJsonType_throw_typeOfException()
-        {
-            var services = new ServiceCollection();
-            var builder = new SerializerBuilder(services);
-
-            builder.Invoking(x => x.AddJsonType<InvalidOperationException>())
-                .Should().Throw<ArgumentException>();
-
-            services.Should().BeEmpty();
-        }
-
+        
         [Test]
         public void AddJsonConverter_registersJsonSerializerOptions()
         {
