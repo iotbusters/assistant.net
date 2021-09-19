@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using System;
 
-namespace Assistant.Net.Storage.Mongo.Models
+namespace Assistant.Net.Storage.Models
 {
     /// <summary>
     ///     MongoDB partitioned storage key-value reference record.

@@ -1,11 +1,11 @@
-﻿using Assistant.Net.Storage.Mongo.Options;
+﻿using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using System;
 
-namespace Assistant.Net.Storage.Mongo
+namespace Assistant.Net.Storage
 {
     /// <summary>
     ///     Service collection extensions for MongoDB storage.

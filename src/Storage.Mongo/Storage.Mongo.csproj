@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Storage.Mongo</RootNamespace>
+    <RootNamespace>Assistant.Net.Storage</RootNamespace>
     <AssemblyName>assistant.net.storage.mongo</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Nullable>enable</Nullable>
@@ -32,9 +32,6 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Abstractions\" />
   </ItemGroup>
 
 </Project>

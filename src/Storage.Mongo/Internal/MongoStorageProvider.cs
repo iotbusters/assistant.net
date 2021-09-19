@@ -1,7 +1,6 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
-using Assistant.Net.Storage.Mongo.Models;
 using Assistant.Net.Unions;
 using MongoDB.Driver;
 using System;
@@ -9,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Storage.Mongo.Internal
+namespace Assistant.Net.Storage.Internal
 {
     internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
     {

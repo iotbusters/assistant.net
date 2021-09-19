@@ -1,7 +1,7 @@
 ﻿using Assistant.Net.Storage.Models;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Assistant.Net.Storage.Mongo.Models
+namespace Assistant.Net.Storage.Models
 {
     /// <summary>
     ///     MongoDB storage persisting record.

@@ -18,7 +18,7 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
 
-- [Assistant.NET Release 0.1.75](https://github.com/iotbusters/assistant.net/releases/tag/0.1.75)
+- [Assistant.NET Release 0.1.76](https://github.com/iotbusters/assistant.net/releases/tag/0.1.76)
   - introduced none backward compatible change to remote messaging
   - local storage refactoring
   - added mongo storage provider

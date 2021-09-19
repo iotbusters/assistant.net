@@ -1,7 +1,6 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
-using Assistant.Net.Storage.Mongo.Models;
 using Assistant.Net.Unions;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
@@ -11,7 +10,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Storage.Mongo.Internal
+namespace Assistant.Net.Storage.Internal
 {
     internal class MongoPartitionedStorageProvider<TValue> : IPartitionedStorageProvider<TValue>
     {
