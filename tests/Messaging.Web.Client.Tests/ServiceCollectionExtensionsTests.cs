@@ -12,10 +12,11 @@ namespace Assistant.Net.Messaging.Web.Client.Tests
         public void GetServiceOfRemoteMessageHandlingClient_resolvesObject()
         {
             var provider = new ServiceCollection()
-                .AddRemoteWebMessagingClient(opt => opt.BaseAddress = new Uri("http://localhost")).Services
-                .BuildServiceProvider();
+                .AddRemoteWebMessagingClient()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://localhost"))
+                .Services.BuildServiceProvider();
 
-            provider.GetService<IRemoteMessagingClient>()
+            provider.GetService<IWebMessageHandlerClient>()
                 .Should().NotBeNull();
         }
     }

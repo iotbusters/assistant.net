@@ -12,8 +12,10 @@ namespace Assistant.Net.Messaging
     {
         /// <summary>
         ///     Adds message handling endpoint to existing endpoint middleware.
-        ///     Pay attention, it duplicates <see cref="ApplicationBuilderExtensions.UseRemoteWebMessageHandler" /> behavior.
         /// </summary>
+        /// <remarks>
+        ///     Pay attention, it duplicates <see cref="ApplicationBuilderExtensions.UseRemoteWebMessageHandler" /> behavior.
+        /// </remarks>
         public static IEndpointConventionBuilder MapRemoteMessageHandling(this IEndpointRouteBuilder builder)
         {
             return builder.MapPost("/messages", async context =>

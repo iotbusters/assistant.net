@@ -7,10 +7,10 @@ namespace Assistant.Net.Messaging.Exceptions
     /// </summary>
     public abstract class MessageException : Exception
     {
-        /// <summary>
+        /// <remarks>
         ///     Pay attention, this ctor is required to implement for all children.
         ///     Otherwise, deserialization will fail.
-        /// </summary>
+        /// </remarks>
         protected MessageException(string? message) : base(message) { }
 
         /// <summary/>

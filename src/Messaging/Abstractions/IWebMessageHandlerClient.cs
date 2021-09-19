@@ -6,7 +6,7 @@ namespace Assistant.Net.Messaging.Abstractions
     /// <summary>
     ///     Remote message handling client abstraction.
     /// </summary>
-    public interface IRemoteMessagingClient
+    public interface IWebMessageHandlerClient
     {
          /// <summary>
         ///     Delegates <paramref name="message"/> handling to remote handler.

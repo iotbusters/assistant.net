@@ -11,13 +11,13 @@ namespace Assistant.Net.Messaging.Internal
     /// <summary>
     ///     Strongly typed http client for remote message handling.
     /// </summary>
-    internal class RemoteWebMessagingClient : IRemoteMessagingClient
+    internal class WebMessagehandlerClient : IWebMessageHandlerClient
     {
         private readonly HttpClient client;
         private readonly ITypeEncoder typeEncoder;
         private readonly ISerializerFactory factory;
 
-        public RemoteWebMessagingClient(
+        public WebMessagehandlerClient(
             HttpClient client,
             ITypeEncoder typeEncoder,
             ISerializerFactory factory)
@@ -36,7 +36,7 @@ namespace Assistant.Net.Messaging.Internal
             var requestSerializer = factory.Create(messageType);
 
             var requestStream = new MemoryStream();
-            await requestSerializer.SerializeObject(requestStream, message);
+            await requestSerializer.SerializeObject(requestStream, message, token);
             requestStream.Position = 0;
 
             var messageName = typeEncoder.Encode(messageType);
@@ -49,7 +49,7 @@ namespace Assistant.Net.Messaging.Internal
 
             var responseSerializer = factory.Create(typeof(TResponse));
             var responseStream = await response.Content.ReadAsStreamAsync(token);
-            var responseObject = (TResponse) await responseSerializer.DeserializeObject(responseStream);
+            var responseObject = (TResponse) await responseSerializer.DeserializeObject(responseStream, token);
             return responseObject!;
         }
     }

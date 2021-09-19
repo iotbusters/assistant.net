@@ -60,17 +60,18 @@ namespace Assistant.Net.Messaging.Web.Client.Tests
                .WithMessage("test");
         }
 
-        private static IRemoteMessagingClient Client(DelegatingHandler handler)
+        private static IWebMessageHandlerClient Client(DelegatingHandler handler)
         {
             var services = new ServiceCollection();
             services
-                .AddRemoteWebMessagingClient(c => c.BaseAddress = new Uri(RequestUri))
+                .AddRemoteWebMessagingClient()
+                .ConfigureHttpClient(c => c.BaseAddress = new Uri(RequestUri))
                 .ClearAllHttpMessageHandlers()
                 .AddHttpMessageHandler<ErrorPropagationHandler>()
                 .AddHttpMessageHandler(() => handler);
             return services
                 .BuildServiceProvider()
-                .GetRequiredService<IRemoteMessagingClient>();
+                .GetRequiredService<IWebMessageHandlerClient>();
         }
     }
 }

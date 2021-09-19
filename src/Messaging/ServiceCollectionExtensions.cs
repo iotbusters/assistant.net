@@ -16,8 +16,10 @@ namespace Assistant.Net.Messaging
     {
         /// <summary>
         ///     Adds <see cref="IMessagingClient"/> implementation, required services and defaults.
-        ///     Pay attention, you need to call explicitly <see cref="ConfigureMessageClient"/> to register handlers.
         /// </summary>
+        /// <remarks>
+        ///     Pay attention, you need to call explicitly <see cref="ConfigureMessageClient"/> to register handlers.
+        /// </remarks>
         public static IServiceCollection AddMessagingClient(this IServiceCollection services) => services
             .AddDiagnostics()
             .AddSystemServicesDefaulted()
