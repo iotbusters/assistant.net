@@ -19,16 +19,16 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 ## Releases
 
 - [Assistant.NET Release 0.1.72](https://github.com/iotbusters/assistant.net/releases/tag/0.1.72)
-    - refactored `Serialization.Json` to support polimorphic and generic value types
-    - refactored key-value storing mechanism in `Storage`
-    - fixed caching interceptor issues related to serialization in `Storage`
+  - refactored `Serialization.Json` to support polimorphic and generic value types
+  - refactored key-value storing mechanism in `Storage`
+  - fixed caching interceptor issues related to serialization in `Storage`
 
 - [Assistant.NET Release 0.1.71](https://github.com/iotbusters/assistant.net/releases/tag/0.1.71)
-    - introduced none backward compatible change to serialization and storage related packages
+  - introduced none backward compatible change to serialization and storage related packages
 - [Assistant.NET Release 0.1.70](https://github.com/iotbusters/assistant.net/releases/tag/0.1.70)
-    - introduced none backward compatible change to messaging related packages
-        - added cancellation token to messaging async operations
-    - obsoleted task mapping extensions
+  - introduced none backward compatible change to messaging related packages
+    - added cancellation token to messaging async operations
+  - obsoleted task mapping extensions
 - [Assistant.NET Release 0.1.69](https://github.com/iotbusters/assistant.net/releases/tag/0.1.69)
   - fixed local storage lifetime issue
 - [Assistant.NET Release 0.1.68](https://github.com/iotbusters/assistant.net/releases/tag/0.1.68)
@@ -78,10 +78,27 @@ See also available extensions in `assistant.net.storage.*` packages for more inf
 
 ```csharp
 services.AddStorage(b => b
-    .AddLocal<Model>()
+    .AddLocal<Model1>()
     .AddLocalAny()
-    .AddLocalPartitioned<Model>()
+    .AddLocalPartitioned<Model2>()
     );
+
+var storage = provider.GetRequiredService<IStorage<Key, Model>>();
+var partitionedStorage = provider.GetRequiredService<IPartitionedStorage<Key, Model>>();
+```
+
+### assistant.net.storage.mongo
+
+MongoDB based storage extension of [Storage](#assistantnetstorage).
+
+```csharp
+services
+    .AddStorage(b => b
+        .UseMongo(o => o.ConnectionString = "mongodb://localhost")
+        .AddMongo<Model1>()
+        .AddMongoAny()
+        .AddMongoPartitioned<Model2>()
+        );
 
 var storage = provider.GetRequiredService<IStorage<Key, Model>>();
 var partitionedStorage = provider.GetRequiredService<IPartitionedStorage<Key, Model>>();
@@ -148,9 +165,12 @@ See `assistant.net.messaging.web.*` packages for more information.
 Remote WEB oriented message handling client implementation for [server](#assistantnetmessagingwebserver) API.
 
 ```csharp
-services
-    .AddMessagingClient(b => b.AddRemote<SomeMessage>())
-    .AddRemoteWebMessageClient(opt => opt.BaseAddress = "https://localhost");
+services.AddMessagingClient(b => b
+    .UseWebHandler(b => b
+        .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://localhost/messages"))
+        .AddHttpMessageHandler<CustomDelegatingHandler>())
+    .AddWeb<SomeMessage>()
+    );
 
 var client = provider.GetRequiredService<IMessagingClient>();
 var response = await client.Send(new SomeMessage())
