@@ -117,12 +117,21 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
                 .AddSystemClock(_ => TestDate)
                 .BuildServiceProvider();
 
-            var mongoClient = Provider.GetRequiredService<IMongoClient>();
-            var ping = await mongoClient.GetDatabase("db").RunCommandAsync(
-                (Command<BsonDocument>)"{ping:1}",
-                ReadPreference.Nearest,
-                new CancellationTokenSource(200).Token);
-            if (!ping.Contains("ok"))
+            string pingContent;
+            try
+            {
+                var mongoClient = Provider.GetRequiredService<IMongoClient>();
+                var ping = await mongoClient.GetDatabase("db").RunCommandAsync(
+                    (Command<BsonDocument>)"{ping:1}",
+                    ReadPreference.Nearest,
+                    new CancellationTokenSource(200).Token);
+                pingContent = ping.ToString();
+            }
+            catch
+            {
+                pingContent = string.Empty;
+            }
+            if (!pingContent.Contains("ok"))
                 Assert.Ignore($"The tests require mongodb instance at {connectionString}.");
         }
 
