@@ -27,6 +27,7 @@ jobs:
           echo ::set-output name=core::$(echo "$CHANGES" | grep -c src/Core/)
           echo ::set-output name=serialization-json::$(echo "$CHANGES" | grep -c src/Serialization.Json/)
           echo ::set-output name=storage::$(echo "$CHANGES" | grep -c src/Storage/)
+          echo ::set-output name=storage-mongo::$(echo "$CHANGES" | grep -c src/Storage.Mongo/)
           echo ::set-output name=diagnostics::$(echo "$CHANGES" | grep -c src/Diagnostics/)
           echo ::set-output name=messaging::$(echo "$CHANGES" | grep -c src/Messaging/)
           echo ::set-output name=web::$(echo "$CHANGES" | grep -c src/Messaging.Web/)
@@ -38,6 +39,7 @@ jobs:
       core: ${{ steps.change-detected.outputs.core }}
       serialization-json: ${{ steps.change-detected.outputs.serialization-json }}
       storage: ${{ steps.change-detected.outputs.storage }}
+      storage-mongo: ${{ steps.change-detected.outputs.storage-mongo }}
       diagnostics: ${{ steps.change-detected.outputs.diagnostics }}
       messaging: ${{ steps.change-detected.outputs.messaging }}
       web: ${{ steps.change-detected.outputs.web }}
@@ -154,6 +156,7 @@ jobs:
                 <li>Core: ${{ needs.change-detect.outputs.core }}</li>
                 <li>Serialization.Json: ${{ needs.change-detect.outputs.serialization-json }}</li>
                 <li>Storage: ${{ needs.change-detect.outputs.storage }}</li>
+                <li>Storage.Mongo: ${{ needs.change-detect.outputs.storage-mongo }}</li>
                 <li>Diagnostics: ${{ needs.change-detect.outputs.diagnostics }}</li>
                 <li>Messaging: ${{ needs.change-detect.outputs.messaging }}</li>
                 <li>Messaging.Web: ${{ needs.change-detect.outputs.web }}</li>
