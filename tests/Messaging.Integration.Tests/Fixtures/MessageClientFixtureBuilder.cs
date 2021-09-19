@@ -15,14 +15,16 @@ namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
         public MessageClientFixtureBuilder()
         {
             Services = new ServiceCollection()
-                .AddMessagingClient(b => b.ClearInterceptors())
-                .AddRemoteWebMessagingClient(o =>
-                {
-                    o.BaseAddress = new Uri("http://localhost/messages");
-                    // debugging purpose only.
-                    if (Debugger.IsAttached)
-                        o.Timeout = TimeSpan.FromSeconds(300);
-                }).Services;
+                .AddMessagingClient(b => b
+                    .UseWebHandler(hcb => hcb
+                        .ConfigureHttpClient(hc =>
+                        {
+                            hc.BaseAddress = new Uri("http://localhost/messages");
+                            // debugging purpose only.
+                            if (Debugger.IsAttached)
+                                hc.Timeout = TimeSpan.FromSeconds(300);
+                        }))
+                    .ClearInterceptors());
             RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
                 .Configure(b => b.UseRemoteWebMessageHandler()))
@@ -54,7 +56,7 @@ namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
                 ?.GetGenericArguments().First()
                 ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
 
-            Services.ConfigureMessageClient(b => b.AddRemote(messageType));
+            Services.ConfigureMessageClient(b => b.AddWeb(messageType));
             return this;
         }
 
@@ -62,14 +64,14 @@ namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
             where TMessage : IAbstractMessage
         {
             var messageType = typeof(TMessage);
-            Services.ConfigureMessageClient(b => b.AddRemote(messageType));
+            Services.ConfigureMessageClient(b => b.AddWeb(messageType));
             return this;
         }
 
         public MessageClientFixture Create()
         {
             var provider = Services
-                .AddHttpClientRedirect<IRemoteMessagingClient>(_ => RemoteHostBuilder.Start())
+                .AddHttpClientRedirect<IWebMessageHandlerClient>(_ => RemoteHostBuilder.Start())
                 .BuildServiceProvider();
             return new(provider);
         }

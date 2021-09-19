@@ -1,8 +1,5 @@
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Serialization;
-using System;
 using System.Linq;
 
 namespace Assistant.Net.Messaging
@@ -10,7 +7,7 @@ namespace Assistant.Net.Messaging
     /// <summary>
     ///     Messaging client configuration extensions.
     /// </summary>
-    public static class MessagingClientOptionsExtensions
+    public static class MessagingClientBuilderExtensions
     {
         /// <summary>
         ///     Registers a local in-memory handler type <typeparamref name="THandler" />.
@@ -21,34 +18,6 @@ namespace Assistant.Net.Messaging
             var abstractHandlerTypes = typeof(THandler).GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IMessageHandler<,>));
             foreach (var abstractHandlerType in abstractHandlerTypes)
                 builder.Services.ReplaceTransient(abstractHandlerType, typeof(THandler));
-            return builder;
-        }
-
-        /// <summary>
-        ///     Registers remote handler of <typeparamref name="TMessage" />.
-        ///     Pay attention, it requires <see cref="IRemoteMessagingClient" /> remote handling provider implementation.
-        /// </summary>
-        /// <typeparam name="TMessage">Specific message type to be handled remotely.</typeparam>
-        /// <exception cref="ArgumentException"/>
-        public static MessagingClientBuilder AddRemote<TMessage>(this MessagingClientBuilder builder)
-            where TMessage : class, IAbstractMessage => builder.AddRemote(typeof(TMessage));
-
-        /// <summary>
-        ///     Registers remote handler of <paramref name="messageType" />.
-        ///     Pay attention, it requires <see cref="IRemoteMessagingClient" /> remote handling provider implementation.
-        /// </summary>
-        /// <exception cref="ArgumentException"/>
-        public static MessagingClientBuilder AddRemote(this MessagingClientBuilder builder, Type messageType)
-        {
-            if (messageType.GetResponseType() == null)
-                throw new ArgumentException("Invalid message type.", nameof(messageType));
-
-            var handlerAbstractionType = typeof(IMessageHandler<,>).MakeGenericTypeBoundToMessage(messageType);
-            var handlerImplementationType = typeof(RemoteMessageHandlerProxy<,>).MakeGenericTypeBoundToMessage(messageType);
-
-            builder.Services
-                .ReplaceTransient(handlerAbstractionType, handlerImplementationType)
-                .ConfigureSerializer(b => b.AddJsonType(messageType));
             return builder;
         }
 
