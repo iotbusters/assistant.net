@@ -35,6 +35,6 @@ namespace Assistant.Net.Unions
         /// <summary>
         ///     Creates none value of maybe monad.
         /// </summary>
-        public static None None => null!;
+        public static None None => None.Instance;
     }
 }

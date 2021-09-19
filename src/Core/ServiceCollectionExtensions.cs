@@ -1,9 +1,12 @@
 using Assistant.Net.Abstractions;
+using Assistant.Net.Dynamics;
+using Assistant.Net.Dynamics.Abstractions;
 using Assistant.Net.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
+using System.Linq;
 using System.Threading;
 
 namespace Assistant.Net
@@ -358,5 +361,42 @@ namespace Assistant.Net
         /// </summary>
         public static IServiceCollection ReplaceSingleton(this IServiceCollection services, Type serviceType, Type implementationType) =>
             services.Replace(ServiceDescriptor.Singleton(serviceType, implementationType));
+
+        /// <summary>
+        ///     Decorates the registered <typeparamref name="TService" /> to the <paramref name="services" />.
+        /// </summary>
+        /// <remarks>
+        ///     Pay attention, a proxy will be generated during configuration time so it will take additional time.
+        /// </remarks>
+        /// <exception cref="ArgumentException" />
+        public static IServiceCollection Decorate<TService>(this IServiceCollection services, Action<Proxy<TService>> configureProxy) where TService : class
+        {
+            var existingDescriptor = services.Reverse().FirstOrDefault() ??
+                                     throw new ArgumentException($"Service '{typeof(TService).Name}' wasn't registered.");
+
+            var updatedDescriptor = existingDescriptor switch
+            {
+                {ImplementationType: var it, ImplementationFactory: null, ImplementationInstance: null} =>
+                    new ServiceDescriptor(existingDescriptor.ServiceType, it!, existingDescriptor.Lifetime),
+                {ImplementationType: null, ImplementationFactory: var f, ImplementationInstance: null} =>
+                    new ServiceDescriptor(existingDescriptor.ServiceType, DecoratingFactory(f, configureProxy), existingDescriptor.Lifetime),
+                {ImplementationType: null, ImplementationFactory: null, ImplementationInstance: var ii} =>
+                    new ServiceDescriptor(existingDescriptor.ServiceType, ii),
+                _ => throw new NotSupportedException("Unexpected service descriptor.")
+            };
+            services.Add(updatedDescriptor);
+
+            return services.AddProxyFactory(o => o.Add<TService>());
+        }
+        
+        private static Func<IServiceProvider, TService> DecoratingFactory<TService>(
+            Func<IServiceProvider, object> implementationFactory,
+            Action<Proxy<TService>> configureProxy)
+            where TService : class => p =>
+            {
+                var proxy = p.GetRequiredService<IProxyFactory>().Create((TService)implementationFactory(p));
+                configureProxy(proxy);
+                return proxy.Object;
+            };
     }
 }

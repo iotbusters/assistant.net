@@ -12,6 +12,8 @@ namespace Assistant.Net.Unions
     {
         private None() { }
 
+        internal static None Instance { get; } = new();
+
         /// <summary/>
         public static implicit operator bool(None _) => false;
     }

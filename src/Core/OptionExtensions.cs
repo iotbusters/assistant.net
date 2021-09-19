@@ -47,6 +47,18 @@ namespace Assistant.Net
         };
 
         /// <summary>
+        ///     Wraps nullable <typeparamref name="TSource"/> object into <see cref="Option{T}"/>.
+        /// </summary>
+        /// <returns>
+        ///     <see cref="None{T}"/> if <typeparamref name="TSource"/> is null, otherwise <see cref="Some{T}"/>.
+        /// </returns>
+        public static Option<TSource> AsOption<TSource>(this TSource? option) => option switch
+        {
+            null  => Option.None,
+            var x => Option.Some(x)
+        };
+
+        /// <summary>
         ///     Gets a wrapped value from <see cref="Some{T}"/> or default if <see cref="None"/>.
         /// </summary>
         public static async Task<TSource?> GetValueOrDefault<TSource>(this Task<Option<TSource>> source) =>
