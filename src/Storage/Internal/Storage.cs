@@ -1,5 +1,6 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
 using Assistant.Net.Utils;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +15,7 @@ namespace Assistant.Net.Storage.Internal
     internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     {
         private readonly string keyType;
-        private readonly ISystemClock clock;
+        private readonly string valueType;
         private readonly IValueConverter<TKey> keyConverter;
         private readonly IValueConverter<TValue> valueConverter;
         private readonly IStorageProvider<TValue> backedStorage;
@@ -22,14 +23,13 @@ namespace Assistant.Net.Storage.Internal
         /// <exception cref="ArgumentException"/>
         public Storage(
             IServiceProvider provider,
-            ISystemClock clock,
             ITypeEncoder typeEncoder)
         {
             this.backedStorage = provider.GetService<IStorageProvider<TValue>>() ?? throw ImproperlyConfiguredException();
             this.keyConverter = provider.GetService<IValueConverter<TKey>>() ?? throw ImproperlyConfiguredException();
             this.valueConverter = provider.GetService<IValueConverter<TValue>>() ?? throw ImproperlyConfiguredException();
-            this.clock = clock;
             this.keyType = typeEncoder.Encode(typeof(TKey));
+            this.valueType = typeEncoder.Encode(typeof(TValue));
         }
 
         public async Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory, CancellationToken token)
@@ -37,18 +37,14 @@ namespace Assistant.Net.Storage.Internal
             var keyContent = await keyConverter.Convert(key, token);
             var keyRecord = new KeyRecord(
                 id: keyContent.GetSha1(),
-                content: keyContent,
-                type: keyType);
+                type: keyType,
+                content: keyContent);
             var valueRecord = await backedStorage.AddOrGet(
                 keyRecord,
                 addFactory: async _ =>
                 {
                     var value = await addFactory(key);
-                    return new ValueRecord(
-                        content: await valueConverter.Convert(value, token),
-                        version: 1,
-                        created: clock.UtcNow,
-                        updated: null);
+                    return new ValueRecord(Type: valueType, Content: await valueConverter.Convert(value, token));
                 }, token);
             return await valueConverter.Convert(valueRecord.Content, token);
         }
@@ -62,28 +58,20 @@ namespace Assistant.Net.Storage.Internal
             var keyContent = await keyConverter.Convert(key, token);
             var keyRecord = new KeyRecord(
                 id: keyContent.GetSha1(),
-                content: keyContent,
-                type: keyType);
+                type: keyType,
+                content: keyContent);
             var valueRecord = await backedStorage.AddOrUpdate(
                     keyRecord,
                     addFactory: async _ =>
                     {
                         var value = await addFactory(key);
-                        return new ValueRecord(
-                            content: await valueConverter.Convert(value, token),
-                            version: 1,
-                            created: clock.UtcNow,
-                            updated: null);
+                        return new ValueRecord(Type: valueType, Content: await valueConverter.Convert(value, token));
                     },
                     updateFactory: async (_, old) =>
                     {
                         var oldValue = await valueConverter.Convert(old.Content, token);
                         var newValue = await updateFactory(key, oldValue);
-                        return new ValueRecord(
-                            content: await valueConverter.Convert(newValue, token),
-                            version: old.Version + 1,
-                            created: old.Created,
-                            updated: clock.UtcNow);
+                        return new ValueRecord(Type: valueType, Content: await valueConverter.Convert(newValue, token));
                     },
                     token);
             return await valueConverter.Convert(valueRecord.Content, token);
@@ -94,8 +82,8 @@ namespace Assistant.Net.Storage.Internal
             var keyContent = await keyConverter.Convert(key, token);
             var keyRecord = new KeyRecord(
                 id: keyContent.GetSha1(),
-                content: keyContent,
-                type: keyType);
+                type: keyType,
+                content: keyContent);
             return await backedStorage.TryGet(keyRecord, token).MapOption(x => valueConverter.Convert(x.Content, token));
         }
 
@@ -104,8 +92,8 @@ namespace Assistant.Net.Storage.Internal
             var keyContent = await keyConverter.Convert(key, token);
             var keyRecord = new KeyRecord(
                 id: keyContent.GetSha1(),
-                content: keyContent,
-                type: keyType);
+                type: keyType,
+                content: keyContent);
             return await backedStorage.TryRemove(keyRecord, token).MapOption(x => valueConverter.Convert(x.Content, token));
         }
 

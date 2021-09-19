@@ -16,8 +16,10 @@ namespace Assistant.Net.Serialization
     {
         /// <summary>
         ///     Registers default serializer services only.
-        ///     Pay attention, all serializing types should be separately registered.
         /// </summary>
+        /// <remarks>
+        ///     Pay attention, all serializing types should be separately registered.
+        /// </remarks>
         public static IServiceCollection AddSerializer(this IServiceCollection services) => services
             .AddSerializer(delegate { });
 

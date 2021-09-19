@@ -1,6 +1,8 @@
 using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,7 +12,7 @@ namespace Assistant.Net.Storage.Tests.Mocks
 {
     public class TestStorage<T> : IStorageProvider<T>
     {
-        private readonly Dictionary<KeyRecord, ValueRecord> stored = new();
+        private readonly ConcurrentDictionary<KeyRecord, ValueRecord> stored = new();
 
         public async Task<ValueRecord> AddOrGet(
             KeyRecord key,

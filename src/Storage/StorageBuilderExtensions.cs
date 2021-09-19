@@ -32,7 +32,7 @@ namespace Assistant.Net.Storage
         }
 
         /// <summary>
-        ///     Adds local storage for any type.
+        ///     Adds local storage for any unregistered type.
         /// </summary>
         public static StorageBuilder AddLocalAny(this StorageBuilder builder)
         {
@@ -63,7 +63,7 @@ namespace Assistant.Net.Storage
         }
 
         /// <summary>
-        ///     Adds local partitioned storage for any type.
+        ///     Adds local partitioned storage for any unregistered type.
         /// </summary>
         public static StorageBuilder AddLocalPartitionedAny(this StorageBuilder builder)
         {
