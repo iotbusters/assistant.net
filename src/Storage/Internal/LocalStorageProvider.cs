@@ -1,4 +1,5 @@
 using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
 using System;
 using System.Collections.Concurrent;
@@ -16,16 +17,16 @@ namespace Assistant.Net.Storage.Internal
             backedStorage.GetOrAdd(key, await addFactory(key));
 
         public Task<ValueRecord> AddOrUpdate(
-            KeyRecord keyRecordObj,
+            KeyRecord key,
             Func<KeyRecord, Task<ValueRecord>> addFactory,
             Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
             CancellationToken _)
         {
             return Task.FromResult(
                 backedStorage.AddOrUpdate(
-                    keyRecordObj,
-                    key => addFactory(key).ConfigureAwait(false).GetAwaiter().GetResult(),
-                    (key, old) => updateFactory(key, old).ConfigureAwait(false).GetAwaiter().GetResult()));
+                    key,
+                    k => addFactory(k).ConfigureAwait(false).GetAwaiter().GetResult(),
+                    (k, old) => updateFactory(k, old).ConfigureAwait(false).GetAwaiter().GetResult()));
         }
 
         public Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken _) =>

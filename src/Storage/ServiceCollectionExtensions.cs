@@ -15,12 +15,15 @@ namespace Assistant.Net.Storage
     {
         /// <summary>
         ///     Adds common services required by storage implementation.
-        ///     Pay attention, all storing types should be previously registered.
         /// </summary>
+        /// <remarks>
+        ///     Pay attention, all storing types should be previously registered.
+        /// </remarks>
         public static IServiceCollection AddStorage(this IServiceCollection services, Action<StorageBuilder> configureOptions)
         {
             configureOptions(new StorageBuilder(services));
             return services
+                .AddSystemClock()
                 .AddSerializer()
                 .AddTypeEncoder()
                 // todo: resolve single instance per storage type

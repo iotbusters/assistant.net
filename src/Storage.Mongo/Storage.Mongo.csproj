@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Storage</RootNamespace>
-    <AssemblyName>assistant.net.storage</AssemblyName>
+    <RootNamespace>Assistant.Net.Storage.Mongo</RootNamespace>
+    <AssemblyName>assistant.net.storage.mongo</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Nullable>enable</Nullable>
     <WarningsAsErrors>nullbale</WarningsAsErrors>
@@ -14,24 +14,27 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
-    <ProjectReference Include="..\Serialization.Json\Serialization.Json.csproj" />
+    <ProjectReference Include="..\Storage\Storage.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
     <Product>Assistant.NET</Product>
     <RepositoryType>github</RepositoryType>
-    <PackageTags>storage store</PackageTags>
-    <Description>A common storage abstraction, tools and its basic local (in-memory) implementation.</Description>
+    <PackageTags>storage store mongodb, mongo, nosql</PackageTags>
+    <Description>A MongoDB based storage implementation.</Description>
     <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetstorage</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetstoragemongo</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Abstractions\" />
   </ItemGroup>
 
 </Project>

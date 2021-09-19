@@ -1,4 +1,5 @@
 using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace Assistant.Net.Storage.Internal
         {
             var partition = backedStorage.GetOrAdd(key, _ => new ConcurrentDictionary<long, ValueRecord>());
 
-            // ignore chance of blocking.
+            // todo: replace infinite loop
             long index = partition.Count;
             while (!partition.TryAdd(index, value))
                 index = partition.Count;
@@ -32,6 +33,19 @@ namespace Assistant.Net.Storage.Internal
         }
 
         public IQueryable<KeyRecord> GetKeys() => backedStorage.Keys.AsQueryable();
+
+        public Task<long> TryRemove(KeyRecord key, long upToIndex, CancellationToken token = default)
+        {
+            if (!backedStorage.TryGetValue(key, out var partition))
+                return Task.FromResult(0L);
+
+            var counter = 0L;
+            foreach (var index in partition.Keys.OrderBy(_ => _).TakeWhile(x => x <= upToIndex))
+                if (partition.TryRemove(index, out _))
+                    counter++;
+
+            return Task.FromResult(counter);
+        }
 
         public void Dispose() { }
     }
