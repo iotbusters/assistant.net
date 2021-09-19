@@ -3,6 +3,9 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Local mongodb work folder
+mongodb*
+
 # Local NuGet configuration file
 nuget.config
 
