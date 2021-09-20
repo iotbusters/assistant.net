@@ -1,17 +1,17 @@
 using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Storage.Tests.Mocks;
+using Assistant.Net.Storage.Mongo.Tests.Mocks;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using System;
 
-namespace Assistant.Net.Storage.Tests
+namespace Assistant.Net.Storage.Mongo.Tests
 {
     public class ServiceCollectionExtensionsTests
     {
         private static IServiceProvider Provider => new ServiceCollection()
             .AddSystemClock()
-            .AddStorage(b => b.AddLocal<TestKey, object>().AddLocalPartitioned<TestKey, object>())
+            .AddStorage(b => b.UseMongo("mongodb://localhost").AddMongo<TestKey, object>().AddMongoPartitioned<TestKey, object>())
             .BuildServiceProvider();
 
         [Test]

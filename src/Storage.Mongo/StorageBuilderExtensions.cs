@@ -4,6 +4,7 @@ using Assistant.Net.Storage.Configuration;
 using Assistant.Net.Storage.Internal;
 using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Storage
@@ -13,6 +14,20 @@ namespace Assistant.Net.Storage
     /// </summary>
     public static class StorageBuilderExtensions
     {
+        /// <summary>
+        ///     Configures the storage to connect a MongoDB database by <paramref name="connectionString"/>.
+        /// </summary>
+        /// <remarks>
+        ///     Pay attention, you need to call explicitly one of overloaded <see cref="Storage.ServiceCollectionExtensions.ConfigureMongoOptions(IServiceCollection, string)"/> to configure.
+        /// </remarks>
+        public static StorageBuilder UseMongo(this StorageBuilder builder, string connectionString)
+        {
+            builder.Services
+                .ConfigureMongoOptions(connectionString)
+                .AddMongoClient();
+            return builder;
+        }
+
         /// <summary>
         ///     Configures the storage to connect a MongoDB database.
         /// </summary>
@@ -50,7 +65,7 @@ namespace Assistant.Net.Storage
             var implementationType = typeof(MongoStorageProvider<>).MakeGenericType(valueType);
 
             builder.Services
-                .ReplaceSingleton(serviceType, implementationType)
+                .ReplaceScoped(serviceType, implementationType)
                 .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
             return builder;
         }
@@ -62,7 +77,7 @@ namespace Assistant.Net.Storage
         {
             builder.Services
                 .AddMongoClient()
-                .ReplaceSingleton(typeof(IStorageProvider<>), typeof(MongoStorageProvider<>))
+                .ReplaceScoped(typeof(IStorageProvider<>), typeof(MongoStorageProvider<>))
                 .ConfigureSerializer(b => b.AddJsonTypeAny());
             return builder;
         }
@@ -83,7 +98,7 @@ namespace Assistant.Net.Storage
 
             builder.Services
                 .AddMongoClient()
-                .ReplaceSingleton(serviceType, implementationType)
+                .ReplaceScoped(serviceType, implementationType)
                 .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
             return builder;
         }
@@ -95,7 +110,7 @@ namespace Assistant.Net.Storage
         {
             builder.Services
                 .AddMongoClient()
-                .ReplaceSingleton(typeof(IPartitionedStorageProvider<>), typeof(MongoPartitionedStorageProvider<>))
+                .ReplaceScoped(typeof(IPartitionedStorageProvider<>), typeof(MongoPartitionedStorageProvider<>))
                 .ConfigureSerializer(b => b.AddJsonTypeAny());
             return builder;
         }

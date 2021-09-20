@@ -30,6 +30,7 @@ namespace Assistant.Net.Storage
                 .TryAddScoped(typeof(IStorage<,>), typeof(Storage<,>))
                 .TryAddScoped(typeof(IAdminStorage<,>), typeof(Storage<,>))
                 .TryAddScoped(typeof(IPartitionedStorage<,>), typeof(PartitionedStorage<,>))
+                .TryAddScoped(typeof(IPartitionedAdminStorage<,>), typeof(PartitionedStorage<,>))
                 .TryAddSingleton(typeof(IValueConverter<>), typeof(TypedValueConverter<>))
                 // todo: optimize converters. e.g. converter.CanConvert(type)
                 .TryAddSingleton<PrimitiveValueConverter>()

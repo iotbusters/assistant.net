@@ -61,6 +61,6 @@ namespace Assistant.Net.Storage.Internal
                 .Select(x => keyConverter.Convert(x.Content, token));
 
         private static ArgumentException ImproperlyConfiguredException() =>
-            new($"Partition storage of '{typeof(TValue).Name}' wasn't properly configured.");
+            new($"Partitioned storage of '{typeof(TValue).Name}' wasn't properly configured.");
     }
 }

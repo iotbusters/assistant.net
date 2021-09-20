@@ -11,18 +11,6 @@ namespace Assistant.Net.Storage.Tests.Internal
 {
     public class LocalStorageTests
     {
-        private IServiceProvider provider = null!;
-
-        [SetUp]
-        public void Setup() =>
-            provider = new ServiceCollection()
-                .AddSystemClock()
-                .AddStorage(builder => builder.AddLocal<TestKey, TestValue>())
-                .BuildServiceProvider();
-
-        private IAdminStorage<TestKey, TestValue> Storage =>
-            provider.CreateScope().ServiceProvider.GetRequiredService<IAdminStorage<TestKey, TestValue>>();
-
         [Test]
         public async Task AddOrGet_addsAndGets()
         {
@@ -44,14 +32,14 @@ namespace Assistant.Net.Storage.Tests.Internal
         }
 
         [Test]
-        public async Task TryGet_None_notExists()
+        public async Task TryGet_returnsNone_notExists()
         {
             var value = await Storage.TryGet(new TestKey("key"));
             value.Should().Be(new None<TestValue>());
         }
 
         [Test]
-        public async Task TryGet_Some_exists()
+        public async Task TryGet_returnsSome_exists()
         {
             await Storage.AddOrGet(new TestKey("key"), new TestValue("value"));
 
@@ -60,14 +48,14 @@ namespace Assistant.Net.Storage.Tests.Internal
         }
 
         [Test]
-        public async Task TryRemove_None_notExists()
+        public async Task TryRemove_returnsNone_notExists()
         {
             var value = await Storage.TryRemove(new TestKey("key"));
             value.Should().Be(new None<TestValue>());
         }
 
         [Test]
-        public async Task TryRemove_Some_exists()
+        public async Task TryRemove_returnsSome_exists()
         {
             await Storage.AddOrGet(new TestKey("key"), new TestValue("value"));
 
@@ -76,12 +64,58 @@ namespace Assistant.Net.Storage.Tests.Internal
         }
 
         [Test]
-        public async Task GetKeys_listOfKeys()
+        public async Task GetKeys_returnsListOfKeys()
         {
             await Storage.AddOrGet(new TestKey("key"), new TestValue("value"));
 
             var value = await Storage.GetKeys().AsEnumerableAsync();
             value.Should().BeEquivalentTo(new TestKey("key"));
         }
+
+        [Test]
+        public async Task TryGet_returnsSome_FromStorageProviderOfTheSameValue()
+        {
+            var provider = new ServiceCollection()
+                .AddStorage(b => b.AddLocal<TestKey, TestValue>())
+                .BuildServiceProvider();
+
+            var storage1 = provider.GetRequiredService<IStorage<TestKey, TestValue>>();
+            var storage2 = provider.GetRequiredService<IStorage<TestKey, TestValue>>();
+
+            var key = new TestKey("key");
+            await storage1.AddOrGet(key, new TestValue("value"));
+            var value = await storage2.TryGet(key);
+
+            value.Should().Be(Option.Some(new TestValue("value")));
+        }
+
+        [Test]
+        public async Task TryGet_returnsNone_FromStorageOfAnotherValue()
+        {
+            var provider = new ServiceCollection()
+                .AddStorage(b => b.AddLocal<TestKey, object>().AddLocal<TestKey, string>())
+                .BuildServiceProvider();
+
+            var storage1 = provider.GetRequiredService<IStorage<TestKey, object>>();
+            var storage2 = provider.GetRequiredService<IStorage<TestKey, string>>();
+
+            var key = new TestKey("key");
+            await storage1.AddOrGet(key, "value");
+            var value = await storage2.TryGet(key);
+
+            value.Should().Be((Option<string>)Option.None);
+        }
+
+        [SetUp]
+        public void Setup() =>
+            Provider = new ServiceCollection()
+                .AddSystemClock()
+                .AddStorage(b => b.AddLocal<TestKey, TestValue>())
+                .BuildServiceProvider();
+
+        private IServiceProvider Provider { get; set; } = null!;
+
+        private IAdminStorage<TestKey, TestValue> Storage =>
+            Provider.CreateScope().ServiceProvider.GetRequiredService<IAdminStorage<TestKey, TestValue>>();
     }
 }

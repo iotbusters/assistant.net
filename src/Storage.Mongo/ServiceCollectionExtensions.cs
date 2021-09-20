@@ -18,11 +18,10 @@ namespace Assistant.Net.Storage
         public const string DefaultConnectionStringName = "StorageDatabase";
 
         /// <summary>
-        ///     Registers a default <see cref="MongoOptions"/> configuration from the configured default connection string at:
-        ///     <b>ConnectionStrings:StorageDatabase</b>.
+        ///     Registers a <see cref="MongoOptions"/> configuration from MongoDB <paramref name="connectionString"/>.
         /// </summary>
-        public static IServiceCollection ConfigureMongoOptions(this IServiceCollection services) => services
-            .Configure<MongoOptions, IConfiguration>((o, c) => o.ConnectionString = c.GetConnectionString(DefaultConnectionStringName));
+        public static IServiceCollection ConfigureMongoOptions(this IServiceCollection services, string connectionString) => services
+            .Configure<MongoOptions>(o => o.ConnectionString = connectionString);
 
         /// <summary>
         ///     Registers a configuration instance which <see cref="MongoOptions"/> will bind against.
@@ -40,7 +39,7 @@ namespace Assistant.Net.Storage
         ///     Registers <see cref="IMongoClient"/> implementation.
         /// </summary>
         /// <remarks>
-        ///     Pay attention, you need to call explicitly one of overloaded <see cref="ConfigureMongoOptions(IServiceCollection)"/> to configure.
+        ///     Pay attention, you need to call explicitly one of overloaded <see cref="ConfigureMongoOptions(IServiceCollection, string)"/> to configure.
         /// </remarks>
         public static IServiceCollection AddMongoClient(this IServiceCollection services) => services
             .TryAddScoped<IMongoClient>(p =>
