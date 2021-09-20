@@ -1,7 +1,6 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
-using Assistant.Net.Storage.Mongo.Models;
 using Assistant.Net.Unions;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
@@ -11,7 +10,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Storage.Mongo.Internal
+namespace Assistant.Net.Storage.Internal
 {
     internal class MongoPartitionedStorageProvider<TValue> : IPartitionedStorageProvider<TValue>
     {
@@ -19,6 +18,7 @@ namespace Assistant.Net.Storage.Mongo.Internal
         private const string KeyCollectionName = "PartitionKeys";
         private const string KeyValueCollectionName = "PartitionIndexes";
         private const string ValueCollectionName = "PartitionRecords";
+        private const int DefaultPartitionIndex = 0;
 
         private readonly IMongoCollection<MongoPartitionKeyRecord> keyCollection;
         private readonly IMongoCollection<MongoPartitionKeyValueRecord> keyValueCollection;
@@ -52,8 +52,8 @@ namespace Assistant.Net.Storage.Mongo.Internal
                     .OrderByDescending(x => x.Key.Index)
                     .Select(x => x.Key.Index)
                     .FirstOrDefaultAsync(token);
-                
-                if (latestIndex == 0)
+
+                if (latestIndex == DefaultPartitionIndex)
                 {
                     var initialKeyRecord = new MongoPartitionKeyRecord(
                         new PartitionKey(key.Id, latestIndex),
@@ -74,7 +74,7 @@ namespace Assistant.Net.Storage.Mongo.Internal
         /// <exception cref="ArgumentOutOfRangeException" />
         public async Task<Option<ValueRecord>> TryGet(KeyRecord key, long index, CancellationToken token)
         {
-            if (index <= 0)
+            if (index <= DefaultPartitionIndex)
                 throw new ArgumentOutOfRangeException(nameof(index), $"Value must be bigger than 0 but it was {index}.");
 
             var valueRecord = await
@@ -90,7 +90,7 @@ namespace Assistant.Net.Storage.Mongo.Internal
         {
             var requestedKeyValueIds = await
                 (from kv in keyValueCollection.AsQueryable(new AggregateOptions())
-                    where kv.Key.Id == key.Id && kv.Key.Index > 0 && kv.Key.Index <= upToIndex
+                    where kv.Key.Id == key.Id && kv.Key.Index > DefaultPartitionIndex && kv.Key.Index <= upToIndex
                     select kv.Key).ToListAsync(token);
 
             var deletedCount = await DeleteMany(keyValueCollection, x => requestedKeyValueIds.Contains(x.Key), token);
@@ -118,7 +118,7 @@ namespace Assistant.Net.Storage.Mongo.Internal
 
         public IQueryable<KeyRecord> GetKeys() =>
             keyCollection.AsQueryable(new AggregateOptions())
-                .Where(x => x.Key.Index == 0)
+                .Where(x => x.Key.Index == DefaultPartitionIndex)
                 .Select(x => new KeyRecord(x.Key.Id, x.Type, x.Content, x.Audit));
 
         public void Dispose() { /* The mongo client is DI managed. */ }

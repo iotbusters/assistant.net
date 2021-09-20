@@ -24,7 +24,7 @@ namespace Assistant.Net.Messaging
                 .AddDiagnostics()
                 .AddTypeEncoder()
                 .AddJsonSerialization()
-                .AddHttpClient<IWebMessageHandlerClient, WebMessagehandlerClient>(c => c.Timeout = DefaultTimeout)
+                .AddHttpClient<IWebMessageHandlerClient, WebMessageHandlerClient>(c => c.Timeout = DefaultTimeout)
                 .AddHttpMessageHandler<CorrelationHandler>()
                 .AddHttpMessageHandler<OperationHandler>()
                 .AddHttpMessageHandler<AuthorizationHandler>()

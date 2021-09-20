@@ -1,12 +1,12 @@
 ﻿using Assistant.Net.Serialization;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Configuration;
-using Assistant.Net.Storage.Mongo.Internal;
-using Assistant.Net.Storage.Mongo.Options;
+using Assistant.Net.Storage.Internal;
+using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Configuration;
 using System;
 
-namespace Assistant.Net.Storage.Mongo
+namespace Assistant.Net.Storage
 {
     /// <summary>
     ///     Storage builder extensions for configuring MongoDB storages.

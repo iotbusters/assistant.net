@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Assistant.Net.Storage.Mongo.Options
+namespace Assistant.Net.Storage.Options
 {
     /// <summary>
     ///     MongoDB client configurations used for specific storage usage.

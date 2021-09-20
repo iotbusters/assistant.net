@@ -11,13 +11,13 @@ namespace Assistant.Net.Messaging.Internal
     /// <summary>
     ///     Strongly typed http client for remote message handling.
     /// </summary>
-    internal class WebMessagehandlerClient : IWebMessageHandlerClient
+    internal class WebMessageHandlerClient : IWebMessageHandlerClient
     {
         private readonly HttpClient client;
         private readonly ITypeEncoder typeEncoder;
         private readonly ISerializerFactory factory;
 
-        public WebMessagehandlerClient(
+        public WebMessageHandlerClient(
             HttpClient client,
             ITypeEncoder typeEncoder,
             ISerializerFactory factory)

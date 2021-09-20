@@ -1,4 +1,4 @@
-﻿namespace Assistant.Net.Storage.Mongo.Models
+﻿namespace Assistant.Net.Storage.Models
 {
     /// <summary>
     ///     The value uniquely representing a value across a partitioned storage.
