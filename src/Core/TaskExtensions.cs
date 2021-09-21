@@ -15,6 +15,31 @@ namespace Assistant.Net
         public static async Task<TResult> Map<TSource, TResult>(
             this Task<TSource> source,
             Func<TSource, TResult> completeSelector,
+            Func<Exception, TResult> faultFactory)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (completeSelector == null) throw new ArgumentNullException(nameof(completeSelector));
+            try
+            {
+                return completeSelector(await source);
+            }
+            catch (TaskCanceledException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                return faultFactory(e);
+            }
+        }
+
+        /// <summary>
+        ///     Substitutes original exception or result depending on a task status when <paramref name="source"/> task completed.
+        /// </summary>
+        /// <exception cref="ArgumentNullException"/>
+        public static async Task<TResult> Map<TSource, TResult>(
+            this Task<TSource> source,
+            Func<TSource, TResult> completeSelector,
             Func<Exception, Exception>? faultSelector)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));

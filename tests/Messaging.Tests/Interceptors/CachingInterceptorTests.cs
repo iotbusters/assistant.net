@@ -42,7 +42,7 @@ namespace Assistant.Net.Messaging.Tests.Interceptors
         [Test]
         public async Task Intercept_returnsResponseFromCache()
         {
-            await cache.AddOrGet(Message.GetSha1(), _ => new CachingValueResult<TestResponse>(new TestResponse(false)));
+            await interceptor.Intercept((_, _) => Task.FromResult<object>(new TestResponse(false)), Message);
 
             var response = await interceptor.Intercept((_, _) => Task.FromResult<object>(new TestResponse(true)), Message);
 

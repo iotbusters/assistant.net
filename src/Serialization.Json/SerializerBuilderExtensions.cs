@@ -53,9 +53,8 @@ namespace Assistant.Net.Serialization
             where TConverter : JsonConverter
         {
             builder.Services
-                .TryAddScoped<TConverter>()
-                .Configure<JsonSerializerOptions, TConverter>((options, converter) => options
-                    .Converters.Add(converter));
+                .TryAddSingleton<TConverter>()
+                .Configure<JsonSerializerOptions, TConverter>((options, converter) => options.Converters.Add(converter));
             return builder;
         }
     }

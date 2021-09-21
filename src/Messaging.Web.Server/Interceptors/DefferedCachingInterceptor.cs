@@ -21,12 +21,11 @@ namespace Assistant.Net.Messaging.Interceptors
             Func<IMessage<object>, CancellationToken, Task<object>> next, IMessage<object> message, CancellationToken token)
         {
             var key = message.GetSha1();
-            var task = next(message, token).WhenFaulted(x =>
+            return deferredCache.GetOrAdd(key, _ => next(message, token).WhenFaulted(x =>
             {
                 if (!IsCacheable(x))
-                    deferredCache.TryRemove(key, out _);
-            });
-            return deferredCache.GetOrAdd(key, _ => task).GetTask();
+                    deferredCache.TryRemove(key, out var _);
+            })).GetTask();
         }
 
         private static bool IsCacheable(Exception ex)

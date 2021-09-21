@@ -70,7 +70,7 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Removes an interceptor type <typeparamref name="TInterceptor" /> from the list.
         /// </summary>
-        public static MessagingClientBuilder Remove<TInterceptor>(this MessagingClientBuilder builder)
+        public static MessagingClientBuilder RemoveInterceptor<TInterceptor>(this MessagingClientBuilder builder)
             where TInterceptor : class, IAbstractInterceptor
         {
             builder.Services.ConfigureMessagingClientOptions(o => o.Interceptors.Remove(typeof(TInterceptor)));

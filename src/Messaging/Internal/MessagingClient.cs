@@ -68,7 +68,7 @@ namespace Assistant.Net.Messaging.Internal
                     interceptor: (next, args) =>
                     {
                         var message = args[0]!;
-                        var token = (CancellationToken) args[1]!;
+                        var token = (CancellationToken)args[1]!;
                         token.ThrowIfCancellationRequested();
 
                         return interceptor.Intercept((m, t) => next(new[] {m, t}), message, token);
