@@ -1,5 +1,6 @@
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Options;
+using Assistant.Net.Storage;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
@@ -13,12 +14,16 @@ namespace Assistant.Net.Messaging.Interceptors
     {
         // todo: consider removing if disabled in configuration (https://github.com/iotbusters/assistant.net/issues/1)
         /// <inheritdoc/>
-        public void Configure(MessagingClientBuilder builder) => builder
-            .ClearInterceptors()
-            .AddInterceptor<DiagnosticsInterceptor>()
-            .AddInterceptor<ErrorHandlingInterceptor>()
-            .AddInterceptor<CachingInterceptor>()
-            .AddInterceptor<DeferredCachingInterceptor>()
-            .AddInterceptor<TimeoutInterceptor>();
+        public void Configure(MessagingClientBuilder builder)
+        {
+            builder.Services.AddStorage(b => b.AddLocal<string, CachingResult>());
+            builder
+                .ClearInterceptors()
+                .AddInterceptor<DiagnosticsInterceptor>()
+                .AddInterceptor<ErrorHandlingInterceptor>()
+                .AddInterceptor<CachingInterceptor>()
+                .AddInterceptor<DeferredCachingInterceptor>()
+                .AddInterceptor<TimeoutInterceptor>();
+        }
     }
 }
