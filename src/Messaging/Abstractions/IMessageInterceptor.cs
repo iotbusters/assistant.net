@@ -20,7 +20,7 @@ namespace Assistant.Net.Messaging.Abstractions
 
         async Task<object> IAbstractInterceptor.Intercept(
             Func<object, CancellationToken, Task<object>> next, object message, CancellationToken token) =>
-            await Intercept(next, (TMessage) message, token);
+            (await Intercept((m, t) => next(m, t).MapCompleted(x => (TResponse)x), (TMessage)message, token))!;
     }
 
     /// <summary>

@@ -46,5 +46,17 @@ namespace Assistant.Net.Messaging.Tests.Internal
             await client.Awaiting(x => x.Send(new TestMessage(1)))
                 .Should().ThrowAsync<InvalidOperationException>().WithMessage("test");
         }
+
+        [Test]
+        public async Task Send_returnsResponseObject_defaultInterceptors()
+        {
+            var client = new ServiceCollection()
+                .AddMessagingClient(b => b.AddLocal<TestMessageHandler>())
+                .BuildServiceProvider()
+                .GetRequiredService<IMessagingClient>();
+
+            var response = await client.Send(new TestMessage(0));
+            response.Should().BeOfType<TestResponse>();
+        }
     }
 }

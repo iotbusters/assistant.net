@@ -1,7 +1,6 @@
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Unions;
 using Assistant.Net.Utils;
 using System;
 using System.Linq;
@@ -23,18 +22,32 @@ namespace Assistant.Net.Messaging.Interceptors
 
         /// <inheritdoc/>
         public async Task<object> Intercept(
-            Func<IMessage<object>, CancellationToken, Task<object>> next, IMessage<object> message, CancellationToken token)
+            Func<IMessage<object>, CancellationToken, Task<object>> next,
+            IMessage<object> message,
+            CancellationToken token)
         {
             var key = message.GetSha1();
-            if (await cache.TryGet(key, token) is Some<CachingResult>(var cached))
-                return cached.GetValue();
-
-            return await next(message, token).When(
-                completeAction: x => cache.AddOrGet(key, new CachingValueResult<dynamic>(x), token),
-                faultAction: x =>
+            var cached = await cache.AddOrGet(key, async _ =>
+            {
+                try
                 {
-                    if (IsCacheable(x)) cache.AddOrGet(key, new CachingExceptionResult(x), token);
-                });
+                    var response = await next(message, token);
+                    var resultType = typeof(CachingValueResult<>).MakeGenericType(response.GetType());
+                    return (CachingResult)Activator.CreateInstance(resultType, response)!;
+                }
+                catch (TaskCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    if (IsCacheable(e))
+                        return new CachingExceptionResult(e);
+                    throw;
+                }
+            }, token);
+
+            return cached.GetValue();
         }
 
         private static bool IsCacheable(Exception ex)
