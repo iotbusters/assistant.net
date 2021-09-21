@@ -18,6 +18,10 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
 
+- [Assistant.NET Release 0.1.79](https://github.com/iotbusters/assistant.net/releases/tag/0.1.79)
+  - fixed infinit loop in message client
+  - fixed caching interceptor
+
 - [Assistant.NET Release 0.1.78](https://github.com/iotbusters/assistant.net/releases/tag/0.1.78)
   - introduced none backward compatible change to remote messaging
   - local storage refactoring
