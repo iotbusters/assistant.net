@@ -2,7 +2,6 @@ using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Storage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -34,12 +33,21 @@ namespace Assistant.Net.Messaging
         ///     Registers remote message handling server configuration customized by <paramref name="configure" />.
         /// </summary>
         public static IServiceCollection AddRemoteWebMessageHandler(this IServiceCollection services, Action<MessagingClientBuilder> configure) => services
+            .AddRemoteWebMessageHandlerMiddlewares()
             .AddSystemServicesHosted()
             .AddDiagnosticsWebHosted()
             .AddJsonSerialization()
             .AddMessagingClient()
             .ConfigureMessageClient(b => b.AddConfiguration<ServerInterceptorConfiguration>())
             .ConfigureMessageClient(configure);
+
+        /// <summary>
+        ///     Registers remote message handling middlewares.
+        /// </summary>
+        public static IServiceCollection AddRemoteWebMessageHandlerMiddlewares(this IServiceCollection services) => services
+            .TryAddSingleton<RemoteDiagnosticMiddleware>()
+            .TryAddSingleton<RemoteExceptionHandlingMiddleware>()
+            .TryAddSingleton<RemoteMessageHandlingMiddleware>();
 
         /// <exception cref="InvalidOperationException" />
         private static string InitializeFromHttpContext(IServiceProvider provider)

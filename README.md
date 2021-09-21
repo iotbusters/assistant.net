@@ -18,15 +18,17 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
 
-- [Assistant.NET Release 0.1.79](https://github.com/iotbusters/assistant.net/releases/tag/0.1.79)
-  - fixed infinit loop in message client
-  - fixed caching interceptor
+- [Assistant.NET Release 0.1.80](https://github.com/iotbusters/assistant.net/releases/tag/0.1.80)
+  - removed some remote message server handling duplicates
+  - removed requirement to handle only message requests on a configured host
 
+- [Assistant.NET Release 0.1.79](https://github.com/iotbusters/assistant.net/releases/tag/0.1.79)
+  - fixed infinite loop in message client
+  - fixed caching interceptor
 - [Assistant.NET Release 0.1.78](https://github.com/iotbusters/assistant.net/releases/tag/0.1.78)
   - introduced none backward compatible change to remote messaging
   - local storage refactoring
   - added mongo storage provider
-
 - [Assistant.NET Release 0.1.72](https://github.com/iotbusters/assistant.net/releases/tag/0.1.72)
   - refactored `Serialization.Json` to support polimorphic and generic value types
   - refactored key-value storing mechanism in `Storage`

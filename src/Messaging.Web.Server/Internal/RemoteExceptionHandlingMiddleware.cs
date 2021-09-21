@@ -17,6 +17,13 @@ namespace Assistant.Net.Messaging.Internal
 
         public async Task Invoke(HttpContext context)
         {
+            if (context.Request.Method != HttpMethods.Post
+                || !context.Request.Path.StartsWithSegments("/messages"))
+            {
+                await next(context);
+                return;
+            }
+
             try
             {
                 await next(context);

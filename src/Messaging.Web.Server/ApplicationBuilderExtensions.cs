@@ -12,12 +12,9 @@ namespace Assistant.Net.Messaging
         ///     Adds message handling middleware to pipeline intercepting remote message handling requests.
         ///     It should be registered before routing middlewares.
         /// </summary>
-        /// <remarks>
-        ///     Pay attention, it duplicates <see cref="EndpointRouteBuilderExtensions.MapRemoteMessageHandling" /> behavior.
-        /// </remarks>
         public static IApplicationBuilder UseRemoteWebMessageHandler(this IApplicationBuilder builder) => builder
             .UseRemoteExceptionHandling()
-            .UseMiddleware<DiagnosticMiddleware>()
+            .UseMiddleware<RemoteDiagnosticMiddleware>()
             .UseMiddleware<RemoteMessageHandlingMiddleware>();
 
         /// <summary>

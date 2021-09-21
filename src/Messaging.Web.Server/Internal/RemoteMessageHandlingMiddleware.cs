@@ -7,20 +7,28 @@ namespace Assistant.Net.Messaging.Internal
     /// <summary>
     ///     Routingless remote message handling middleware.
     /// </summary>
-    internal class RemoteMessageHandlingMiddleware : RemoteMessageHandlingEndpointMiddleware
+    internal class RemoteMessageHandlingMiddleware : IMiddleware
     {
-        private readonly RequestDelegate next;
+        private readonly IMessagingClient client;
 
-        public RemoteMessageHandlingMiddleware(RequestDelegate next, IMessagingClient client) : base(client) =>
-            this.next = next;
-
-        public override Task Invoke(HttpContext httpContext)
+        public RemoteMessageHandlingMiddleware(IMessagingClient client)
         {
-            if (httpContext.Request.Method == HttpMethods.Post
-                && httpContext.Request.Path.StartsWithSegments("/messages"))
-                return base.Invoke(httpContext);
+            this.client = client;
+        }
 
-            return next(httpContext);
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+        {
+            if (context.Request.Method != HttpMethods.Post
+                || !context.Request.Path.StartsWithSegments("/messages"))
+            {
+                await next(context);
+                return;
+            }
+
+            var message = await context.ReadMessageObject();
+            var response = await client.Send(message);
+
+            await context.WriteMessageResponse(200, response);
         }
     }
 }
