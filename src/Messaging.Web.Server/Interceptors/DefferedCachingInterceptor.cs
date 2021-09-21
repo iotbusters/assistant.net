@@ -14,7 +14,7 @@ namespace Assistant.Net.Messaging.Interceptors
     /// </summary>
     public sealed class DeferredCachingInterceptor : IMessageInterceptor
     {
-        private static readonly ConcurrentDictionary<string, DeferredCachingResult> DeferredCache = new();
+        private static readonly ConcurrentDictionary<string, DeferredCachingResult> deferredCache = new();
 
         /// <inheritdoc/>
         public Task<object> Intercept(
@@ -24,9 +24,9 @@ namespace Assistant.Net.Messaging.Interceptors
             var task = next(message, token).WhenFaulted(x =>
             {
                 if (!IsCacheable(x))
-                    DeferredCache.TryRemove(key, out _);
+                    deferredCache.TryRemove(key, out _);
             });
-            return DeferredCache.GetOrAdd(key, _ => task).GetTask();
+            return deferredCache.GetOrAdd(key, _ => task).GetTask();
         }
 
         private static bool IsCacheable(Exception ex)

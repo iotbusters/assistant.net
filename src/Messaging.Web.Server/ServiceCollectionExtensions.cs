@@ -37,8 +37,6 @@ namespace Assistant.Net.Messaging
             .AddSystemServicesHosted()
             .AddDiagnosticsWebHosted()
             .AddJsonSerialization()
-            .AddTypeEncoder()
-            .AddStorage(b => b.AddLocal<string, DeferredCachingResult>())
             .AddMessagingClient()
             .ConfigureMessageClient(b => b.AddConfiguration<ServerInterceptorConfiguration>())
             .ConfigureMessageClient(configure);
