@@ -15,6 +15,6 @@ namespace Assistant.Net.Abstractions
         /// <summary>
         ///     Encode <paramref name="type"/> to <see cref="string"/> value.
         /// </summary>
-         string Encode(Type type);
+         string? Encode(Type type);
     }
 }

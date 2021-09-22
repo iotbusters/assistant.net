@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace Assistant.Net.Internal
@@ -17,7 +18,8 @@ namespace Assistant.Net.Internal
         private const string GenericTypeArgumentsSeparator = ",";
 
         private readonly Dictionary<string, Type> knownTypes = new();
-        private readonly Regex regex = new("^(\\w+`\\d)(\\[(\\w+(,\\w+)*)\\])?$", RegexOptions.Compiled);
+        private readonly Regex arrayRegex = new("^(\\w+)(\\[(,*)\\])?$", RegexOptions.Compiled);
+        private readonly Regex genericRegex = new("^(\\w+`\\d)(\\[([\\[\\]`,\\w]+)*\\])?$", RegexOptions.Compiled);
 
         public TypeEncoder()
         {
@@ -33,30 +35,47 @@ namespace Assistant.Net.Internal
             if (knownTypes.TryGetValue(encodedType, out var type))
                 return type;
 
-            var match = regex.Match(encodedType);
-            if (!match.Success)
-                return null;
+            var arrayMatch = arrayRegex.Match(encodedType);
+            if (arrayMatch.Success)
+            {
+                var arrayType = arrayMatch.Groups[1].Value;
+                var arrayRanksDefinition = arrayMatch.Groups[3].Value;
 
-            var typeDefinitionName = match.Groups[1].Value;
-            var argumentTypeNames = match.Groups[3].Value.Split(GenericTypeArgumentsSeparator);
+                if (!knownTypes.TryGetValue(arrayType, out var typeDefinition))
+                    return null; // unknown array type
 
-            if (!knownTypes.TryGetValue(typeDefinitionName, out var typeDefinition))
-                return null;
+                if (arrayRanksDefinition.Length == 0)
+                    return typeDefinition.MakeArrayType();
 
-            var argumentTypes = argumentTypeNames.Select(Decode).ToArray();
-            if (argumentTypes.Any(x => x == null))
-                return null;
+                return typeDefinition.MakeArrayType(arrayRanksDefinition.Length + 1);
+            }
 
-            return typeDefinition.MakeGenericType(argumentTypes!);
+            var genericMatch = genericRegex.Match(encodedType);
+            if (genericMatch.Success)
+            {
+                var typeDefinitionName = genericMatch.Groups[1].Value;
+                var argumentTypeNames = genericMatch.Groups[3].Value.Split(GenericTypeArgumentsSeparator);
+
+                if (!knownTypes.TryGetValue(typeDefinitionName, out var typeDefinition))
+                    return null; // unknown definition type
+
+                var argumentTypes = argumentTypeNames.Select(Decode).ToArray();
+                if (argumentTypes.Any(x => x == null))
+                    return null; // unknown argument type
+
+                return typeDefinition.MakeGenericType(argumentTypes!);
+            }
+
+            return null; // not supported
         }
 
         /// <exception cref="ArgumentException"/>
-        public string Encode(Type type)
+        public string? Encode(Type type)
         {
-            if (type.IsGenericTypeDefinition)
-                throw new ArgumentException($"Argument cannot be generic type definition but '{type}' is.", nameof(type));
+            if (type.GetCustomAttribute<CompilerGeneratedAttribute>() != null)
+                return null;// not supported
 
-            if (!type.IsGenericType)
+            if (!type.IsGenericType || type.IsGenericTypeDefinition)
                 return type.Name;
 
             var argumentTypeNames = type.GetGenericArguments().Select(Encode);
