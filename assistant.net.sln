@@ -67,6 +67,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Storage.Mongo", "src\Storag
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Storage.Mongo.Tests", "tests\Storage.Mongo.Tests\Storage.Mongo.Tests.csproj", "{54CD169A-AA86-49AB-9745-9F835FEF7A6A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Diagnostics.Tests", "tests\Diagnostics.Tests\Diagnostics.Tests.csproj", "{76AD6ABE-6281-4EFF-B4BD-B2CF83344BC9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -293,6 +295,18 @@ Global
 		{54CD169A-AA86-49AB-9745-9F835FEF7A6A}.Release|x64.Build.0 = Release|Any CPU
 		{54CD169A-AA86-49AB-9745-9F835FEF7A6A}.Release|x86.ActiveCfg = Release|Any CPU
 		{54CD169A-AA86-49AB-9745-9F835FEF7A6A}.Release|x86.Build.0 = Release|Any CPU
+		{76AD6ABE-6281-4EFF-B4BD-B2CF83344BC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76AD6ABE-6281-4EFF-B4BD-B2CF83344BC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76AD6ABE-6281-4EFF-B4BD-B2CF83344BC9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{76AD6ABE-6281-4EFF-B4BD-B2CF83344BC9}.Debug|x64.Build.0 = Debug|Any CPU
+		{76AD6ABE-6281-4EFF-B4BD-B2CF83344BC9}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{76AD6ABE-6281-4EFF-B4BD-B2CF83344BC9}.Debug|x86.Build.0 = Debug|Any CPU
+		{76AD6ABE-6281-4EFF-B4BD-B2CF83344BC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76AD6ABE-6281-4EFF-B4BD-B2CF83344BC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76AD6ABE-6281-4EFF-B4BD-B2CF83344BC9}.Release|x64.ActiveCfg = Release|Any CPU
+		{76AD6ABE-6281-4EFF-B4BD-B2CF83344BC9}.Release|x64.Build.0 = Release|Any CPU
+		{76AD6ABE-6281-4EFF-B4BD-B2CF83344BC9}.Release|x86.ActiveCfg = Release|Any CPU
+		{76AD6ABE-6281-4EFF-B4BD-B2CF83344BC9}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -317,6 +331,7 @@ Global
 		{736C9191-E598-4499-BA58-19FB5C461E83} = {B61F8903-EF78-4C57-9CCC-0758D49B4C48}
 		{F0D14515-0516-4AD8-9ABC-D126A13BB2F1} = {16267B81-E515-4C2E-8BE9-671F5E6DE6E6}
 		{54CD169A-AA86-49AB-9745-9F835FEF7A6A} = {B61F8903-EF78-4C57-9CCC-0758D49B4C48}
+		{76AD6ABE-6281-4EFF-B4BD-B2CF83344BC9} = {B61F8903-EF78-4C57-9CCC-0758D49B4C48}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {785A054B-D40C-486E-9A4F-1A7CA8F4FCD7}

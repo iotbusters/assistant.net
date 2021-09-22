@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Assistant.Net.Diagnostics.EventSources;
+using System.Collections.Generic;
 using System.Diagnostics.Tracing;
-using Assistant.Net.Diagnostics.EventSources;
 
 namespace Assistant.Net.Diagnostics.Tests.Mocks
 {
@@ -8,7 +8,7 @@ namespace Assistant.Net.Diagnostics.Tests.Mocks
     {
         protected override void OnEventSourceCreated(EventSource eventSource)
         {
-            if (eventSource.Name != EventNames.EventName)
+            if (eventSource.Name != EventNames.OperationEventName)
                 return;
 
             EnableEvents(eventSource, EventLevel.Verbose, EventKeywords.All);
@@ -17,6 +17,6 @@ namespace Assistant.Net.Diagnostics.Tests.Mocks
         protected override void OnEventWritten(EventWrittenEventArgs eventData) =>
             EventPayloads.Add(eventData);
 
-        public List<EventWrittenEventArgs> EventPayloads { get; } = new List<EventWrittenEventArgs>();
+        public List<EventWrittenEventArgs> EventPayloads { get; } = new();
     }
 }

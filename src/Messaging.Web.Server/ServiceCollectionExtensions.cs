@@ -45,9 +45,9 @@ namespace Assistant.Net.Messaging
         ///     Registers remote message handling middlewares.
         /// </summary>
         public static IServiceCollection AddRemoteWebMessageHandlerMiddlewares(this IServiceCollection services) => services
-            .TryAddSingleton<RemoteDiagnosticMiddleware>()
-            .TryAddSingleton<RemoteExceptionHandlingMiddleware>()
-            .TryAddSingleton<RemoteMessageHandlingMiddleware>();
+            .TryAddTransient<RemoteDiagnosticMiddleware>()
+            .TryAddTransient<RemoteExceptionHandlingMiddleware>()
+            .TryAddTransient<RemoteMessageHandlingMiddleware>();
 
         /// <exception cref="InvalidOperationException" />
         private static string InitializeFromHttpContext(IServiceProvider provider)

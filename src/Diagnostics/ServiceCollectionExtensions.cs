@@ -16,7 +16,7 @@ namespace Assistant.Net.Diagnostics
         /// </summary>
         public static IServiceCollection AddDiagnosticContext(this IServiceCollection services) => services
             .TryAddScoped(_ => new DiagnosticContext())
-            .TryAddScoped(InitializeWith(p => Guid.NewGuid().ToString()));
+            .TryAddScoped(InitializeWith(_ => Guid.NewGuid().ToString()));
 
         /// <summary>
         ///     Registers diagnostic context customized by a function <paramref name="getCorrelationId" />.
