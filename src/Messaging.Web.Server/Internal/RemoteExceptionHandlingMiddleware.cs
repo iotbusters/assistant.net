@@ -8,14 +8,9 @@ namespace Assistant.Net.Messaging.Internal
     /// <summary>
     ///     Global error handling middleware.
     /// </summary>
-    internal class RemoteExceptionHandlingMiddleware
+    internal class RemoteExceptionHandlingMiddleware : IMiddleware
     {
-        private readonly RequestDelegate next;
-
-        public RemoteExceptionHandlingMiddleware(RequestDelegate next) =>
-            this.next = next;
-
-        public async Task Invoke(HttpContext context)
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             if (context.Request.Method != HttpMethods.Post
                 || !context.Request.Path.StartsWithSegments("/messages"))

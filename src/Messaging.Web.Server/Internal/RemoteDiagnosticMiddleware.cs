@@ -8,14 +8,15 @@ namespace Assistant.Net.Messaging.Internal
     /// <summary>
     ///     Operation tracking middleware.
     /// </summary>
-    internal class RemoteDiagnosticMiddleware
+    internal class RemoteDiagnosticMiddleware : IMiddleware
     {
-        private readonly RequestDelegate next;
+        private readonly IDiagnosticFactory operationFactory;
 
-        public RemoteDiagnosticMiddleware(RequestDelegate next) =>
-            this.next = next;
+        public RemoteDiagnosticMiddleware(IDiagnosticFactory operationFactory) {
+            this.operationFactory = operationFactory;
+        }
 
-        public async Task Invoke(HttpContext context, IDiagnosticFactory operationFactory)
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             if (context.Request.Method != HttpMethods.Post
                 || !context.Request.Path.StartsWithSegments("/messages"))

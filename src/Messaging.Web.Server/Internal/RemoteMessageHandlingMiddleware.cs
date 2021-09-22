@@ -11,10 +11,8 @@ namespace Assistant.Net.Messaging.Internal
     {
         private readonly IMessagingClient client;
 
-        public RemoteMessageHandlingMiddleware(IMessagingClient client)
-        {
+        public RemoteMessageHandlingMiddleware(IMessagingClient client) =>
             this.client = client;
-        }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
