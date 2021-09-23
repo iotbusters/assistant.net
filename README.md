@@ -18,7 +18,7 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
 
-- [Assistant.NET Release 0.1.84](https://github.com/iotbusters/assistant.net/releases/tag/0.1.84)
+- [Assistant.NET Release 0.1.85](https://github.com/iotbusters/assistant.net/releases/tag/0.1.85)
   - fixed middleware resolving issues in remote web message handling
   - improved type encoder
   - removed some remote message server handling duplicates
