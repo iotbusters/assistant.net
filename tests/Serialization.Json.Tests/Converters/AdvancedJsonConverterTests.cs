@@ -1,3 +1,8 @@
+using Assistant.Net.Serialization.Converters;
+using Assistant.Net.Serialization.Json.Tests.Mocks;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -5,11 +10,6 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using FluentAssertions;
-using NUnit.Framework;
-using Assistant.Net.Serialization.Converters;
-using Assistant.Net.Serialization.Json.Tests.Mocks;
 
 namespace Assistant.Net.Serialization.Json.Tests.Converters
 {
@@ -149,6 +149,10 @@ namespace Assistant.Net.Serialization.Json.Tests.Converters
             yield return new TestCaseData(
                     new TestObjectWithTypeCastingInitialization(TestEnum.A, null, 12, new[] {"test"}))
                 {TestName = "DeserializeObject(Initialize+TypeCasting+DefaultValue)"};
+
+            yield return new TestCaseData(
+                    TestObjectWithPrivateCtor.New(TestEnum.A, "A", 12, 12f, 12m, DateTime.UtcNow))
+                {TestName = "DeserializeObject(Initialize+PrivateCtor)"};
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -141,7 +142,7 @@ namespace Assistant.Net.Serialization.Converters
             key =>
             {
                 var typeProperties = key.GetProperties().ToImmutableDictionary(x => x.Name, IgnoreCase());
-                var metadata = (from ctor in key.GetConstructors()
+                var metadata = (from ctor in key.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
                                 let cParams = (from p in ctor.GetParameters() select p.Name!).ToImmutableList()
                                 let cParamsFound = (from p in ctor.GetParameters()
                                                     let n = p.Name!
@@ -165,7 +166,8 @@ namespace Assistant.Net.Serialization.Converters
                 return metadata;
             });
 
-        private string GetTypeName(Type type) => typeEncoder.Encode(type);
+        private string GetTypeName(Type type) => typeEncoder.Encode(type)
+                                                 ?? throw new JsonException($"Type '{type}' isn't supported.");
 
         /// <exception cref="JsonException"/>
         private Type GetTypeFromName(string typeName) => typeEncoder.Decode(typeName)
