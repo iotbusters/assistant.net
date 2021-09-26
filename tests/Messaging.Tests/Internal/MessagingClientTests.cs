@@ -19,7 +19,7 @@ namespace Assistant.Net.Messaging.Tests.Internal
                 .BuildServiceProvider()
                 .GetRequiredService<IMessagingClient>();
 
-            var response = await client.Send(new TestMessage(0));
+            var response = await client.SendObject(new TestMessage(0));
             response.Should().BeOfType<TestResponse>();
         }
 
@@ -31,7 +31,7 @@ namespace Assistant.Net.Messaging.Tests.Internal
                 .BuildServiceProvider()
                 .GetRequiredService<IMessagingClient>();
 
-            await client.Awaiting(x => x.Send(new TestMessage(0)))
+            await client.Awaiting(x => x.SendObject(new TestMessage(0)))
                 .Should().ThrowAsync<MessageNotRegisteredException>();
         }
 
@@ -43,7 +43,7 @@ namespace Assistant.Net.Messaging.Tests.Internal
                 .BuildServiceProvider()
                 .GetRequiredService<IMessagingClient>();
 
-            await client.Awaiting(x => x.Send(new TestMessage(1)))
+            await client.Awaiting(x => x.SendObject(new TestMessage(1)))
                 .Should().ThrowAsync<InvalidOperationException>().WithMessage("test");
         }
 
@@ -55,7 +55,7 @@ namespace Assistant.Net.Messaging.Tests.Internal
                 .BuildServiceProvider()
                 .GetRequiredService<IMessagingClient>();
 
-            var response = await client.Send(new TestMessage(0));
+            var response = await client.SendObject(new TestMessage(0));
             response.Should().BeOfType<TestResponse>();
         }
     }

@@ -18,7 +18,7 @@ namespace Assistant.Net.Messaging.Integration.Tests
                 .AddRemote<TestScenarioMessageHandler>()
                 .Create();
 
-            var response = await fixture.Client.Send(new TestScenarioMessage(0));
+            var response = await fixture.Client.SendObject(new TestScenarioMessage(0));
 
             response.Should().Be(new TestResponse(false));
         }
@@ -30,7 +30,7 @@ namespace Assistant.Net.Messaging.Integration.Tests
                 .AddRemote<TestSuccessFailureMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.Send(new TestScenarioMessage(0)))
+            fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(0)))
                 .Should().ThrowExactly<MessageNotRegisteredException>()
                 .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
                 .Which.InnerException.Should().BeNull();
@@ -44,7 +44,7 @@ namespace Assistant.Net.Messaging.Integration.Tests
                 .AddRemote<TestSuccessFailureMessageHandler>()// to have at least one handler configured
                 .Create();
 
-            fixture.Client.Awaiting(x => x.Send(new TestScenarioMessage(0)))
+            fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(0)))
                 .Should().ThrowExactly<MessageNotRegisteredException>()
                 .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
                 .Which.InnerException.Should().BeNull();
@@ -60,7 +60,7 @@ namespace Assistant.Net.Messaging.Integration.Tests
                 .AddRemote<TestSuccessFailureMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.Send(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
+            fixture.Client.Awaiting(x => x.SendObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
                 .Should().ThrowExactly<MessageDeferredException>()
                 .Which.InnerException.Should().BeNull();
         }
@@ -72,7 +72,7 @@ namespace Assistant.Net.Messaging.Integration.Tests
                 .AddRemote<TestScenarioMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.Send(new TestScenarioMessage(1)))
+            fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(1)))
                 .Should().ThrowExactly<MessageFailedException>()
                 .WithMessage("Message handling has failed.")
                 .Which.InnerException.Should().BeNull();
@@ -85,7 +85,7 @@ namespace Assistant.Net.Messaging.Integration.Tests
                 .AddRemote<TestScenarioMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.Send(new TestScenarioMessage(2)))
+            fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(2)))
                 .Should().ThrowExactly<MessageFailedException>()
                 .WithMessage("2")
                 .Which.InnerException.Should().BeNull();
@@ -98,7 +98,7 @@ namespace Assistant.Net.Messaging.Integration.Tests
                 .AddRemote<TestScenarioMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.Send(new TestScenarioMessage(3)))
+            fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(3)))
                 .Should().ThrowExactly<MessageFailedException>()
                 .WithMessage("3")
                 .WithInnerExceptionExactly<MessageFailedException>()

@@ -37,7 +37,7 @@ namespace Assistant.Net.Messaging.Internal
         }
 
         /// <exception cref="MessageNotRegisteredException"/>
-        public Task<object> Send(object message, CancellationToken token)
+        public Task<object> SendObject(object message, CancellationToken token)
         {
             using var scope = scopeFactory.CreateScope();
             var provider = scope.ServiceProvider;

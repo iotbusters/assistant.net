@@ -24,7 +24,7 @@ namespace Assistant.Net.Messaging.Internal
             }
 
             var message = await context.ReadMessageObject();
-            var response = await client.Send(message);
+            var response = await client.SendObject(message);
 
             await context.WriteMessageResponse(200, response);
         }
