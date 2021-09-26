@@ -1,4 +1,5 @@
 using Assistant.Net.Unions;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -23,9 +24,12 @@ namespace Assistant.Net.Storage.Abstractions
         public static async IAsyncEnumerable<TValue> GetPartition<TKey, TValue>(
             this IPartitionedStorage<TKey, TValue> storage,
             TKey key,
-            long startIndex = 0,
+            long startIndex = 1,
             [EnumeratorCancellation] CancellationToken token = default)
         {
+            if (startIndex < 1)
+                throw new ArgumentOutOfRangeException(nameof(startIndex), startIndex, "Expected value to be greater or equal than one.");
+
             var index = startIndex;
             while (await storage.TryGet(key, index++, token) is Some<TValue>(var value))
                 yield return value;
