@@ -17,8 +17,13 @@ Hopefully, it will be useful for someone once main functional is ready.
 Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Releases
+
+- [Assistant.NET Release 0.1.88](https://github.com/iotbusters/assistant.net/releases/tag/0.1.88)
+  - fixed default value for reading partition from partitioned storage
+  - introduced none backward compatible change to messaging client
+    - renamed its operations including extensions
 - [Assistant.NET Release 0.1.86](https://github.com/iotbusters/assistant.net/releases/tag/0.1.86)
-  - added provate ctor support for advanced json serializer
+  - added private ctor support for advanced json serializer
   - fixed middleware resolving issues in remote web message handling
   - improved type encoder
   - removed some remote message server handling duplicates
@@ -31,7 +36,7 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
   - added mongo storage provider
 
 <details>
-  <summary>... older releases</summary>
+  <summary>and older</summary>
 
 - [Assistant.NET Release 0.1.72](https://github.com/iotbusters/assistant.net/releases/tag/0.1.72)
   - refactored `Serialization.Json` to support polimorphic and generic value types
@@ -60,6 +65,7 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 - [Release 0.1.40](https://github.com/iotbusters/assistant.net/releases/tag/0.1.40)
   - Added partitioned `Storage`
   - Refactoring and bug fixes
+
 </details>
 
 ## Packages
