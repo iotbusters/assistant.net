@@ -1,5 +1,6 @@
 using System.Threading;
 using Assistant.Net.Abstractions;
+using System;
 
 namespace Assistant.Net.Internal
 {
@@ -16,5 +17,7 @@ namespace Assistant.Net.Internal
         }
 
         public CancellationToken Stopping => stopping.Token;
+
+        public void RequestStopping(TimeSpan? after) => stopping.CancelAfter(after ?? TimeSpan.Zero);
     }
 }
