@@ -34,19 +34,9 @@ namespace Assistant.Net.Utils
         public static string GetSha1<T>(this T value)
         {
             if (typeof(T).IsValueType)
-                return GetStructureSha1(value!);
-            return GetClassSha1(value!);
+                return SerializeStructure(value).GetSha1();
+            return JsonSerializer.SerializeToUtf8Bytes(value, typeof(T)).GetSha1();
         }
-
-        /// <summary>
-        ///     Generates <see cref="SHA1"/> hash code from any reference type.
-        /// </summary>
-        private static string GetClassSha1(this object value) => SerializeClass(value).GetSha1();
-
-        /// <summary>
-        ///     Generates <see cref="SHA1"/> hash code from <typeparamref name="T"/> value type.
-        /// </summary>
-        private static string GetStructureSha1<T>(this T value) => SerializeStructure(value).GetSha1();
 
         private static byte[] SerializeStructure<T>(this T value)
         {
@@ -60,8 +50,5 @@ namespace Assistant.Net.Utils
 
             return bytes;
         }
-
-        private static byte[] SerializeClass(this object value) =>
-            JsonSerializer.SerializeToUtf8Bytes(value, value.GetType());
     }
 }
