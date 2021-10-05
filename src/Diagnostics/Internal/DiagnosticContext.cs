@@ -7,6 +7,13 @@ namespace Assistant.Net.Diagnostics.Internal
     /// </summary>
     internal sealed class DiagnosticContext : IDiagnosticContext
     {
-        public string CorrelationId { get; set; } = null!;
+        /// <summary/>
+        public DiagnosticContext(string correlationId) =>
+            CorrelationId = correlationId;
+
+        /// <summary>
+        ///     Correlation ID in current operation scope.
+        /// </summary>
+        public string CorrelationId { get; }
     }
 }
