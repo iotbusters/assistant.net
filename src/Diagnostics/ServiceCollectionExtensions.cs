@@ -15,15 +15,20 @@ namespace Assistant.Net.Diagnostics
         ///     Registers default diagnostics context.
         /// </summary>
         public static IServiceCollection AddDiagnosticContext(this IServiceCollection services) => services
-            .TryAddScoped(_ => new DiagnosticContext())
-            .TryAddScoped(InitializeWith(_ => Guid.NewGuid().ToString()));
+            .TryAddScoped<IDiagnosticContext>(_ => new DiagnosticContext(Guid.NewGuid().ToString()));
 
         /// <summary>
         ///     Registers diagnostic context customized by a function <paramref name="getCorrelationId" />.
         /// </summary>
         public static IServiceCollection AddDiagnosticContext(this IServiceCollection services, Func<IServiceProvider, string> getCorrelationId) => services
-            .TryAddScoped(_ => new DiagnosticContext())
-            .ReplaceScoped(InitializeWith(getCorrelationId));
+            .ReplaceScoped<IDiagnosticContext>(p => new DiagnosticContext(getCorrelationId(p)));
+
+        /// <summary>
+        ///     Registers custom diagnostic context <typeparamref name="TContext" />.
+        /// </summary>
+        public static IServiceCollection AddDiagnosticContext<TContext>(this IServiceCollection services)
+            where TContext : class, IDiagnosticContext => services
+            .TryAddScoped<IDiagnosticContext, TContext>();
 
         /// <summary>
         ///     Registers diagnostic services.
@@ -33,13 +38,5 @@ namespace Assistant.Net.Diagnostics
             .AddDiagnosticContext()
             .TryAddSingleton(_ => OperationEventSource.Instance)
             .TryAddScoped<IDiagnosticFactory, DiagnosticFactory>();
-
-        private static Func<IServiceProvider, IDiagnosticContext> InitializeWith(Func<IServiceProvider, string> getCorrelationId) =>
-            p =>
-            {
-                var context = p.GetRequiredService<DiagnosticContext>();
-                context.CorrelationId = getCorrelationId(p);
-                return context;
-            };
     }
 }
