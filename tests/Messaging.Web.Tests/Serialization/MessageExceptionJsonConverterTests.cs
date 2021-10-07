@@ -1,4 +1,5 @@
 using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Serialization;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,42 +15,13 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
 {
     public class MessageExceptionJsonConverterTests
     {
-        private readonly JsonSerializerOptions options = new()
-        {
-            Converters = { Provider.GetRequiredService<MessageExceptionJsonConverter>() },
-            DefaultIgnoreCondition = JsonIgnoreCondition.Never
-        };
 
-        [TestCase("")]
-        [TestCase("Some non-json text")]
-        [TestCase("{}")]
-        [TestCase("{\"message\":\"1\"}")]
-        [TestCase("{\"type\":\"MessageFailedException\"}")]
-        public async Task DeserializeInvalidContent(string content)
-        {
-            await using var stream = new MemoryStream();
-            await using var writer = new StreamWriter(stream);
-            await writer.WriteAsync(content);
-            stream.Position = 0;
-
-            await this.Awaiting(_ => JsonSerializer.DeserializeAsync<MessageException>(stream, options))
-            .Should().ThrowAsync<JsonException>();
-        }
-
-        [TestCase("{\"type\":\"Exception\",\"message\":\"1\"}")]
-        public async Task DeserializeNotMessageExceptionContent(string content)
-        {
-            await using var stream = new MemoryStream();
-            await using var writer = new StreamWriter(stream);
-            await writer.WriteAsync(content);
-            stream.Position = 0;
-
-            await this.Awaiting(_ => JsonSerializer.DeserializeAsync<MessageException>(stream, options))
-                .Should().ThrowAsync<JsonException>();
-        }
-
-        [TestCase("{\"type\":\"MessageFailedException\",\"message\":\"1\",\"unknown\":\"2\"}")]
-        public async Task DeserializeAdditionalProperties(string content)
+        [TestCase("", "The input does not contain any JSON tokens. Expected the input to start with a valid JSON token, when isFinalBlock is true. Path: $ | LineNumber: 0 | BytePositionInLine: 0.")]
+        [TestCase("Some non-json text", "'S' is an invalid start of a value. Path: $ | LineNumber: 0 | BytePositionInLine: 0.")]
+        [TestCase("{}", "Property 'type' is required.")]
+        [TestCase("{\"message\":\"1\"}", "Property 'type' is required.")]
+        [TestCase("{\"type\":\"MessageFailedException\"}", "Property 'message' is required.")]
+        public async Task DeserializeAsync_throwsJsonException_invalidContent(string content, string message)
         {
             await using var stream = new MemoryStream();
             await using var writer = new StreamWriter(stream);
@@ -57,14 +29,40 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
             await writer.FlushAsync();
             stream.Position = 0;
 
-            var deserialized = await JsonSerializer.DeserializeAsync<MessageException>(stream, options);
+            await this.Awaiting(_ => JsonSerializer.DeserializeAsync<MessageException>(stream, Options()))
+            .Should().ThrowAsync<JsonException>().WithMessage(message);
+        }
+
+        [TestCase("{\"type\":\"Exception\",\"message\":\"1\"}")]
+        public async Task DeserializeAsync_throwsJsonException_notMessageExceptionContent(string content)
+        {
+            await using var stream = new MemoryStream();
+            await using var writer = new StreamWriter(stream);
+            await writer.WriteAsync(content);
+            await writer.FlushAsync();
+            stream.Position = 0;
+
+            await this.Awaiting(_ => JsonSerializer.DeserializeAsync<MessageException>(stream, Options()))
+                .Should().ThrowAsync<JsonException>().WithMessage("Unsupported by converter exception type `Exception`.");
+        }
+
+        [TestCase("{\"type\":\"MessageFailedException\",\"message\":\"1\",\"unknown\":\"2\"}")]
+        public async Task DeserializeAsync_returnsMessageFailedException_additionalProperties(string content)
+        {
+            await using var stream = new MemoryStream();
+            await using var writer = new StreamWriter(stream);
+            await writer.WriteAsync(content);
+            await writer.FlushAsync();
+            stream.Position = 0;
+
+            var deserialized = await JsonSerializer.DeserializeAsync<MessageException>(stream, Options());
 
             deserialized.Should().BeOfType<MessageFailedException>()
                 .And.BeEquivalentTo(new { Message = "1" });
         }
 
-        [TestCase("{\"type\":\"UnknownException\",\"message\":\"1\"}")]
-        public async Task DeserializeUnknownException(string content)
+        [TestCase("{\"type\":\"UnknownException1\",\"message\":\"1\"}")]
+        public async Task DeserializeAsync_returnsUnknownMessageException_unknownException(string content)
         {
             await using var stream = new MemoryStream();
             await using var writer = new StreamWriter(stream);
@@ -72,15 +70,16 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
             await writer.FlushAsync();
             stream.Position = 0;
 
-            var deserialized = await JsonSerializer.DeserializeAsync<MessageException>(stream, options);
+            var deserialized = await JsonSerializer.DeserializeAsync<MessageException>(stream, Options());
 
             deserialized.Should().BeOfType<UnknownMessageException>()
-                .And.BeEquivalentTo(new UnknownMessageException("UnknownException", "1", null));
+                .And.BeEquivalentTo(new UnknownMessageException("UnknownException1", "1", null));
         }
 
         [TestCaseSource(nameof(SupportedExceptions))]
-        public async Task DeserializeException(MessageException exception)
+        public async Task DeserializeAsync_returnsSupportedExceptionWithoutInnerException(MessageException exception)
         {
+            var options = Options();
             await using var stream = new MemoryStream();
             await JsonSerializer.SerializeAsync(stream, exception, options);
             stream.Position = 0;
@@ -88,7 +87,21 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
             var deserialized = await JsonSerializer.DeserializeAsync<MessageException>(stream, options);
 
             deserialized.Should().BeOfType(exception.GetType())
-                .And.BeEquivalentTo(new { exception.Message, InnerException = (Exception?)null });
+                .And.BeEquivalentTo(new {exception.Message, InnerException = (Exception?)null});
+        }
+
+        [TestCaseSource(nameof(SupportedExceptions))]
+        public async Task DeserializeAsync_returnsSupportedExceptionIncludingInnerException(MessageException exception)
+        {
+            var options = Options(typeof(Exception));
+            await using var stream = new MemoryStream();
+            await JsonSerializer.SerializeAsync(stream, exception, options);
+            stream.Position = 0;
+
+            var deserialized = await JsonSerializer.DeserializeAsync<MessageException>(stream, options);
+
+            deserialized.Should().BeOfType(exception.GetType())
+                .And.BeEquivalentTo(exception);
         }
 
         private static IEnumerable<MessageException> SupportedExceptions()
@@ -104,9 +117,22 @@ namespace Assistant.Net.Messaging.Web.Tests.Serialization
             yield return new MessageConnectionFailedException("1");
         }
 
-        private static IServiceProvider Provider { get; } = new ServiceCollection()
-            .AddTypeEncoder()
-            .AddTransient<MessageExceptionJsonConverter>()
-            .BuildServiceProvider();
+        private JsonSerializerOptions Options(Type? exceptionType = null) => new()
+        {
+            Converters =
+            {
+                new ServiceCollection()
+                    .AddTypeEncoder()
+                    .AddTransient<MessageExceptionJsonConverter>()
+                    .Configure<MessagingClientOptions>(o =>
+                    {
+                        if (exceptionType != null)
+                            o.ExposedExceptions.Add(exceptionType);
+                    })
+                    .BuildServiceProvider()
+                    .GetRequiredService<MessageExceptionJsonConverter>()
+            },
+            DefaultIgnoreCondition = JsonIgnoreCondition.Never
+        };
     }
 }

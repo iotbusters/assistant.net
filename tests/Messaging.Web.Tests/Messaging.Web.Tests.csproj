@@ -21,10 +21,13 @@
     <PackageReference Include="NUnit3TestAdapter" Version="4.0.0" />
     <PackageReference Include="FluentAssertions" Version="5.10.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="5.0.10" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Messaging.Web\Messaging.Web.csproj" />
+    <ProjectReference Include="..\..\src\Messaging.Web.Client\Messaging.Web.Client.csproj" />
+    <ProjectReference Include="..\..\src\Messaging.Web.Server\Messaging.Web.Server.csproj" />
   </ItemGroup>
 
 </Project>
