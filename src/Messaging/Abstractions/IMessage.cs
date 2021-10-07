@@ -27,6 +27,6 @@ namespace Assistant.Net.Messaging.Abstractions
     /// </summary>
     public sealed class None
     {
-        internal static None Instance { get; } = new None();
+        internal static None Instance { get; } = new();
     }
 }

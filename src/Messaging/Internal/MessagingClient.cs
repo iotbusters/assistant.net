@@ -20,12 +20,12 @@ namespace Assistant.Net.Messaging.Internal
     {
         private readonly IEnumerable<KeyValuePair<Type, Type>> interceptorMap;
         private readonly IProxyFactory proxyFactory;
-        private readonly IServiceScopeFactory scopeFactory;
+        private readonly IServiceProvider provider;
 
         public MessagingClient(
             IOptions<MessagingClientOptions> options,
             IProxyFactory proxyFactory,
-            IServiceScopeFactory scopeFactory)
+            IServiceProvider provider)
         {
             interceptorMap = (from type in options.Value.Interceptors
                               from interfaceType in type.GetInterfaces()
@@ -33,21 +33,18 @@ namespace Assistant.Net.Messaging.Internal
                               let messageType = interfaceType.GetGenericArguments().First()
                               select new KeyValuePair<Type, Type>(messageType, type)).ToArray();
             this.proxyFactory = proxyFactory;
-            this.scopeFactory = scopeFactory;
+            this.provider = provider;
         }
 
         /// <exception cref="MessageNotRegisteredException"/>
         public Task<object> SendObject(object message, CancellationToken token)
         {
-            using var scope = scopeFactory.CreateScope();
-            var provider = scope.ServiceProvider;
-
-            var handler = CreateInterceptingHandler(message.GetType(), provider);
+            var handler = CreateInterceptingHandler(message.GetType());
             return handler.Handle(message, token);
         }
 
         /// <exception cref="MessageNotRegisteredException"/>
-        private IAbstractHandler CreateInterceptingHandler(Type messageType, IServiceProvider provider)
+        private IAbstractHandler CreateInterceptingHandler(Type messageType)
         {
             var handlerType = typeof(IMessageHandler<,>).MakeGenericTypeBoundToMessage(messageType);
 

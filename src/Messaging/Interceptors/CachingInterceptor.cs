@@ -1,7 +1,9 @@
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Utils;
+using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 using System.Threading;
@@ -9,63 +11,54 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
+    /// <inheritdoc cref="CachingInterceptor{TMessage,TResponse}"/>
+    public class CachingInterceptor : CachingInterceptor<IMessage<object>, object>, IMessageInterceptor
+    {
+        /// <summary/>
+        public CachingInterceptor(IStorage<string, CachingResult> cache, IOptions<MessagingClientOptions> options) : base(cache, options) { }
+    }
+
     /// <summary>
     ///     Message response (including failures) caching interceptor.
     /// </summary>
-    public sealed class CachingInterceptor : IMessageInterceptor
+    /// <remarks>
+    ///     The interceptor depends on <see cref="MessagingClientOptions.TransientExceptions"/>
+    /// </remarks>
+    public class CachingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
+        where TMessage : IMessage<TResponse>
     {
         private readonly IStorage<string, CachingResult> cache;
+        private readonly IOptions<MessagingClientOptions> options;
 
         /// <summary/>
-        public CachingInterceptor(IStorage<string, CachingResult> cache) =>
+        public CachingInterceptor(IStorage<string, CachingResult> cache, IOptions<MessagingClientOptions> options)
+        {
             this.cache = cache;
+            this.options = options;
+        }
 
         /// <inheritdoc/>
-        public async Task<object> Intercept(
-            Func<IMessage<object>, CancellationToken, Task<object>> next,
-            IMessage<object> message,
-            CancellationToken token)
+        public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
         {
+            var clientOptions = options.Value;
+
             var key = message.GetSha1();
-            var cached = await cache.AddOrGet(key, async _ =>
+            var result = await cache.AddOrGet(key, async _ =>
             {
                 try
                 {
                     var response = await next(message, token);
-                    var resultType = typeof(CachingValueResult<>).MakeGenericType(response.GetType());
-                    return (CachingResult)Activator.CreateInstance(resultType, response)!;
+                    return CachingResult.OfValue((dynamic)response!);
                 }
-                catch (TaskCanceledException)
+                catch (Exception ex)
                 {
-                    throw;
-                }
-                catch (Exception e)
-                {
-                    if (IsCacheable(e))
-                        return new CachingExceptionResult(e);
+                    if (ex is not MessageDeferredException && !clientOptions.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
+                        return CachingResult.OfException(ex);
                     throw;
                 }
             }, token);
 
-            return cached.GetValue();
+            return (TResponse)result.GetValue();
         }
-
-        private static bool IsCacheable(Exception ex)
-        {
-            // todo: resolve duplication in ErrorHandlingInterceptor (https://github.com/iotbusters/assistant.net/issues/4)
-            // configurable
-            var transientExceptionTypes = new[]
-            {
-                typeof(TimeoutException),
-                typeof(OperationCanceledException),
-                typeof(MessageDeferredException)
-            };
-
-            if (ex is AggregateException e)
-                return IsCacheable(e.InnerException!);
-
-            return !transientExceptionTypes.Any(x => x.IsInstanceOfType(ex));
-        }
-
     }
 }

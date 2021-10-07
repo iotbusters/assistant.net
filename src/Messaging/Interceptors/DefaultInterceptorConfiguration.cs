@@ -1,6 +1,7 @@
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage;
+using System;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
@@ -12,7 +13,6 @@ namespace Assistant.Net.Messaging.Interceptors
     /// </summary>
     public class DefaultInterceptorConfiguration : IMessageConfiguration
     {
-        // todo: consider removing if disabled in configuration (https://github.com/iotbusters/assistant.net/issues/1)
         /// <inheritdoc/>
         public void Configure(MessagingClientBuilder builder)
         {
@@ -23,7 +23,11 @@ namespace Assistant.Net.Messaging.Interceptors
                 .AddInterceptor<ErrorHandlingInterceptor>()
                 .AddInterceptor<CachingInterceptor>()
                 .AddInterceptor<RetryingInterceptor>()
-                .AddInterceptor<TimeoutInterceptor>();
+                .AddInterceptor<TimeoutInterceptor>()
+                .ClearExposedExceptions()
+                .ExposeException<TimeoutException>()
+                .ExposeException<OperationCanceledException>()
+                .ClearTransientExceptions();
         }
     }
 }
