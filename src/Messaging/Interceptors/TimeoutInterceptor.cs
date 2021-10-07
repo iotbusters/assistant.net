@@ -1,24 +1,41 @@
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Options;
+using Microsoft.Extensions.Options;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
+    /// <inheritdoc cref="TimeoutInterceptor{TMessage,TResponse}"/>
+    public class TimeoutInterceptor : TimeoutInterceptor<IMessage<object>, object>, IMessageInterceptor
+    {
+        /// <summary/>
+        public TimeoutInterceptor(IOptions<MessagingClientOptions> options) : base(options) { }
+    }
+
     /// <summary>
     ///     Timeout tracking interceptor.
     /// </summary>
-    public class TimeoutInterceptor : IMessageInterceptor
+    /// <remarks>
+    ///     The interceptor depends on <see cref="MessagingClientOptions.Timeout"/>
+    /// </remarks>
+    public class TimeoutInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
+        where TMessage : IMessage<TResponse>
     {
+        private readonly IOptions<MessagingClientOptions> options;
+
+        /// <summary/>
+        public TimeoutInterceptor(IOptions<MessagingClientOptions> options) =>
+            this.options = options;
+
         /// <inheritdoc/>
-        public async Task<object> Intercept(
-            Func<IMessage<object>, CancellationToken, Task<object>> next, IMessage<object> message, CancellationToken token)
+        public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
         {
-            // todo: configurable (https://github.com/iotbusters/assistant.net/issues/4)
-            var timeout = TimeSpan.FromSeconds(10);
+            var clientOptions = options.Value;
 
             using var newSource = CancellationTokenSource.CreateLinkedTokenSource(
-                new CancellationTokenSource(timeout).Token,
+                new CancellationTokenSource(clientOptions.Timeout).Token,
                 token);
 
             return await next(message, newSource.Token);

@@ -1,3 +1,5 @@
+using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Interceptors;
 using System;
 using System.Collections.Generic;
 
@@ -12,5 +14,37 @@ namespace Assistant.Net.Messaging.Options
         ///     List of registered interceptors.
         /// </summary>
         public IList<Type> Interceptors { get; } = new List<Type>();
+
+        /// <summary>
+        ///     List of allowed for exposing external exceptions.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="ErrorHandlingInterceptor{TMessage,TResponse}"/>.
+        /// </remarks>
+        public IList<Type> ExposedExceptions { get; } = new List<Type>();
+
+        /// <summary>
+        ///     List of allowed for retrying transient exceptions.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor{TMessage,TResponse}"/>.
+        /// </remarks>
+        public IList<Type> TransientExceptions { get; } = new List<Type>();
+
+        /// <summary>
+        ///     Message handling retry strategy.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="RetryingInterceptor{TMessage,TResponse}"/>.
+        /// </remarks>
+        public IRetryStrategy Retry { get; set; } = new ExponentialBackoff();
+
+        /// <summary>
+        ///     Message handling timeout.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="TimeoutInterceptor{TMessage,TResponse}"/>.
+        /// </remarks>
+        public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
     }
 }

@@ -1,5 +1,8 @@
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Options;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.Linq;
 
 namespace Assistant.Net.Messaging
@@ -41,10 +44,19 @@ namespace Assistant.Net.Messaging
         ///     Adds an interceptor type <typeparamref name="TInterceptor" /> to the end of the list.
         /// </summary>
         public static MessagingClientBuilder AddInterceptor<TInterceptor>(this MessagingClientBuilder builder)
-            where TInterceptor : class, IAbstractInterceptor
+            where TInterceptor : class, IAbstractInterceptor => builder
+            .AddInterceptor(typeof(TInterceptor));
+
+        /// <summary>
+        ///     Adds the <paramref name="interceptorType" /> to the end of the list.
+        /// </summary>
+        public static MessagingClientBuilder AddInterceptor(this MessagingClientBuilder builder, Type interceptorType)
         {
-            builder.Services.ConfigureMessagingClientOptions(o => o.Interceptors.Add(typeof(TInterceptor)));
-            builder.Services.TryAddTransient<TInterceptor>();
+            if (!interceptorType.IsAssignableTo(typeof(IAbstractInterceptor)))
+                throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
+
+            builder.Services.ConfigureMessagingClientOptions(o => o.Interceptors.Add(interceptorType));
+            builder.Services.TryAddTransient(interceptorType, interceptorType);
             return builder;
         }
 
@@ -74,6 +86,138 @@ namespace Assistant.Net.Messaging
             where TInterceptor : class, IAbstractInterceptor
         {
             builder.Services.ConfigureMessagingClientOptions(o => o.Interceptors.Remove(typeof(TInterceptor)));
+            return builder;
+        }
+
+        /// <summary>
+        ///     Allows exposing the external exception type <typeparamref name="TException" />.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="ErrorHandlingInterceptor"/>.
+        /// </remarks>
+        public static MessagingClientBuilder ExposeException<TException>(this MessagingClientBuilder builder)
+            where TException : Exception => builder
+            .ExposeException(typeof(TException));
+
+        /// <summary>
+        ///     Allows exposing the external <paramref name="exceptionType"/>.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="ErrorHandlingInterceptor"/>.
+        /// </remarks>
+        public static MessagingClientBuilder ExposeException(this MessagingClientBuilder builder, Type exceptionType)
+        {
+            if (!exceptionType.IsAssignableTo(typeof(Exception)))
+                throw new ArgumentException($"Expected exception but provided {exceptionType}.", nameof(exceptionType));
+
+            builder.Services.ConfigureMessagingClientOptions(o => o.ExposedExceptions.Add(exceptionType));
+            return builder;
+        }
+
+        /// <summary>
+        ///     Removes the exposed external exception type <typeparamref name="TException" />.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="ErrorHandlingInterceptor"/>.
+        /// </remarks>
+        public static MessagingClientBuilder RemoveExposedException<TException>(this MessagingClientBuilder builder)
+            where TException : Exception
+        {
+            builder.Services.ConfigureMessagingClientOptions(o => o.ExposedExceptions.Remove(typeof(TException)));
+            return builder;
+        }
+
+        /// <summary>
+        ///     Removes all exposed external exception types.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="ErrorHandlingInterceptor"/>.
+        /// </remarks>
+        public static MessagingClientBuilder ClearExposedExceptions(this MessagingClientBuilder builder)
+        {
+            builder.Services.ConfigureMessagingClientOptions(o => o.ExposedExceptions.Clear());
+            return builder;
+        }
+
+        /// <summary>
+        ///     Allows retrying the transient exception type <typeparamref name="TException" />.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
+        /// </remarks>
+        public static MessagingClientBuilder AddTransientException<TException>(this MessagingClientBuilder builder)
+            where TException : Exception => builder
+            .AddTransientException(typeof(TException));
+
+        /// <summary>
+        ///     Allows retrying the transient <paramref name="exceptionType" />.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
+        /// </remarks>
+        public static MessagingClientBuilder AddTransientException(this MessagingClientBuilder builder, Type exceptionType)
+        {
+            if (!exceptionType.IsAssignableTo(typeof(Exception)))
+                throw new ArgumentException($"Expected exception but provided {exceptionType}.", nameof(exceptionType));
+
+            builder.Services.ConfigureMessagingClientOptions(o => o.TransientExceptions.Add(exceptionType));
+            return builder;
+        }
+
+        /// <summary>
+        ///     Removes the transient exception type <typeparamref name="TException" />.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
+        /// </remarks>
+        public static MessagingClientBuilder RemoveTransientException<TException>(this MessagingClientBuilder builder)
+            where TException : Exception
+        {
+            builder.Services.ConfigureMessagingClientOptions(o => o.TransientExceptions.Remove(typeof(TException)));
+            return builder;
+        }
+
+        /// <summary>
+        ///     Removes all transient exception types.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
+        /// </remarks>
+        public static MessagingClientBuilder ClearTransientExceptions(this MessagingClientBuilder builder)
+        {
+            builder.Services.ConfigureMessagingClientOptions(o => o.TransientExceptions.Clear());
+            return builder;
+        }
+
+        /// <summary>
+        ///     Overrides retrying strategy.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="RetryingInterceptor"/>.
+        /// </remarks>
+        public static MessagingClientBuilder Retry(this MessagingClientBuilder builder, IRetryStrategy strategy)
+        {
+            builder.Services.ConfigureMessagingClientOptions(o => o.Retry = strategy);
+            return builder;
+        }
+
+        /// <summary>
+        ///     Overrides retrying strategy.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="RetryingInterceptor"/>.
+        /// </remarks>
+        public static MessagingClientBuilder Retry(this MessagingClientBuilder builder, IConfigurationSection configuration)
+        {
+            IRetryStrategy strategy = configuration["type"] switch
+            {
+                "Exponential"   => configuration.Get<ExponentialBackoff>(),
+                "Linear"        => configuration.Get<LinearBackoff>(),
+                "Constant"      => configuration.Get<ConstantBackoff>(),
+                _               => throw new ArgumentException($"Key 'type' at {configuration.Path} is expected to be: "
+                                                               + $"'Exponential', 'Linear' or 'Constant' but was '{configuration["type"]}'.")
+            };
+            builder.Services.ConfigureMessagingClientOptions(o => o.Retry = strategy);
             return builder;
         }
     }

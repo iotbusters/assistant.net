@@ -3,8 +3,8 @@ using Assistant.Net.Messaging.Options;
 namespace Assistant.Net.Messaging.Abstractions
 {
     /// <summary>
-    ///     Common messaging configuration abstraction.
-    ///     It simplifies configuring groups of related messages and helps avoiding code duplications.
+    ///     Common messaging configuration abstraction required for configuring message client in named groups
+    ///     resolving code duplication issues and improving code readability.
     /// </summary>
     public interface IMessageConfiguration
     {
