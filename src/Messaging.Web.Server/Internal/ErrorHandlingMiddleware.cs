@@ -8,7 +8,7 @@ namespace Assistant.Net.Messaging.Internal
     /// <summary>
     ///     Global error handling middleware.
     /// </summary>
-    internal class RemoteExceptionHandlingMiddleware : IMiddleware
+    internal class ExceptionHandlingMiddleware : IMiddleware
     {
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
@@ -37,19 +37,19 @@ namespace Assistant.Net.Messaging.Internal
             if (ex is MessageDeferredException
                 || ex is TimeoutException
                 || ex is OperationCanceledException)
-                return context.WriteMessageResponse(202);
+                return context.WriteMessageResponse(StatusCodes.Status202Accepted);
 
             if (ex is MessageNotFoundException
                 || ex is MessageNotRegisteredException)
-                return context.WriteMessageResponse(404, ex);
+                return context.WriteMessageResponse(StatusCodes.Status404NotFound, ex);
 
             if (ex is MessageContractException)
-                return context.WriteMessageResponse(400, ex);
+                return context.WriteMessageResponse(StatusCodes.Status400BadRequest, ex);
 
             if (ex is MessageException)
-                return context.WriteMessageResponse(500, ex);
+                return context.WriteMessageResponse(StatusCodes.Status500InternalServerError, ex);
 
-            return context.WriteMessageResponse(500, new MessageFailedException(ex));
+            return context.WriteMessageResponse(StatusCodes.Status500InternalServerError, new MessageFailedException(ex));
         }
     }
 }

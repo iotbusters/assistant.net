@@ -10,21 +10,21 @@ namespace Assistant.Net.Messaging.Extensions
     /// </summary>
     public class OperationHandler : DelegatingHandler
     {
-        private readonly IDiagnosticFactory diagnosticsFactory;
+        private readonly IDiagnosticFactory diagnosticFactory;
 
         /// <summary/>
-        public OperationHandler(IDiagnosticFactory diagnosticsFactory) =>
-            this.diagnosticsFactory = diagnosticsFactory;
+        public OperationHandler(IDiagnosticFactory diagnosticFactory) =>
+            this.diagnosticFactory = diagnosticFactory;
 
         /// <inheritdoc/>
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var messageName = request.GetMessageName().ToLower();
-            var operation = diagnosticsFactory.Start($"{messageName}-remote-client-handling");
+            var operation = diagnosticFactory.Start($"{messageName}-handling-remote-client");
 
             try
             {
-                return base.SendAsync(request, cancellationToken);
+                return await base.SendAsync(request, cancellationToken);
             }
             catch
             {

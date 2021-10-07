@@ -8,13 +8,12 @@ namespace Assistant.Net.Messaging.Internal
     /// <summary>
     ///     Operation tracking middleware.
     /// </summary>
-    internal class RemoteDiagnosticMiddleware : IMiddleware
+    internal class DiagnosticMiddleware : IMiddleware
     {
         private readonly IDiagnosticFactory operationFactory;
 
-        public RemoteDiagnosticMiddleware(IDiagnosticFactory operationFactory) {
+        public DiagnosticMiddleware(IDiagnosticFactory operationFactory) =>
             this.operationFactory = operationFactory;
-        }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
@@ -26,19 +25,18 @@ namespace Assistant.Net.Messaging.Internal
             }
 
             var messageName = context.GetMessageName().ToLower();
-
-            var operation = operationFactory.Start($"{messageName}-remote-server-handling");
+            var operation = operationFactory.Start($"{messageName}-handling-remote-server");
 
             try
             {
                 await next(context);
+                operation.Complete();
             }
             catch (Exception)
             {
                 operation.Fail();
                 throw;
             }
-            operation.Complete();
         }
     }
 }
