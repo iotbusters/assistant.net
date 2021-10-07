@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging.Integration.Tests.Mocks
+namespace Assistant.Net.Messaging.Web.Tests.Mocks
 {
     public class TestSuccessFailureMessageHandler : IMessageHandler<TestSuccessFailureMessage>
     {

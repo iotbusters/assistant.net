@@ -66,6 +66,8 @@ namespace Assistant.Net.Serialization.Converters
             var type = typeEncoder.Decode(encodedType!);
             if (type == null)
                 throw new TypeResolvingFailedJsonException(encodedType, message, inner);
+            if (!CanConvert(type))
+                throw new JsonException($"Unsupported by converter exception type `{type.Name}`.");
 
             var ctorArguments = new object?[] { message, inner }
                 .Where(x => x != null).Select(x => x!).ToArray();

@@ -49,7 +49,7 @@ namespace Assistant.Net.Messaging.Internal
 
             var responseSerializer = factory.Create(typeof(TResponse));
             var responseStream = await response.Content.ReadAsStreamAsync(token);
-            var responseObject = (TResponse) await responseSerializer.DeserializeObject(responseStream, token);
+            var responseObject = (TResponse)await responseSerializer.DeserializeObject(responseStream, token);
             return responseObject!;
         }
     }

@@ -12,7 +12,6 @@ namespace Assistant.Net.Messaging.Interceptors
     /// </summary>
     public class ServerInterceptorConfiguration : IMessageConfiguration
     {
-        // todo: consider removing if disabled in configuration (https://github.com/iotbusters/assistant.net/issues/1)
         /// <inheritdoc/>
         public void Configure(MessagingClientBuilder builder)
         {

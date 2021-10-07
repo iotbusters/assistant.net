@@ -1,12 +1,12 @@
 using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Messaging.Integration.Tests.Fixtures;
-using Assistant.Net.Messaging.Integration.Tests.Mocks;
+using Assistant.Net.Messaging.Web.Tests.Fixtures;
+using Assistant.Net.Messaging.Web.Tests.Mocks;
 using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging.Integration.Tests
+namespace Assistant.Net.Messaging.Web.Tests
 {
     [Timeout(2000)]
     public class ClientServerIntegrationTests

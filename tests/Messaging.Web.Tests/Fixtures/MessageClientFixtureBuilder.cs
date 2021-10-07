@@ -1,5 +1,5 @@
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Integration.Tests.Mocks;
+using Assistant.Net.Messaging.Web.Tests.Mocks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +8,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 
-namespace Assistant.Net.Messaging.Integration.Tests.Fixtures
+namespace Assistant.Net.Messaging.Web.Tests.Fixtures
 {
     public class MessageClientFixtureBuilder
     {

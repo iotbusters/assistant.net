@@ -1,6 +1,8 @@
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Options;
 using Assistant.Net.Utils;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -9,40 +11,38 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
+    /// <inheritdoc cref="DeferredCachingInterceptor{TMessage,TResponse}"/>
+    public sealed class DeferredCachingInterceptor : DeferredCachingInterceptor<IMessage<object>, object>, IMessageInterceptor
+    {
+        /// <summary/>
+        public DeferredCachingInterceptor(IOptions<MessagingClientOptions> options) : base(options) { }
+    }
+
     /// <summary>
     ///     Deferred message response (including failures) caching interceptor.
     /// </summary>
-    public sealed class DeferredCachingInterceptor : IMessageInterceptor
+    public class DeferredCachingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
+        where TMessage : IMessage<TResponse>
     {
-        private static readonly ConcurrentDictionary<string, DeferredCachingResult> deferredCache = new();
+        private static readonly ConcurrentDictionary<string, DeferredCachingResult<TResponse>> deferredCache = new();
+
+        private readonly IOptions<MessagingClientOptions> options;
+
+        /// <summary/>
+        public DeferredCachingInterceptor(IOptions<MessagingClientOptions> options) =>
+            this.options = options;
 
         /// <inheritdoc/>
-        public Task<object> Intercept(
-            Func<IMessage<object>, CancellationToken, Task<object>> next, IMessage<object> message, CancellationToken token)
+        public Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
         {
+            var clientOptions = options.Value;
+
             var key = message.GetSha1();
-            return deferredCache.GetOrAdd(key, _ => next(message, token).WhenFaulted(x =>
+            return deferredCache.GetOrAdd(key, _ => next(message, token).WhenFaulted(ex =>
             {
-                if (!IsCacheable(x))
+                if (ex is MessageDeferredException || clientOptions.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
                     deferredCache.TryRemove(key, out var _);
             })).GetTask();
-        }
-
-        private static bool IsCacheable(Exception ex)
-        {
-            // todo: resolve duplication in ErrorHandlingInterceptor (https://github.com/iotbusters/assistant.net/issues/4)
-            // configurable
-            var transientExceptionTypes = new Type[]
-            {
-                typeof(TimeoutException),
-                typeof(OperationCanceledException),
-                typeof(MessageDeferredException)
-            };
-
-            if (ex is AggregateException e)
-                return IsCacheable(e.InnerException!);
-
-            return !transientExceptionTypes.Any(x => x.IsInstanceOfType(ex));
         }
     }
 }

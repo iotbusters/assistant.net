@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Internal
 {
     /// <summary>
-    ///     Routingless remote message handling middleware.
+    ///     Remote message handling middleware.
     /// </summary>
-    internal class RemoteMessageHandlingMiddleware : IMiddleware
+    internal class MessageHandlingMiddleware : IMiddleware
     {
         private readonly IMessagingClient client;
 
-        public RemoteMessageHandlingMiddleware(IMessagingClient client) =>
+        public MessageHandlingMiddleware(IMessagingClient client) =>
             this.client = client;
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
@@ -26,7 +26,7 @@ namespace Assistant.Net.Messaging.Internal
             var message = await context.ReadMessageObject();
             var response = await client.SendObject(message);
 
-            await context.WriteMessageResponse(200, response);
+            await context.WriteMessageResponse(StatusCodes.Status200OK, response);
         }
     }
 }
