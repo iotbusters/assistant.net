@@ -35,7 +35,9 @@ namespace Assistant.Net.Utils
         {
             if (typeof(T).IsValueType)
                 return SerializeStructure(value).GetSha1();
-            return JsonSerializer.SerializeToUtf8Bytes(value, typeof(T)).GetSha1();
+            if (value == null)
+                throw new ArgumentNullException(nameof(value));
+            return JsonSerializer.SerializeToUtf8Bytes(value, value.GetType()).GetSha1();
         }
 
         private static byte[] SerializeStructure<T>(this T value)
