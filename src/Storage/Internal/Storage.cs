@@ -25,11 +25,11 @@ namespace Assistant.Net.Storage.Internal
             IServiceProvider provider,
             ITypeEncoder typeEncoder)
         {
-            this.backedStorage = provider.GetService<IStorageProvider<TValue>>() ?? throw ImproperlyConfiguredException();
-            this.keyConverter = provider.GetService<IValueConverter<TKey>>() ?? throw ImproperlyConfiguredException();
-            this.valueConverter = provider.GetService<IValueConverter<TValue>>() ?? throw ImproperlyConfiguredException();
-            this.keyType = typeEncoder.Encode(typeof(TKey));
-            this.valueType = typeEncoder.Encode(typeof(TValue));
+            this.backedStorage = provider.GetService<IStorageProvider<TValue>>() ?? throw ImproperlyConfiguredException(typeof(TValue));
+            this.keyConverter = provider.GetService<IValueConverter<TKey>>() ?? throw ImproperlyConfiguredException(typeof(TKey));
+            this.valueConverter = provider.GetService<IValueConverter<TValue>>() ?? throw ImproperlyConfiguredException(typeof(TValue));
+            this.keyType = typeEncoder.Encode(typeof(TKey)) ?? throw NotSupportedTypeException(typeof(TKey));
+            this.valueType = typeEncoder.Encode(typeof(TValue)) ?? throw NotSupportedTypeException(typeof(TValue));
         }
 
         public async Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory, CancellationToken token)
@@ -103,7 +103,10 @@ namespace Assistant.Net.Storage.Internal
                 .AsAsync()
                 .Select(x => keyConverter.Convert(x.Content, token));
 
-        private static ArgumentException ImproperlyConfiguredException() =>
-            new($"Storage of '{typeof(TValue).Name}' wasn't properly configured.");
+        private static ArgumentException ImproperlyConfiguredException(Type type) =>
+            new($"Storage of '{type.Name}' wasn't properly configured.");
+
+        private static NotSupportedException NotSupportedTypeException(Type type) =>
+            new($"Type '{type.Name}' isn't supported.");
     }
 }

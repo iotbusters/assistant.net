@@ -13,31 +13,30 @@ namespace Assistant.Net.Storage.Internal
     {
         private readonly ConcurrentDictionary<KeyRecord, ValueRecord> backedStorage = new();
 
-        public async Task<ValueRecord> AddOrGet(KeyRecord key, Func<KeyRecord, Task<ValueRecord>> addFactory, CancellationToken token) =>
-            backedStorage.GetOrAdd(key, await addFactory(key));
+        public Task<ValueRecord> AddOrGet(KeyRecord key, Func<KeyRecord, Task<ValueRecord>> addFactory, CancellationToken token) =>
+            Task.FromResult(
+                backedStorage.GetOrAdd(
+                    key,
+                    valueFactory: _ => addFactory(key).ConfigureAwait(false).GetAwaiter().GetResult()));
 
         public Task<ValueRecord> AddOrUpdate(
             KeyRecord key,
             Func<KeyRecord, Task<ValueRecord>> addFactory,
             Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
-            CancellationToken _)
-        {
-            return Task.FromResult(
+            CancellationToken _) =>
+            Task.FromResult(
                 backedStorage.AddOrUpdate(
                     key,
-                    k => addFactory(k).ConfigureAwait(false).GetAwaiter().GetResult(),
-                    (k, old) => updateFactory(k, old).ConfigureAwait(false).GetAwaiter().GetResult()));
-        }
+                    addValueFactory: k => addFactory(k).ConfigureAwait(false).GetAwaiter().GetResult(),
+                    updateValueFactory: (k, old) => updateFactory(k, old).ConfigureAwait(false).GetAwaiter().GetResult()));
 
         public Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken _) =>
-            Task.FromResult(backedStorage.TryGetValue(key, out var value)
-                ? Option.Some(value)
-                : Option.None);
+            Task.FromResult(
+                backedStorage.TryGetValue(key, out var value) ? Option.Some(value) : Option.None);
 
         public Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken _) =>
-            Task.FromResult(backedStorage.TryRemove(key, out var value)
-                ? Option.Some(value)
-                : Option.None);
+            Task.FromResult(
+                backedStorage.TryRemove(key, out var value) ? Option.Some(value) : Option.None);
 
         public IQueryable<KeyRecord> GetKeys() => backedStorage.Keys.AsQueryable();
 
