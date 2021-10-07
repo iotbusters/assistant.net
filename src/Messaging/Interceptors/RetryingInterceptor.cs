@@ -1,7 +1,9 @@
 using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 using System.Threading;
@@ -9,73 +11,81 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
+    /// <inheritdoc cref="RetryingInterceptor{TMessage,TResponse}"/>
+    public class RetryingInterceptor : RetryingInterceptor<IMessage<object>, object>, IMessageInterceptor
+    {
+        /// <summary/>
+        public RetryingInterceptor(ILogger<RetryingInterceptor> logger, IDiagnosticFactory diagnosticFactory, IOptions<MessagingClientOptions> options) : base(logger, diagnosticFactory, options) { }
+    }
+
     /// <summary>
     ///     Retrying message handling interceptor.
     /// </summary>
-    public class RetryingInterceptor : IMessageInterceptor
+    /// <remarks>
+    ///     The interceptor depends on <see cref="MessagingClientOptions.TransientExceptions"/> and <see cref="MessagingClientOptions.Retry"/>.
+    /// </remarks>
+    public class RetryingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
+        where TMessage : IMessage<TResponse>
     {
         private readonly ILogger<RetryingInterceptor> logger;
-        private readonly IDiagnosticFactory diagnosticsFactory;
+        private readonly IDiagnosticFactory diagnosticFactory;
+        private readonly IOptions<MessagingClientOptions> options;
 
         /// <summary/>
         public RetryingInterceptor(
             ILogger<RetryingInterceptor> logger,
-            IDiagnosticFactory diagnosticsFactory)
+            IDiagnosticFactory diagnosticFactory,
+            IOptions<MessagingClientOptions> options)
         {
             this.logger = logger;
-            this.diagnosticsFactory = diagnosticsFactory;
+            this.diagnosticFactory = diagnosticFactory;
+            this.options = options;
         }
 
         /// <inheritdoc/>
         /// <exception cref="MessageRetryLimitExceededException" />
-        public async Task<object> Intercept(
-            Func<IMessage<object>, CancellationToken, Task<object>> next, IMessage<object> message, CancellationToken token)
+        public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
         {
-            // configurable
-            var maxRetryLimit = 5;
-            var delayingStrategy = new Func<int, TimeSpan>(x => TimeSpan.FromSeconds(Math.Pow(x, 2)));
-            var breakStrategy = new Func<Exception, bool>(CriticalExceptionOnly);
+            var clientOptions = options.Value;
 
-            for (var attempt = 1; attempt <= maxRetryLimit; attempt++)
+            var messageName = message.GetType().Name.ToLower();
+            var attempt = 1;
+
+            while(!token.IsCancellationRequested)
             {
-                var operation = diagnosticsFactory.Start($"retry-attempt-{attempt}");
-
-                token.ThrowIfCancellationRequested();
+                var operation = diagnosticFactory.Start($"{messageName}-handling-attempt-{attempt}");
+                logger.LogInformation("Operation {Attempt} has been started.", attempt);
 
                 try
                 {
-                    var result = await next(message, token);
+                    var response = await next(message, token);
                     operation.Complete();
-                    return result;
+                    return response;
                 }
                 catch (Exception ex)
                 {
                     operation.Fail();
 
-                    if (breakStrategy(ex))
+                    if (!clientOptions.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
+                    {
+                        logger.LogError(ex, "Permanent error occurred during {Attempt}.", attempt);
                         throw;
+                    }
 
-                    logger.LogWarning(ex, "#{Attempt}. Transient error occurred.", attempt);
-                    await Task.Delay(delayingStrategy(attempt), token);
+                    logger.LogWarning(ex, "Transient error occurred during {Attempt}.", attempt);
+
+                    if (!clientOptions.Retry.CanRetry(attempt))
+                    {
+                        logger.LogError(ex, "Retrying strategy failed after {Attempt}.", attempt);
+                        break;
+                    }
                 }
+
+                await Task.Delay(clientOptions.Retry.DelayTime(attempt), token);
+                attempt++;
             }
 
             throw new MessageRetryLimitExceededException();
-        }
-
-        private static bool CriticalExceptionOnly(Exception ex)
-        {
-            // todo: resolve duplication in ErrorHandlingInterceptor (https://github.com/iotbusters/assistant.net/issues/4)
-            // configurable
-            var transientExceptionTypes = new[]
-            {
-                typeof(MessageDeferredException)
-            };
-
-            if (ex is AggregateException)
-                return CriticalExceptionOnly(ex.InnerException!);
-
-            return !transientExceptionTypes.Any(x => x.IsInstanceOfType(ex));
         }
     }
 }

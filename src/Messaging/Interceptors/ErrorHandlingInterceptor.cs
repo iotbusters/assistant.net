@@ -1,43 +1,51 @@
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Options;
+using Microsoft.Extensions.Options;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
+    /// <inheritdoc cref="DiagnosticsInterceptor{TMessage,TResponse}"/>
+    public class ErrorHandlingInterceptor : ErrorHandlingInterceptor<IMessage<object>, object>, IMessageInterceptor
+    {
+        /// <summary/>
+        public ErrorHandlingInterceptor(IOptions<MessagingClientOptions> options) : base(options) { }
+    }
+
     /// <summary>
     ///     Global error handling interceptor.
     /// </summary>
-    public class ErrorHandlingInterceptor : IMessageInterceptor<IMessage<object>, object>
+    /// <remarks>
+    ///     The interceptor depends on <see cref="MessagingClientOptions.ExposedExceptions"/>
+    /// </remarks>
+    public class ErrorHandlingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
+        where TMessage : IMessage<TResponse>
     {
+        private readonly IOptions<MessagingClientOptions> options;
+
+        /// <summary/>
+        public ErrorHandlingInterceptor(IOptions<MessagingClientOptions> options) =>
+            this.options = options;
+
         /// <inheritdoc/>
-        public async Task<object> Intercept(
-            Func<IMessage<object>, CancellationToken, Task<object>> next, IMessage<object> message, CancellationToken token) =>
-            await next(message, token).MapFaulted(ToMessageException);
-
-        /// <summary>
-        ///     Converts any occurred exception to <see cref="MessageException" /> due to convention.
-        /// </summary>
-        private static Exception ToMessageException(Exception ex)
+        public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
         {
-            // todo: resolve duplication in RetryingInterceptor (https://github.com/iotbusters/assistant.net/issues/4)
-            // configurable
-            var supportedExceptionTypes = new[]
+            var clientOptions = options.Value;
+
+            try
             {
-                typeof(OperationCanceledException),
-                typeof(TimeoutException),
-                typeof(MessageException)
-            };
-
-            if (ex is AggregateException)
-                return ToMessageException(ex.InnerException!);
-
-            if (supportedExceptionTypes.Any(x => x.IsInstanceOfType(ex)))
-                return ex;
-
-            return new MessageFailedException(ex);
+                return await next(message, token);
+            }
+            catch (Exception ex)
+            {
+                if (ex is MessageException || clientOptions.ExposedExceptions.Contains(ex.GetType()))
+                    throw;
+                throw new MessageFailedException(ex);
+            }
+            
         }
     }
 }

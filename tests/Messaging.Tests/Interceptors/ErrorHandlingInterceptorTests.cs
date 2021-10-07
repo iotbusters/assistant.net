@@ -1,4 +1,5 @@
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Tests.Mocks;
 using FluentAssertions;
@@ -12,22 +13,10 @@ namespace Assistant.Net.Messaging.Tests.Interceptors
 {
     public class ErrorHandlingInterceptorTests
     {
-        private IMessageInterceptor<IMessage<object>, object> interceptor = null!;
-        private static readonly TestMessage Message = new(0);
-
-        [SetUp]
-        public void Setup()
-        {
-            interceptor = new ServiceCollection()
-                .AddTransient<ErrorHandlingInterceptor>()
-                .BuildServiceProvider()
-                .GetRequiredService<ErrorHandlingInterceptor>();
-        }
-
         [Test]
         public async Task Intercept_returnsResponse()
         {
-            var response = await interceptor.Intercept((_,_) => Task.FromResult<object>(new TestResponse(false)), Message);
+            var response = await Interceptor.Intercept((_,_) => Task.FromResult<object>(new TestResponse(false)), Message);
 
             response.Should().BeEquivalentTo(new TestResponse(false));
         }
@@ -35,37 +24,49 @@ namespace Assistant.Net.Messaging.Tests.Interceptors
         [Test]
         public async Task Intercept_throwsMessageExecutionException()
         {
-            await interceptor.Awaiting(x => x.Intercept(Fail(new TestMessageExecutionException()), Message))
+            await Interceptor.Awaiting(x => x.Intercept(Fail(new TestMessageExecutionException()), Message))
                 .Should().ThrowAsync<TestMessageExecutionException>();
         }
 
-        [Test]
-        public async Task Intercept_throwsOperationCanceledException()
+        [TestCase(typeof(OperationCanceledException))]
+        [TestCase(typeof(TaskCanceledException))]
+        [TestCase(typeof(TimeoutException))]
+        [TestCase(typeof(Exception))]
+        public async Task Intercept_throws(Type exceptionType)
         {
-            await interceptor.Awaiting(x => x.Intercept(Fail(new OperationCanceledException()), Message))
-                .Should().ThrowAsync<OperationCanceledException>();
+            Services.ConfigureMessageClient(b => b.ExposeException(exceptionType));
+
+            try
+            {
+                await Interceptor.Intercept(Fail((Exception)Activator.CreateInstance(exceptionType)!), Message);
+            }
+            catch (Exception ex)
+            {
+                ex.Should().BeOfType(exceptionType);
+                return;
+            }
+            Assert.Fail("Expected an exception to be thrown.");
         }
 
-        [Test]
-        public async Task Intercept_throwsTaskCanceledException()
+        [TestCase(typeof(OperationCanceledException))]
+        [TestCase(typeof(TaskCanceledException))]
+        [TestCase(typeof(TimeoutException))]
+        [TestCase(typeof(Exception))]
+        public async Task Intercept_throwsMessageFailedException_thrown(Type exceptionType)
         {
-            await interceptor.Awaiting(x => x.Intercept(Fail(new TaskCanceledException()), Message))
-                .Should().ThrowAsync<TaskCanceledException>();
+            await Interceptor.Awaiting(x => x.Intercept(Fail((Exception)Activator.CreateInstance(exceptionType)!), Message))
+                .Should().ThrowAsync<MessageFailedException>();
         }
 
-        [Test]
-        public async Task Intercept_throwsTimeoutException()
+        [SetUp]
+        public void Setup()
         {
-            await interceptor.Awaiting(x => x.Intercept(Fail(new TimeoutException()), Message))
-                .Should().ThrowAsync<TimeoutException>();
+            Services = new ServiceCollection().ConfigureMessageClient(b => b.AddInterceptor<ErrorHandlingInterceptor>());
         }
 
-        [Test]
-        public async Task Intercept_throwsException()
-        {
-            await interceptor.Awaiting(x => x.Intercept(Fail(new Exception()), Message))
-                .Should().ThrowAsync<Exception>();
-        }
+        private IServiceCollection Services { get; set; } = null!;
+        private IMessageInterceptor Interceptor => Services.BuildServiceProvider().GetRequiredService<ErrorHandlingInterceptor>();
+        private static TestMessage Message => new(0);
 
         private static Func<IMessage<object>, CancellationToken, Task<object>> Fail(Exception ex) => (_, _) => throw ex;
     }
