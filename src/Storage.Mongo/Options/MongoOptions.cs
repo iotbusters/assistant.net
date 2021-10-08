@@ -11,7 +11,7 @@ namespace Assistant.Net.Storage.Options
         /// <summary>
         ///     MongoDB server connection string.
         /// </summary>
-        [Required, MinLength(10)]// mongodb://
+        [Required, MinLength(10)]//10:  mongodb://
         public string ConnectionString { get; set; } = null!;
 
         /// <summary>
