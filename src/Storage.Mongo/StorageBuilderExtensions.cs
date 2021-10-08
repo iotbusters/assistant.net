@@ -76,7 +76,6 @@ namespace Assistant.Net.Storage
         public static StorageBuilder AddMongoAny(this StorageBuilder builder)
         {
             builder.Services
-                .AddMongoClient()
                 .ReplaceScoped(typeof(IStorageProvider<>), typeof(MongoStorageProvider<>))
                 .ConfigureSerializer(b => b.AddJsonTypeAny());
             return builder;
@@ -97,7 +96,6 @@ namespace Assistant.Net.Storage
             var implementationType = typeof(MongoPartitionedStorageProvider<>).MakeGenericType(valueType);
 
             builder.Services
-                .AddMongoClient()
                 .ReplaceScoped(serviceType, implementationType)
                 .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
             return builder;
@@ -109,7 +107,6 @@ namespace Assistant.Net.Storage
         public static StorageBuilder AddMongoPartitionedAny(this StorageBuilder builder)
         {
             builder.Services
-                .AddMongoClient()
                 .ReplaceScoped(typeof(IPartitionedStorageProvider<>), typeof(MongoPartitionedStorageProvider<>))
                 .ConfigureSerializer(b => b.AddJsonTypeAny());
             return builder;
