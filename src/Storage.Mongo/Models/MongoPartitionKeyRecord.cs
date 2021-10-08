@@ -9,5 +9,6 @@ namespace Assistant.Net.Storage.Models
     /// <param name="Key">Unique key identifier.</param>
     /// <param name="Type">Key type name.</param>
     /// <param name="Content">Binary key content.</param>
+    /// <param name="Audit">Value content auditing details.</param>
     public record MongoPartitionKeyRecord([property: BsonId] PartitionKey Key, string Type, byte[] Content, Audit Audit);
 }

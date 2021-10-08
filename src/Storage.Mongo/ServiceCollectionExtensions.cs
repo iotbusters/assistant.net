@@ -13,11 +13,6 @@ namespace Assistant.Net.Storage
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        ///     Default MongoDB connection string name in configuration.
-        /// </summary>
-        public const string DefaultConnectionStringName = "StorageDatabase";
-
-        /// <summary>
         ///     Registers a <see cref="MongoOptions"/> configuration from MongoDB <paramref name="connectionString"/>.
         /// </summary>
         public static IServiceCollection ConfigureMongoOptions(this IServiceCollection services, string connectionString) => services
@@ -44,8 +39,9 @@ namespace Assistant.Net.Storage
         public static IServiceCollection AddMongoClient(this IServiceCollection services) => services
             .TryAddScoped<IMongoClient>(p =>
             {
-                var connectionString = p.GetService<IOptions<MongoOptions>>()?.Value.ConnectionString ??
-                                       throw new InvalidOperationException($"{nameof(MongoOptions)} weren't properly configured.");
+                var connectionString = p.GetService<IOptions<MongoOptions>>()?.Value.ConnectionString
+                                       ?? throw new InvalidOperationException($"{nameof(MongoOptions.ConnectionString)} is required. "
+                                                                              + $"{nameof(MongoOptions)} weren't properly configured.");
                 return new MongoClient(connectionString);
             });
     }

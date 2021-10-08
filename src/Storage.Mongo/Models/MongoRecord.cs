@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Storage.Models;
-using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson.Serialization.Attributes;
 
 namespace Assistant.Net.Storage.Models
 {
