@@ -54,7 +54,7 @@ namespace Assistant.Net.Messaging.Interceptors
             while(!token.IsCancellationRequested)
             {
                 var operation = diagnosticFactory.Start($"{messageName}-handling-attempt-{attempt}");
-                logger.LogInformation("Operation {Attempt} has been started.", attempt);
+                logger.LogInformation("Operation {Attempt} has started.", attempt);
 
                 try
                 {
