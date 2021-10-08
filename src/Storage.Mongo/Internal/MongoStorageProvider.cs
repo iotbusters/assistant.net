@@ -1,7 +1,10 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Storage.Exceptions;
 using Assistant.Net.Storage.Models;
+using Assistant.Net.Storage.Options;
 using Assistant.Net.Unions;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using System;
 using System.Linq;
@@ -12,15 +15,16 @@ namespace Assistant.Net.Storage.Internal
 {
     internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
     {
-        private const string StorageDatabaseName = "Storage";
         private const string StorageCollectionName = "Records";
 
         private readonly IMongoCollection<MongoRecord> collection;
         private readonly ISystemClock clock;
+        private readonly MongoOptions options;
 
-        public MongoStorageProvider(IMongoClient client, ISystemClock clock)
+        public MongoStorageProvider(IOptions<MongoOptions> options, IMongoClient client, ISystemClock clock)
         {
-            this.collection = client.GetDatabase(StorageDatabaseName).GetCollection<MongoRecord>(StorageCollectionName);
+            this.options = options.Value;
+            this.collection = client.GetDatabase(this.options.DatabaseName).GetCollection<MongoRecord>(StorageCollectionName);
             this.clock = clock;
         }
 
@@ -29,17 +33,18 @@ namespace Assistant.Net.Storage.Internal
             Func<KeyRecord, Task<ValueRecord>> addFactory,
             CancellationToken token)
         {
-            // todo: replace infinite loop
-            while (true)
+            for (var attempt = 1; attempt <= options.MaxInsertAttemptNumber; attempt++)
             {
-                if (await FindOne(key, token) is Some<ValueRecord> found)
-                    return found.Value;
+                if (await FindOne(key, token) is Some<ValueRecord>(var found))
+                    return found;
 
-                if (await InsertOne(key, addFactory, token) is Some<ValueRecord> inserted)
-                    return inserted.Value;
+                if (await InsertOne(key, addFactory, token) is Some<ValueRecord>(var inserted))
+                    return inserted;
 
-                await Task.Delay(10, token);
+                await Task.Delay(options.OptimisticConcurrencyDelayTime, token);
             }
+
+            throw new StorageConcurrencyException();
         }
 
         public async Task<ValueRecord> AddOrUpdate(
@@ -48,19 +53,20 @@ namespace Assistant.Net.Storage.Internal
             Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
             CancellationToken token)
         {
-            // todo: replace infinite loop
-            while (true)
+            for (var attempt = 1; attempt <= options.MaxUpsertAttemptNumber; attempt++)
             {
-                if (await FindOne(key, token) is Some<ValueRecord> found)
+                if (await FindOne(key, token) is Some<ValueRecord>(var found))
                 {
-                    if (await ReplaceOne(key, found.Value, updateFactory, token) is Some<ValueRecord> replaced)
-                        return replaced.Value;
+                    if (await ReplaceOne(key, found, updateFactory, token) is Some<ValueRecord>(var replaced))
+                        return replaced;
                 }
-                else if (await InsertOne(key, addFactory, token) is Some<ValueRecord> inserted)
-                    return inserted.Value;
+                else if (await InsertOne(key, addFactory, token) is Some<ValueRecord>(var inserted))
+                    return inserted;
 
-                await Task.Delay(10, token);
+                await Task.Delay(options.OptimisticConcurrencyDelayTime, token);
             }
+
+            throw new StorageConcurrencyException();
         }
 
         public Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token) => FindOne(key, token);
@@ -74,11 +80,7 @@ namespace Assistant.Net.Storage.Internal
 
         private async Task<Option<ValueRecord>> FindOne(KeyRecord key, CancellationToken token)
         {
-            var cursor = await collection.FindAsync(
-                filter: x => x.Id == key.Id,
-                new FindOptions<MongoRecord>(),
-                token);
-            var existed = await cursor.FirstOrDefaultAsync(token);
+            var existed = await collection.Find(filter: x => x.Id == key.Id, new FindOptions()).SingleOrDefaultAsync(token);
             return existed.AsOption().MapOption(x => new ValueRecord(x.ValueType, x.ValueContent, x.Audit));
         }
 
@@ -105,16 +107,16 @@ namespace Assistant.Net.Storage.Internal
 
         private async Task<Option<ValueRecord>> ReplaceOne(
             KeyRecord key,
-            ValueRecord currentValue,
+            ValueRecord record,
             Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
             CancellationToken token)
         {
-            var updatedValue = await updateFactory(key, currentValue);
-            var updatedAudit = currentValue.Audit!.IncrementVersion(updated: clock.UtcNow);
+            var updatedValue = await updateFactory(key, record);
+            var updatedAudit = record.Audit!.IncrementVersion(updated: clock.UtcNow);
             var updatedRecord = new MongoRecord(key.Id, key.Type, key.Content, updatedValue.Type, updatedValue.Content, updatedAudit);
 
             var result = await collection.ReplaceOneAsync(
-                filter: x => x.Id == key.Id && x.Audit.Version == currentValue.Audit.Version,
+                filter: x => x.Id == key.Id && x.Audit.Version == record.Audit.Version,
                 updatedRecord,
                 new ReplaceOptions(),
                 token);
@@ -132,7 +134,6 @@ namespace Assistant.Net.Storage.Internal
                 filter: x => x.Id == key.Id,
                 new FindOneAndDeleteOptions<MongoRecord>(),
                 token);
-
             return deleted.AsOption().MapOption(x => new ValueRecord(x.ValueType, x.ValueContent, x.Audit));
         }
     }
