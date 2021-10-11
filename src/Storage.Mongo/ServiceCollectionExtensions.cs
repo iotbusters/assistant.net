@@ -21,13 +21,25 @@ namespace Assistant.Net.Storage
         /// <summary>
         ///     Registers a configuration instance which <see cref="MongoOptions"/> will bind against.
         /// </summary>
-        public static IServiceCollection ConfigureMongoOptions(this IServiceCollection services, IConfigurationSection config) => services
-            .Configure<MongoOptions>(config);
+        public static IServiceCollection ConfigureMongoOptions(this IServiceCollection services, IConfigurationSection configuration) => services
+            .Configure<MongoOptions>(configuration);
 
         /// <summary>
         ///    Register an action used to configure <see cref="MongoOptions"/> options.
         /// </summary>
         public static IServiceCollection ConfigureMongoOptions(this IServiceCollection services, Action<MongoOptions> configureOptions) => services
+            .Configure(configureOptions);
+
+        /// <summary>
+        ///     Registers a configuration instance which <see cref="MongoStoringOptions"/> will bind against.
+        /// </summary>
+        public static IServiceCollection ConfigureMongoStoringOptions(this IServiceCollection services, IConfigurationSection configuration) => services
+            .Configure<MongoStoringOptions>(configuration);
+
+        /// <summary>
+        ///    Register an action used to configure <see cref="MongoStoringOptions"/> options.
+        /// </summary>
+        public static IServiceCollection ConfigureMongoStoringOptions(this IServiceCollection services, Action<MongoStoringOptions> configureOptions) => services
             .Configure(configureOptions);
 
         /// <summary>

@@ -15,16 +15,14 @@ namespace Assistant.Net.Storage.Internal
 {
     internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
     {
-        private const string StorageCollectionName = "Records";
-
+        private readonly MongoStoringOptions options;
         private readonly IMongoCollection<MongoRecord> collection;
         private readonly ISystemClock clock;
-        private readonly MongoOptions options;
 
-        public MongoStorageProvider(IOptions<MongoOptions> options, IMongoClient client, ISystemClock clock)
+        public MongoStorageProvider(IOptions<MongoStoringOptions> options, IMongoClient client, ISystemClock clock)
         {
             this.options = options.Value;
-            this.collection = client.GetDatabase(this.options.DatabaseName).GetCollection<MongoRecord>(StorageCollectionName);
+            this.collection = client.GetDatabase(this.options.DatabaseName).GetCollection<MongoRecord>(MongoNames.StorageCollectionName);
             this.clock = clock;
         }
 
@@ -33,7 +31,10 @@ namespace Assistant.Net.Storage.Internal
             Func<KeyRecord, Task<ValueRecord>> addFactory,
             CancellationToken token)
         {
-            for (var attempt = 1; attempt <= options.MaxInsertAttemptNumber; attempt++)
+            var strategy = options.InsertRetry;
+
+            var attempt = 1;
+            while (true)
             {
                 if (await FindOne(key, token) is Some<ValueRecord>(var found))
                     return found;
@@ -41,7 +42,11 @@ namespace Assistant.Net.Storage.Internal
                 if (await InsertOne(key, addFactory, token) is Some<ValueRecord>(var inserted))
                     return inserted;
 
-                await Task.Delay(options.OptimisticConcurrencyDelayTime, token);
+                attempt++;
+                if (!strategy.CanRetry(attempt))
+                    break;
+                
+                await Task.Delay(strategy.DelayTime(attempt), token);
             }
 
             throw new StorageConcurrencyException();
@@ -53,7 +58,10 @@ namespace Assistant.Net.Storage.Internal
             Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
             CancellationToken token)
         {
-            for (var attempt = 1; attempt <= options.MaxUpsertAttemptNumber; attempt++)
+            var strategy = options.UpsertRetry;
+
+            var attempt = 1;
+            while (true)
             {
                 if (await FindOne(key, token) is Some<ValueRecord>(var found))
                 {
@@ -63,7 +71,11 @@ namespace Assistant.Net.Storage.Internal
                 else if (await InsertOne(key, addFactory, token) is Some<ValueRecord>(var inserted))
                     return inserted;
 
-                await Task.Delay(options.OptimisticConcurrencyDelayTime, token);
+                attempt++;
+                if (!strategy.CanRetry(attempt))
+                    break;
+                
+                await Task.Delay(strategy.DelayTime(attempt), token);
             }
 
             throw new StorageConcurrencyException();
