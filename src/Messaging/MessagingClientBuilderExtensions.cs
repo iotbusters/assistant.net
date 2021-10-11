@@ -1,6 +1,8 @@
+using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Options;
+using Assistant.Net.RetryStrategies;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
