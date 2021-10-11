@@ -1,7 +1,9 @@
+using System;
+
 namespace Assistant.Net.Messaging.Exceptions
 {
     /// <summary>
-    ///     Any issues connecting to remote message handler.
+    ///     Any connection related issues occurred during remote message handling.
     /// </summary>
     public class MessageConnectionFailedException : MessageException
     {
@@ -10,5 +12,8 @@ namespace Assistant.Net.Messaging.Exceptions
 
         /// <summary/>
         public MessageConnectionFailedException(string message) : base(message) { }
+
+        /// <summary/>
+        public MessageConnectionFailedException(string? message, Exception? ex) : base(message, ex) { }
     }
 }

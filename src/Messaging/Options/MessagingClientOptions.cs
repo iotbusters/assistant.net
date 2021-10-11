@@ -1,5 +1,6 @@
-using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Interceptors;
+using Assistant.Net.RetryStrategies;
 using System;
 using System.Collections.Generic;
 
@@ -37,7 +38,12 @@ namespace Assistant.Net.Messaging.Options
         /// <remarks>
         ///     Impacts <see cref="RetryingInterceptor{TMessage,TResponse}"/>.
         /// </remarks>
-        public IRetryStrategy Retry { get; set; } = new ExponentialBackoff();
+        public IRetryStrategy Retry { get; set; } = new ExponentialBackoff
+        {
+            MaxAttemptNumber = 5,
+            Interval = TimeSpan.FromSeconds(1),
+            Rate = 1.2
+        };
 
         /// <summary>
         ///     Message handling timeout.
