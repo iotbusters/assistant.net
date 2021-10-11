@@ -34,7 +34,7 @@ namespace Assistant.Net.Messaging.Tests.Interceptors
         [TestCase(typeof(Exception))]
         public async Task Intercept_throws(Type exceptionType)
         {
-            Services.ConfigureMessageClient(b => b.ExposeException(exceptionType));
+            Services.ConfigureMessagingClient(b => b.ExposeException(exceptionType));
 
             try
             {
@@ -61,7 +61,7 @@ namespace Assistant.Net.Messaging.Tests.Interceptors
         [SetUp]
         public void Setup()
         {
-            Services = new ServiceCollection().ConfigureMessageClient(b => b.AddInterceptor<ErrorHandlingInterceptor>());
+            Services = new ServiceCollection().ConfigureMessagingClient(b => b.AddInterceptor<ErrorHandlingInterceptor>());
         }
 
         private IServiceCollection Services { get; set; } = null!;
