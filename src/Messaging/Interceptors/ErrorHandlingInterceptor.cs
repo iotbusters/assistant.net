@@ -24,24 +24,22 @@ namespace Assistant.Net.Messaging.Interceptors
     public class ErrorHandlingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
         where TMessage : IMessage<TResponse>
     {
-        private readonly IOptions<MessagingClientOptions> options;
+        private readonly MessagingClientOptions options;
 
         /// <summary/>
         public ErrorHandlingInterceptor(IOptions<MessagingClientOptions> options) =>
-            this.options = options;
+            this.options = options.Value;
 
         /// <inheritdoc/>
         public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
         {
-            var clientOptions = options.Value;
-
             try
             {
                 return await next(message, token);
             }
             catch (Exception ex)
             {
-                if (ex is MessageException || clientOptions.ExposedExceptions.Contains(ex.GetType()))
+                if (ex is MessageException || options.ExposedExceptions.Contains(ex.GetType()))
                     throw;
                 throw new MessageFailedException(ex);
             }

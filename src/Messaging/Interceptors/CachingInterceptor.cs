@@ -28,20 +28,18 @@ namespace Assistant.Net.Messaging.Interceptors
         where TMessage : IMessage<TResponse>
     {
         private readonly IStorage<string, CachingResult> cache;
-        private readonly IOptions<MessagingClientOptions> options;
+        private readonly MessagingClientOptions options;
 
         /// <summary/>
         public CachingInterceptor(IStorage<string, CachingResult> cache, IOptions<MessagingClientOptions> options)
         {
             this.cache = cache;
-            this.options = options;
+            this.options = options.Value;
         }
 
         /// <inheritdoc/>
         public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
         {
-            var clientOptions = options.Value;
-
             var key = message.GetSha1();
             var result = await cache.AddOrGet(key, async _ =>
             {
@@ -52,7 +50,7 @@ namespace Assistant.Net.Messaging.Interceptors
                 }
                 catch (Exception ex)
                 {
-                    if (ex is not MessageDeferredException && !clientOptions.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
+                    if (ex is not MessageDeferredException && !options.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
                         return CachingResult.OfException(ex);
                     throw;
                 }

@@ -8,7 +8,7 @@ using System;
 namespace Assistant.Net.Messaging
 {
     /// <summary>
-    ///     Messaging client configuration extensions.
+    ///     WEB oriented messaging client configuration extensions.
     /// </summary>
     public static class MessageClientBuilderExtensions
     {

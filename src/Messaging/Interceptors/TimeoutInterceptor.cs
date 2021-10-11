@@ -23,19 +23,17 @@ namespace Assistant.Net.Messaging.Interceptors
     public class TimeoutInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
         where TMessage : IMessage<TResponse>
     {
-        private readonly IOptions<MessagingClientOptions> options;
+        private readonly MessagingClientOptions options;
 
         /// <summary/>
         public TimeoutInterceptor(IOptions<MessagingClientOptions> options) =>
-            this.options = options;
+            this.options = options.Value;
 
         /// <inheritdoc/>
         public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
         {
-            var clientOptions = options.Value;
-
             using var newSource = CancellationTokenSource.CreateLinkedTokenSource(
-                new CancellationTokenSource(clientOptions.Timeout).Token,
+                new CancellationTokenSource(options.Timeout).Token,
                 token);
 
             return await next(message, newSource.Token);
