@@ -16,7 +16,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
         {
             Services = new ServiceCollection()
                 .AddMessagingClient(b => b
-                    .UseWebHandler(hcb => hcb
+                    .UseWeb(hcb => hcb
                         .ConfigureHttpClient(hc =>
                         {
                             hc.BaseAddress = new Uri("http://localhost/messages");
@@ -28,7 +28,9 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
             RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
                 .Configure(b => b.UseRemoteWebMessageHandler()))
-                .ConfigureServices(s => s.AddRemoteWebMessageHandler(b => b.ClearInterceptors()));
+                .ConfigureServices(s => s
+                    .AddRemoteWebMessageHandler()
+                    .ConfigureMessagingClient(b => b.ClearInterceptors()));
         }
 
         public IServiceCollection Services { get; init; }
@@ -36,27 +38,27 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
 
         public MessageClientFixtureBuilder ClearHandlers()
         {
-            Services.ConfigureMessageClient(b => b.ClearInterceptors());
+            Services.ConfigureMessagingClient(b => b.ClearInterceptors());
             return this;
         }
 
         public MessageClientFixtureBuilder AddLocal<THandler>() where THandler : class, IAbstractHandler
         {
-            Services.ConfigureMessageClient(b => b.AddLocal<THandler>());
+            Services.ConfigureMessagingClient(b => b.AddLocal<THandler>());
             return this;
         }
 
         public MessageClientFixtureBuilder AddRemote<THandler>() where THandler : class, IAbstractHandler
         {
             RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureMessageClient(b => b.AddLocal<THandler>()));
+                .ConfigureMessagingClient(b => b.AddLocal<THandler>()));
 
             var messageType = typeof(THandler)
                 .GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IMessageHandler<,>))
                 ?.GetGenericArguments().First()
                 ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
 
-            Services.ConfigureMessageClient(b => b.AddWeb(messageType));
+            Services.ConfigureMessagingClient(b => b.AddWeb(messageType));
             return this;
         }
 
@@ -64,7 +66,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
             where TMessage : IAbstractMessage
         {
             var messageType = typeof(TMessage);
-            Services.ConfigureMessageClient(b => b.AddWeb(messageType));
+            Services.ConfigureMessagingClient(b => b.AddWeb(messageType));
             return this;
         }
 

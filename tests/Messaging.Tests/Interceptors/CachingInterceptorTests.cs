@@ -57,7 +57,7 @@ namespace Assistant.Net.Messaging.Tests.Interceptors
         [Test]
         public async Task Intercept_throwsMessageExecutionExceptionAndNotCached_TransientException()
         {
-            Services.ConfigureMessageClient(b => b.AddTransientException<ArgumentException>());
+            Services.ConfigureMessagingClient(b => b.AddTransientException<ArgumentException>());
             var provider = Services.BuildServiceProvider();
             var interceptor = provider.GetRequiredService<CachingInterceptor>() as IMessageInterceptor;
             var cache = provider.GetRequiredService<IStorage<string, CachingResult>>();
@@ -83,7 +83,7 @@ namespace Assistant.Net.Messaging.Tests.Interceptors
             Services = new ServiceCollection()
                 .AddSystemClock()
                 .AddStorage(b => b.AddLocal<string, CachingResult>())
-                .ConfigureMessageClient(b => b.AddInterceptor<CachingInterceptor>());
+                .ConfigureMessagingClient(b => b.AddInterceptor<CachingInterceptor>());
             Provider = Services.BuildServiceProvider();
         }
 
