@@ -2,6 +2,7 @@ using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Options;
+using Assistant.Net.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -46,43 +47,45 @@ namespace Assistant.Net.Messaging.Interceptors
         /// <exception cref="MessageRetryLimitExceededException" />
         public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
         {
-            var clientOptions = options.Value;
-
+            var strategy = options.Value.Retry;
+            var transientExceptions = options.Value.TransientExceptions;
+            var messageId = message.GetSha1();
             var messageName = message.GetType().Name.ToLower();
-            var attempt = 1;
 
-            while(!token.IsCancellationRequested)
+            var attempt = 1;
+            while(true)
             {
                 var operation = diagnosticFactory.Start($"{messageName}-handling-attempt-{attempt}");
-                logger.LogInformation("Operation {Attempt} has started.", attempt);
+                logger.LogDebug("Message({MessageName}/{MessageId}) retrying: {Attempt} begins.", messageName, messageId, attempt);
 
                 try
                 {
                     var response = await next(message, token);
+                    logger.LogInformation("Message({MessageName}/{MessageId}) retrying: {Attempt} succeeded.", messageName, messageId, attempt);
                     operation.Complete();
                     return response;
                 }
                 catch (Exception ex)
                 {
                     operation.Fail();
-
-                    if (!clientOptions.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
+                    
+                    if (!transientExceptions.Any(x => x.IsInstanceOfType(ex)))
                     {
-                        logger.LogError(ex, "Permanent error occurred during {Attempt}.", attempt);
+                        logger.LogError(ex, "Message({MessageName}/{MessageId}) retrying: {Attempt} ends on permanent error.", messageName, messageId, attempt);
                         throw;
                     }
 
-                    logger.LogWarning(ex, "Transient error occurred during {Attempt}.", attempt);
+                    logger.LogWarning(ex, "Message({MessageName}/{MessageId}) retrying: {Attempt} ends on transient error.", messageName, messageId, attempt);
 
-                    if (!clientOptions.Retry.CanRetry(attempt))
+                    attempt++;
+                    if (!strategy.CanRetry(attempt))
                     {
-                        logger.LogError(ex, "Retrying strategy failed after {Attempt}.", attempt);
+                        logger.LogError(ex, "Message({MessageName}/{MessageId}) retrying: {Attempt} won't proceed.", messageName, messageId, attempt);
                         break;
                     }
                 }
 
-                await Task.Delay(clientOptions.Retry.DelayTime(attempt), token);
-                attempt++;
+                await Task.Delay(strategy.DelayTime(attempt), token);
             }
 
             throw new MessageRetryLimitExceededException();
