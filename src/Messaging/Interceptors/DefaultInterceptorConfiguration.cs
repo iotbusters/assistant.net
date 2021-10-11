@@ -20,8 +20,8 @@ namespace Assistant.Net.Messaging.Interceptors
             builder
                 .ClearInterceptors()
                 .AddInterceptor<DiagnosticsInterceptor>()
-                .AddInterceptor<ErrorHandlingInterceptor>()
                 .AddInterceptor<CachingInterceptor>()
+                .AddInterceptor<ErrorHandlingInterceptor>()
                 .AddInterceptor<RetryingInterceptor>()
                 .AddInterceptor<TimeoutInterceptor>()
                 .ClearExposedExceptions()
