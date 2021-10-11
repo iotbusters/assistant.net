@@ -15,7 +15,7 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Configures the messaging client to connect the remote web handler.
         /// </summary>
-        public static MessagingClientBuilder UseWebHandler(this MessagingClientBuilder builder, Action<IHttpClientBuilder> configureBuilder)
+        public static MessagingClientBuilder UseWeb(this MessagingClientBuilder builder, Action<IHttpClientBuilder> configureBuilder)
         {
             var clientBuilder = builder.Services.AddRemoteWebMessagingClient();
             configureBuilder.Invoke(clientBuilder);
@@ -23,7 +23,7 @@ namespace Assistant.Net.Messaging
         }
 
         /// <summary>
-        ///     Registers remote handler of <typeparamref name="TMessage" />.
+        ///     Registers remote WEB handler of <typeparamref name="TMessage" />.
         /// </summary>
         /// <remarks>
         ///     Pay attention, it requires <see cref="IWebMessageHandlerClient" /> remote handling provider implementation.
@@ -34,7 +34,7 @@ namespace Assistant.Net.Messaging
             where TMessage : class, IAbstractMessage => builder.AddWeb(typeof(TMessage));
 
         /// <summary>
-        ///     Registers remote handler of <paramref name="messageType" />.
+        ///     Registers remote WEB handler of <paramref name="messageType" />.
         /// </summary>
         /// <remarks>
         ///     Pay attention, it requires <see cref="IWebMessageHandlerClient" /> remote handling provider implementation.

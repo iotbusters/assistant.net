@@ -1,6 +1,7 @@
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage;
+using System;
 
 namespace Assistant.Net.Messaging.Interceptors
 {
@@ -22,7 +23,8 @@ namespace Assistant.Net.Messaging.Interceptors
                 .AddInterceptor<ErrorHandlingInterceptor>()
                 .AddInterceptor<CachingInterceptor>()
                 .AddInterceptor<DeferredCachingInterceptor>()
-                .AddInterceptor<TimeoutInterceptor>();
+                .AddInterceptor<TimeoutInterceptor>()
+                .RemoveExposedException<OperationCanceledException>();
         }
     }
 }
