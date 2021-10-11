@@ -26,21 +26,19 @@ namespace Assistant.Net.Messaging.Interceptors
     {
         private static readonly ConcurrentDictionary<string, DeferredCachingResult<TResponse>> deferredCache = new();
 
-        private readonly IOptions<MessagingClientOptions> options;
+        private readonly MessagingClientOptions options;
 
         /// <summary/>
         public DeferredCachingInterceptor(IOptions<MessagingClientOptions> options) =>
-            this.options = options;
+            this.options = options.Value;
 
         /// <inheritdoc/>
         public Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
         {
-            var clientOptions = options.Value;
-
             var key = message.GetSha1();
             return deferredCache.GetOrAdd(key, _ => next(message, token).WhenFaulted(ex =>
             {
-                if (ex is MessageDeferredException || clientOptions.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
+                if (ex is MessageDeferredException || options.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
                     deferredCache.TryRemove(key, out var _);
             })).GetTask();
         }

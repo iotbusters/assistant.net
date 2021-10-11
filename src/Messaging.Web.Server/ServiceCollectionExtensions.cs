@@ -1,7 +1,6 @@
 using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Internal;
-using Assistant.Net.Messaging.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -30,16 +29,18 @@ namespace Assistant.Net.Messaging
             .AddDiagnostics();
 
         /// <summary>
-        ///     Registers remote message handling server configuration customized by <paramref name="configure" />.
+        ///     Registers remote message handling WEB server configuration.
         /// </summary>
-        public static IServiceCollection AddRemoteWebMessageHandler(this IServiceCollection services, Action<MessagingClientBuilder> configure) => services
+        /// <remarks>
+        ///     Pay attention, you need to call explicitly 'ConfigureMessageClient' to register handlers.
+        /// </remarks>
+        public static IServiceCollection AddRemoteWebMessageHandler(this IServiceCollection services) => services
             .AddRemoteWebMessageHandlerMiddlewares()
             .AddSystemServicesHosted()
             .AddDiagnosticsWebHosted()
             .AddJsonSerialization()
             .AddMessagingClient()
-            .ConfigureMessageClient(b => b.AddConfiguration<ServerInterceptorConfiguration>())
-            .ConfigureMessageClient(configure);
+            .ConfigureMessageClient(b => b.AddConfiguration<ServerInterceptorConfiguration>());
 
         /// <summary>
         ///     Registers remote message handling middlewares:
