@@ -28,6 +28,7 @@ namespace Assistant.Net.Diagnostics
         /// </summary>
         public static IServiceCollection AddDiagnosticContext<TContext>(this IServiceCollection services)
             where TContext : class, IDiagnosticContext => services
+            .TryAddScoped<TContext>()
             .TryAddScoped<IDiagnosticContext, TContext>();
 
         /// <summary>
