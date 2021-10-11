@@ -4,7 +4,6 @@ using Assistant.Net.Storage.Configuration;
 using Assistant.Net.Storage.Internal;
 using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Storage
@@ -17,16 +16,8 @@ namespace Assistant.Net.Storage
         /// <summary>
         ///     Configures the storage to connect a MongoDB database by <paramref name="connectionString"/>.
         /// </summary>
-        /// <remarks>
-        ///     Pay attention, you need to call explicitly one of overloaded <see cref="Storage.ServiceCollectionExtensions.ConfigureMongoOptions(IServiceCollection, string)"/> to configure.
-        /// </remarks>
-        public static StorageBuilder UseMongo(this StorageBuilder builder, string connectionString)
-        {
-            builder.Services
-                .ConfigureMongoOptions(connectionString)
-                .AddMongoClient();
-            return builder;
-        }
+        public static StorageBuilder UseMongo(this StorageBuilder builder, string connectionString) =>
+            builder.UseMongo(o => o.ConnectionString = connectionString);
 
         /// <summary>
         ///     Configures the storage to connect a MongoDB database.
@@ -34,19 +25,39 @@ namespace Assistant.Net.Storage
         public static StorageBuilder UseMongo(this StorageBuilder builder, Action<MongoOptions> configureOptions)
         {
             builder.Services
+                .AddMongoClient()
                 .ConfigureMongoOptions(configureOptions)
-                .AddMongoClient();
+                .ConfigureMongoStoringOptions(_ => { });
             return builder;
         }
 
         /// <summary>
         ///     Configures the storage to connect a MongoDB database.
         /// </summary>
-        public static StorageBuilder UseMongo(this StorageBuilder builder, IConfigurationSection config)
+        public static StorageBuilder UseMongo(this StorageBuilder builder, IConfigurationSection configuration)
         {
             builder.Services
-                .ConfigureMongoOptions(config)
-                .AddMongoClient();
+                .AddMongoClient()
+                .ConfigureMongoOptions(configuration)
+                .ConfigureMongoStoringOptions(_ => { });
+            return builder;
+        }
+
+        /// <summary>
+        ///     Configures storing mechanism to connect a MongoDB database.
+        /// </summary>
+        public static StorageBuilder ConfigureMongoStoring(this StorageBuilder builder, Action<MongoStoringOptions> configureOptions)
+        {
+            builder.Services.ConfigureMongoStoringOptions(configureOptions);
+            return builder;
+        }
+
+        /// <summary>
+        ///     Configures storing mechanism to connect a MongoDB database.
+        /// </summary>
+        public static StorageBuilder ConfigureMongoStoring(this StorageBuilder builder, IConfigurationSection configuration)
+        {
+            builder.Services.ConfigureMongoStoringOptions(configuration);
             return builder;
         }
 

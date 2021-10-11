@@ -17,38 +17,38 @@ namespace Assistant.Net.Storage.Internal
 {
     internal class MongoPartitionedStorageProvider<TValue> : IPartitionedStorageProvider<TValue>
     {
-        private const string KeyCollectionName = "PartitionKeys";
-        private const string KeyValueCollectionName = "PartitionIndexes";
-        private const string ValueCollectionName = "PartitionRecords";
         private const int DefaultPartitionIndex = 0;
 
-        private readonly MongoOptions options;
+        private readonly MongoStoringOptions options;
         private readonly ISystemClock clock;
         private readonly IMongoCollection<MongoPartitionKeyRecord> keyCollection;
         private readonly IMongoCollection<MongoPartitionKeyValueRecord> keyValueCollection;
         private readonly IMongoCollection<MongoPartitionValueRecord> valueCollection;
 
-        public MongoPartitionedStorageProvider(IOptions<MongoOptions> options, IMongoClient client, ISystemClock clock)
+        public MongoPartitionedStorageProvider(IOptions<MongoStoringOptions> options, IMongoClient client, ISystemClock clock)
         {
             this.options = options.Value;
             this.clock = clock;
 
             var database = client.GetDatabase(this.options.DatabaseName);
-            this.keyCollection = database.GetCollection<MongoPartitionKeyRecord>(KeyCollectionName);
-            this.keyValueCollection = database.GetCollection<MongoPartitionKeyValueRecord>(KeyValueCollectionName);
-            this.valueCollection = database.GetCollection<MongoPartitionValueRecord>(ValueCollectionName);
+            this.keyCollection = database.GetCollection<MongoPartitionKeyRecord>(MongoNames.PartitionStorageKeyCollectionName);
+            this.keyValueCollection = database.GetCollection<MongoPartitionKeyValueRecord>(MongoNames.PartitionStorageKeyValueCollectionName);
+            this.valueCollection = database.GetCollection<MongoPartitionValueRecord>(MongoNames.PartitionStorageValueCollectionName);
         }
 
         public async Task<long> Add(KeyRecord key, ValueRecord value, CancellationToken token)
         {
+            var strategy = options.InsertRetry;
+
             var valueRecord = new MongoPartitionValueRecord(
                 Id: Guid.NewGuid(),
                 value.Type,
                 value.Content,
                 Audit.Initial(created: clock.UtcNow));
-            await InsertOne(valueCollection, valueRecord, token);
+            await TryInsertOne(valueCollection, valueRecord, token);
 
-            for (var attempt = 1; attempt <= options.MaxInsertAttemptNumber; attempt++)
+            var attempt = 1;
+            while (true)
             {
                 var latestIndex = await keyValueCollection.AsQueryable(new AggregateOptions())
                     .Where(x => x.Key.Id == key.Id)
@@ -63,14 +63,18 @@ namespace Assistant.Net.Storage.Internal
                         key.Type,
                         key.Content,
                         Audit.Initial(clock.UtcNow));
-                    await InsertOne(keyCollection, initialKeyRecord, token);
+                    await TryInsertOne(keyCollection, initialKeyRecord, token);
                 }
 
                 var keyRecord = new MongoPartitionKeyValueRecord(new(key.Id, latestIndex + 1), valueRecord.Id);
-                if(await InsertOne(keyValueCollection, keyRecord, token))
+                if(await TryInsertOne(keyValueCollection, keyRecord, token))
                     return keyRecord.Key.Index;
 
-                await Task.Delay(options.OptimisticConcurrencyDelayTime, token);
+                attempt++;
+                if (!strategy.CanRetry(attempt))
+                    break;
+
+                await Task.Delay(strategy.DelayTime(attempt), token);
             }
 
             throw new StorageConcurrencyException();
@@ -128,7 +132,7 @@ namespace Assistant.Net.Storage.Internal
 
         public void Dispose() { /* The mongo client is DI managed. */ }
 
-        private async Task<bool> InsertOne<T>(IMongoCollection<T> collection, T newRecord, CancellationToken token)
+        private async Task<bool> TryInsertOne<T>(IMongoCollection<T> collection, T newRecord, CancellationToken token)
         {
             try
             {
