@@ -14,7 +14,9 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
             RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
                 .Configure(b => b.UseRemoteWebMessageHandler())
-                .ConfigureServices(s => s.AddRemoteWebMessageHandler(b => b.ClearInterceptors())));
+                .ConfigureServices(s => s
+                    .AddRemoteWebMessageHandler()
+                    .ConfigureMessagingClient(b => b.ClearInterceptors())));
         }
 
         public IHostBuilder RemoteHostBuilder { get; init; }
@@ -22,7 +24,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
         public MessageClientFixtureBuilder AddRemote<THandler>() where THandler : class, IAbstractHandler
         {
             RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureMessageClient(b => b.AddLocal<THandler>()));
+                .ConfigureMessagingClient(b => b.AddLocal<THandler>()));
             return this;
         }
 
