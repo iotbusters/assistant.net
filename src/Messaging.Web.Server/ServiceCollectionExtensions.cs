@@ -40,7 +40,7 @@ namespace Assistant.Net.Messaging
             .AddDiagnosticsWebHosted()
             .AddJsonSerialization()
             .AddMessagingClient()
-            .ConfigureMessageClient(b => b.AddConfiguration<ServerInterceptorConfiguration>());
+            .ConfigureMessagingClient(b => b.AddConfiguration<ServerInterceptorConfiguration>());
 
         /// <summary>
         ///     Registers remote message handling middlewares:
