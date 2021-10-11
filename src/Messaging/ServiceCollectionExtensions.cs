@@ -18,26 +18,26 @@ namespace Assistant.Net.Messaging
         ///     Adds <see cref="IMessagingClient"/> implementation, required services and defaults.
         /// </summary>
         /// <remarks>
-        ///     Pay attention, you need to call explicitly <see cref="ConfigureMessageClient"/> to register handlers.
+        ///     Pay attention, you need to call explicitly <see cref="ConfigureMessagingClient"/> to register handlers.
         /// </remarks>
         public static IServiceCollection AddMessagingClient(this IServiceCollection services) => services
             .AddDiagnostics()
             .AddSystemServicesDefaulted()
             .AddProxyFactory(b => b.Add<IAbstractHandler>())
-            .TryAddSingleton<IMessagingClient, MessagingClient>()
-            .ConfigureMessageClient(b => b.AddConfiguration<DefaultInterceptorConfiguration>());
+            .TryAddScoped<IMessagingClient, MessagingClient>()
+            .ConfigureMessagingClient(b => b.AddConfiguration<DefaultInterceptorConfiguration>());
 
         /// <summary>
         ///     Adds <see cref="IMessagingClient"/> implementation, required services and <see cref="MessagingClientOptions"/> configuration.
         /// </summary>
         public static IServiceCollection AddMessagingClient(this IServiceCollection services, Action<MessagingClientBuilder> configure) => services
             .AddMessagingClient()
-            .ConfigureMessageClient(configure);
+            .ConfigureMessagingClient(configure);
 
         /// <summary>
         ///     Register an action used to configure <see cref="MessagingClientOptions"/> options.
         /// </summary>
-        public static IServiceCollection ConfigureMessageClient(this IServiceCollection services, Action<MessagingClientBuilder> configure)
+        public static IServiceCollection ConfigureMessagingClient(this IServiceCollection services, Action<MessagingClientBuilder> configure)
         {
             configure(new MessagingClientBuilder(services));
             return services;
