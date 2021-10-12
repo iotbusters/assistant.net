@@ -176,7 +176,7 @@ var response = await client.Send(new SomeMessage())
 
 #### assistant.net.messaging.web
 
-Shared tools required by packages related to remote WEB oriented message handling.
+WEB oriented message handling dependencies.
 E.g. json serializer configuration.
 
 See `assistant.net.messaging.web.*` packages for more information.
@@ -187,7 +187,7 @@ Remote WEB oriented message handling client implementation for [server](#assista
 
 ```csharp
 services.AddMessagingClient(b => b
-    .UseWebHandler(b => b
+    .UseWeb(b => b
         .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://localhost/messages"))
         .AddHttpMessageHandler<CustomDelegatingHandler>())
     .AddWeb<SomeMessage>()
@@ -204,10 +204,50 @@ See [server](#assistantnetmessagingwebserver) configuration for remote handling.
 Remote WEB oriented message handling server implementation. The server exposes API and accepts remote requests for further processing.
 
 ```csharp
-services.AddRemoteWebMessageHandler(b => b
-    .AddLocal<SomeMessageHandler>();
-    .AddInterceptor<SomeMessageInterceptor>()
-    ); // it reuses `.AddMessagingClient()` behind the scenes so they are fully compatible.
+services
+    .AddWebMessageHandling()
+    .ConfigureMessagingClient(b => b
+        .AddLocal<SomeMessageHandler>();
+        .AddInterceptor<SomeMessageInterceptor>()
+    );
+```
+
+See [client](#assistantnetmessagingwebclient) configuration and remote message handling request.
+
+#### assistant.net.messaging.mongo
+
+MongoDB based message handling dependencies.
+E.g. Bson serialization, models.
+
+See `assistant.net.messaging.mongo.*` packages for more information.
+
+#### assistant.net.messaging.mongo.client
+
+Remote MongoDB based message handling client implementation. The client stores message requests into configured database.
+
+```csharp
+services.AddMessagingClient(b => b
+    .UseMongo("mongodb://127.0.0.1:27017")
+    .AddMongo<SomeMessage>()
+    );
+
+var client = provider.GetRequiredService<IMessagingClient>();
+var response = await client.Send(new SomeMessage())
+```
+
+See [server](#assistantnetmessagingmongoserver) configuration for remote handling stored requests.
+
+#### assistant.net.messaging.mongo.server
+
+Remote MongoDB based message handling server implementation. The server actively polls configured database for new requested messages to handle.
+
+```csharp
+services
+    .AddRemoteWebMessageHandler()
+    .ConfigureMessagingClient(b => b
+        .AddLocal<SomeMessageHandler>();
+        .AddInterceptor<SomeMessageInterceptor>()
+    );
 ```
 
 See [client](#assistantnetmessagingwebclient) configuration and remote message handling request.
