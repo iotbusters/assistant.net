@@ -2,6 +2,7 @@
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
+using Assistant.Net.Messaging.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -32,6 +33,7 @@ namespace Assistant.Net.Messaging
             .AddSingleton<IMongoRecordReader, MongoRecordClient>()
             .AddScoped<IMongoRecordWriter, MongoRecordClient>()
             .AddScoped<IMongoRecordProcessor, MongoRecordProcessor>()
+            .TryAddSingleton<ExceptionModelConverter>()
             .AddSystemServicesHosted()
             .AddDiagnosticContext<InternalDiagnosticContext>()
             .AddMessagingClient(b => b.RemoveExposedException<OperationCanceledException>())

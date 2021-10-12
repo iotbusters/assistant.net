@@ -1,17 +1,18 @@
 ﻿using Assistant.Net.Messaging.Models;
-using System.Collections.Generic;
+using Assistant.Net.Unions;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Abstractions
 {
     /// <summary>
-    ///     
+    ///     Requested message lookup abstraction.
     /// </summary>
     public interface IMongoRecordReader
     {
         /// <summary>
-        ///     
+        ///     Finds next requested message wrapped in <see cref="MongoRecord"/>.
         /// </summary>
-        IAsyncEnumerable<MongoRecord> FindRequested(CancellationToken token);
+        Task<Option<MongoRecord>> NextRequested(CancellationToken token);
     }
 }

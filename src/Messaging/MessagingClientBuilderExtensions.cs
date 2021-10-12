@@ -4,6 +4,8 @@ using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.RetryStrategies;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Linq;
 
@@ -23,6 +25,35 @@ namespace Assistant.Net.Messaging
             var abstractHandlerTypes = typeof(THandler).GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IMessageHandler<,>));
             foreach (var abstractHandlerType in abstractHandlerTypes)
                 builder.Services.ReplaceTransient(abstractHandlerType, typeof(THandler));
+            return builder;
+        }
+
+        /// <summary>
+        ///     Registers a local in-memory <paramref name="handlerInstance" />.
+        /// </summary>
+        public static MessagingClientBuilder AddLocal(this MessagingClientBuilder builder, IAbstractHandler handlerInstance)
+        {
+            var handlerType = handlerInstance.GetType();
+            var abstractHandlerTypes = handlerType.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IMessageHandler<,>)).ToArray();
+            if (!abstractHandlerTypes.Any())
+                throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerInstance));
+
+            foreach (var abstractHandlerType in abstractHandlerTypes)
+                builder.Services.Replace(ServiceDescriptor.Singleton(abstractHandlerType, _ => handlerInstance));
+            return builder;
+        }
+
+        /// <summary>
+        ///     Registers a local in-memory <paramref name="handlerType" />.
+        /// </summary>
+        public static MessagingClientBuilder AddLocal(this MessagingClientBuilder builder, Type handlerType)
+        {
+            var abstractHandlerTypes = handlerType.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IMessageHandler<,>)).ToArray();
+            if (!abstractHandlerTypes.Any())
+                throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
+
+            foreach (var abstractHandlerType in abstractHandlerTypes)
+                builder.Services.ReplaceTransient(abstractHandlerType, handlerType);
             return builder;
         }
 
