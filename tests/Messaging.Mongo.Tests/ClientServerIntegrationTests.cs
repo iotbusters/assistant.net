@@ -7,6 +7,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using NUnit.Framework;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,6 +16,40 @@ namespace Assistant.Net.Messaging.Mongo.Tests
     [Timeout(2000)]
     public class ClientServerIntegrationTests
     {
+        [TestCase(5)]
+        public async Task Send_onceCallsHandler_concurrently(int concurrencyCount)
+        {
+            var handler = new TestScenarioMessageHandler();
+            using var fixture = new MessageClientFixtureBuilder()
+                .UseMongo(ConnectionString, Database)
+                .AddMongo(handler)
+                .Create();
+
+            var tasks = Enumerable.Range(1, concurrencyCount).Select(
+                _ => fixture.Client.SendObject(new TestScenarioMessage(0)));
+            await Task.WhenAll(tasks);
+
+            handler.CallCount.Should().Be(1);
+        }
+
+        [TestCase(5)]
+        public async Task Send_neverCallsHandler_concurrently(int concurrencyCount)
+        {
+            var handler = new TestScenarioMessageHandler();
+            using var fixture = new MessageClientFixtureBuilder()
+                .UseMongo(ConnectionString, Database)
+                .AddMongo(handler)
+                .Create();
+            await fixture.Client.SendObject(new TestScenarioMessage(0));
+            handler.CallCount = 0;
+
+            var tasks = Enumerable.Range(1, concurrencyCount).Select(
+                _ => fixture.Client.SendObject(new TestScenarioMessage(0)));
+            await Task.WhenAll(tasks);
+
+            handler.CallCount.Should().Be(0);
+        }
+
         [Test]
         public async Task Send_returnsResponse()
         {
