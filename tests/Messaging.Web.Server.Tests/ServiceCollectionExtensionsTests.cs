@@ -14,7 +14,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests
         public void GetServiceOfIMessageClient_resolvesObject()
         {
             var provider = new ServiceCollection()
-                .AddRemoteWebMessageHandler()
+                .AddWebMessageHandling()
                 .ConfigureMessagingClient(b => b
                     .AddLocal<TestFailMessageHandler>()) // to have at least one handler configured
                 .BuildServiceProvider();
@@ -27,7 +27,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests
         public void GetServiceOfMiddleware_resolvesObjects()
         {
             var services = new ServiceCollection()
-                .AddRemoteWebMessageHandler()
+                .AddWebMessageHandling()
                 .ConfigureMessagingClient(b => b.AddLocal<TestFailMessageHandler>()); // to have at least one handler configured
             var provider = services.BuildServiceProvider();
             provider.GetRequiredService<IHttpContextAccessor>().HttpContext = new DefaultHttpContext

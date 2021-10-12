@@ -29,13 +29,13 @@ namespace Assistant.Net.Messaging
             .AddDiagnostics();
 
         /// <summary>
-        ///     Registers remote message handling WEB server configuration.
+        ///     Registers WEB message handling server configuration.
         /// </summary>
         /// <remarks>
         ///     Pay attention, you need to call explicitly 'ConfigureMessageClient' to register handlers.
         /// </remarks>
-        public static IServiceCollection AddRemoteWebMessageHandler(this IServiceCollection services) => services
-            .AddRemoteWebMessageHandlerMiddlewares()
+        public static IServiceCollection AddWebMessageHandling(this IServiceCollection services) => services
+            .AddWebMessageHandlingMiddlewares()
             .AddSystemServicesHosted()
             .AddDiagnosticsWebHosted()
             .AddJsonSerialization()
@@ -43,10 +43,10 @@ namespace Assistant.Net.Messaging
             .ConfigureMessagingClient(b => b.AddConfiguration<ServerInterceptorConfiguration>());
 
         /// <summary>
-        ///     Registers remote message handling middlewares:
+        ///     Registers WEB message handling middlewares:
         ///     <see cref="DiagnosticMiddleware"/>, <see cref="ExceptionHandlingMiddleware"/> and <see cref="MessageHandlingMiddleware"/>.
         /// </summary>
-        public static IServiceCollection AddRemoteWebMessageHandlerMiddlewares(this IServiceCollection services) => services
+        public static IServiceCollection AddWebMessageHandlingMiddlewares(this IServiceCollection services) => services
             .TryAddTransient<DiagnosticMiddleware>()
             .TryAddTransient<ExceptionHandlingMiddleware>()
             .TryAddTransient<MessageHandlingMiddleware>();
