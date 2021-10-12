@@ -1,6 +1,3 @@
-using Assistant.Net.Abstractions;
-using Assistant.Net.RetryStrategies;
-using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Assistant.Net.Messaging.Options
@@ -15,16 +12,5 @@ namespace Assistant.Net.Messaging.Options
         /// </summary>
         [Required, MinLength(10)]//10:  mongodb://
         public string ConnectionString { get; set; } = null!;
-
-        /// <summary>
-        ///     Database name.
-        /// </summary>
-        [Required]
-        public string DatabaseName { get; set; } = MongoNames.DatabaseName;
-
-        /// <summary>
-        ///     Message handling response polling strategy.
-        /// </summary>
-        public IRetryStrategy ResponsePoll { get; set; } = new ConstantBackoff {MaxAttemptNumber = 4, Interval = TimeSpan.FromSeconds(0.1)};
     }
 }
