@@ -10,6 +10,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Mocks
     {
         public Task<TestResponse> Handle(TestScenarioMessage message, CancellationToken token)
         {
+            CallCount++;
             return message.Scenario switch
             {
                 0 => Task.FromResult(new TestResponse(false)),
@@ -19,5 +20,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Mocks
                 _ => throw new NotImplementedException("Not implemented")
             };
         }
+
+        public int CallCount { get; set; }
     }
 }

@@ -72,10 +72,11 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
 
         public MessageClientFixture Create()
         {
+            var host = RemoteHostBuilder.Start();
             var provider = Services
-                .AddHttpClientRedirect<IWebMessageHandlerClient>(_ => RemoteHostBuilder.Start())
+                .AddHttpClientRedirect<IWebMessageHandlerClient>(_ => host)
                 .BuildServiceProvider();
-            return new(provider);
+            return new(provider, host);
         }
     }
 }

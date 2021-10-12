@@ -55,10 +55,15 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
             return this;
         }
 
-        public MessageClientFixtureBuilder AddMongo<THandler>() where THandler : class, IAbstractHandler
+        public MessageClientFixtureBuilder AddMongo<THandler>(THandler? instance = null) where THandler : class, IAbstractHandler
         {
-            RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureMessagingClient(b => b.AddLocal<THandler>()));
+            RemoteHostBuilder.ConfigureServices(s => s.ConfigureMessagingClient(b =>
+            {
+                if (instance != null)
+                    b.AddLocal(instance);
+                else
+                    b.AddLocal<THandler>();
+            }));
 
             var messageType = typeof(THandler)
                 .GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IMessageHandler<,>))
