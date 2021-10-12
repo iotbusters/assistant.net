@@ -1,6 +1,7 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
+using Assistant.Net.Messaging.Serialization;
 using Assistant.Net.Serialization;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -50,10 +51,8 @@ namespace Assistant.Net.Messaging
             var handlerAbstractionType = typeof(IMessageHandler<,>).MakeGenericTypeBoundToMessage(messageType);
             var handlerImplementationType = typeof(MongoMessageHandlerProxy<,>).MakeGenericTypeBoundToMessage(messageType);
 
-            //if (!BsonClassMap.IsClassMapRegistered(messageType))
-            //    BsonClassMap.LookupClassMap(messageType);
-
             builder.Services
+                .TryAddSingleton<ExceptionModelConverter>()
                 .ReplaceTransient(handlerAbstractionType, handlerImplementationType)
                 .ConfigureSerializer(b => b.AddJsonType(messageType));
             return builder;

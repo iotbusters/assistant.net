@@ -3,6 +3,7 @@ using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
+using Assistant.Net.Messaging.Serialization;
 using Assistant.Net.Unions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -13,22 +14,28 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal
 {
+    /// <summary>
+    ///     Message processing implementation.
+    /// </summary>
     internal class MongoRecordProcessor : IMongoRecordProcessor
     {
         private readonly ILogger logger;
         private readonly MessagingClientOptions options;
         private readonly IMessagingClient client;
         private readonly ISystemClock clock;
+        private readonly ExceptionModelConverter converter;
 
         /// <summary/>
         public MongoRecordProcessor(
             ILogger<MongoRecordProcessor> logger,
             IOptions<MessagingClientOptions> options,
+            ExceptionModelConverter converter,
             IMessagingClient client,
             ISystemClock clock)
         {
             this.logger = logger;
             this.options = options.Value;
+            this.converter = converter;
             this.client = client;
             this.clock = clock;
         }
@@ -52,7 +59,7 @@ namespace Assistant.Net.Messaging.Internal
                 }
 
                 logger.LogError(ex, "Message({MessageType}/{MessageId}) handling: permanent error.", record.Name, record.Id);
-                return record.Fail(ex, clock.UtcNow).AsOption();
+                return record.Fail(converter.ConvertTo(ex)!, clock.UtcNow).AsOption();
             }
         }
     }

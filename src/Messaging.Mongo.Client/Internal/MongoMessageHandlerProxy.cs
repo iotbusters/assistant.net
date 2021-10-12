@@ -4,12 +4,12 @@ using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
+using Assistant.Net.Messaging.Serialization;
 using Assistant.Net.Unions;
 using Assistant.Net.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,19 +23,22 @@ namespace Assistant.Net.Messaging.Internal
         private readonly MongoHandlingClientOptions options;
         private readonly IMongoCollection<MongoRecord> collection;
         private readonly ISystemClock clock;
+        private readonly ExceptionModelConverter converter;
 
         public MongoMessageHandlerProxy(
             ILogger<MongoMessageHandlerProxy<TMessage, TResponse>> logger,
             IOptions<MongoHandlingClientOptions> options,
             IDiagnosticContext context,
             IMongoClient client,
-            ISystemClock clock)
+            ISystemClock clock,
+            ExceptionModelConverter converter)
         {
             this.logger = logger;
             this.context = context;
             this.clock = clock;
             this.options = options.Value;
             this.collection = client.GetDatabase(this.options.DatabaseName).GetCollection<MongoRecord>(MongoNames.MessageCollectionName);
+            this.converter = converter;
         }
 
         public async Task<TResponse> Handle(TMessage message, CancellationToken token)
@@ -60,7 +63,7 @@ namespace Assistant.Net.Messaging.Internal
                         return (TResponse)responded.Response!;
 
                     if (responded.Status == HandlingStatus.Failed)
-                        ((Exception)responded.Response!).Throw();
+                        converter.ConvertFrom((ExceptionModel)responded.Response!)!.Throw();
 
                     throw new MessageContractException($"Not expected status {responded.Status}.");
                 }

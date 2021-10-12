@@ -1,17 +1,19 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
+using Assistant.Net.Unions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal
 {
+    /// <summary>
+    ///     MongoDB internal client implementation for read/write operations.
+    /// </summary>
     internal class MongoRecordClient : IMongoRecordReader, IMongoRecordWriter
     {
         private readonly ILogger logger;
@@ -28,44 +30,36 @@ namespace Assistant.Net.Messaging.Internal
         }
 
         /// <inheritdoc/>
-        public async IAsyncEnumerable<MongoRecord> FindRequested([EnumeratorCancellation] CancellationToken token)
+        public async Task<Option<MongoRecord>> NextRequested(CancellationToken token)
         {
             logger.LogDebug("Lookup requested messages.");
 
-            var count = 0;
-            while (!token.IsCancellationRequested)
+            try
             {
-                MongoRecord? found;
-                try
-                {
-                    found = await collection
-                        .Find(filter: x => x.Status == HandlingStatus.Requested, new FindOptions())
-                        .Limit(1)
-                        .FirstOrDefaultAsync(token);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Lookup failed.");
-                    yield break;
-                }
+                var found = await collection
+                    .Find(filter: x => x.Status == HandlingStatus.Requested, new FindOptions())
+                    .Limit(1)
+                    .FirstOrDefaultAsync(token);
 
                 if (found == null)
-                    yield break;
+                {
+                    logger.LogDebug("Found no message.");
+                    return Option.None;
+                }
 
-                yield return found;
-                count++;
+                logger.LogDebug("Found a message.");
+                return Option.Some(found);
             }
-
-            logger.LogDebug("Found {Count} messages in total.", count);
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Lookup failed.");
+                return Option.None;
+            }
         }
 
         /// <inheritdoc/>
         public async Task Update(MongoRecord record, CancellationToken token)
         {
-            //var responseType = record.Response!.GetType();
-            //if (!BsonClassMap.IsClassMapRegistered(responseType))
-            //    BsonClassMap.LookupClassMap(responseType);
-
             try
             {
                 var result = await collection.ReplaceOneAsync(
