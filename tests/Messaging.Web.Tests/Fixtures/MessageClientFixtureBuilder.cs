@@ -29,7 +29,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
                 .UseTestServer()
                 .Configure(b => b.UseRemoteWebMessageHandler()))
                 .ConfigureServices(s => s
-                    .AddRemoteWebMessageHandler()
+                    .AddWebMessageHandling()
                     .ConfigureMessagingClient(b => b.ClearInterceptors()));
         }
 
