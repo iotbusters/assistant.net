@@ -10,6 +10,11 @@
         /// <summary>
         ///     Current operation tracking identifier.
         /// </summary>
-        string CorrelationId { get; }
+        string? CorrelationId { get; }
+
+        /// <summary>
+        ///     User owner of current operation scope.
+        /// </summary>
+        string? User { get; }
     }
 }

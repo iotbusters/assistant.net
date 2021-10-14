@@ -12,16 +12,32 @@ namespace Assistant.Net.Diagnostics
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        ///     Registers default diagnostics context.
+        ///     Registers default diagnostics context if no other is registered yet.
         /// </summary>
         public static IServiceCollection AddDiagnosticContext(this IServiceCollection services) => services
-            .TryAddScoped<IDiagnosticContext>(_ => new DiagnosticContext(Guid.NewGuid().ToString()));
+            .AddDiagnosticContext((_, ctx) => ctx.CorrelationId = Guid.NewGuid().ToString());
 
         /// <summary>
-        ///     Registers diagnostic context customized by a function <paramref name="getCorrelationId" />.
+        ///     Registers diagnostic context customized by the function <paramref name="getCorrelationId" />.
         /// </summary>
-        public static IServiceCollection AddDiagnosticContext(this IServiceCollection services, Func<IServiceProvider, string> getCorrelationId) => services
-            .ReplaceScoped<IDiagnosticContext>(p => new DiagnosticContext(getCorrelationId(p)));
+        public static IServiceCollection AddDiagnosticContext(this IServiceCollection services, Func<IServiceProvider, string> getCorrelationId, Func<IServiceProvider, string>? getUser = null) => services
+            .AddDiagnosticContext((p, ctx) =>
+            {
+                ctx.CorrelationId = getCorrelationId(p);
+                ctx.User = getUser?.Invoke(p);
+            });
+
+        /// <summary>
+        ///     Registers diagnostic context customized by the <paramref name="configureContext" />.
+        /// </summary>
+        public static IServiceCollection AddDiagnosticContext(this IServiceCollection services, Action<IServiceProvider, DiagnosticContext> configureContext) => services
+            .ReplaceScoped<IDiagnosticContext>(p => p.GetRequiredService<DiagnosticContext>())
+            .ReplaceScoped(p =>
+            {
+                var context = new DiagnosticContext();
+                configureContext(p, context);
+                return context;
+            });
 
         /// <summary>
         ///     Registers custom diagnostic context <typeparamref name="TContext" />.
@@ -29,7 +45,7 @@ namespace Assistant.Net.Diagnostics
         public static IServiceCollection AddDiagnosticContext<TContext>(this IServiceCollection services)
             where TContext : class, IDiagnosticContext => services
             .TryAddScoped<TContext>()
-            .TryAddScoped<IDiagnosticContext>(p => p.GetRequiredService<TContext>());
+            .ReplaceScoped<IDiagnosticContext>(p => p.GetRequiredService<TContext>());
 
         /// <summary>
         ///     Registers diagnostic services.

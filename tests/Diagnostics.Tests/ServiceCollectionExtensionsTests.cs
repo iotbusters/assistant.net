@@ -1,5 +1,5 @@
 ﻿using Assistant.Net.Diagnostics.Abstractions;
-using Diagnostics.Tests.Mocks;
+using Assistant.Net.Diagnostics.Tests.Mocks;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
