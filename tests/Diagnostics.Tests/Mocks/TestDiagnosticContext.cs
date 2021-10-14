@@ -1,9 +1,10 @@
 using Assistant.Net.Diagnostics.Abstractions;
 
-namespace Diagnostics.Tests.Mocks
+namespace Assistant.Net.Diagnostics.Tests.Mocks
 {
     public class TestDiagnosticContext : IDiagnosticContext
     {
-        public string CorrelationId { get; } = default!;
+        public string? CorrelationId => default;
+        public string? User => default;
     }
 }
