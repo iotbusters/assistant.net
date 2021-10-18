@@ -1,3 +1,4 @@
+using Assistant.Net.Diagnostics;
 using Assistant.Net.Serialization;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Configuration;
@@ -23,12 +24,16 @@ namespace Assistant.Net.Storage
         {
             configureOptions(new StorageBuilder(services));
             return services
+                .AddLogging()
                 .AddSystemClock()
-                .AddSerializer()
+                .AddDiagnostics()
                 .AddTypeEncoder()
+                .AddSerializer()
                 // todo: resolve single instance per storage type
                 .TryAddScoped(typeof(IStorage<,>), typeof(Storage<,>))
                 .TryAddScoped(typeof(IAdminStorage<,>), typeof(Storage<,>))
+                .TryAddScoped(typeof(IHistoricalStorage<,>), typeof(HistoricalStorage<,>))
+                .TryAddScoped(typeof(IHistoricalAdminStorage<,>), typeof(HistoricalStorage<,>))
                 .TryAddScoped(typeof(IPartitionedStorage<,>), typeof(PartitionedStorage<,>))
                 .TryAddScoped(typeof(IPartitionedAdminStorage<,>), typeof(PartitionedStorage<,>))
                 .TryAddSingleton(typeof(IValueConverter<>), typeof(TypedValueConverter<>))

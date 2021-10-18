@@ -1,4 +1,5 @@
 using Assistant.Net.Abstractions;
+using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
@@ -14,39 +15,61 @@ namespace Assistant.Net.Storage.Internal
 {
     internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     {
-        private readonly string keyType;
-        private readonly string valueType;
-        private readonly IValueConverter<TKey> keyConverter;
-        private readonly IValueConverter<TValue> valueConverter;
+        protected readonly string KeyType;
+        protected readonly string ValueType;
+        protected readonly IValueConverter<TKey> KeyConverter;
+        protected readonly IValueConverter<TValue> ValueConverter;
         private readonly IStorageProvider<TValue> backedStorage;
+        private readonly IDiagnosticContext diagnosticContext;
+
+        /// <exception cref="NotSupportedException"/>
+        protected Storage(
+            IValueConverter<TKey> keyConverter,
+            IValueConverter<TValue> valueConverter,
+            IStorageProvider<TValue> backedStorage,
+            ITypeEncoder typeEncoder,
+            IDiagnosticContext diagnosticContext)
+        {
+            this.KeyType = typeEncoder.Encode(typeof(TKey)) ?? throw NotSupportedTypeException(typeof(TKey));
+            this.ValueType = typeEncoder.Encode(typeof(TValue)) ?? throw NotSupportedTypeException(typeof(TValue));
+            this.KeyConverter = keyConverter;
+            this.ValueConverter = valueConverter;
+            this.backedStorage = backedStorage;
+            this.diagnosticContext = diagnosticContext;
+        }
 
         /// <exception cref="ArgumentException"/>
+        /// <exception cref="NotSupportedException"/>
         public Storage(
             IServiceProvider provider,
-            ITypeEncoder typeEncoder)
+            ITypeEncoder typeEncoder,
+            IDiagnosticContext diagnosticContext)
+            : this(
+                provider.GetService<IValueConverter<TKey>>() ?? throw ImproperlyConfiguredException(typeof(TKey)),
+                provider.GetService<IValueConverter<TValue>>() ?? throw ImproperlyConfiguredException(typeof(TValue)),
+                provider.GetService<IStorageProvider<TValue>>() ?? throw ImproperlyConfiguredException(typeof(TValue)),
+                typeEncoder,
+                diagnosticContext)
         {
-            this.backedStorage = provider.GetService<IStorageProvider<TValue>>() ?? throw ImproperlyConfiguredException(typeof(TValue));
-            this.keyConverter = provider.GetService<IValueConverter<TKey>>() ?? throw ImproperlyConfiguredException(typeof(TKey));
-            this.valueConverter = provider.GetService<IValueConverter<TValue>>() ?? throw ImproperlyConfiguredException(typeof(TValue));
-            this.keyType = typeEncoder.Encode(typeof(TKey)) ?? throw NotSupportedTypeException(typeof(TKey));
-            this.valueType = typeEncoder.Encode(typeof(TValue)) ?? throw NotSupportedTypeException(typeof(TValue));
         }
 
         public async Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory, CancellationToken token)
         {
-            var keyContent = await keyConverter.Convert(key, token);
+            var keyContent = await KeyConverter.Convert(key, token);
             var keyRecord = new KeyRecord(
                 id: keyContent.GetSha1(),
-                type: keyType,
+                type: KeyType,
                 content: keyContent);
             var valueRecord = await backedStorage.AddOrGet(
                 keyRecord,
                 addFactory: async _ =>
                 {
                     var value = await addFactory(key);
-                    return new ValueRecord(Type: valueType, Content: await valueConverter.Convert(value, token));
+                    var content = await ValueConverter.Convert(value, token);
+                    var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User);
+                    return new ValueRecord(ValueType, content, audit);
                 }, token);
-            return await valueConverter.Convert(valueRecord.Content, token);
+            return await ValueConverter.Convert(valueRecord.Content, token);
         }
 
         public async Task<TValue> AddOrUpdate(
@@ -55,58 +78,62 @@ namespace Assistant.Net.Storage.Internal
             Func<TKey, TValue, Task<TValue>> updateFactory,
             CancellationToken token)
         {
-            var keyContent = await keyConverter.Convert(key, token);
+            var keyContent = await KeyConverter.Convert(key, token);
             var keyRecord = new KeyRecord(
                 id: keyContent.GetSha1(),
-                type: keyType,
+                type: KeyType,
                 content: keyContent);
             var valueRecord = await backedStorage.AddOrUpdate(
                     keyRecord,
                     addFactory: async _ =>
                     {
                         var value = await addFactory(key);
-                        return new ValueRecord(Type: valueType, Content: await valueConverter.Convert(value, token));
+                        var content = await ValueConverter.Convert(value, token);
+                        var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User);
+                        return new ValueRecord(ValueType, content, audit);
                     },
                     updateFactory: async (_, old) =>
                     {
-                        var oldValue = await valueConverter.Convert(old.Content, token);
+                        var oldValue = await ValueConverter.Convert(old.Content, token);
                         var newValue = await updateFactory(key, oldValue);
-                        return new ValueRecord(Type: valueType, Content: await valueConverter.Convert(newValue, token));
+                        var content = await ValueConverter.Convert(newValue, token);
+                        var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User);
+                        return new ValueRecord(ValueType, content, audit);
                     },
                     token);
-            return await valueConverter.Convert(valueRecord.Content, token);
+            return await ValueConverter.Convert(valueRecord.Content, token);
         }
 
         public async Task<Option<TValue>> TryGet(TKey key, CancellationToken token)
         {
-            var keyContent = await keyConverter.Convert(key, token);
+            var keyContent = await KeyConverter.Convert(key, token);
             var keyRecord = new KeyRecord(
                 id: keyContent.GetSha1(),
-                type: keyType,
+                type: KeyType,
                 content: keyContent);
-            return await backedStorage.TryGet(keyRecord, token).MapOption(x => valueConverter.Convert(x.Content, token));
+            return await backedStorage.TryGet(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
         }
 
         public async Task<Option<TValue>> TryRemove(TKey key, CancellationToken token)
         {
-            var keyContent = await keyConverter.Convert(key, token);
+            var keyContent = await KeyConverter.Convert(key, token);
             var keyRecord = new KeyRecord(
                 id: keyContent.GetSha1(),
-                type: keyType,
+                type: KeyType,
                 content: keyContent);
-            return await backedStorage.TryRemove(keyRecord, token).MapOption(x => valueConverter.Convert(x.Content, token));
+            return await backedStorage.TryRemove(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
         }
 
         public IAsyncEnumerable<TKey> GetKeys(CancellationToken token) =>
             backedStorage.GetKeys()
-                .Where(x => x.Type == keyType)
+                .Where(x => x.Type == KeyType)
                 .AsAsync()
-                .Select(x => keyConverter.Convert(x.Content, token));
+                .Select(x => KeyConverter.Convert(x.Content, token));
 
-        private static ArgumentException ImproperlyConfiguredException(Type type) =>
+        protected static ArgumentException ImproperlyConfiguredException(Type type) =>
             new($"Storage of '{type.Name}' wasn't properly configured.");
 
-        private static NotSupportedException NotSupportedTypeException(Type type) =>
+        protected static NotSupportedException NotSupportedTypeException(Type type) =>
             new($"Type '{type.Name}' isn't supported.");
     }
 }
