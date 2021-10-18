@@ -16,18 +16,18 @@
         public const string StorageCollectionName = "Records";
 
         /// <summary>
-        ///     Partitioned storage key collection name.
+        ///     Historical/Partitioned storage key collection name.
         /// </summary>
-        public const string PartitionStorageKeyCollectionName = "PartitionKeys";
+        public const string HistoricalStorageKeyCollectionName = "Keys";
 
         /// <summary>
-        ///     Partitioned storage key/value relation collection name.
+        ///     Historical/Partitioned storage key/value relation collection name.
         /// </summary>
-        public const string PartitionStorageKeyValueCollectionName = "PartitionIndexes";
+        public const string HistoricalStorageKeyValueCollectionName = "KeyValues";
 
         /// <summary>
-        ///     Partitioned storage value collection name.
+        ///     Historical/Partitioned storage value collection name.
         /// </summary>
-        public const string PartitionStorageValueCollectionName = "PartitionRecords";
+        public const string HistoricalStorageValueCollectionName = "Values";
     }
 }

@@ -1,4 +1,5 @@
-﻿using Assistant.Net.Storage.Abstractions;
+﻿using Assistant.Net.Diagnostics;
+using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Mongo.Tests.Mocks;
 using Assistant.Net.Unions;
@@ -57,13 +58,14 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
             var value = await PartitionedStorage.TryGet(TestKey, 1);
 
             value.Should().BeEquivalentTo(
-                new {Value = TestValue("added") with {Audit = Audit.Initial(TestDate)}},
+                new {Value = TestValue("added") with {Audit = Audit()}},
                 o => o.ComparingByMembers<ValueRecord>());
         }
 
         [Test]
         public async Task GetKeys_returnsKeys()
         {
+            await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName);
             await PartitionedStorage.Add(TestKey, TestValue("value"));
 
             var value = PartitionedStorage.GetKeys().ToArray();
@@ -114,14 +116,14 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
             const string connectionString = "mongodb://127.0.0.1:27017";
             Provider = new ServiceCollection()
                 .AddStorage(b => b.AddMongoPartitioned<TestKey, TestValue>().UseMongo(o => o.ConnectionString = connectionString))
+                .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
                 .AddSystemClock(_ => TestDate)
                 .BuildServiceProvider();
 
             string pingContent;
             try
             {
-                var mongoClient = Provider.GetRequiredService<IMongoClient>();
-                var ping = await mongoClient.GetDatabase("db").RunCommandAsync(
+                var ping = await MongoClient.GetDatabase("db").RunCommandAsync(
                     (Command<BsonDocument>)"{ping:1}",
                     ReadPreference.Nearest,
                     new CancellationTokenSource(200).Token);
@@ -133,25 +135,34 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
             }
             if (!pingContent.Contains("ok"))
                 Assert.Ignore($"The tests require mongodb instance at {connectionString}.");
+
+            await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName);
         }
 
         [OneTimeTearDown]
-        public void OneTimeTearDown() => Provider?.Dispose();
+        public async Task OneTimeTearDown()
+        {
+            await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName);
+            await Provider.DisposeAsync();
+        }
 
         [SetUp]
         public void Setup()
         {
-            TestKey = new KeyRecord(id: $"test-{Guid.NewGuid()}", type: "test-key", content: new byte[0]);
+            TestKey = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: new byte[0]);
+            TestCorrelationId = Guid.NewGuid().ToString();
+            TestUser = Guid.NewGuid().ToString();
             TestDate = DateTimeOffset.UtcNow;
         }
 
-        [TearDown]
-        public async Task TearDown() => await PartitionedStorage.TryRemove(TestKey, long.MaxValue);
-
+        private ValueRecord TestValue(string type) => new(Type: type, Content: new byte[0], new Audit(TestCorrelationId, TestUser));
+        private Audit Audit(int version = 1) => new(new Audit(TestCorrelationId, TestUser).Details, version) { Created = TestDate };
         private KeyRecord TestKey { get; set; } = default!;
-        private ValueRecord TestValue(string type) => new(Type: type, Content: new byte[0]);
+        private string TestCorrelationId { get; set; } = default!;
+        private string TestUser { get; set; } = default!;
         private DateTimeOffset TestDate { get; set; }
-        private ServiceProvider? Provider { get; set; }
+        private ServiceProvider Provider { get; set; } = default!;
+        private IMongoClient MongoClient => Provider!.CreateScope().ServiceProvider.GetRequiredService<IMongoClient>();
         private IPartitionedStorageProvider<TestValue> PartitionedStorage => Provider!.CreateScope().ServiceProvider.GetRequiredService<IPartitionedStorageProvider<TestValue>>();
     }
 }
