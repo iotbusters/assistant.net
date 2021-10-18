@@ -35,7 +35,6 @@ namespace Assistant.Net.Messaging
             .AddScoped<IMongoRecordProcessor, MongoRecordProcessor>()
             .TryAddSingleton<ExceptionModelConverter>()
             .AddSystemServicesHosted()
-            .AddDiagnosticContext<InternalDiagnosticContext>()
             .AddMessagingClient(b => b.RemoveExposedException<OperationCanceledException>())
             .AddMongoClient()
             .ConfigureMongoOptions(configureOptions)
