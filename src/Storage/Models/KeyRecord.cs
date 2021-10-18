@@ -8,12 +8,11 @@ namespace Assistant.Net.Storage.Models
     public class KeyRecord
     {
         /// <summary/>
-        public KeyRecord(string id, string type, byte[] content, Audit? audit = null)
+        public KeyRecord(string id, string type, byte[] content)
         {
             Id = id;
             Type = type;
             Content = content;
-            Audit = audit;
         }
 
         /// <summary>
@@ -25,11 +24,6 @@ namespace Assistant.Net.Storage.Models
         ///     Binary key content.
         /// </summary>
         public byte[] Content { get; }
-
-        /// <summary>
-        ///     Key content auditing details.
-        /// </summary>
-        public Audit? Audit { get; }
 
         /// <summary>
         ///     Key type name.

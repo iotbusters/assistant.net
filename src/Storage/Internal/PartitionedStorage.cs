@@ -1,4 +1,5 @@
 using Assistant.Net.Abstractions;
+using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
@@ -14,6 +15,7 @@ namespace Assistant.Net.Storage.Internal
 {
     internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey, TValue>
     {
+        private readonly IDiagnosticContext diagnosticContext;
         private readonly string keyType;
         private readonly string valueType;
         private readonly IValueConverter<TKey> keyConverter;
@@ -23,13 +25,15 @@ namespace Assistant.Net.Storage.Internal
         /// <exception cref="ArgumentException"/>
         public PartitionedStorage(
             IServiceProvider provider,
-            ITypeEncoder typeEncoder)
+            ITypeEncoder typeEncoder,
+            IDiagnosticContext diagnosticContext)
         {
+            this.keyType = typeEncoder.Encode(typeof(TKey)) ?? throw NotSupportedTypeException(typeof(TKey));
+            this.valueType = typeEncoder.Encode(typeof(TValue)) ?? throw NotSupportedTypeException(typeof(TValue));
             this.backedStorage = provider.GetService<IPartitionedStorageProvider<TValue>>() ?? throw ImproperlyConfiguredException();
             this.keyConverter = provider.GetService<IValueConverter<TKey>>() ?? throw ImproperlyConfiguredException();
             this.valueConverter = provider.GetService<IValueConverter<TValue>>() ?? throw ImproperlyConfiguredException();
-            this.keyType = typeEncoder.Encode(typeof(TKey));
-            this.valueType = typeEncoder.Encode(typeof(TValue));
+            this.diagnosticContext = diagnosticContext;
         }
 
         public async Task<long> Add(TKey key, TValue value, CancellationToken token)
@@ -39,7 +43,9 @@ namespace Assistant.Net.Storage.Internal
                 id: keyContent.GetSha1(),
                 type: keyType,
                 content: keyContent);
-            var valueRecord = new ValueRecord(Type: valueType, Content: await valueConverter.Convert(value, token));
+            var content = await valueConverter.Convert(value, token);
+            var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User);
+            var valueRecord = new ValueRecord(valueType, content, audit);
             return await backedStorage.Add(keyRecord, valueRecord, token);
         }
 
@@ -62,5 +68,8 @@ namespace Assistant.Net.Storage.Internal
 
         private static ArgumentException ImproperlyConfiguredException() =>
             new($"Partitioned storage of '{typeof(TValue).Name}' wasn't properly configured.");
+
+        private static NotSupportedException NotSupportedTypeException(Type type) =>
+            new($"Type '{type.Name}' isn't supported.");
     }
 }
