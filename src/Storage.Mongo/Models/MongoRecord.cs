@@ -1,4 +1,5 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
+using System.Collections.Generic;
 
 namespace Assistant.Net.Storage.Models
 {
@@ -17,16 +18,18 @@ namespace Assistant.Net.Storage.Models
             string id,
             string keyType,
             byte[] keyContent,
+            long version,
             string valueType,
             byte[] valueContent,
-            Audit audit)
+            IDictionary<string, object> details)
         {
             Id = id;
             KeyType = keyType;
             KeyContent = keyContent;
+            Version = version;
             ValueType = valueType;
             ValueContent = valueContent;
-            Audit = audit;
+            Details = details;
         }
 
         /// <summary>
@@ -46,6 +49,11 @@ namespace Assistant.Net.Storage.Models
         public byte[] KeyContent { get; set; } = default!;
 
         /// <summary>
+        ///     <see cref="ValueContent"/> state version.
+        /// </summary>
+        public long Version { get; set; } = default!;
+
+        /// <summary>
         ///     Value type name.
         /// </summary>
         public string ValueType { get; set; } = default!;
@@ -58,6 +66,6 @@ namespace Assistant.Net.Storage.Models
         /// <summary>
         ///     Value content auditing details.
         /// </summary>
-        public Audit Audit { get; set; } = default!;
+        public IDictionary<string, object> Details { get; set; } = default!;
     }
 }

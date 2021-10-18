@@ -93,6 +93,41 @@ namespace Assistant.Net.Storage
         }
 
         /// <summary>
+        ///     Adds MongoDB storage of <typeparamref name="TValue"/> value type with <typeparamref name="TKey"/> key type
+        ///     including value change history.
+        /// </summary>
+        public static StorageBuilder AddMongoHistorical<TKey, TValue>(this StorageBuilder builder) => builder
+            .AddMongoHistorical(typeof(TKey), typeof(TValue));
+
+        /// <summary>
+        ///     Adds MongoDB storage of <paramref name="valueType"/> with <paramref name="keyType"/>
+        ///     including value change history.
+        /// </summary>
+        public static StorageBuilder AddMongoHistorical(this StorageBuilder builder, Type keyType, Type valueType)
+        {
+            var serviceType = typeof(IHistoricalStorageProvider<>).MakeGenericType(valueType);
+            var implementationType = typeof(MongoHistoricalStorageProvider<>).MakeGenericType(valueType);
+
+            builder.Services
+                .ReplaceScoped(serviceType, implementationType)
+                .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
+            return builder;
+        }
+
+        /// <summary>
+        ///     Adds MongoDB storage for any unregistered type
+        ///     including value change history.
+        /// </summary>
+        public static StorageBuilder AddMongoHistoricalAny(this StorageBuilder builder)
+        {
+            builder.Services
+                .ReplaceScoped(typeof(IStorageProvider<>), typeof(MongoHistoricalStorageProvider<>))
+                .ReplaceScoped(typeof(IHistoricalStorageProvider<>), typeof(MongoHistoricalStorageProvider<>))
+                .ConfigureSerializer(b => b.AddJsonTypeAny());
+            return builder;
+        }
+
+        /// <summary>
         ///     Adds partitioned MongoDB storage of <typeparamref name="TValue"/> value type with <typeparamref name="TKey"/> key type.
         /// </summary>
         public static StorageBuilder AddMongoPartitioned<TKey, TValue>(this StorageBuilder builder) => builder
@@ -106,7 +141,9 @@ namespace Assistant.Net.Storage
             var serviceType = typeof(IPartitionedStorageProvider<>).MakeGenericType(valueType);
             var implementationType = typeof(MongoPartitionedStorageProvider<>).MakeGenericType(valueType);
 
-            builder.Services
+            builder
+                .AddMongoHistorical(keyType, valueType)
+                .Services
                 .ReplaceScoped(serviceType, implementationType)
                 .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
             return builder;
@@ -117,7 +154,10 @@ namespace Assistant.Net.Storage
         /// </summary>
         public static StorageBuilder AddMongoPartitionedAny(this StorageBuilder builder)
         {
-            builder.Services
+
+            builder
+                .AddMongoHistoricalAny()
+                .Services
                 .ReplaceScoped(typeof(IPartitionedStorageProvider<>), typeof(MongoPartitionedStorageProvider<>))
                 .ConfigureSerializer(b => b.AddJsonTypeAny());
             return builder;
