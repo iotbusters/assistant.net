@@ -1,6 +1,5 @@
 using Assistant.Net.Unions;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,7 +41,8 @@ namespace Assistant.Net.Storage.Abstractions
         Task<TValue> AddOrUpdate(
             TKey key,
             Func<TKey, Task<TValue>> addFactory,
-            Func<TKey, TValue, Task<TValue>> updateFactory, CancellationToken token = default);
+            Func<TKey, TValue, Task<TValue>> updateFactory,
+            CancellationToken token = default);
 
         /// <summary>
         ///     Tries to find a value associated to the <paramref name="key"/>.

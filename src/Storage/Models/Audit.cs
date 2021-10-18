@@ -1,23 +1,70 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Assistant.Net.Storage.Models
 {
     /// <summary>
-    ///     Associated data auditing details.
+    ///     Associated value auditing details.
     /// </summary>
-    /// <param name="Version">Data version.</param>
-    /// <param name="Created">The date when data creation happened on.</param>
-    /// <param name="Updated">The date when last data update happened on.</param>
-    public record Audit(long Version, DateTimeOffset Created, DateTimeOffset? Updated = null)
+    public class Audit
     {
-        /// <summary>
-        ///     Creates an initial auditing version.
-        /// </summary>
-        public static Audit Initial(DateTimeOffset created) => new(1, created);
+        /// <summary/>
+        public Audit(IDictionary<string, object> details, long version)
+        {
+            Details = details;
+            Version = version;
+        }
+
+        /// <summary/>
+        public Audit(string? correlationId, string? user)
+        {
+            Details = new Dictionary<string, object>();
+            CorrelationId = correlationId;
+            User = user;
+        }
 
         /// <summary>
-        ///     Creates an auditing copy with incremented version.
+        ///     Value change related correlation id.
         /// </summary>
-        public Audit IncrementVersion(DateTimeOffset updated) => new(Version + 1, Created, updated);
+        public string? CorrelationId
+        {
+            get => Get<string?>("correlation-id");
+            set => Set("correlation-id", value!);
+        }
+
+        /// <summary>
+        ///     Value change responsible user.
+        /// </summary>
+        public string? User
+        {
+            get => Get<string?>("user");
+            set => Set("user", value!);
+        }
+
+        /// <summary>
+        ///     Value state version.
+        /// </summary>
+        public long Version { get; }
+
+        /// <summary>
+        ///     The date when value was created.
+        /// </summary>
+        public DateTimeOffset? Created
+        {
+            get => Get<DateTimeOffset?>("created");
+            set => Set("created", value!);
+        }
+
+        /// <summary>
+        ///     All auditing details.
+        /// </summary>
+        public IDictionary<string, object> Details { get; set; }
+
+        /// <summary>
+        ///     Add additional auditing detail.
+        /// </summary>
+        public void Set(string propertyName, object propertyValue) => Details[propertyName] = propertyValue;
+
+        private T? Get<T>(string name) => Details.TryGetValue(name, out var value) ? (T?)value : default;
     }
 }

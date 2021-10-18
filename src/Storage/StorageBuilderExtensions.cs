@@ -2,6 +2,8 @@ using Assistant.Net.Serialization;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Configuration;
 using Assistant.Net.Storage.Internal;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 
 namespace Assistant.Net.Storage
@@ -38,6 +40,37 @@ namespace Assistant.Net.Storage
         {
             builder.Services
                 .ReplaceSingleton(typeof(IStorageProvider<>), typeof(LocalStorageProvider<>))
+                .ConfigureSerializer(b => b.AddJsonTypeAny());
+            return builder;
+        }
+
+        /// <summary>
+        ///     Adds local storage of <typeparamref name="TValue"/> value type with <typeparamref name="TKey"/> key type.
+        /// </summary>
+        public static StorageBuilder AddHistoricalLocal<TKey, TValue>(this StorageBuilder builder) => builder
+            .AddHistoricalLocal(typeof(TKey), typeof(TValue));
+
+        /// <summary>
+        ///     Adds local storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
+        /// </summary>
+        public static StorageBuilder AddHistoricalLocal(this StorageBuilder builder, Type keyType, Type valueType)
+        {
+            var serviceType = typeof(IHistoricalStorageProvider<>).MakeGenericType(valueType);
+            var implementationType = typeof(LocalHistoricalStorageProvider<>).MakeGenericType(valueType);
+
+            builder.Services
+                .ReplaceSingleton(serviceType, implementationType)
+                .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
+            return builder;
+        }
+
+        /// <summary>
+        ///     Adds local storage for any unregistered type.
+        /// </summary>
+        public static StorageBuilder AddHistoricalLocalAny(this StorageBuilder builder)
+        {
+            builder.Services
+                .ReplaceSingleton(typeof(IHistoricalStorageProvider<>), typeof(LocalHistoricalStorageProvider<>))
                 .ConfigureSerializer(b => b.AddJsonTypeAny());
             return builder;
         }
