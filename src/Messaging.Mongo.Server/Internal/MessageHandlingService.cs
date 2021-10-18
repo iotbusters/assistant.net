@@ -1,4 +1,5 @@
-﻿using Assistant.Net.Messaging.Abstractions;
+﻿using Assistant.Net.Diagnostics;
+using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Unions;
@@ -43,7 +44,7 @@ namespace Assistant.Net.Messaging.Internal
                 using var scope = scopeFactory.CreateScope();
                 var provider = scope.ServiceProvider;
 
-                var diagnosticContext = provider.GetRequiredService<InternalDiagnosticContext>();
+                var diagnosticContext = provider.GetRequiredService<DiagnosticContext>();
                 diagnosticContext.CorrelationId = record.Properties.CorrelationId;
 
                 var processor = provider.GetRequiredService<IMongoRecordProcessor>();
