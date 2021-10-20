@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Assistant.Net.Messaging.Models
 {
@@ -8,15 +9,19 @@ namespace Assistant.Net.Messaging.Models
     public class MongoRecord
     {
         /// <summary/>
-        public MongoRecord(string id, string name, object message, object? response, HandlingStatus status, RecordProperties properties)
+        public MongoRecord(string id, string messageName, object message, object? response, HandlingStatus status, Audit audit)
         {
             Id = id;
-            Name = name;
+            MessageName = messageName;
             Message = message;
             Response = response;
             Status = status;
-            Properties = properties;
+            Details = audit.Details;
         }
+
+        /// <summary/>
+        public MongoRecord(string id, string messageName, object message, Audit audit)
+            : this(id, messageName, message, response: null, HandlingStatus.Requested, audit) { }
 
         /// <summary>
         ///     Message unique id.
@@ -26,7 +31,7 @@ namespace Assistant.Net.Messaging.Models
         /// <summary>
         ///     Message name (or type).
         /// </summary>
-        public string Name { get; private set; }
+        public string MessageName { get; private set; }
 
         /// <summary>
         ///     Message object payload.
@@ -57,31 +62,20 @@ namespace Assistant.Net.Messaging.Models
         public HandlingStatus Status { get; private set; }
 
         /// <summary>
-        ///     Message handling related data (e.g. audit, correlation id)
+        ///     Message handling related audit details.
         /// </summary>
-        public RecordProperties Properties { get; private set; }
+        public IDictionary<string, object> Details { get; private set; }
 
         /// <summary>
         ///     Creates a new record based on current with a response object and respective status.
         /// </summary>
-        public MongoRecord Succeed(object response, DateTimeOffset updated) =>
-            new(Id, Name, Message, response, HandlingStatus.Succeeded, Properties.OnUpdated(updated));
+        public MongoRecord Succeed(object response, DateTimeOffset completed) =>
+            new(Id, MessageName, Message, response, HandlingStatus.Succeeded, new Audit(Details) {Completed = completed});
 
         /// <summary>
         ///     Creates a new record based on current with an exception object and respective status.
         /// </summary>
-        public MongoRecord Fail(ExceptionModel response, DateTimeOffset updated) =>
-            new(Id, Name, Message, response, HandlingStatus.Failed, Properties.OnUpdated(updated));
-
-        /// <summary>
-        ///     Creates a new unresponded record with status requested.
-        /// </summary>
-        public static MongoRecord Request(string id, object message, string correlationId, DateTimeOffset created) => new(
-            id,
-            name: message.GetType().Name,
-            message,
-            response: null,
-            HandlingStatus.Requested,
-            RecordProperties.OnCreated(correlationId, created));
+        public MongoRecord Fail(ExceptionModel response, DateTimeOffset completed) =>
+            new(Id, MessageName, Message, response, HandlingStatus.Failed, new Audit(Details) {Completed = completed});
     }
 }

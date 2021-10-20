@@ -5,12 +5,12 @@ using System;
 
 namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
 {
-    public class MessageClientFixture : IDisposable
+    public class MessagingClientFixture : IDisposable
     {
         private readonly ServiceProvider provider;
         private readonly IHost host;
 
-        public MessageClientFixture(ServiceProvider provider, IHost host)
+        public MessagingClientFixture(ServiceProvider provider, IHost host)
         {
             this.provider = provider;
             this.host = host;

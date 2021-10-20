@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Assistant.Net.Messaging.Options
 {
     /// <summary>
-    ///     MongoDB client configurations used for remote message handling coordination.
+    ///     MongoDB client configuration used for remote message handling coordination.
     /// </summary>
     public class MongoHandlingClientOptions
     {

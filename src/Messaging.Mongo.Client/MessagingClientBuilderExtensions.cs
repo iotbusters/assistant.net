@@ -14,7 +14,7 @@ namespace Assistant.Net.Messaging
     public static class MessagingClientBuilderExtensions
     {
         /// <summary>
-        ///     Configures message handling to connect a MongoDB database on server.
+        ///     Configures message handling to connect a MongoDB database from a client.
         /// </summary>
         public static MessagingClientBuilder ConfigureMongoHandlingClient(this MessagingClientBuilder builder, Action<MongoHandlingClientOptions> configureOptions)
         {
@@ -23,7 +23,7 @@ namespace Assistant.Net.Messaging
         }
 
         /// <summary>
-        ///     Configures message handling to connect a MongoDB database on server.
+        ///     Configures message handling to connect a MongoDB database from a client.
         /// </summary>
         public static MessagingClientBuilder ConfigureMongoHandlingClient(this MessagingClientBuilder builder, IConfigurationSection configuration)
         {
@@ -32,7 +32,7 @@ namespace Assistant.Net.Messaging
         }
 
         /// <summary>
-        ///     Registers remote MongoDB based handler of <typeparamref name="TMessage" />.
+        ///     Registers remote MongoDB based handler of <typeparamref name="TMessage" /> from a client.
         /// </summary>
         /// <typeparam name="TMessage">Specific message type to be handled remotely.</typeparam>
         /// <exception cref="ArgumentException"/>
@@ -40,21 +40,21 @@ namespace Assistant.Net.Messaging
             where TMessage : class, IAbstractMessage => builder.AddMongo(typeof(TMessage));
 
         /// <summary>
-        ///     Registers remote MongoDB based handler of <paramref name="messageType" />.
+        ///     Registers remote MongoDB based handler of <paramref name="messageType" /> from a client.
         /// </summary>
         /// <exception cref="ArgumentException"/>
         public static MessagingClientBuilder AddMongo(this MessagingClientBuilder builder, Type messageType)
         {
             if (messageType.GetResponseType() == null)
-                throw new ArgumentException("Invalid message type.", nameof(messageType));
+                throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
 
             var handlerAbstractionType = typeof(IMessageHandler<,>).MakeGenericTypeBoundToMessage(messageType);
             var handlerImplementationType = typeof(MongoMessageHandlerProxy<,>).MakeGenericTypeBoundToMessage(messageType);
 
             builder.Services
                 .TryAddSingleton<ExceptionModelConverter>()
-                .ReplaceTransient(handlerAbstractionType, handlerImplementationType)
-                .ConfigureSerializer(b => b.AddJsonType(messageType));
+                .ConfigureSerializer(b => b.AddJsonType(messageType))
+                .ReplaceTransient(handlerAbstractionType, handlerImplementationType);
             return builder;
         }
     }

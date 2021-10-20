@@ -45,7 +45,7 @@ namespace Assistant.Net.Messaging.Internal
                 var provider = scope.ServiceProvider;
 
                 var diagnosticContext = provider.GetRequiredService<DiagnosticContext>();
-                diagnosticContext.CorrelationId = record.Properties.CorrelationId;
+                diagnosticContext.CorrelationId = new Audit(record.Details).CorrelationId;
 
                 var processor = provider.GetRequiredService<IMongoRecordProcessor>();
                 var recordWriter = provider.GetRequiredService<IMongoRecordWriter>();

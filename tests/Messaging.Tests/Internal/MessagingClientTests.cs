@@ -15,7 +15,7 @@ namespace Assistant.Net.Messaging.Tests.Internal
         public async Task Send_returnsResponseObject()
         {
             var client = new ServiceCollection()
-                .AddMessagingClient(b => b.AddLocal<TestMessageHandler>().ClearInterceptors())
+                .AddMessagingClient(b => b.AddLocalHandler<TestMessageHandler>().ClearInterceptors())
                 .BuildServiceProvider()
                 .GetRequiredService<IMessagingClient>();
 
@@ -39,7 +39,7 @@ namespace Assistant.Net.Messaging.Tests.Internal
         public async Task Send_throwsException_handlingFailed()
         {
             var client = new ServiceCollection()
-                .AddMessagingClient(b => b.AddLocal<TestMessageHandler>().ClearInterceptors())
+                .AddMessagingClient(b => b.AddLocalHandler<TestMessageHandler>().ClearInterceptors())
                 .BuildServiceProvider()
                 .GetRequiredService<IMessagingClient>();
 
@@ -51,7 +51,7 @@ namespace Assistant.Net.Messaging.Tests.Internal
         public async Task Send_returnsResponseObject_defaultInterceptors()
         {
             var client = new ServiceCollection()
-                .AddMessagingClient(b => b.AddLocal<TestMessageHandler>())
+                .AddMessagingClient(b => b.AddLocalHandler<TestMessageHandler>())
                 .BuildServiceProvider()
                 .GetRequiredService<IMessagingClient>();
 

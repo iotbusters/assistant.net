@@ -14,8 +14,8 @@ namespace Assistant.Net.Messaging.Web.Tests
         [Test]
         public async Task Send_returnsResponse()
         {
-            using var fixture = new MessageClientFixtureBuilder()
-                .AddRemote<TestScenarioMessageHandler>()
+            using var fixture = new MessagingClientFixtureBuilder()
+                .AddWebHandler<TestScenarioMessageHandler>()
                 .Create();
 
             var response = await fixture.Client.SendObject(new TestScenarioMessage(0));
@@ -26,8 +26,8 @@ namespace Assistant.Net.Messaging.Web.Tests
         [Test]
         public void Send_throwsMessageNotRegisteredException_NoLocalHandler()
         {
-            using var fixture = new MessageClientFixtureBuilder()
-                .AddRemote<TestSuccessFailureMessageHandler>()
+            using var fixture = new MessagingClientFixtureBuilder()
+                .AddWebHandler<TestSuccessFailureMessageHandler>()
                 .Create();
 
             fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(0)))
@@ -39,9 +39,9 @@ namespace Assistant.Net.Messaging.Web.Tests
         [Test]
         public void Send_throwsMessageNotRegisteredException_NoRemoteHandler()
         {
-            using var fixture = new MessageClientFixtureBuilder()
-                .AddRemoteMessageRegistrationOnly<TestScenarioMessage>()
-                .AddRemote<TestSuccessFailureMessageHandler>()// to have at least one handler configured
+            using var fixture = new MessagingClientFixtureBuilder()
+                .AddWeb<TestScenarioMessage>()
+                .AddWebHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
                 .Create();
 
             fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(0)))
@@ -56,8 +56,8 @@ namespace Assistant.Net.Messaging.Web.Tests
         [TestCase(typeof(MessageDeferredException))]
         public void Send_throwsInterruptingKindOfException_thrownMessageDeferredException(Type exceptionType)
         {
-            using var fixture = new MessageClientFixtureBuilder()
-                .AddRemote<TestSuccessFailureMessageHandler>()
+            using var fixture = new MessagingClientFixtureBuilder()
+                .AddWebHandler<TestSuccessFailureMessageHandler>()
                 .Create();
 
             fixture.Client.Awaiting(x => x.SendObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
@@ -68,8 +68,8 @@ namespace Assistant.Net.Messaging.Web.Tests
         [Test]
         public void Send_throwsMessageFailedException_thrownInvalidOperationException()
         {
-            using var fixture = new MessageClientFixtureBuilder()
-                .AddRemote<TestScenarioMessageHandler>()
+            using var fixture = new MessagingClientFixtureBuilder()
+                .AddWebHandler<TestScenarioMessageHandler>()
                 .Create();
 
             fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(1)))
@@ -81,8 +81,8 @@ namespace Assistant.Net.Messaging.Web.Tests
         [Test]
         public void Send_throwsMessageFailedException_thrownMessageFailedException()
         {
-            using var fixture = new MessageClientFixtureBuilder()
-                .AddRemote<TestScenarioMessageHandler>()
+            using var fixture = new MessagingClientFixtureBuilder()
+                .AddWebHandler<TestScenarioMessageHandler>()
                 .Create();
 
             fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(2)))
@@ -94,8 +94,8 @@ namespace Assistant.Net.Messaging.Web.Tests
         [Test]
         public void Send_throwsMessageFailedException_thrownMessageFailedExceptionWithInnerException()
         {
-            using var fixture = new MessageClientFixtureBuilder()
-                .AddRemote<TestScenarioMessageHandler>()
+            using var fixture = new MessagingClientFixtureBuilder()
+                .AddWebHandler<TestScenarioMessageHandler>()
                 .Create();
 
             fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(3)))

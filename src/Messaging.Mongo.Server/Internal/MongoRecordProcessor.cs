@@ -1,4 +1,5 @@
 ﻿using Assistant.Net.Abstractions;
+using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Models;
@@ -43,7 +44,7 @@ namespace Assistant.Net.Messaging.Internal
         /// <inheritdoc/>
         public async Task<Option<MongoRecord>> Process(MongoRecord record, CancellationToken token)
         {
-            logger.LogInformation("Message({MessageName}/{MessageId}) handling: started.", record.Name, record.Id);
+            logger.LogInformation("Message({MessageName}/{MessageId}) handling: started.", record.MessageName, record.Id);
             try
             {
                 var response = await client.SendObject(record.Message, token);
@@ -54,11 +55,11 @@ namespace Assistant.Net.Messaging.Internal
                 if (ex is MessageDeferredException or TimeoutException or OperationCanceledException
                     || options.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
                 {
-                    logger.LogInformation(ex, "Message({MessageType}/{MessageId}) handling: deferred or transient error.", record.Name, record.Id);
+                    logger.LogInformation(ex, "Message({MessageType}/{MessageId}) handling: deferred or transient error.", record.MessageName, record.Id);
                     return Option.None;
                 }
 
-                logger.LogError(ex, "Message({MessageType}/{MessageId}) handling: permanent error.", record.Name, record.Id);
+                logger.LogError(ex, "Message({MessageType}/{MessageId}) handling: permanent error.", record.MessageName, record.Id);
                 return record.Fail(converter.ConvertTo(ex)!, clock.UtcNow).AsOption();
             }
         }
