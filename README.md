@@ -18,7 +18,7 @@ Please join this [quick survey](https://forms.gle/eB3sN5Mw76WMpT6w5).
 
 ## Changelog
 
-See [CHANGELOG.MD](CHANGELOG.MD).
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## Packages
 
@@ -124,7 +124,7 @@ See also available extensions in `assistant.net.messaging.*` packages for more i
 
 ```csharp
 services.AddMessagingClient(b => b
-    .AddLocal<SomeMessageHandler>()
+    .AddLocalHandler<SomeMessageHandler>()
     .AddInterceptor<SomeMessageInterceptor>()
     );
 
@@ -165,7 +165,7 @@ Remote WEB oriented message handling server implementation. The server exposes A
 services
     .AddWebMessageHandling()
     .ConfigureMessagingClient(b => b
-        .AddLocal<SomeMessageHandler>();
+        .AddWebHandler<SomeMessageHandler>()
         .AddInterceptor<SomeMessageInterceptor>()
     );
 ```
@@ -203,7 +203,7 @@ Remote MongoDB based message handling server implementation. The server actively
 services
     .AddWebMessageHandling()
     .ConfigureMessagingClient(b => b
-        .AddLocal<SomeMessageHandler>();
+        .AddMongoHandler<SomeMessageHandler>()
         .AddInterceptor<SomeMessageInterceptor>()
     );
 ```

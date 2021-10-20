@@ -4,6 +4,21 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## 0.1.91 - 2021-10-18
+
+[Assistant.NET Release 0.1.91](https://github.com/iotbusters/assistant.net/releases/tag/0.1.91)
+
+### 0.1.91 Added
+
+- type extension methods for messages and handlers
+
+### 0.1.91 Changed
+
+- introduced none backward compatible change to messaging client
+  - renamed local message handler registration methods
+- audit models in `Messaging` and `Storage`
+- remote handling registration to support only registered messages on a server for WEB and MongoDB providers
+
 ## 0.1.90 - 2021-10-18
 
 [Assistant.NET Release 0.1.90](https://github.com/iotbusters/assistant.net/releases/tag/0.1.90)
