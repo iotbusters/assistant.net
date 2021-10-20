@@ -28,12 +28,12 @@ namespace Assistant.Net.Storage.Models
         /// </summary>
         public string? CorrelationId
         {
-            get => Get<string?>("correlation-id");
-            set => Set("correlation-id", value!);
+            get => Get<string?>("correlationId");
+            set => Set("correlationId", value!);
         }
 
         /// <summary>
-        ///     Value change responsible user.
+        ///     User created value.
         /// </summary>
         public string? User
         {
@@ -60,10 +60,7 @@ namespace Assistant.Net.Storage.Models
         /// </summary>
         public IDictionary<string, object> Details { get; set; }
 
-        /// <summary>
-        ///     Add additional auditing detail.
-        /// </summary>
-        public void Set(string propertyName, object propertyValue) => Details[propertyName] = propertyValue;
+        private void Set(string propertyName, object propertyValue) => Details[propertyName] = propertyValue;
 
         private T? Get<T>(string name) => Details.TryGetValue(name, out var value) ? (T?)value : default;
     }
