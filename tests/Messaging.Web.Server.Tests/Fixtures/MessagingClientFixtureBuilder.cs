@@ -7,9 +7,9 @@ using System.Net.Http;
 
 namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
 {
-    public class MessageClientFixtureBuilder
+    public class MessagingClientFixtureBuilder
     {
-        public MessageClientFixtureBuilder()
+        public MessagingClientFixtureBuilder()
         {
             RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
@@ -21,10 +21,10 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
 
         public IHostBuilder RemoteHostBuilder { get; init; }
 
-        public MessageClientFixtureBuilder AddRemote<THandler>() where THandler : class, IAbstractHandler
+        public MessagingClientFixtureBuilder AddWebHandler<THandler>() where THandler : class, IAbstractHandler
         {
             RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureMessagingClient(b => b.AddLocal<THandler>()));
+                .ConfigureMessagingClient(b => b.AddWebHandler<THandler>()));
             return this;
         }
 
@@ -32,11 +32,10 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
         {
             var host = RemoteHostBuilder.Start();
             var provider = new ServiceCollection()
-                .AddSingleton(host)// to dispose all at once
                 .AddSingleton(new HttpClient(host.GetTestServer().CreateHandler()))
                 .AddJsonSerialization()
                 .BuildServiceProvider();
-            return new(provider);
+            return new(provider, host);
         }
     }
 }

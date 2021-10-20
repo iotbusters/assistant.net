@@ -10,6 +10,7 @@ using Assistant.Net.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,6 +21,7 @@ namespace Assistant.Net.Messaging.Internal
     {
         private readonly ILogger logger;
         private readonly IDiagnosticContext context;
+        private readonly ITypeEncoder typeEncoder;
         private readonly MongoHandlingClientOptions options;
         private readonly IMongoCollection<MongoRecord> collection;
         private readonly ISystemClock clock;
@@ -29,12 +31,14 @@ namespace Assistant.Net.Messaging.Internal
             ILogger<MongoMessageHandlerProxy<TMessage, TResponse>> logger,
             IOptions<MongoHandlingClientOptions> options,
             IDiagnosticContext context,
+            ITypeEncoder typeEncoder,
             IMongoClient client,
             ISystemClock clock,
             ExceptionModelConverter converter)
         {
             this.logger = logger;
             this.context = context;
+            this.typeEncoder = typeEncoder;
             this.clock = clock;
             this.options = options.Value;
             this.collection = client.GetDatabase(this.options.DatabaseName).GetCollection<MongoRecord>(MongoNames.MessageCollectionName);
@@ -47,17 +51,20 @@ namespace Assistant.Net.Messaging.Internal
 
             var attempt = 1;
 
-            var requested = MongoRecord.Request(message.GetSha1(), message, context.CorrelationId, clock.UtcNow);
-            if (await TryInsertOne(requested, token))
+            var messageName = typeEncoder.Encode(message.GetType())
+                              ?? throw new NotSupportedException($"Not supported  message type '{message.GetType()}'.");
+            var audit = new Audit {CorrelationId = context.CorrelationId, Requested = clock.UtcNow, User = context.User};
+            var requested = new MongoRecord(message.GetSha1(), messageName, message, audit);
+            if (await InsertOne(requested, token))
                 await Task.Delay(strategy.DelayTime(attempt), token);
 
             while (true)
             {
-                logger.LogDebug("Message({MessageName}/{MessageId}) polling: {Attempt} begins.", requested.Name, requested.Id, attempt);
+                logger.LogDebug("Message({MessageName}/{MessageId}) polling: {Attempt} begins.", requested.MessageName, requested.Id, attempt);
 
                 if (await FindOneResponded(requested.Id, token) is Some<MongoRecord>(var responded))
                 {
-                    logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} ends with {status}.", requested.Name, requested.Id, attempt, responded.Status);
+                    logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} ends with {status}.", requested.MessageName, requested.Id, attempt, responded.Status);
 
                     if (responded.Status == HandlingStatus.Succeeded)
                         return (TResponse)responded.Response!;
@@ -68,12 +75,12 @@ namespace Assistant.Net.Messaging.Internal
                     throw new MessageContractException($"Not expected status {responded.Status}.");
                 }
 
-                logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} ends without response.", requested.Name, requested.Id, attempt);
+                logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} ends without response.", requested.MessageName, requested.Id, attempt);
 
                 attempt++;
                 if (!strategy.CanRetry(attempt))
                 {
-                    logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} won't proceed.", requested.Name, requested.Id, attempt);
+                    logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} won't proceed.", requested.MessageName, requested.Id, attempt);
                     break;
                 }
 
@@ -83,7 +90,7 @@ namespace Assistant.Net.Messaging.Internal
             throw new MessageDeferredException();
         }
 
-        private async Task<bool> TryInsertOne(MongoRecord record, CancellationToken token)
+        private async Task<bool> InsertOne(MongoRecord record, CancellationToken token)
         {
             try
             {
@@ -95,7 +102,7 @@ namespace Assistant.Net.Messaging.Internal
             }
             catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
             {
-                logger.LogDebug("Message({MessageName}/{MessageId}) polling: already requested.", record.Name, record.Id);
+                logger.LogDebug("Message({MessageName}/{MessageId}) polling: already requested.", record.MessageName, record.Id);
                 return false;
             }
         }

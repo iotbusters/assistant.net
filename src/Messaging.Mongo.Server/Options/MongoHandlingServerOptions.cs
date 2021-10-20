@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Assistant.Net.Messaging.Options
 {
     /// <summary>
-    ///     MongoDB client configurations used for remote message handling coordination.
+    ///     MongoDB server configuration used for remote message handling coordination.
     /// </summary>
     public class MongoHandlingServerOptions
     {
@@ -13,6 +14,12 @@ namespace Assistant.Net.Messaging.Options
         /// </summary>
         [Required]
         public string DatabaseName { get; set; } = MongoNames.DatabaseName;
+
+        /// <summary>
+        ///     List of accepting message types.
+        /// </summary>
+        [MinLength(1)]
+        public IList<Type> MessageTypes { get; } = new List<Type>();
 
         /// <summary>
         ///     Time to delay after no messages to handle were found.

@@ -1,4 +1,5 @@
-﻿using Assistant.Net.Messaging.Abstractions;
+﻿using Assistant.Net.Abstractions;
+using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Unions;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,15 +19,20 @@ namespace Assistant.Net.Messaging.Internal
     internal class MongoRecordClient : IMongoRecordReader, IMongoRecordWriter
     {
         private readonly ILogger logger;
+        private readonly IOptions<MongoHandlingServerOptions> options;
+        private readonly ITypeEncoder typeEncoder;
         private readonly IMongoCollection<MongoRecord> collection;
 
         /// <summary/>
         public MongoRecordClient(
             ILogger<MongoRecordClient> logger,
             IOptions<MongoHandlingServerOptions> options,
+            ITypeEncoder typeEncoder,
             IMongoClient client)
         {
             this.logger = logger;
+            this.options = options;
+            this.typeEncoder = typeEncoder;
             this.collection = client.GetDatabase(options.Value.DatabaseName).GetCollection<MongoRecord>(MongoNames.MessageCollectionName);
         }
 
@@ -34,10 +41,12 @@ namespace Assistant.Net.Messaging.Internal
         {
             logger.LogDebug("Lookup requested messages.");
 
+            var messageNames = options.Value.MessageTypes.Select(typeEncoder.Encode).ToArray();
+
             try
             {
                 var found = await collection
-                    .Find(filter: x => x.Status == HandlingStatus.Requested, new FindOptions())
+                    .Find(filter: x => messageNames.Contains(x.MessageName) && x.Status == HandlingStatus.Requested, new FindOptions())
                     .Limit(1)
                     .FirstOrDefaultAsync(token);
 
@@ -69,11 +78,11 @@ namespace Assistant.Net.Messaging.Internal
                     token);
 
                 if (result.MatchedCount == 0)
-                    logger.LogWarning("Message({MessageType}/{MessageId}) handling: already responded concurrently.", record.Name, record.Id);
+                    logger.LogWarning("Message({MessageType}/{MessageId}) handling: already responded concurrently.", record.MessageName, record.Id);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Message({MessageType}/{MessageId}) handling: write error.", record.Name, record.Id);
+                logger.LogError(ex, "Message({MessageType}/{MessageId}) handling: write error.", record.MessageName, record.Id);
             }
         }
     }

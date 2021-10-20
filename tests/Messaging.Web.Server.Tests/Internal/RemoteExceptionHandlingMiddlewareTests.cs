@@ -25,8 +25,8 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
         [TestCase(typeof(MessageDeferredException))]
         public async Task Post_Accepted_thrownInterruptingKindOfException(Type exceptionType)
         {
-            using var fixture = new MessageClientFixtureBuilder()
-                .AddRemote<TestFailMessageHandler>()
+            using var fixture = new MessagingClientFixtureBuilder()
+                .AddWebHandler<TestFailMessageHandler>()
                 .Create();
 
             var request = await Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
@@ -48,8 +48,8 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
         public async Task Post_NotFound_thrownMessageNotFoundException()
         {
             var exceptionType = typeof(MessageNotFoundException);
-            using var fixture = new MessageClientFixtureBuilder()
-                .AddRemote<TestFailMessageHandler>()
+            using var fixture = new MessagingClientFixtureBuilder()
+                .AddWebHandler<TestFailMessageHandler>()
                 .Create();
 
             var request = await Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
@@ -73,8 +73,8 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
         public async Task Post_NotFound_thrownMessageNotRegisteredException()
         {
             var exceptionType = typeof(MessageNotRegisteredException);
-            using var fixture = new MessageClientFixtureBuilder()
-                .AddRemote<TestFailMessageHandler>()
+            using var fixture = new MessagingClientFixtureBuilder()
+                .AddWebHandler<TestFailMessageHandler>()
                 .Create();
 
             var request = await Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
@@ -98,8 +98,8 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
         public async Task Post_BadRequest_thrownMessageContractException()
         {
             var exceptionType = typeof(MessageContractException);
-            using var fixture = new MessageClientFixtureBuilder()
-                .AddRemote<TestFailMessageHandler>()
+            using var fixture = new MessagingClientFixtureBuilder()
+                .AddWebHandler<TestFailMessageHandler>()
                 .Create();
 
             var request = await Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
@@ -123,8 +123,8 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
         public async Task Post_InternalServerError_throwAnyOtherMessageException()
         {
             var exceptionType = typeof(TestMessageException);
-            using var fixture = new MessageClientFixtureBuilder()
-                .AddRemote<TestFailMessageHandler>()
+            using var fixture = new MessagingClientFixtureBuilder()
+                .AddWebHandler<TestFailMessageHandler>()
                 .Create();
 
             var request = await Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));

@@ -11,39 +11,73 @@ namespace Assistant.Net.Messaging
     {
         /// <summary>
         ///     Makes a generic type from the definition <paramref name="genericTypeDefinition" />
-        ///     and its type parameters resolved from <paramref name="messagingType" />
+        ///     and its type parameters resolved from <paramref name="messageType" />
         /// </summary>
         /// <param name="genericTypeDefinition">Generic type definition that requires two parameters: message type and message response type.</param>
-        /// <param name="messagingType">Specific message type.</param>
+        /// <param name="messageType">Specific message type.</param>
         /// <exception cref="ArgumentException"/>
-        public static Type MakeGenericTypeBoundToMessage(this Type genericTypeDefinition, Type messagingType)
+        public static Type MakeGenericTypeBoundToMessage(this Type genericTypeDefinition, Type messageType)
         {
             if (!genericTypeDefinition.IsGenericTypeDefinition)
                 throw new ArgumentException("Invalid generic type definition.", nameof(genericTypeDefinition));
 
-            var responseType = messagingType.GetResponseType()
-                               ?? throw new ArgumentException("Invalid message type.", nameof(messagingType));
-            return genericTypeDefinition.MakeGenericType(messagingType, responseType);
+            var responseType = messageType.GetResponseType()
+                               ?? throw new ArgumentException("Invalid message type.", nameof(messageType));
+            return genericTypeDefinition.MakeGenericType(messageType, responseType);
         }
 
         /// <summary>
         ///     Resolves message response type from message type.
         /// </summary>
-        public static Type? GetResponseType(this Type messagingType)
+        public static Type? GetResponseType(this Type messageType)
         {
-            if (messagingType.IsClass)
-                return messagingType.GetInterfaces().Select(x => x.GetResponseType()).SingleOrDefault(x => x != null);
+            var abstractMessageType = messageType.GetInterfaces().SingleOrDefault(IsMessageInterface);
+            if (abstractMessageType != null)
+                return abstractMessageType.GetResponseType();
 
-            if (messagingType.IsInterface && messagingType.IsMessageInterface())
-                return messagingType.GetGenericArguments().Single();
+            if (messageType.IsMessageInterface())
+                return messageType.GetGenericArguments().Single();
 
             return null;
         }
 
         /// <summary>
-        ///     Verifies if provided <paramref name="type" /> implements a message interface.
+        ///     Resolves message type from message handler type.
         /// </summary>
-        private static bool IsMessageInterface(this Type type) =>
-            type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IMessage<>);
+        public static Type[] GetMessageHandlerInterfaceTypes(this Type handlerType)
+        {
+            var abstractHandlerTypes = handlerType.GetInterfaces().Where(x => x.IsMessageHandlerInterface()).ToArray();
+            if (abstractHandlerTypes.Any())
+                return abstractHandlerTypes;
+
+            if (handlerType.IsMessageHandlerInterface())
+                return new[] {handlerType};
+
+            return Array.Empty<Type>();
+        }
+
+        /// <summary>
+        ///     Verifies if provided <paramref name="messageType" /> implements a message interface.
+        /// </summary>
+        public static bool IsMessage(this Type messageType) =>
+            messageType.GetInterfaces().Any(x => x.IsMessageInterface());
+
+        /// <summary>
+        ///     Verifies if provided <paramref name="handlerType" /> implements a message handler interface.
+        /// </summary>
+        public static bool IsMessageHandler(this Type handlerType) =>
+            handlerType.GetInterfaces().Any(x => x.IsMessageHandlerInterface());
+
+        /// <summary>
+        ///     Verifies if provided <paramref name="messageType" /> is a message interface.
+        /// </summary>
+        private static bool IsMessageInterface(this Type messageType) =>
+            messageType.IsInterface && messageType.IsGenericType && messageType.GetGenericTypeDefinition() == typeof(IMessage<>);
+
+        /// <summary>
+        ///     Verifies if provided <paramref name="handlerType" /> is a message handler interface.
+        /// </summary>
+        private static bool IsMessageHandlerInterface(this Type handlerType) =>
+            handlerType.IsInterface && handlerType.IsGenericType && handlerType.GetGenericTypeDefinition() == typeof(IMessageHandler<,>);
     }
 }
