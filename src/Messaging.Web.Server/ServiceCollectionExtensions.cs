@@ -1,7 +1,9 @@
 using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Internal;
+using Assistant.Net.Messaging.Options;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
@@ -32,7 +34,7 @@ namespace Assistant.Net.Messaging
         ///     Registers WEB message handling server configuration.
         /// </summary>
         /// <remarks>
-        ///     Pay attention, you need to call explicitly 'ConfigureMessageClient' to register handlers.
+        ///     Pay attention, you need to call explicitly 'ConfigureMessagingClient' to register handlers.
         /// </remarks>
         public static IServiceCollection AddWebMessageHandling(this IServiceCollection services) => services
             .AddWebMessageHandlingMiddlewares()
@@ -51,13 +53,26 @@ namespace Assistant.Net.Messaging
             .TryAddTransient<ExceptionHandlingMiddleware>()
             .TryAddTransient<MessageHandlingMiddleware>();
 
+        /// <summary>
+        ///    Register an action used to configure <see cref="WebHandlingServerOptions"/> options.
+        /// </summary>
+        public static IServiceCollection ConfigureWebHandlingServerOptions(this IServiceCollection services, Action<WebHandlingServerOptions> configureOptions) => services
+            .Configure(configureOptions);
+
+        /// <summary>
+        ///    Register an action used to configure <see cref="WebHandlingServerOptions"/> options.
+        /// </summary>
+        public static IServiceCollection ConfigureWebHandlingServerOptions(this IServiceCollection services, IConfigurationSection configuration) => services
+            .Configure<WebHandlingServerOptions>(configuration);
+
         /// <exception cref="InvalidOperationException" />
-        private static string InitializeFromHttpContext(IServiceProvider provider)
+        private static void InitializeFromHttpContext(IServiceProvider provider, DiagnosticContext diagnosticContext)
         {
             var accessor = provider.GetRequiredService<IHttpContextAccessor>();
-            var context = accessor.HttpContext ?? throw new InvalidOperationException("HttpContext wasn't yet initialized.");
+            var httpContext = accessor.HttpContext ?? throw new InvalidOperationException("HttpContext wasn't yet initialized.");
 
-            return context.GetCorrelationId();
+            diagnosticContext.CorrelationId = httpContext.GetCorrelationId();
+            diagnosticContext.User = httpContext.User.Identity?.Name;
         }
     }
 }

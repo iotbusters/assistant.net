@@ -10,9 +10,9 @@ using System.Linq;
 
 namespace Assistant.Net.Messaging.Web.Tests.Fixtures
 {
-    public class MessageClientFixtureBuilder
+    public class MessagingClientFixtureBuilder
     {
-        public MessageClientFixtureBuilder()
+        public MessagingClientFixtureBuilder()
         {
             Services = new ServiceCollection()
                 .AddMessagingClient(b => b
@@ -24,6 +24,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
                             if (Debugger.IsAttached)
                                 hc.Timeout = TimeSpan.FromSeconds(300);
                         }))
+                    .TimeoutIn(TimeSpan.FromSeconds(0.5))
                     .ClearInterceptors());
             RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
@@ -36,33 +37,34 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
         public IServiceCollection Services { get; init; }
         public IHostBuilder RemoteHostBuilder { get; init; }
 
-        public MessageClientFixtureBuilder ClearHandlers()
+        public MessagingClientFixtureBuilder ClearHandlers()
         {
             Services.ConfigureMessagingClient(b => b.ClearInterceptors());
             return this;
         }
 
-        public MessageClientFixtureBuilder AddLocal<THandler>() where THandler : class, IAbstractHandler
+        public MessagingClientFixtureBuilder AddLocalHandler<THandler>() where THandler : class, IAbstractHandler
         {
-            Services.ConfigureMessagingClient(b => b.AddLocal<THandler>());
+            Services.ConfigureMessagingClient(b => b.AddLocalHandler<THandler>());
             return this;
         }
 
-        public MessageClientFixtureBuilder AddRemote<THandler>() where THandler : class, IAbstractHandler
+        public MessagingClientFixtureBuilder AddWebHandler<THandler>() where THandler : class, IAbstractHandler
         {
             RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureMessagingClient(b => b.AddLocal<THandler>()));
+                .ConfigureMessagingClient(b => b.AddWebHandler<THandler>()));
 
-            var messageType = typeof(THandler)
-                .GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IMessageHandler<,>))
-                ?.GetGenericArguments().First()
-                ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
+            var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
+                              ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
 
             Services.ConfigureMessagingClient(b => b.AddWeb(messageType));
             return this;
         }
 
-        public MessageClientFixtureBuilder AddRemoteMessageRegistrationOnly<TMessage>()
+        /// <summary>
+        ///     Registers the message type on client only. Server doesn't know about the message!
+        /// </summary>
+        public MessagingClientFixtureBuilder AddWeb<TMessage>()
             where TMessage : IAbstractMessage
         {
             var messageType = typeof(TMessage);
@@ -70,7 +72,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
             return this;
         }
 
-        public MessageClientFixture Create()
+        public MessagingClientFixture Create()
         {
             var host = RemoteHostBuilder.Start();
             var provider = Services

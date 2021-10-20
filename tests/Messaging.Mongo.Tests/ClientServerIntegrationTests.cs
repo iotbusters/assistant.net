@@ -20,9 +20,9 @@ namespace Assistant.Net.Messaging.Mongo.Tests
         public async Task Send_onceCallsHandler_concurrently(int concurrencyCount)
         {
             var handler = new TestScenarioMessageHandler();
-            using var fixture = new MessageClientFixtureBuilder()
+            using var fixture = new MessagingClientFixtureBuilder()
                 .UseMongo(ConnectionString, Database)
-                .AddMongo(handler)
+                .AddMongoHandler(handler)
                 .Create();
 
             var tasks = Enumerable.Range(1, concurrencyCount).Select(
@@ -36,9 +36,9 @@ namespace Assistant.Net.Messaging.Mongo.Tests
         public async Task Send_neverCallsHandler_concurrently(int concurrencyCount)
         {
             var handler = new TestScenarioMessageHandler();
-            using var fixture = new MessageClientFixtureBuilder()
+            using var fixture = new MessagingClientFixtureBuilder()
                 .UseMongo(ConnectionString, Database)
-                .AddMongo(handler)
+                .AddMongoHandler(handler)
                 .Create();
             await fixture.Client.SendObject(new TestScenarioMessage(0));
             handler.CallCount = 0;
@@ -53,9 +53,9 @@ namespace Assistant.Net.Messaging.Mongo.Tests
         [Test]
         public async Task Send_returnsResponse()
         {
-            using var fixture = new MessageClientFixtureBuilder()
+            using var fixture = new MessagingClientFixtureBuilder()
                 .UseMongo(ConnectionString, Database)
-                .AddMongo<TestScenarioMessageHandler>()
+                .AddMongoHandler<TestScenarioMessageHandler>()
                 .Create();
 
             var response = await fixture.Client.SendObject(new TestScenarioMessage(0));
@@ -66,9 +66,9 @@ namespace Assistant.Net.Messaging.Mongo.Tests
         [Test]
         public void Send_throwsMessageNotRegisteredException_NoLocalHandler()
         {
-            using var fixture = new MessageClientFixtureBuilder()
+            using var fixture = new MessagingClientFixtureBuilder()
                 .UseMongo(ConnectionString, Database)
-                .AddMongo<TestSuccessFailureMessageHandler>()
+                .AddMongoHandler<TestSuccessFailureMessageHandler>()
                 .Create();
 
             fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(0)))
@@ -80,10 +80,10 @@ namespace Assistant.Net.Messaging.Mongo.Tests
         [Test, Ignore("No way to check remote handlers.")]
         public void Send_throwsMessageNotRegisteredException_NoRemoteHandler()
         {
-            using var fixture = new MessageClientFixtureBuilder()
+            using var fixture = new MessagingClientFixtureBuilder()
                 .UseMongo(ConnectionString, Database)
                 .AddMongoMessageRegistrationOnly<TestScenarioMessage>()
-                .AddMongo<TestSuccessFailureMessageHandler>()// to have at least one handler configured
+                .AddMongoHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
                 .Create();
 
             fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(0)))
@@ -96,9 +96,9 @@ namespace Assistant.Net.Messaging.Mongo.Tests
         [TestCase(typeof(MessageDeferredException))]
         public void Send_throwsInterruptingKindOfException_thrownMessageDeferredException(Type exceptionType)
         {
-            using var fixture = new MessageClientFixtureBuilder()
+            using var fixture = new MessagingClientFixtureBuilder()
                 .UseMongo(ConnectionString, Database)
-                .AddMongo<TestSuccessFailureMessageHandler>()
+                .AddMongoHandler<TestSuccessFailureMessageHandler>()
                 .Create();
 
             fixture.Client.Awaiting(x => x.SendObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
@@ -109,9 +109,9 @@ namespace Assistant.Net.Messaging.Mongo.Tests
         [Test]
         public void Send_throwsMessageFailedException_thrownInvalidOperationException()
         {
-            using var fixture = new MessageClientFixtureBuilder()
+            using var fixture = new MessagingClientFixtureBuilder()
                 .UseMongo(ConnectionString, Database)
-                .AddMongo<TestScenarioMessageHandler>()
+                .AddMongoHandler<TestScenarioMessageHandler>()
                 .Create();
 
             fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(1)))
@@ -123,9 +123,9 @@ namespace Assistant.Net.Messaging.Mongo.Tests
         [Test]
         public void Send_throwsMessageFailedException_thrownMessageFailedException()
         {
-            using var fixture = new MessageClientFixtureBuilder()
+            using var fixture = new MessagingClientFixtureBuilder()
                 .UseMongo(ConnectionString, Database)
-                .AddMongo<TestScenarioMessageHandler>()
+                .AddMongoHandler<TestScenarioMessageHandler>()
                 .Create();
 
             fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(2)))
@@ -137,9 +137,9 @@ namespace Assistant.Net.Messaging.Mongo.Tests
         [Test]
         public void Send_throwsMessageFailedException_thrownMessageFailedExceptionWithInnerException()
         {
-            using var fixture = new MessageClientFixtureBuilder()
+            using var fixture = new MessagingClientFixtureBuilder()
                 .UseMongo(ConnectionString, Database)
-                .AddMongo<TestScenarioMessageHandler>()
+                .AddMongoHandler<TestScenarioMessageHandler>()
                 .Create();
 
             fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(3)))

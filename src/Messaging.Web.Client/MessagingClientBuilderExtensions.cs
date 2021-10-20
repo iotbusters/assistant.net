@@ -10,7 +10,7 @@ namespace Assistant.Net.Messaging
     /// <summary>
     ///     WEB oriented messaging client configuration extensions.
     /// </summary>
-    public static class MessageClientBuilderExtensions
+    public static class MessagingClientBuilderExtensions
     {
         /// <summary>
         ///     Configures the messaging client to connect the remote web handler.

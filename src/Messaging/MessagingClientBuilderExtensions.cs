@@ -7,7 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
-using System.Linq;
 
 namespace Assistant.Net.Messaging
 {
@@ -19,41 +18,38 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Registers a local in-memory handler type <typeparamref name="THandler" />.
         /// </summary>
-        public static MessagingClientBuilder AddLocal<THandler>(this MessagingClientBuilder builder)
-            where THandler : class, IAbstractHandler
+        /// <exception cref="ArgumentException"/>
+        public static MessagingClientBuilder AddLocalHandler<THandler>(this MessagingClientBuilder builder)
+            where THandler : class, IAbstractHandler => builder.AddLocalHandler(typeof(THandler));
+
+        /// <summary>
+        ///     Registers a local in-memory <paramref name="handlerType" />.
+        /// </summary>
+        /// <exception cref="ArgumentException"/>
+        public static MessagingClientBuilder AddLocalHandler(this MessagingClientBuilder builder, Type handlerType)
         {
-            var abstractHandlerTypes = typeof(THandler).GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IMessageHandler<,>));
+            if (!handlerType.IsMessageHandler())
+                throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
+
+            var abstractHandlerTypes = handlerType.GetMessageHandlerInterfaceTypes();
             foreach (var abstractHandlerType in abstractHandlerTypes)
-                builder.Services.ReplaceTransient(abstractHandlerType, typeof(THandler));
+                builder.Services.ReplaceTransient(abstractHandlerType, handlerType);
             return builder;
         }
 
         /// <summary>
         ///     Registers a local in-memory <paramref name="handlerInstance" />.
         /// </summary>
-        public static MessagingClientBuilder AddLocal(this MessagingClientBuilder builder, IAbstractHandler handlerInstance)
+        /// <exception cref="ArgumentException"/>
+        public static MessagingClientBuilder AddLocalHandler(this MessagingClientBuilder builder, IAbstractHandler handlerInstance)
         {
             var handlerType = handlerInstance.GetType();
-            var abstractHandlerTypes = handlerType.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IMessageHandler<,>)).ToArray();
-            if (!abstractHandlerTypes.Any())
+            if (!handlerType.IsMessageHandler())
                 throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerInstance));
 
+            var abstractHandlerTypes = handlerType.GetMessageHandlerInterfaceTypes();
             foreach (var abstractHandlerType in abstractHandlerTypes)
                 builder.Services.Replace(ServiceDescriptor.Singleton(abstractHandlerType, _ => handlerInstance));
-            return builder;
-        }
-
-        /// <summary>
-        ///     Registers a local in-memory <paramref name="handlerType" />.
-        /// </summary>
-        public static MessagingClientBuilder AddLocal(this MessagingClientBuilder builder, Type handlerType)
-        {
-            var abstractHandlerTypes = handlerType.GetInterfaces().Where(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IMessageHandler<,>)).ToArray();
-            if (!abstractHandlerTypes.Any())
-                throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
-
-            foreach (var abstractHandlerType in abstractHandlerTypes)
-                builder.Services.ReplaceTransient(abstractHandlerType, handlerType);
             return builder;
         }
 
@@ -251,6 +247,18 @@ namespace Assistant.Net.Messaging
                                                                + $"'Exponential', 'Linear' or 'Constant' but was '{configuration["type"]}'.")
             };
             builder.Services.ConfigureMessagingClientOptions(o => o.Retry = strategy);
+            return builder;
+        }
+
+        /// <summary>
+        ///     Overrides message handling timeout.
+        /// </summary>
+        /// <remarks>
+        ///     Impacts <see cref="TimeoutInterceptor"/>.
+        /// </remarks>
+        public static MessagingClientBuilder TimeoutIn(this MessagingClientBuilder builder, TimeSpan timeout)
+        {
+            builder.Services.ConfigureMessagingClientOptions(o => o.Timeout = timeout);
             return builder;
         }
     }

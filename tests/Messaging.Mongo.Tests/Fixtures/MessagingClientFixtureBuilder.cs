@@ -8,73 +8,73 @@ using System.Linq;
 
 namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
 {
-    public class MessageClientFixtureBuilder
+    public class MessagingClientFixtureBuilder
     {
-        public MessageClientFixtureBuilder()
+        public MessagingClientFixtureBuilder()
         {
             Services = new ServiceCollection()
                 .AddMessagingClient(b => b.RemoveInterceptor<CachingInterceptor>().RemoveInterceptor<RetryingInterceptor>());
             RemoteHostBuilder = Host.CreateDefaultBuilder()
                 .ConfigureServices(s => s
-                    .AddMongoMessageHandler(_ => { })
+                    .AddMongoMessageHandling(_ => { })
                     .ConfigureMessagingClient(b => b.RemoveInterceptor<CachingInterceptor>().RemoveInterceptor<RetryingInterceptor>()));
         }
 
         public IServiceCollection Services { get; init; }
         public IHostBuilder RemoteHostBuilder { get; init; }
 
-        public MessageClientFixtureBuilder UseMongo(string connectionString, string database)
+        public MessagingClientFixtureBuilder UseMongo(string connectionString, string database)
         {
             Services
-                .ConfigureMessagingClient(b => b.UseMongo(o => o.ConnectionString = connectionString))
+                .ConfigureMessagingClient(b => b
+                    .UseMongo(o => o.ConnectionString = connectionString)
+                    .TimeoutIn(TimeSpan.FromSeconds(0.5)))
                 .ConfigureMongoHandlingClientOptions(o =>
                 {
                     o.DatabaseName = database;
-                    o.ResponsePoll = new ConstantBackoff {Interval = TimeSpan.FromSeconds(0.01), MaxAttemptNumber = 100};
+                    o.ResponsePoll = new ConstantBackoff {Interval = TimeSpan.FromSeconds(0.01), MaxAttemptNumber = 3};
                 });
             RemoteHostBuilder.ConfigureServices(s => s
                 .ConfigureMongoOptions(o => o.ConnectionString = connectionString)
                 .ConfigureMongoHandlingServerOptions(o =>
                 {
                     o.DatabaseName = database;
-                    o.InactivityDelayTime = TimeSpan.FromSeconds(0.001);
+                    o.InactivityDelayTime = TimeSpan.FromSeconds(0.005);
                     o.NextMessageDelayTime = TimeSpan.FromSeconds(0.001);
                 }));
             return this;
         }
 
-        public MessageClientFixtureBuilder ClearHandlers()
+        public MessagingClientFixtureBuilder ClearHandlers()
         {
             Services.ConfigureMessagingClient(b => b.ClearInterceptors());
             return this;
         }
 
-        public MessageClientFixtureBuilder AddLocal<THandler>() where THandler : class, IAbstractHandler
+        public MessagingClientFixtureBuilder AddLocalHandler<THandler>() where THandler : class, IAbstractHandler
         {
-            Services.ConfigureMessagingClient(b => b.AddLocal<THandler>());
+            Services.ConfigureMessagingClient(b => b.AddLocalHandler<THandler>());
             return this;
         }
 
-        public MessageClientFixtureBuilder AddMongo<THandler>(THandler? instance = null) where THandler : class, IAbstractHandler
+        public MessagingClientFixtureBuilder AddMongoHandler<THandler>(THandler? instance = null) where THandler : class, IAbstractHandler
         {
             RemoteHostBuilder.ConfigureServices(s => s.ConfigureMessagingClient(b =>
             {
                 if (instance != null)
-                    b.AddLocal(instance);
+                    b.AddMongoHandler(instance);
                 else
-                    b.AddLocal<THandler>();
+                    b.AddMongoHandler<THandler>();
             }));
 
-            var messageType = typeof(THandler)
-                .GetInterfaces().FirstOrDefault(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IMessageHandler<,>))
-                ?.GetGenericArguments().First()
-                ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
+            var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
+                              ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
 
             Services.ConfigureMessagingClient(b => b.AddMongo(messageType));
             return this;
         }
 
-        public MessageClientFixtureBuilder AddMongoMessageRegistrationOnly<TMessage>()
+        public MessagingClientFixtureBuilder AddMongoMessageRegistrationOnly<TMessage>()
             where TMessage : IAbstractMessage
         {
             var messageType = typeof(TMessage);
@@ -82,7 +82,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
             return this;
         }
 
-        public MessageClientFixture Create()
+        public MessagingClientFixture Create()
         {
             var provider = Services.BuildServiceProvider();
             var host = RemoteHostBuilder.Start();
