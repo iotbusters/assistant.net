@@ -4,6 +4,20 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## 0.1.92 - 2021-10-25
+
+[Assistant.NET Release 0.1.92](https://github.com/iotbusters/assistant.net/releases/tag/0.1.92)
+
+### 0.1.92 Added
+
+- `storage` configuration objects
+
+### 0.1.92 Changed
+
+- introduced none backward compatible change to messaging client
+  - mongo and web provider configurations were completely changed for server implementations
+- `IMongoClient` configuration is isolated between different providers (`storage` and `messaging`)
+
 ## 0.1.91 - 2021-10-18
 
 [Assistant.NET Release 0.1.91](https://github.com/iotbusters/assistant.net/releases/tag/0.1.91)
