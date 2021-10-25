@@ -105,5 +105,22 @@ namespace Assistant.Net.Storage
                 .ConfigureSerializer(b => b.AddJsonTypeAny());
             return builder;
         }
+
+        /// <summary>
+        ///     Apply a configuration type <typeparamref name="TConfiguration" />.
+        /// </summary>
+        public static StorageBuilder AddConfiguration<TConfiguration>(this StorageBuilder builder)
+            where TConfiguration : IStorageConfiguration, new() => builder.AddConfiguration(new TConfiguration());
+
+        /// <summary>
+        ///     Apply a list of configuration instances <paramref name="storageConfigurations" />.
+        /// </summary>
+        public static StorageBuilder AddConfiguration(this StorageBuilder builder, params IStorageConfiguration[] storageConfigurations)
+        {
+            foreach (var config in storageConfigurations)
+                config.Configure(builder);
+            return builder;
+        }
+
     }
 }

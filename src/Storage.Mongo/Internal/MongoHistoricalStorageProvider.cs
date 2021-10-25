@@ -28,14 +28,14 @@ namespace Assistant.Net.Storage.Internal
         public MongoHistoricalStorageProvider(
             ILogger<MongoHistoricalStorageProvider<TValue>> logger,
             IOptions<MongoStoringOptions> options,
-            IMongoClient client,
+            IMongoClientFactory clientFactory,
             ISystemClock clock)
         {
             this.logger = logger;
             this.options = options.Value;
             this.clock = clock;
 
-            var database = client.GetDatabase(this.options.DatabaseName);
+            var database = clientFactory.Create().GetDatabase(this.options.DatabaseName);
             this.keyCollection = database.GetCollection<MongoKeyRecord>(this.options.KeyCollectionName);
             this.keyValueCollection = database.GetCollection<MongoKeyValueRecord>(this.options.KeyValueCollectionName);
             this.valueCollection = database.GetCollection<MongoValueRecord>(this.options.ValueCollectionName);

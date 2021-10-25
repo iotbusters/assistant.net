@@ -25,7 +25,7 @@ namespace Assistant.Net.Storage
         public static StorageBuilder UseMongo(this StorageBuilder builder, Action<MongoOptions> configureOptions)
         {
             builder.Services
-                .AddMongoClient()
+                .AddMongoClientFactory()
                 .ConfigureMongoOptions(configureOptions)
                 .ConfigureMongoStoringOptions(_ => { });
             return builder;
@@ -37,7 +37,7 @@ namespace Assistant.Net.Storage
         public static StorageBuilder UseMongo(this StorageBuilder builder, IConfigurationSection configuration)
         {
             builder.Services
-                .AddMongoClient()
+                .AddMongoClientFactory()
                 .ConfigureMongoOptions(configuration)
                 .ConfigureMongoStoringOptions(_ => { });
             return builder;
