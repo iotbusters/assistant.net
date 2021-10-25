@@ -13,11 +13,20 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
         public MessagingClientFixtureBuilder()
         {
             Services = new ServiceCollection()
-                .AddMessagingClient(b => b.RemoveInterceptor<CachingInterceptor>().RemoveInterceptor<RetryingInterceptor>());
+                .AddMessagingClient(b => b.RemoveInterceptor<CachingInterceptor>().RemoveInterceptor<RetryingInterceptor>())
+                .ConfigureMongoHandlingClientOptions(o => o.ResponsePoll = new ConstantBackoff
+                {
+                    Interval = TimeSpan.FromSeconds(0.01), MaxAttemptNumber = 3
+                });
             RemoteHostBuilder = Host.CreateDefaultBuilder()
                 .ConfigureServices(s => s
                     .AddMongoMessageHandling(_ => { })
-                    .ConfigureMessagingClient(b => b.RemoveInterceptor<CachingInterceptor>().RemoveInterceptor<RetryingInterceptor>()));
+                    .ConfigureMessagingClient(b => b.RemoveInterceptor<CachingInterceptor>().RemoveInterceptor<RetryingInterceptor>())
+                    .ConfigureMongoHandlingServerOptions(o =>
+                    {
+                        o.InactivityDelayTime = TimeSpan.FromSeconds(0.005);
+                        o.NextMessageDelayTime = TimeSpan.FromSeconds(0.001);
+                    }));
         }
 
         public IServiceCollection Services { get; init; }
@@ -29,19 +38,10 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
                 .ConfigureMessagingClient(b => b
                     .UseMongo(o => o.ConnectionString = connectionString)
                     .TimeoutIn(TimeSpan.FromSeconds(0.5)))
-                .ConfigureMongoHandlingClientOptions(o =>
-                {
-                    o.DatabaseName = database;
-                    o.ResponsePoll = new ConstantBackoff {Interval = TimeSpan.FromSeconds(0.01), MaxAttemptNumber = 3};
-                });
+                .ConfigureMongoHandlingClientOptions(o => o.DatabaseName = database);
             RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureMongoOptions(o => o.ConnectionString = connectionString)
-                .ConfigureMongoHandlingServerOptions(o =>
-                {
-                    o.DatabaseName = database;
-                    o.InactivityDelayTime = TimeSpan.FromSeconds(0.005);
-                    o.NextMessageDelayTime = TimeSpan.FromSeconds(0.001);
-                }));
+                .ConfigureMongoMessageHandling(b => b.Use(o => o.ConnectionString = connectionString))
+                .ConfigureMongoHandlingServerOptions(o => o.DatabaseName = database));
             return this;
         }
 
@@ -59,12 +59,12 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
 
         public MessagingClientFixtureBuilder AddMongoHandler<THandler>(THandler? instance = null) where THandler : class, IAbstractHandler
         {
-            RemoteHostBuilder.ConfigureServices(s => s.ConfigureMessagingClient(b =>
+            RemoteHostBuilder.ConfigureServices(s => s.ConfigureMongoMessageHandling(b =>
             {
                 if (instance != null)
-                    b.AddMongoHandler(instance);
+                    b.AddHandler(instance);
                 else
-                    b.AddMongoHandler<THandler>();
+                    b.AddHandler<THandler>();
             }));
 
             var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()

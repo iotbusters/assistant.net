@@ -163,10 +163,8 @@ Remote WEB oriented message handling server implementation. The server exposes A
 
 ```csharp
 services
-    .AddWebMessageHandling()
-    .ConfigureMessagingClient(b => b
-        .AddWebHandler<SomeMessageHandler>()
-        .AddInterceptor<SomeMessageInterceptor>()
+    .AddWebMessageHandling(b => b.AddHandler<SomeMessageHandler>()) // accepting remote messages and delegating to local message client
+    .ConfigureMessagingClient(b => b.AddInterceptor<SomeMessageInterceptor>() // local messaging client on a server
     );
 ```
 
@@ -201,10 +199,8 @@ Remote MongoDB based message handling server implementation. The server actively
 
 ```csharp
 services
-    .AddWebMessageHandling()
-    .ConfigureMessagingClient(b => b
-        .AddMongoHandler<SomeMessageHandler>()
-        .AddInterceptor<SomeMessageInterceptor>()
+    .AddWebMessageHandling(b => b.AddHandler<SomeMessageHandler>()) // accepting remote messages and delegating to local message client
+    .ConfigureMessagingClient(b => b.AddInterceptor<SomeMessageInterceptor>() // local messaging client on a server
     );
 ```
 
