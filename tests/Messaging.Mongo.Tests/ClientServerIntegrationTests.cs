@@ -1,3 +1,4 @@
+using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Mongo.Tests.Fixtures;
 using Assistant.Net.Messaging.Mongo.Tests.Mocks;
@@ -154,13 +155,13 @@ namespace Assistant.Net.Messaging.Mongo.Tests
         {
             Provider = new ServiceCollection()
                 .ConfigureMongoOptions(ConnectionString)
-                .AddMongoClient()
+                .AddMongoClientFactory()
                 .BuildServiceProvider();
 
             string pingContent;
+            var mongoClient = Provider.GetRequiredService<IMongoClientFactory>().Create();
             try
             {
-                var mongoClient = Provider.GetRequiredService<IMongoClient>();
                 var ping = await mongoClient.GetDatabase("db").RunCommandAsync(
                     (Command<BsonDocument>)"{ping:1}",
                     ReadPreference.Nearest,
@@ -181,7 +182,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests
         [SetUp, TearDown]
         public async Task Cleanup()
         {
-            var mongoClient = Provider!.GetRequiredService<IMongoClient>();
+            var mongoClient = Provider!.GetRequiredService<IMongoClientFactory>().Create();
             await mongoClient.DropDatabaseAsync(Database);
         }
 

@@ -28,12 +28,12 @@ namespace Assistant.Net.Messaging.Internal
             ILogger<MongoRecordClient> logger,
             IOptions<MongoHandlingServerOptions> options,
             ITypeEncoder typeEncoder,
-            IMongoClient client)
+            IMongoClientFactory clientFactory)
         {
             this.logger = logger;
             this.options = options;
             this.typeEncoder = typeEncoder;
-            this.collection = client.GetDatabase(options.Value.DatabaseName).GetCollection<MongoRecord>(MongoNames.MessageCollectionName);
+            this.collection = clientFactory.Create().GetDatabase(options.Value.DatabaseName).GetCollection<MongoRecord>(MongoNames.MessageCollectionName);
         }
 
         /// <inheritdoc/>
