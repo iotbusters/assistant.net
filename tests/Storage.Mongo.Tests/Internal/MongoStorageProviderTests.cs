@@ -153,6 +153,9 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         public void Setup()
         {
             var mongoClientMock = new Mock<IMongoClient> { DefaultValue = DefaultValue.Mock };
+            var mongoClientFactoryMock = new Mock<IMongoClientFactory> { DefaultValue = DefaultValue.Mock };
+            mongoClientFactoryMock.Setup(x => x.Create()).Returns(mongoClientMock.Object);
+
             var mongoDatabaseMock = new Mock<IMongoDatabase> { DefaultValue = DefaultValue.Mock };
             mongoClientMock.Setup(x => x.GetDatabase(It.IsAny<string>(), It.IsAny<MongoDatabaseSettings>())).Returns(mongoDatabaseMock.Object);
 
@@ -161,9 +164,10 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
             TestKey = new KeyRecord(id: Guid.NewGuid().ToString(), type: "key", content: new byte[0]);
 
             Provider = new ServiceCollection()
-                .ConfigureMongoOptions(o => o.ConnectionString = "mongodb://127.0.0.1:27017")
-                .AddStorage(b => b.AddMongo<TestKey, TestValue>())
-                .ReplaceSingleton(_ => mongoClientMock.Object)
+                .AddStorage(b => b
+                    .UseMongo(o => o.ConnectionString = "mongodb://127.0.0.1:27017")
+                    .AddMongo<TestKey, TestValue>())
+                .ReplaceSingleton(_ => mongoClientFactoryMock.Object)
                 .BuildServiceProvider();
         }
 
