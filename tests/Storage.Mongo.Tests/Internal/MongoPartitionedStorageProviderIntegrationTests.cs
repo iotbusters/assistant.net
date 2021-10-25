@@ -162,7 +162,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         private string TestUser { get; set; } = default!;
         private DateTimeOffset TestDate { get; set; }
         private ServiceProvider Provider { get; set; } = default!;
-        private IMongoClient MongoClient => Provider!.CreateScope().ServiceProvider.GetRequiredService<IMongoClient>();
+        private IMongoClient MongoClient => Provider!.CreateScope().ServiceProvider.GetRequiredService<IMongoClientFactory>().Create();
         private IPartitionedStorageProvider<TestValue> PartitionedStorage => Provider!.CreateScope().ServiceProvider.GetRequiredService<IPartitionedStorageProvider<TestValue>>();
     }
 }

@@ -24,12 +24,12 @@ namespace Assistant.Net.Storage.Internal
         public MongoStorageProvider(
             ILogger<MongoStorageProvider<TValue>> logger,
             IOptions<MongoStoringOptions> options,
-            IMongoClient client,
+            IMongoClientFactory clientFactory,
             ISystemClock clock)
         {
             this.logger = logger;
             this.options = options.Value;
-            this.collection = client.GetDatabase(this.options.DatabaseName).GetCollection<MongoRecord>(this.options.SingleCollectionName);
+            this.collection = clientFactory.Create().GetDatabase(this.options.DatabaseName).GetCollection<MongoRecord>(this.options.SingleCollectionName);
             this.clock = clock;
         }
 

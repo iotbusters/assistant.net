@@ -140,15 +140,17 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         {
             var connectionString = "mongodb://127.0.0.1:27017";
             Provider = new ServiceCollection()
-                .AddStorage(b => b.AddMongo<TestKey, TestValue>().UseMongo(o => o.ConnectionString = connectionString))
+                .AddStorage(b => b
+                    .UseMongo(o => o.ConnectionString = connectionString)
+                    .AddMongo<TestKey, TestValue>())
                 .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
                 .AddSystemClock(_ => TestDate)
                 .BuildServiceProvider();
 
             string pingContent;
+            var mongoClient = Provider.GetRequiredService<IMongoClientFactory>().Create();
             try
             {
-                var mongoClient = Provider.GetRequiredService<IMongoClient>();
                 var ping = await mongoClient.GetDatabase("db").RunCommandAsync(
                     (Command<BsonDocument>)"{ping:1}",
                     ReadPreference.Nearest,
@@ -177,7 +179,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         private string TestUser { get; set; } = Guid.NewGuid().ToString();
         private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;
         private ServiceProvider? Provider { get; set; }
-        private IMongoClient MongoClient => Provider!.CreateScope().ServiceProvider.GetRequiredService<IMongoClient>();
+        private IMongoClient MongoClient => Provider!.CreateScope().ServiceProvider.GetRequiredService<IMongoClientFactory>().Create();
         private IStorageProvider<TestValue> Storage => Provider!.CreateScope().ServiceProvider.GetRequiredService<IStorageProvider<TestValue>>();
     }
 }

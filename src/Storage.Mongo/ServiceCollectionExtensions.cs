@@ -1,8 +1,8 @@
-﻿using Assistant.Net.Storage.Options;
+﻿using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Storage.Internal;
+using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using MongoDB.Driver;
 using System;
 
 namespace Assistant.Net.Storage
@@ -43,18 +43,12 @@ namespace Assistant.Net.Storage
             .Configure(configureOptions);
 
         /// <summary>
-        ///     Registers <see cref="IMongoClient"/> implementation.
+        ///     Registers MongoDB client factory for storage provider.
         /// </summary>
         /// <remarks>
         ///     Pay attention, you need to call explicitly one of overloaded <see cref="ConfigureMongoOptions(IServiceCollection, string)"/> to configure.
         /// </remarks>
-        public static IServiceCollection AddMongoClient(this IServiceCollection services) => services
-            .TryAddScoped<IMongoClient>(p =>
-            {
-                var connectionString = p.GetService<IOptions<MongoOptions>>()?.Value.ConnectionString
-                                       ?? throw new InvalidOperationException($"{nameof(MongoOptions.ConnectionString)} is required. "
-                                                                              + $"{nameof(MongoOptions)} weren't properly configured.");
-                return new MongoClient(connectionString);
-            });
+        public static IServiceCollection AddMongoClientFactory(this IServiceCollection services) => services
+            .TryAddScoped<IMongoClientFactory, DefaultMongoClientFactory>();
     }
 }
