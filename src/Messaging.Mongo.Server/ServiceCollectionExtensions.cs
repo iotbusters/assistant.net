@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Diagnostics;
-using Assistant.Net.Messaging.Abstractions;
+﻿using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Serialization;
@@ -25,10 +24,7 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Registers remote message handling server configuration.
         /// </summary>
-        /// <remarks>
-        ///     Pay attention, you need to call explicitly 'ConfigureMessagingClient' to register handlers.
-        /// </remarks>
-        public static IServiceCollection AddMongoMessageHandling(this IServiceCollection services, Action<MongoOptions> configureOptions) => services
+        public static IServiceCollection AddMongoMessageHandling(this IServiceCollection services, Action<MongoHandlingServerBuilder> configureBuilder) => services
             .AddHostedService<MessageHandlingService>()
             .AddSingleton<IMongoRecordReader, MongoRecordClient>()
             .AddScoped<IMongoRecordWriter, MongoRecordClient>()
@@ -36,21 +32,18 @@ namespace Assistant.Net.Messaging
             .TryAddSingleton<ExceptionModelConverter>()
             .AddSystemServicesHosted()
             .AddMessagingClient(b => b.RemoveExposedException<OperationCanceledException>())
-            .AddMongoClient()
-            .ConfigureMongoOptions(configureOptions)
-            .ConfigureMongoHandlingServerOptions(_ => { });
+            .AddMongoClientFactory()
+            .ConfigureMongoMessageHandling(configureBuilder);
 
         /// <summary>
-        ///     Registers remote message handling server configuration.
+        ///     Configures remote message handling, required services and <see cref="MongoHandlingServerOptions"/>.
         /// </summary>
-        /// <remarks>
-        ///     Pay attention, you need to call explicitly 'ConfigureMessagingClient' to register handlers.
-        /// </remarks>
-        public static IServiceCollection AddMongoMessageHandling(this IServiceCollection services, IConfigurationSection configuration) => services
-            .AddHostedService<MessageHandlingService>()
-            .AddSystemServicesHosted()
-            .AddDiagnostics()
-            .AddMessagingClient(b => b.UseMongo(configuration));
+        public static IServiceCollection ConfigureMongoMessageHandling(this IServiceCollection services, Action<MongoHandlingServerBuilder> configureBuilder)
+        {
+            var builder = new MongoHandlingServerBuilder(services);
+            configureBuilder(builder);
+            return services;
+        }
 
         /// <summary>
         ///    Register an action used to configure <see cref="MongoHandlingServerOptions"/> options.

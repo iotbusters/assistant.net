@@ -32,7 +32,7 @@ namespace Assistant.Net.Messaging.Internal
             IOptions<MongoHandlingClientOptions> options,
             IDiagnosticContext context,
             ITypeEncoder typeEncoder,
-            IMongoClient client,
+            IMongoClientFactory clientFactory,
             ISystemClock clock,
             ExceptionModelConverter converter)
         {
@@ -41,7 +41,7 @@ namespace Assistant.Net.Messaging.Internal
             this.typeEncoder = typeEncoder;
             this.clock = clock;
             this.options = options.Value;
-            this.collection = client.GetDatabase(this.options.DatabaseName).GetCollection<MongoRecord>(MongoNames.MessageCollectionName);
+            this.collection = clientFactory.Create().GetDatabase(this.options.DatabaseName).GetCollection<MongoRecord>(MongoNames.MessageCollectionName);
             this.converter = converter;
         }
 

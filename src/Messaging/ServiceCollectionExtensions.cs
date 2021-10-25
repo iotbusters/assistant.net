@@ -35,7 +35,7 @@ namespace Assistant.Net.Messaging
             .ConfigureMessagingClient(configure);
 
         /// <summary>
-        ///     Register an action used to configure <see cref="MessagingClientOptions"/> options.
+        ///     Configures <see cref="IMessagingClient"/> implementation, required services and <see cref="MessagingClientOptions"/>.
         /// </summary>
         public static IServiceCollection ConfigureMessagingClient(this IServiceCollection services, Action<MessagingClientBuilder> configure)
         {

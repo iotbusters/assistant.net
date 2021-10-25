@@ -1,5 +1,4 @@
 ﻿using Assistant.Net.Abstractions;
-using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Models;
