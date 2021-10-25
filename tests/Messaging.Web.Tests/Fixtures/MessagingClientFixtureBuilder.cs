@@ -30,7 +30,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
                 .UseTestServer()
                 .Configure(b => b.UseRemoteWebMessageHandler()))
                 .ConfigureServices(s => s
-                    .AddWebMessageHandling()
+                    .AddWebMessageHandling(_ => { })
                     .ConfigureMessagingClient(b => b.ClearInterceptors()));
         }
 
@@ -52,7 +52,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
         public MessagingClientFixtureBuilder AddWebHandler<THandler>() where THandler : class, IAbstractHandler
         {
             RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureMessagingClient(b => b.AddWebHandler<THandler>()));
+                .ConfigureWebMessageHandling(b => b.AddHandler<THandler>()));
 
             var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
                               ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));

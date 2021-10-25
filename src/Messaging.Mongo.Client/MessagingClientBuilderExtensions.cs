@@ -9,25 +9,35 @@ using System;
 namespace Assistant.Net.Messaging
 {
     /// <summary>
-    ///     MongoDB based remote messaging client configuration extensions for a client.
+    ///     MongoDB based messaging client configuration extensions for a client.
     /// </summary>
     public static class MessagingClientBuilderExtensions
     {
         /// <summary>
-        ///     Configures message handling to connect a MongoDB database from a client.
+        ///     Configures the messaging client to connect a MongoDB database from a client.
         /// </summary>
-        public static MessagingClientBuilder ConfigureMongoHandlingClient(this MessagingClientBuilder builder, Action<MongoHandlingClientOptions> configureOptions)
+        public static MessagingClientBuilder UseMongo(this MessagingClientBuilder builder, string connectionString) =>
+            builder.UseMongo(o => o.ConnectionString = connectionString);
+
+        /// <summary>
+        ///     Configures the messaging client to connect a MongoDB database from a client.
+        /// </summary>
+        public static MessagingClientBuilder UseMongo(this MessagingClientBuilder builder, Action<MongoOptions> configureOptions)
         {
-            builder.Services.ConfigureMongoHandlingClientOptions(configureOptions);
+            builder.Services
+                .AddMongoClientFactory()
+                .ConfigureMongoOptions(configureOptions);
             return builder;
         }
 
         /// <summary>
-        ///     Configures message handling to connect a MongoDB database from a client.
+        ///     Configures the messaging client to connect a MongoDB database from a client.
         /// </summary>
-        public static MessagingClientBuilder ConfigureMongoHandlingClient(this MessagingClientBuilder builder, IConfigurationSection configuration)
+        public static MessagingClientBuilder UseMongo(this MessagingClientBuilder builder, IConfigurationSection configuration)
         {
-            builder.Services.ConfigureMongoHandlingClientOptions(configuration);
+            builder.Services
+                .AddMongoClientFactory()
+                .ConfigureMongoOptions(configuration);
             return builder;
         }
 

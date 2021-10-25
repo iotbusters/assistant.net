@@ -33,16 +33,14 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Registers WEB message handling server configuration.
         /// </summary>
-        /// <remarks>
-        ///     Pay attention, you need to call explicitly 'ConfigureMessagingClient' to register handlers.
-        /// </remarks>
-        public static IServiceCollection AddWebMessageHandling(this IServiceCollection services) => services
+        public static IServiceCollection AddWebMessageHandling(this IServiceCollection services, Action<WebHandlingServerBuilder> configureBuilder) => services
             .AddWebMessageHandlingMiddlewares()
             .AddSystemServicesHosted()
             .AddDiagnosticsWebHosted()
             .AddJsonSerialization()
             .AddMessagingClient()
-            .ConfigureMessagingClient(b => b.AddConfiguration<ServerInterceptorConfiguration>());
+            .ConfigureMessagingClient(b => b.AddConfiguration<ServerInterceptorConfiguration>())
+            .ConfigureWebMessageHandling(configureBuilder);
 
         /// <summary>
         ///     Registers WEB message handling middlewares:
@@ -52,6 +50,16 @@ namespace Assistant.Net.Messaging
             .TryAddTransient<DiagnosticMiddleware>()
             .TryAddTransient<ExceptionHandlingMiddleware>()
             .TryAddTransient<MessageHandlingMiddleware>();
+
+        /// <summary>
+        ///     Configures remote message handling, required services and <see cref="WebHandlingServerOptions"/>.
+        /// </summary>
+        public static IServiceCollection ConfigureWebMessageHandling(this IServiceCollection services, Action<WebHandlingServerBuilder> configureBuilder)
+        {
+            var builder = new WebHandlingServerBuilder(services);
+            configureBuilder(builder);
+            return services;
+        }
 
         /// <summary>
         ///    Register an action used to configure <see cref="WebHandlingServerOptions"/> options.

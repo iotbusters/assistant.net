@@ -15,7 +15,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
                 .UseTestServer()
                 .Configure(b => b.UseRemoteWebMessageHandler())
                 .ConfigureServices(s => s
-                    .AddWebMessageHandling()
+                    .AddWebMessageHandling(_ => { })
                     .ConfigureMessagingClient(b => b.ClearInterceptors())));
         }
 
@@ -24,7 +24,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
         public MessagingClientFixtureBuilder AddWebHandler<THandler>() where THandler : class, IAbstractHandler
         {
             RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureMessagingClient(b => b.AddWebHandler<THandler>()));
+                .ConfigureWebMessageHandling(b => b.AddHandler<THandler>()));
             return this;
         }
 
