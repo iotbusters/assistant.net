@@ -4,13 +4,11 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
-## 0.1.93 - 2021-10-31
+## [Unreleased]
 
-[Assistant.NET Release 0.1.93](https://github.com/iotbusters/assistant.net/releases/tag/0.1.93)
+### Changed
 
-### 0.1.93 Added
-
-- instance based interceptors support in messaging client
+- moved messaging client extensions to `Abstractions` namespace to remove extra using
 
 ### 0.1.93 Changed
 
