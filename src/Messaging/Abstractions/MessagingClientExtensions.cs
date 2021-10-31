@@ -1,8 +1,7 @@
-﻿using Assistant.Net.Messaging.Abstractions;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging
+namespace Assistant.Net.Messaging.Abstractions
 {
     /// <summary>
     ///     Messaging client facilitating extensions.
