@@ -8,23 +8,19 @@ namespace Assistant.Net.Messaging.Abstractions
     /// </summary>
     /// <typeparam name="TMessage">Specific message implementation type.</typeparam>
     /// <typeparam name="TResponse">Response type of <typeparamref name="TMessage"/>.</typeparam>
-    public interface IMessageHandler<in TMessage, TResponse> : IAbstractHandler
-        where TMessage : IMessage<TResponse>
+    public interface IMessageHandler<in TMessage, TResponse> where TMessage : IMessage<TResponse>
     {
         /// <summary>
         ///     Handles <typeparamref name="TMessage" /> object.
         /// </summary>
         Task<TResponse> Handle(TMessage message, CancellationToken token = default);
-
-        async Task<object> IAbstractHandler.Handle(object message, CancellationToken token) => (await Handle((TMessage) message, token))!;
     }
 
     /// <summary>
     ///     Message handler abstraction that accepts <typeparamref name="TMessage" /> only when no object in response is expected.
     /// </summary>
     /// <typeparam name="TMessage">Specific message implementation type.</typeparam>
-    public interface IMessageHandler<in TMessage> : IMessageHandler<TMessage, None>
-        where TMessage : IMessage
+    public interface IMessageHandler<in TMessage> : IMessageHandler<TMessage, None> where TMessage : IMessage
     {
         /// <summary>
         ///     Handles <typeparamref name="TMessage" /> object.

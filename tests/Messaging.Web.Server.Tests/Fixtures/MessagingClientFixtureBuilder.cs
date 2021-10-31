@@ -1,4 +1,3 @@
-using Assistant.Net.Messaging.Abstractions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +20,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
 
         public IHostBuilder RemoteHostBuilder { get; init; }
 
-        public MessagingClientFixtureBuilder AddWebHandler<THandler>() where THandler : class, IAbstractHandler
+        public MessagingClientFixtureBuilder AddWebHandler<THandler>() where THandler : class
         {
             RemoteHostBuilder.ConfigureServices(s => s
                 .ConfigureWebMessageHandling(b => b.AddHandler<THandler>()));

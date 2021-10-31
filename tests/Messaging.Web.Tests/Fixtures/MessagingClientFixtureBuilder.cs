@@ -43,13 +43,13 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
             return this;
         }
 
-        public MessagingClientFixtureBuilder AddLocalHandler<THandler>() where THandler : class, IAbstractHandler
+        public MessagingClientFixtureBuilder AddLocalHandler<THandler>() where THandler : class
         {
             Services.ConfigureMessagingClient(b => b.AddLocalHandler<THandler>());
             return this;
         }
 
-        public MessagingClientFixtureBuilder AddWebHandler<THandler>() where THandler : class, IAbstractHandler
+        public MessagingClientFixtureBuilder AddWebHandler<THandler>() where THandler : class
         {
             RemoteHostBuilder.ConfigureServices(s => s
                 .ConfigureWebMessageHandling(b => b.AddHandler<THandler>()));
