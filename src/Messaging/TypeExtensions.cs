@@ -42,7 +42,7 @@ namespace Assistant.Net.Messaging
         }
 
         /// <summary>
-        ///     Resolves message type from message handler type.
+        ///     Gets all implemented message handler interface types from message handler type.
         /// </summary>
         public static Type[] GetMessageHandlerInterfaceTypes(this Type handlerType)
         {
@@ -79,5 +79,32 @@ namespace Assistant.Net.Messaging
         /// </summary>
         private static bool IsMessageHandlerInterface(this Type handlerType) =>
             handlerType.IsInterface && handlerType.IsGenericType && handlerType.GetGenericTypeDefinition() == typeof(IMessageHandler<,>);
+
+        /// <summary>
+        ///     Gets all implemented message interceptor interface types from message interceptor type.
+        /// </summary>
+        public static Type[] GetMessageInterceptorInterfaceTypes(this Type handlerType)
+        {
+            var abstractInterceptorTypes = handlerType.GetInterfaces().Where(x => x.IsMessageInterceptorInterface()).ToArray();
+            if (abstractInterceptorTypes.Any())
+                return abstractInterceptorTypes;
+
+            if (handlerType.IsMessageInterceptorInterface())
+                return new[] { handlerType };
+
+            return Array.Empty<Type>();
+        }
+
+        /// <summary>
+        ///     Verifies if provided <paramref name="interceptorType" /> implements a message handler interface.
+        /// </summary>
+        public static bool IsMessageInterceptor(this Type interceptorType) =>
+            interceptorType.GetInterfaces().Any(x => x.IsMessageInterceptorInterface());
+        
+        /// <summary>
+        ///     Verifies if provided <paramref name="interceptorType" /> is a message handler interface.
+        /// </summary>
+        private static bool IsMessageInterceptorInterface(this Type interceptorType) =>
+            interceptorType.IsInterface && interceptorType.IsGenericType && interceptorType.GetGenericTypeDefinition() == typeof(IMessageInterceptor<,>);
     }
 }

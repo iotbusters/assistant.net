@@ -13,7 +13,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
         public MessagingClientFixtureBuilder()
         {
             Services = new ServiceCollection()
-                .AddMessagingClient(b => b.RemoveInterceptor<CachingInterceptor>().RemoveInterceptor<RetryingInterceptor>())
+                .AddMessagingClient(b => b.RemoveInterceptor<CachingInterceptor>().RemoveInterceptor<RetryingInterceptor>())//.RemoveInterceptor<TimeoutInterceptor>())
                 .ConfigureMongoHandlingClientOptions(o => o.ResponsePoll = new ConstantBackoff
                 {
                     Interval = TimeSpan.FromSeconds(0.01), MaxAttemptNumber = 3
@@ -51,13 +51,13 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
             return this;
         }
 
-        public MessagingClientFixtureBuilder AddLocalHandler<THandler>() where THandler : class, IAbstractHandler
+        public MessagingClientFixtureBuilder AddLocalHandler<THandler>() where THandler : class
         {
             Services.ConfigureMessagingClient(b => b.AddLocalHandler<THandler>());
             return this;
         }
 
-        public MessagingClientFixtureBuilder AddMongoHandler<THandler>(THandler? instance = null) where THandler : class, IAbstractHandler
+        public MessagingClientFixtureBuilder AddMongoHandler<THandler>(THandler? instance = null) where THandler : class
         {
             RemoteHostBuilder.ConfigureServices(s => s.ConfigureMongoMessageHandling(b =>
             {

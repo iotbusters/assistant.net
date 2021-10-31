@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Options;
+﻿using Assistant.Net.Messaging.Options;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
@@ -44,7 +43,7 @@ namespace Assistant.Net.Messaging
         /// <typeparam name="TMessageHandler">Specific message handler type.</typeparam>
         /// <exception cref="ArgumentException"/>
         public static MongoHandlingServerBuilder AddHandler<TMessageHandler>(this MongoHandlingServerBuilder builder)
-            where TMessageHandler : class, IAbstractHandler => builder.AddHandler(typeof(TMessageHandler));
+            where TMessageHandler : class => builder.AddHandler(typeof(TMessageHandler));
 
         /// <summary>
         ///     Registers MongoDB based <paramref name="handlerType" /> accepting remote message handling requests on a server.
@@ -71,7 +70,7 @@ namespace Assistant.Net.Messaging
         ///     Registers MongoDB based <paramref name="handlerInstance" /> accepting remote message handling requests on a server.
         /// </summary>
         /// <exception cref="ArgumentException"/>
-        public static MongoHandlingServerBuilder AddHandler(this MongoHandlingServerBuilder builder, IAbstractHandler handlerInstance)
+        public static MongoHandlingServerBuilder AddHandler(this MongoHandlingServerBuilder builder, object handlerInstance)
         {
             var handlerType = handlerInstance.GetType();
             if (!handlerType.IsMessageHandler())
