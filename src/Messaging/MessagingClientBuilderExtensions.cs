@@ -1,12 +1,14 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Interceptors;
+using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.RetryStrategies;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
+using System.Linq;
 
 namespace Assistant.Net.Messaging
 {
@@ -20,7 +22,7 @@ namespace Assistant.Net.Messaging
         /// </summary>
         /// <exception cref="ArgumentException"/>
         public static MessagingClientBuilder AddLocalHandler<THandler>(this MessagingClientBuilder builder)
-            where THandler : class, IAbstractHandler => builder.AddLocalHandler(typeof(THandler));
+            where THandler : class => builder.AddLocalHandler(typeof(THandler));
 
         /// <summary>
         ///     Registers a local in-memory <paramref name="handlerType" />.
@@ -28,12 +30,12 @@ namespace Assistant.Net.Messaging
         /// <exception cref="ArgumentException"/>
         public static MessagingClientBuilder AddLocalHandler(this MessagingClientBuilder builder, Type handlerType)
         {
-            if (!handlerType.IsMessageHandler())
+            var handlerInterfaceTypes = handlerType.GetMessageHandlerInterfaceTypes();
+            if (!handlerInterfaceTypes.Any())
                 throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
-
-            var abstractHandlerTypes = handlerType.GetMessageHandlerInterfaceTypes();
-            foreach (var abstractHandlerType in abstractHandlerTypes)
-                builder.Services.ReplaceTransient(abstractHandlerType, handlerType);
+            
+            foreach (var handlerInterfaceType in handlerInterfaceTypes)
+                builder.Services.ReplaceTransient(handlerInterfaceType, handlerType);
             return builder;
         }
 
@@ -41,15 +43,15 @@ namespace Assistant.Net.Messaging
         ///     Registers a local in-memory <paramref name="handlerInstance" />.
         /// </summary>
         /// <exception cref="ArgumentException"/>
-        public static MessagingClientBuilder AddLocalHandler(this MessagingClientBuilder builder, IAbstractHandler handlerInstance)
+        public static MessagingClientBuilder AddLocalHandler(this MessagingClientBuilder builder, object handlerInstance)
         {
             var handlerType = handlerInstance.GetType();
             if (!handlerType.IsMessageHandler())
                 throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerInstance));
 
-            var abstractHandlerTypes = handlerType.GetMessageHandlerInterfaceTypes();
-            foreach (var abstractHandlerType in abstractHandlerTypes)
-                builder.Services.Replace(ServiceDescriptor.Singleton(abstractHandlerType, _ => handlerInstance));
+            var handlerInterfaceTypes = handlerType.GetMessageHandlerInterfaceTypes();
+            foreach (var handlerInterfaceType in handlerInterfaceTypes)
+                builder.Services.Replace(ServiceDescriptor.Singleton(handlerInterfaceType, _ => handlerInstance));
             return builder;
         }
 
@@ -73,7 +75,7 @@ namespace Assistant.Net.Messaging
         ///     Adds an interceptor type <typeparamref name="TInterceptor" /> to the end of the list.
         /// </summary>
         public static MessagingClientBuilder AddInterceptor<TInterceptor>(this MessagingClientBuilder builder)
-            where TInterceptor : class, IAbstractInterceptor => builder
+            where TInterceptor : class => builder
             .AddInterceptor(typeof(TInterceptor));
 
         /// <summary>
@@ -81,11 +83,28 @@ namespace Assistant.Net.Messaging
         /// </summary>
         public static MessagingClientBuilder AddInterceptor(this MessagingClientBuilder builder, Type interceptorType)
         {
-            if (!interceptorType.IsAssignableTo(typeof(IAbstractInterceptor)))
+            if (!interceptorType.IsMessageInterceptor())
                 throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
 
-            builder.Services.ConfigureMessagingClientOptions(o => o.Interceptors.Add(interceptorType));
-            builder.Services.TryAddTransient(interceptorType, interceptorType);
+            builder.Services
+                .ConfigureMessagingClientOptions(o => o.Interceptors.Add(interceptorType))
+                .TryAddTransient(interceptorType, interceptorType);
+            return builder;
+        }
+
+        /// <summary>
+        ///     Adds the <paramref name="interceptorInstance" /> to the end of the list.
+        /// </summary>
+        /// <exception cref="ArgumentException"/>
+        public static MessagingClientBuilder AddInterceptor(this MessagingClientBuilder builder, object interceptorInstance)
+        {
+            var interceptorType = interceptorInstance.GetType();
+            if (!interceptorType.IsMessageHandler())
+                throw new ArgumentException($"Expected message interceptor but provided {interceptorType}.", nameof(interceptorInstance));
+
+            builder.Services
+                .ConfigureMessagingClientOptions(o => o.Interceptors.Add(interceptorType))
+                .Replace(ServiceDescriptor.Singleton(interceptorType, _ => interceptorInstance));
             return builder;
         }
 
@@ -93,7 +112,7 @@ namespace Assistant.Net.Messaging
         ///     Adds an interceptor type <typeparamref name="TInterceptor" /> at the beginning of the list.
         /// </summary>
         public static MessagingClientBuilder AddInterceptorOnTop<TInterceptor>(this MessagingClientBuilder builder)
-            where TInterceptor : class, IAbstractInterceptor
+            where TInterceptor : class
         {
             builder.Services.ConfigureMessagingClientOptions(o => o.Interceptors.Insert(0, typeof(TInterceptor)));
             return builder;
@@ -112,9 +131,18 @@ namespace Assistant.Net.Messaging
         ///     Removes an interceptor type <typeparamref name="TInterceptor" /> from the list.
         /// </summary>
         public static MessagingClientBuilder RemoveInterceptor<TInterceptor>(this MessagingClientBuilder builder)
-            where TInterceptor : class, IAbstractInterceptor
+            where TInterceptor : class => builder
+            .RemoveInterceptor(typeof(TInterceptor));
+
+        /// <summary>
+        ///     Removes an interceptor type <paramref name="interceptorType" /> from the list.
+        /// </summary>
+        public static MessagingClientBuilder RemoveInterceptor(this MessagingClientBuilder builder, Type interceptorType)
         {
-            builder.Services.ConfigureMessagingClientOptions(o => o.Interceptors.Remove(typeof(TInterceptor)));
+            if (!interceptorType.IsMessageInterceptor())
+                throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
+
+            builder.Services.ConfigureMessagingClientOptions(o => o.Interceptors.Remove(interceptorType));
             return builder;
         }
 

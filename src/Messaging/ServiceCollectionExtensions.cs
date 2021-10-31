@@ -25,6 +25,8 @@ namespace Assistant.Net.Messaging
             .AddSystemServicesDefaulted()
             .AddProxyFactory(b => b.Add<IAbstractHandler>())
             .TryAddScoped<IMessagingClient, MessagingClient>()
+            .TryAddTransient(typeof(AbstractHandler<,>), typeof(AbstractHandler<,>))
+            .TryAddTransient(typeof(AbstractInterceptor<,,>), typeof(AbstractInterceptor<,,>))
             .ConfigureMessagingClient(b => b.AddConfiguration<DefaultInterceptorConfiguration>());
 
         /// <summary>

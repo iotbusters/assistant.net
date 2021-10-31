@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Options;
+﻿using Assistant.Net.Messaging.Options;
 using System;
 using System.Linq;
 
@@ -16,7 +15,7 @@ namespace Assistant.Net.Messaging
         /// <typeparam name="TMessageHandler">Specific message handler type.</typeparam>
         /// <exception cref="ArgumentException"/>
         public static WebHandlingServerBuilder AddHandler<TMessageHandler>(this WebHandlingServerBuilder builder)
-            where TMessageHandler : class, IAbstractHandler => builder.AddHandler(typeof(TMessageHandler));
+            where TMessageHandler : class => builder.AddHandler(typeof(TMessageHandler));
 
         /// <summary>
         ///     Registers WEB oriented <paramref name="handlerType" /> accepting remote message handling requests on a server.

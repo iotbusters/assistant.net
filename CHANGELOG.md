@@ -4,6 +4,22 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## 0.1.93 - 2021-10-31
+
+[Assistant.NET Release 0.1.93](https://github.com/iotbusters/assistant.net/releases/tag/0.1.93)
+
+### 0.1.93 Added
+
+- instance based interceptors support in messaging client
+
+### 0.1.93 Changed
+
+- introduced none backward compatible change to messaging client
+  - isolated `IMessageHandler` interfaces from `IAbstractHandler` to fix multiple interface implementation issue
+  - isolated `IMessageInterceptor` interfaces from `IAbstractInterceptor` to fix multiple interface implementation issue
+  - removed type constrains during handler and interceptor registrations (but added runtime validation instead)
+  - decomposed interceptor cascade calls to reduce generated stacktrace because of chain of lambdas
+
 ## 0.1.92 - 2021-10-25
 
 [Assistant.NET Release 0.1.92](https://github.com/iotbusters/assistant.net/releases/tag/0.1.92)
