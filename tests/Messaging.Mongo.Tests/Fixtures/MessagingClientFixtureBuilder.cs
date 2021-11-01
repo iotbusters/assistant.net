@@ -13,7 +13,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
         public MessagingClientFixtureBuilder()
         {
             Services = new ServiceCollection()
-                .AddMessagingClient(b => b.RemoveInterceptor<CachingInterceptor>().RemoveInterceptor<RetryingInterceptor>())//.RemoveInterceptor<TimeoutInterceptor>())
+                .AddMessagingClient(b => b.RemoveInterceptor<CachingInterceptor>().RemoveInterceptor<RetryingInterceptor>())
                 .ConfigureMongoHandlingClientOptions(o => o.ResponsePoll = new ConstantBackoff
                 {
                     Interval = TimeSpan.FromSeconds(0.01), MaxAttemptNumber = 3

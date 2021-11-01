@@ -87,7 +87,7 @@ namespace Assistant.Net.Messaging.Internal
                 await Task.Delay(strategy.DelayTime(attempt), token);
             }
 
-            throw new MessageDeferredException();
+            throw new MessageDeferredException("No response from server in defined amount of time.");
         }
 
         private async Task<bool> InsertOne(MongoRecord record, CancellationToken token)
