@@ -104,6 +104,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests
 
             fixture.Client.Awaiting(x => x.SendObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
                 .Should().ThrowExactly<MessageDeferredException>()
+                .WithMessage("No response from server in defined amount of time.")
                 .Which.InnerException.Should().BeNull();
         }
 
