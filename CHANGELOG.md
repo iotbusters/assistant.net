@@ -4,11 +4,20 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [0.1.94] - 2021-11-03
 
-### Changed
+[Assistant.NET Release 0.1.94](https://github.com/iotbusters/assistant.net/releases/tag/0.1.94)
+
+### 0.1.94 Added
+
+- `IMessagingClient.PublishObject` method with fire-and-forget behavior which doesn't wait for a response
+
+### 0.1.94 Changed
 
 - moved messaging client extensions to `Abstractions` namespace to remove extra using
+- renamed `IMessagingClient` method `SendObject` to `RequestObject`
+- renamed `IMessagingClient` related extension methods
+- introduced `IMessageHandlingProvider` abstraction to isolate data provider for messaging client
 
 ## [0.1.93] - 2021-10-31
 
