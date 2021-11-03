@@ -46,7 +46,7 @@ namespace Assistant.Net.Messaging.Internal
             logger.LogInformation("Message({MessageName}/{MessageId}) handling: started.", record.MessageName, record.Id);
             try
             {
-                var response = await client.SendObject(record.Message, token);
+                var response = await client.RequestObject(record.Message, token);
                 return record.Succeed(response, clock.UtcNow).AsOption();
             }
             catch (Exception ex)

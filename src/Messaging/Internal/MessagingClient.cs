@@ -34,16 +34,23 @@ namespace Assistant.Net.Messaging.Internal
         }
 
         /// <exception cref="MessageNotRegisteredException"/>
-        public Task<object> SendObject(object message, CancellationToken token)
+        public Task<object> RequestObject(object message, CancellationToken token)
         {
-            var handler = CreateInterceptingHandler(message.GetType());
-            return handler.Handle(message, token);
+            var client = CreateInterceptingHandler(message.GetType());
+            return client.Request(message, token);
         }
 
         /// <exception cref="MessageNotRegisteredException"/>
-        private IAbstractHandler CreateInterceptingHandler(Type messageType)
+        public Task PublishObject(object message, CancellationToken token)
         {
-            var handlerType = typeof(AbstractHandler<,>).MakeGenericTypeBoundToMessage(messageType);
+            var client = CreateInterceptingHandler(message.GetType());
+            return client.Publish(message, token);
+        }
+
+        /// <exception cref="MessageNotRegisteredException"/>
+        private InterceptingMessageHandler CreateInterceptingHandler(Type messageType)
+        {
+            var handlerType = typeof(IMessageHandlingProvider<,>).MakeGenericTypeBoundToMessage(messageType);
             var handler = provider.GetRequiredService(handlerType);
 
             var interceptors = interceptorMap
@@ -51,7 +58,7 @@ namespace Assistant.Net.Messaging.Internal
                 .Reverse()
                 .Select(x => (IAbstractInterceptor)provider.GetRequiredService(x.Value)).ToArray();
 
-            return new AbstractInterceptingHandler((IAbstractHandler)handler, interceptors);
+            return new InterceptingMessageHandler((IAbstractHandler)handler, interceptors);
         }
     }
 }

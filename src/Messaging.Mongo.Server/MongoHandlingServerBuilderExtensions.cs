@@ -54,14 +54,10 @@ namespace Assistant.Net.Messaging
             if (!handlerType.IsMessageHandler())
                 throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
 
+            var messageTypes = handlerType.GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First());
             builder.Services
                 .ConfigureMessagingClient(b => b.AddLocalHandler(handlerType))
-                .ConfigureMongoHandlingServerOptions(o =>
-                {
-                    var messageTypes = handlerType.GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First());
-                    foreach (var messageType in messageTypes)
-                        o.MessageTypes.Add(messageType);
-                });
+                .ConfigureMongoHandlingServerOptions(o => o.MessageTypes.AddRange(messageTypes));
 
             return builder;
         }
@@ -76,14 +72,10 @@ namespace Assistant.Net.Messaging
             if (!handlerType.IsMessageHandler())
                 throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerInstance));
 
+            var messageTypes = handlerType.GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First());
             builder.Services
                 .ConfigureMessagingClient(b => b.AddLocalHandler(handlerInstance))
-                .ConfigureMongoHandlingServerOptions(o =>
-                {
-                    var messageTypes = handlerType.GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First());
-                    foreach (var messageType in messageTypes)
-                        o.MessageTypes.Add(messageType);
-                });
+                .ConfigureMongoHandlingServerOptions(o => o.MessageTypes.AddRange(messageTypes));
 
             return builder;
         }

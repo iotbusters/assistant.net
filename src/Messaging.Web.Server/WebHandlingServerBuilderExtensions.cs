@@ -36,5 +36,23 @@ namespace Assistant.Net.Messaging
 
             return builder;
         }
+
+        /// <summary>
+        ///     Registers WEB oriented <paramref name="handlerInstance" /> accepting remote message handling requests on a server.
+        /// </summary>
+        /// <exception cref="ArgumentException"/>
+        public static WebHandlingServerBuilder AddHandler(this WebHandlingServerBuilder builder, object handlerInstance)
+        {
+            var handlerType = handlerInstance.GetType();
+            if (!handlerType.IsMessageHandler())
+                throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerInstance));
+
+            var messageTypes = handlerType.GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First());
+            builder.Services
+                .ConfigureMessagingClient(b => b.AddLocalHandler(handlerInstance))
+                .ConfigureWebHandlingServerOptions(o => o.MessageTypes.AddRange(messageTypes));
+
+            return builder;
+        }
     }
 }
