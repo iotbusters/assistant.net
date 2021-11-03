@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging.Tests.Mocks
+namespace Assistant.Net.Messaging.Web.Tests.Mocks
 {
     public class TestMessageHandler<TMessage, TResponse> : IMessageHandler<TMessage, TResponse> where TMessage : IMessage<TResponse>
     {

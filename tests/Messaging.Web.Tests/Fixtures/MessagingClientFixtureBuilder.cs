@@ -34,10 +34,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
                     .ConfigureMessagingClient(b => b.ClearInterceptors()));
         }
 
-        public IServiceCollection Services { get; init; }
-        public IHostBuilder RemoteHostBuilder { get; init; }
-
-        public MessagingClientFixtureBuilder ClearHandlers()
+        public MessagingClientFixtureBuilder ClearInterceptors()
         {
             Services.ConfigureMessagingClient(b => b.ClearInterceptors());
             return this;
@@ -49,10 +46,16 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
             return this;
         }
 
-        public MessagingClientFixtureBuilder AddWebHandler<THandler>() where THandler : class
+        public MessagingClientFixtureBuilder AddWebHandler<THandler>(THandler? handler = null) where THandler : class
         {
             RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureWebMessageHandling(b => b.AddHandler<THandler>()));
+                .ConfigureWebMessageHandling(b =>
+                {
+                    if (handler != null)
+                        b.AddHandler(handler);
+                    else
+                        b.AddHandler<THandler>();
+                }));
 
             var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
                               ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
@@ -80,5 +83,9 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
                 .BuildServiceProvider();
             return new(provider, host);
         }
+
+        private IServiceCollection Services { get; init; }
+        private IHostBuilder RemoteHostBuilder { get; init; }
+
     }
 }

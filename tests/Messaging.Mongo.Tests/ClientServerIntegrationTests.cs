@@ -27,7 +27,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests
                 .Create();
 
             var tasks = Enumerable.Range(1, concurrencyCount).Select(
-                _ => fixture.Client.SendObject(new TestScenarioMessage(0)));
+                _ => fixture.Client.RequestObject(new TestScenarioMessage(0)));
             await Task.WhenAll(tasks);
 
             handler.CallCount.Should().Be(1);
@@ -41,11 +41,11 @@ namespace Assistant.Net.Messaging.Mongo.Tests
                 .UseMongo(ConnectionString, Database)
                 .AddMongoHandler(handler)
                 .Create();
-            await fixture.Client.SendObject(new TestScenarioMessage(0));
+            await fixture.Client.RequestObject(new TestScenarioMessage(0));
             handler.CallCount = 0;
 
             var tasks = Enumerable.Range(1, concurrencyCount).Select(
-                _ => fixture.Client.SendObject(new TestScenarioMessage(0)));
+                _ => fixture.Client.RequestObject(new TestScenarioMessage(0)));
             await Task.WhenAll(tasks);
 
             handler.CallCount.Should().Be(0);
@@ -59,7 +59,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests
                 .AddMongoHandler<TestScenarioMessageHandler>()
                 .Create();
 
-            var response = await fixture.Client.SendObject(new TestScenarioMessage(0));
+            var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
 
             response.Should().Be(new TestResponse(false));
         }
@@ -72,7 +72,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests
                 .AddMongoHandler<TestSuccessFailureMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(0)))
+            fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
                 .Should().ThrowExactly<MessageNotRegisteredException>()
                 .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
                 .Which.InnerException.Should().BeNull();
@@ -87,7 +87,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests
                 .AddMongoHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
                 .Create();
 
-            fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(0)))
+            fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
                 .Should().ThrowExactly<MessageNotRegisteredException>()
                 .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
                 .Which.InnerException.Should().BeNull();
@@ -102,7 +102,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests
                 .AddMongoHandler<TestSuccessFailureMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.SendObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
+            fixture.Client.Awaiting(x => x.RequestObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
                 .Should().ThrowExactly<MessageDeferredException>()
                 .WithMessage("No response from server in defined amount of time.")
                 .Which.InnerException.Should().BeNull();
@@ -116,7 +116,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests
                 .AddMongoHandler<TestScenarioMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(1)))
+            fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(1)))
                 .Should().ThrowExactly<MessageFailedException>()
                 .WithMessage("Message handling has failed.")
                 .Which.InnerException.Should().BeNull();
@@ -130,7 +130,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests
                 .AddMongoHandler<TestScenarioMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(2)))
+            fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(2)))
                 .Should().ThrowExactly<MessageFailedException>()
                 .WithMessage("2")
                 .Which.InnerException.Should().BeNull();
@@ -144,7 +144,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests
                 .AddMongoHandler<TestScenarioMessageHandler>()
                 .Create();
 
-            fixture.Client.Awaiting(x => x.SendObject(new TestScenarioMessage(3)))
+            fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(3)))
                 .Should().ThrowExactly<MessageFailedException>()
                 .WithMessage("3")
                 .WithInnerExceptionExactly<MessageFailedException>()
