@@ -36,7 +36,7 @@ namespace Assistant.Net.Messaging.Internal
             if (!options.Value.MessageTypes.Contains(message.GetType()))
                 throw new MessageNotRegisteredException(message.GetType());
 
-            var response = await client.SendObject(message);
+            var response = await client.RequestObject(message);
 
             await context.WriteMessageResponse(StatusCodes.Status200OK, response);
         }

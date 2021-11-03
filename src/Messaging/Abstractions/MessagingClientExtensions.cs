@@ -9,17 +9,30 @@ namespace Assistant.Net.Messaging.Abstractions
     public static class MessagingClientExtensions
     {
         /// <summary>
-        ///     Sends asynchronously a request to associated request handler expecting a specific object in respond.
+        ///     Sends a request asynchronously to associated message handler and expects an object in respond.
         /// </summary>
-        /// <typeparam name="TResponse">Response object type.</typeparam>
-        public static Task<TResponse> Send<TResponse>(this IMessagingClient client, IMessage<TResponse> message, CancellationToken token = default) => client
-            .SendObject(message, token).MapCompleted(x => (TResponse)x);
+        /// <remarks>
+        ///     Request-response behavior.
+        /// </remarks>
+        public static async Task<TResponse> Request<TResponse>(this IMessagingClient client, IMessage<TResponse> message, CancellationToken token = default) =>
+            (TResponse)await client.RequestObject(message, token);
 
         /// <summary>
-        ///     Sends asynchronously a request to associated request handler.
-        ///     Similar to request although in opposite expecting successful execution only.
+        ///     Sends a request asynchronously to associated message handler expecting successful request handling only.
         /// </summary>
-        public static Task Send(this IMessagingClient client, IMessage message, CancellationToken token = default) => client
-            .Send<None>(message, token);
+        /// <remarks>
+        ///     Request-response behavior.
+        /// </remarks>
+        public static Task Request(this IMessagingClient client, IMessage message, CancellationToken token = default) => client
+            .Request<None>(message, token);
+
+        /// <summary>
+        ///     Sends a message object asynchronously to associated message handler without waiting for a response.
+        /// </summary>
+        /// <remarks>
+        ///     Fire-and-forget behavior.
+        /// </remarks>
+        public static Task Publish(this IMessagingClient client, IMessage message, CancellationToken token = default) => client
+            .PublishObject(message, token);
     }
 }
