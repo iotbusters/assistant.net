@@ -56,9 +56,9 @@ namespace Assistant.Net.Messaging.Internal
         }
 
         public async Task Publish(object message, CancellationToken token) =>
-            // note: it gives a 50ms window to fail the request.
+            // note: it gives a 100ms window to fail the request.
             await await Task.WhenAny(
                 Request((TMessage)message, token),
-                Task.Delay(TimeSpan.FromSeconds(0.05), token));
+                Task.Delay(TimeSpan.FromSeconds(0.1), token));
     }
 }
