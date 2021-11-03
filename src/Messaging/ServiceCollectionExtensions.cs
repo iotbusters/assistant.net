@@ -1,5 +1,4 @@
 using Assistant.Net.Diagnostics;
-using Assistant.Net.Dynamics;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Internal;
@@ -23,9 +22,8 @@ namespace Assistant.Net.Messaging
         public static IServiceCollection AddMessagingClient(this IServiceCollection services) => services
             .AddDiagnostics()
             .AddSystemServicesDefaulted()
-            .AddProxyFactory(b => b.Add<IAbstractHandler>())
             .TryAddScoped<IMessagingClient, MessagingClient>()
-            .TryAddTransient(typeof(AbstractHandler<,>), typeof(AbstractHandler<,>))
+            .TryAddTransient(typeof(IMessageHandlingProvider<,>), typeof(LocalMessageHandlingProvider<,>))
             .TryAddTransient(typeof(AbstractInterceptor<,,>), typeof(AbstractInterceptor<,,>))
             .ConfigureMessagingClient(b => b.AddConfiguration<DefaultInterceptorConfiguration>());
 

@@ -11,6 +11,17 @@ namespace Assistant.Net.Messaging.Abstractions
         /// <summary>
         ///     Sends a message object asynchronously to associated message handler and expects an object in respond.
         /// </summary>
-        Task<object> SendObject(object message, CancellationToken token = default);
+        /// <remarks>
+        ///     Request-response behavior.
+        /// </remarks>
+        Task<object> RequestObject(object message, CancellationToken token = default);
+
+        /// <summary>
+        ///     Sends a message object asynchronously to associated message handler without waiting for a response.
+        /// </summary>
+        /// <remarks>
+        ///     Fire-and-forget behavior.
+        /// </remarks>
+        Task PublishObject(object message, CancellationToken token = default);
     }
 }

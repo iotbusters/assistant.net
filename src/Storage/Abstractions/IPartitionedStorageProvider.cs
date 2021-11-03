@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Storage.Abstractions
 {
     /// <summary>
-    ///    An abstraction over internal key based value-centric binary partitioned storage provider.
+    ///    A specific data provider abstraction over internal key based value-centric binary partitioned storage.
     /// </summary>
     /// <typeparam name="TValue">A value object type which specific partitioned storage implementation is assigned to.</typeparam>
     public interface IPartitionedStorageProvider<TValue> : IPartitionedStorage<KeyRecord, ValueRecord>, IDisposable

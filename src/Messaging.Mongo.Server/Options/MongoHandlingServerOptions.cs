@@ -19,7 +19,7 @@ namespace Assistant.Net.Messaging.Options
         ///     List of accepting message types.
         /// </summary>
         [MinLength(1)]
-        public IList<Type> MessageTypes { get; } = new List<Type>();
+        public List<Type> MessageTypes { get; } = new();
 
         /// <summary>
         ///     Time to delay after no messages to handle were found.

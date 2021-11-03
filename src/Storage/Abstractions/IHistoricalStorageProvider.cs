@@ -1,16 +1,15 @@
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Abstractions
 {
     /// <summary>
-    ///    An abstraction over internal key based value-centric binary storage provider.
+    ///    A specific data provider abstraction over internal key based value-centric binary storage.
     /// </summary>
     /// <typeparam name="TValue">A value object type which specific storage implementation is assigned to.</typeparam>
-    public interface IHistoricalStorageProvider<TValue> : IStorageProvider<TValue>, IDisposable
+    public interface IHistoricalStorageProvider<TValue> : IStorageProvider<TValue>
     {
         /// <summary>
         ///     Tries to find a value associated to the <paramref name="key"/>.

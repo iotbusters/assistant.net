@@ -58,13 +58,13 @@ namespace Assistant.Net.Messaging
             if (messageType.GetResponseType() == null)
                 throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
 
-            var handlerAbstractionType = typeof(IMessageHandler<,>).MakeGenericTypeBoundToMessage(messageType);
-            var handlerImplementationType = typeof(MongoMessageHandlerProxy<,>).MakeGenericTypeBoundToMessage(messageType);
+            var providerType = typeof(IMessageHandlingProvider<,>).MakeGenericTypeBoundToMessage(messageType);
+            var providerImplementationType = typeof(MongoMessageHandlerProxy<,>).MakeGenericTypeBoundToMessage(messageType);
 
             builder.Services
                 .TryAddSingleton<ExceptionModelConverter>()
                 .ConfigureSerializer(b => b.AddJsonType(messageType))
-                .ReplaceTransient(handlerAbstractionType, handlerImplementationType);
+                .ReplaceTransient(providerType, providerImplementationType);
             return builder;
         }
     }

@@ -45,11 +45,11 @@ namespace Assistant.Net.Messaging
             if (messageType.GetResponseType() == null)
                 throw new ArgumentException("Invalid message type.", nameof(messageType));
 
-            var handlerAbstractionType = typeof(IMessageHandler<,>).MakeGenericTypeBoundToMessage(messageType);
-            var handlerImplementationType = typeof(WebMessageHandlerProxy<,>).MakeGenericTypeBoundToMessage(messageType);
+            var providerType = typeof(IMessageHandlingProvider<,>).MakeGenericTypeBoundToMessage(messageType);
+            var providerImplementationType = typeof(WebMessageHandlerProxy<,>).MakeGenericTypeBoundToMessage(messageType);
 
             builder.Services
-                .ReplaceTransient(handlerAbstractionType, handlerImplementationType)
+                .ReplaceTransient(providerType, providerImplementationType)
                 .ConfigureSerializer(b => b.AddJsonType(messageType));
             return builder;
         }
