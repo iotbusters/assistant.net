@@ -149,15 +149,14 @@ namespace Assistant.Net.Messaging.Web.Tests
         [TestCase(typeof(TaskCanceledException))]
         [TestCase(typeof(OperationCanceledException))]
         [TestCase(typeof(MessageDeferredException))]
-        public void PublishObject_throwsInterruptingKindOfException_thrownMessageDeferredException(Type exceptionType)
+        public void PublishObject_throwsInterruptingKindOfException_thrownNoException(Type exceptionType)
         {
             using var fixture = new MessagingClientFixtureBuilder()
                 .AddWebHandler<TestSuccessFailureMessageHandler>().ClearInterceptors()
                 .Create();
 
             fixture.Client.Awaiting(x => x.PublishObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
-                .Should().ThrowExactly<MessageDeferredException>()
-                .Which.InnerException.Should().BeNull();
+                .Should().NotThrow();
         }
 
         [Test]
