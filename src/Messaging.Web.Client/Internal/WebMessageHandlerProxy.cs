@@ -55,10 +55,35 @@ namespace Assistant.Net.Messaging.Internal
             }
         }
 
-        public async Task Publish(object message, CancellationToken token) =>
-            // note: it gives a 100ms window to fail the request.
-            await await Task.WhenAny(
-                Request((TMessage)message, token),
-                Task.Delay(TimeSpan.FromSeconds(0.1), token));
+        public async Task Publish(object message, CancellationToken token)
+        {
+            var messageName = message.GetType().Name;
+            var messageId = message.GetSha1();
+
+            logger.LogInformation("Message({MessageName}/{MessageId}): publishing.", messageName, messageId);
+
+            try
+            {
+                // note: it gives a 100ms window to fail the request.
+                await await Task.WhenAny(
+                    client.DelegateHandling((TMessage)message, token),
+                    Task.Delay(TimeSpan.FromSeconds(0.1), token));
+
+                logger.LogInformation("Message({MessageName}/{MessageId}): published.", messageName, messageId);
+            }
+            catch (MessageDeferredException ex)
+            {
+                logger.LogInformation(ex, "Message({MessageName}/{MessageId}): ignore deferred.", messageName, messageId);
+            }
+            catch (OperationCanceledException ex)
+            {
+                logger.LogInformation(ex, "Message({MessageName}/{MessageId}): cancelled or exceeded timeout.", messageName, messageId);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Message({MessageName}/{MessageId}): failed.", messageName, messageId);
+                throw;
+            }
+        }
     }
 }
