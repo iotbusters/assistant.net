@@ -148,7 +148,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
                 .BuildServiceProvider();
 
             string pingContent;
-            var mongoClient = Provider.GetRequiredService<IMongoClientFactory>().Create();
+            var mongoClient = Provider.GetRequiredService<IMongoClientFactory>().CreateClient();
             try
             {
                 var ping = await mongoClient.GetDatabase("db").RunCommandAsync(
@@ -179,7 +179,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         private string TestUser { get; set; } = Guid.NewGuid().ToString();
         private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;
         private ServiceProvider? Provider { get; set; }
-        private IMongoClient MongoClient => Provider!.CreateScope().ServiceProvider.GetRequiredService<IMongoClientFactory>().Create();
+        private IMongoClient MongoClient => Provider!.CreateScope().ServiceProvider.GetRequiredService<IMongoClientFactory>().CreateClient();
         private IStorageProvider<TestValue> Storage => Provider!.CreateScope().ServiceProvider.GetRequiredService<IStorageProvider<TestValue>>();
     }
 }

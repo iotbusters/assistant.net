@@ -29,7 +29,7 @@ namespace Assistant.Net.Storage.Internal
         {
             this.logger = logger;
             this.options = options.Value;
-            this.collection = clientFactory.Create().GetDatabase(this.options.DatabaseName).GetCollection<MongoRecord>(this.options.SingleCollectionName);
+            this.collection = clientFactory.GetDatabase().GetCollection<MongoRecord>(this.options.SingleCollectionName);
             this.clock = clock;
         }
 
