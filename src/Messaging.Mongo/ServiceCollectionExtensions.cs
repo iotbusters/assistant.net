@@ -8,7 +8,7 @@ using System;
 namespace Assistant.Net.Messaging
 {
     /// <summary>
-    ///     Service collection extensions for MongoDb based remote message handling on a client.
+    ///     Service collection extensions for MongoDb based remote message handling.
     /// </summary>
     public static class ServiceCollectionExtensions
     {

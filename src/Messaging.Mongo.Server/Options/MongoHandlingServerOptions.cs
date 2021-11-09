@@ -10,12 +10,6 @@ namespace Assistant.Net.Messaging.Options
     public class MongoHandlingServerOptions
     {
         /// <summary>
-        ///     MongoDB database name.
-        /// </summary>
-        [Required]
-        public string DatabaseName { get; set; } = MongoNames.DatabaseName;
-
-        /// <summary>
         ///     List of accepting message types.
         /// </summary>
         [MinLength(1)]
