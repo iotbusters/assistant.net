@@ -220,6 +220,10 @@ namespace Assistant.Net.Serialization.Converters
                     var value = JsonSerializer.Deserialize(ref reader, type, options);
                     foundValues.Add(propertyName, value);
                 }
+                catch (JsonException)
+                {
+                    throw;
+                }
                 catch (Exception e)
                 {
                     throw new JsonException($"Failed to read property '{propertyName}' value.", e);
