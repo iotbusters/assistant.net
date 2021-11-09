@@ -152,12 +152,10 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         [SetUp]
         public void Setup()
         {
-            var mongoClientMock = new Mock<IMongoClient> { DefaultValue = DefaultValue.Mock };
-            var mongoClientFactoryMock = new Mock<IMongoClientFactory> { DefaultValue = DefaultValue.Mock };
-            mongoClientFactoryMock.Setup(x => x.Create()).Returns(mongoClientMock.Object);
+            var mongoClientFactoryMock = new Mock<IMongoClientFactory> {DefaultValue = DefaultValue.Mock};
 
-            var mongoDatabaseMock = new Mock<IMongoDatabase> { DefaultValue = DefaultValue.Mock };
-            mongoClientMock.Setup(x => x.GetDatabase(It.IsAny<string>(), It.IsAny<MongoDatabaseSettings>())).Returns(mongoDatabaseMock.Object);
+            var mongoDatabaseMock = new Mock<IMongoDatabase> {DefaultValue = DefaultValue.Mock};
+            mongoClientFactoryMock.Setup(x => x.GetDatabase()).Returns(mongoDatabaseMock.Object);
 
             MongoCollectionMock = MockCollection<MongoRecord>(mongoDatabaseMock);
 

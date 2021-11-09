@@ -15,7 +15,8 @@ namespace Assistant.Net.Storage.Internal
         public DefaultMongoClientFactory(IOptions<MongoOptions> options) =>
             this.options = options;
 
-        /// <inheritdoc/>
-        public IMongoClient Create() => new MongoClient(options.Value.ConnectionString);
+        public IMongoClient CreateClient() => new MongoClient(options.Value.ConnectionString);
+
+        public IMongoDatabase GetDatabase() => CreateClient().GetDatabase(options.Value.DatabaseName);
     }
 }

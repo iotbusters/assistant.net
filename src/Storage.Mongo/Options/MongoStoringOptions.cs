@@ -12,12 +12,6 @@ namespace Assistant.Net.Storage.Options
     public class MongoStoringOptions
     {
         /// <summary>
-        ///     Database name.
-        /// </summary>
-        [Required]
-        public string DatabaseName { get; set; } = MongoNames.DatabaseName;
-
-        /// <summary>
         ///     Collection name for <see cref="IStorage{TKey,TValue}"/>.
         /// </summary>
         [Required]
