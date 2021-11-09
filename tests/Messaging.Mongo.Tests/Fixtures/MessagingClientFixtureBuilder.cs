@@ -39,6 +39,9 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
                     .UseMongo(o => o.Connection(connectionString).Database(database))
                     .TimeoutIn(TimeSpan.FromSeconds(0.5)));
             RemoteHostBuilder.ConfigureServices(s => s
+                .ConfigureMessagingClient(b => b
+                    .UseMongo(o => o.Connection(connectionString).Database(database))
+                    .TimeoutIn(TimeSpan.FromSeconds(0.5)))
                 .ConfigureMongoMessageHandling(b => b.Use(o => o.Connection(connectionString).Database(database))));
             return this;
         }

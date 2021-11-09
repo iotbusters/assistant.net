@@ -10,11 +10,11 @@ namespace Assistant.Net.Messaging.Abstractions
         /// <summary>
         ///     Creates MongoDB client instance.
         /// </summary>
-        IMongoClient CreateClient();
+        IMongoClient CreateClient(string name);
 
         /// <summary>
         ///     Gets MongoDB client's database instance.
         /// </summary>
-        IMongoDatabase GetDatabase();
+        IMongoDatabase GetDatabase(string name);
     }
 }

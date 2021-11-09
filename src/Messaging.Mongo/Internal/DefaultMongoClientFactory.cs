@@ -10,13 +10,13 @@ namespace Assistant.Net.Messaging.Internal
     /// </summary>
     internal class DefaultMongoClientFactory : IMongoClientFactory
     {
-        private readonly IOptions<MongoOptions> options;
+        private readonly IOptionsSnapshot<MongoOptions> options;
 
-        public DefaultMongoClientFactory(IOptions<MongoOptions> options) =>
+        public DefaultMongoClientFactory(IOptionsSnapshot<MongoOptions> options) =>
             this.options = options;
 
-        public IMongoClient CreateClient() => new MongoClient(options.Value.ConnectionString);
+        public IMongoClient CreateClient(string name) => new MongoClient(options.Get(name).ConnectionString);
 
-        public IMongoDatabase GetDatabase() => CreateClient().GetDatabase(options.Value.DatabaseName);
+        public IMongoDatabase GetDatabase(string name) => CreateClient(name).GetDatabase(options.Get(name).DatabaseName);
     }
 }

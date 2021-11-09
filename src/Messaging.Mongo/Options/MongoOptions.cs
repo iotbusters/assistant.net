@@ -8,6 +8,16 @@ namespace Assistant.Net.Messaging.Options
     public class MongoOptions
     {
         /// <summary>
+        ///     MongoDB option name for a client.
+        /// </summary>
+        public const string ClientName = "mongo.client";
+
+        /// <summary>
+        ///     MongoDB option name for a server.
+        /// </summary>
+        public const string ServerName = "mongo.server";
+
+        /// <summary>
         ///     Server connection string.
         /// </summary>
         [Required, MinLength(10)]//10:  mongodb://

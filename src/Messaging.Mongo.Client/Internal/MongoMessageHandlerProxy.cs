@@ -41,7 +41,7 @@ namespace Assistant.Net.Messaging.Internal
             this.typeEncoder = typeEncoder;
             this.clock = clock;
             this.options = options.Value;
-            this.collection = clientFactory.GetDatabase().GetCollection<MongoRecord>(MongoNames.MessageCollectionName);
+            this.collection = clientFactory.GetDatabase(MongoOptions.ClientName).GetCollection<MongoRecord>(MongoNames.MessageCollectionName);
             this.converter = converter;
         }
 
