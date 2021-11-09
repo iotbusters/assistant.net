@@ -70,7 +70,7 @@ MongoDB based storage extension of [Storage](#assistantnetstorage).
 ```csharp
 services
     .AddStorage(b => b
-        .UseMongo(o => o.ConnectionString = "mongodb://localhost")
+        .UseMongo(o => o.Connection("mongodb://127.0.0.1:27017").Database("Storage"))
         .AddMongo<Model1>()
         .AddMongoAny()
         .AddMongoHistorical<Model2>()
@@ -183,7 +183,7 @@ Remote MongoDB based message handling client implementation. The client stores m
 
 ```csharp
 services.AddMessagingClient(b => b
-    .UseMongo("mongodb://127.0.0.1:27017")
+    .UseMongo(o => o.Connection("mongodb://127.0.0.1:27017").Database("Messaging"))
     .AddMongo<SomeMessage>()
     );
 
