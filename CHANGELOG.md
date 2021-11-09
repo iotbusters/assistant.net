@@ -4,6 +4,14 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.1.96] - 2021-11-09
+
+[Assistant.NET Release 0.1.96](https://github.com/iotbusters/assistant.net/releases/tag/0.1.96)
+
+### 0.1.96 Changed
+
+- split `MongoOptions` for server/client by name
+
 ## [0.1.95] - 2021-11-09
 
 [Assistant.NET Release 0.1.95](https://github.com/iotbusters/assistant.net/releases/tag/0.1.95)

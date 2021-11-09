@@ -26,7 +26,7 @@ namespace Assistant.Net.Messaging
         {
             builder.Services
                 .AddMongoClientFactory()
-                .ConfigureMongoOptions(configureOptions);
+                .ConfigureMongoOptions(MongoOptions.ClientName, configureOptions);
             return builder;
         }
 
@@ -37,7 +37,7 @@ namespace Assistant.Net.Messaging
         {
             builder.Services
                 .AddMongoClientFactory()
-                .ConfigureMongoOptions(configuration);
+                .ConfigureMongoOptions(MongoOptions.ClientName, configuration);
             return builder;
         }
 
