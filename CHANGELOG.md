@@ -4,6 +4,21 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.1.95] - 2021-11-09
+
+[Assistant.NET Release 0.1.95](https://github.com/iotbusters/assistant.net/releases/tag/0.1.95)
+
+### 0.1.95 Changed
+
+- serilizer converter exposes internal json exceptions
+- introduced none backward compatible change to messaging client and storage
+  - moved database name from client/server options to `MongoOptions`
+- added extension methods for configuring `MongoOptions` in messaging client and storage
+
+### 0.1.95 Fixed
+
+- overriding local handlers (after providers recent intruduction)
+
 ## [0.1.94] - 2021-11-03
 
 [Assistant.NET Release 0.1.94](https://github.com/iotbusters/assistant.net/releases/tag/0.1.94)
