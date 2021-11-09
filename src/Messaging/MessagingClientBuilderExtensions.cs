@@ -34,7 +34,9 @@ namespace Assistant.Net.Messaging
                 throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
             
             foreach (var handlerInterfaceType in handlerInterfaceTypes)
-                builder.Services.ReplaceTransient(handlerInterfaceType, handlerType);
+                builder.Services
+                    .RemoveMessageHandlingProvider(handlerInterfaceType)
+                    .ReplaceTransient(handlerInterfaceType, handlerType);
             return builder;
         }
 
@@ -50,7 +52,9 @@ namespace Assistant.Net.Messaging
 
             var handlerInterfaceTypes = handlerType.GetMessageHandlerInterfaceTypes();
             foreach (var handlerInterfaceType in handlerInterfaceTypes)
-                builder.Services.Replace(ServiceDescriptor.Singleton(handlerInterfaceType, _ => handlerInstance));
+                builder.Services
+                    .RemoveMessageHandlingProvider(handlerInterfaceType)
+                    .Replace(ServiceDescriptor.Singleton(handlerInterfaceType, _ => handlerInstance));
             return builder;
         }
 
@@ -287,6 +291,18 @@ namespace Assistant.Net.Messaging
         {
             builder.Services.ConfigureMessagingClientOptions(o => o.Timeout = timeout);
             return builder;
+        }
+
+        private static IServiceCollection RemoveMessageHandlingProvider(this IServiceCollection services, Type handlerInterfaceType)
+        {
+            var messageType = handlerInterfaceType.GetGenericArguments().First();
+            var providerType = typeof(IMessageHandlingProvider<,>).MakeGenericTypeBoundToMessage(messageType);
+
+            var providerDescriptor = services.FirstOrDefault(x => x.ServiceType == providerType);
+            if (providerDescriptor != null)
+                services.Remove(providerDescriptor);
+
+            return services;
         }
     }
 }
