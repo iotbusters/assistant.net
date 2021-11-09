@@ -35,7 +35,7 @@ namespace Assistant.Net.Storage.Internal
             this.options = options.Value;
             this.clock = clock;
 
-            var database = clientFactory.Create().GetDatabase(this.options.DatabaseName);
+            var database = clientFactory.GetDatabase();
             this.keyCollection = database.GetCollection<MongoKeyRecord>(this.options.KeyCollectionName);
             this.keyValueCollection = database.GetCollection<MongoKeyValueRecord>(this.options.KeyValueCollectionName);
             this.valueCollection = database.GetCollection<MongoValueRecord>(this.options.ValueCollectionName);

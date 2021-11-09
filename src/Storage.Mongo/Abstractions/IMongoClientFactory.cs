@@ -10,6 +10,11 @@ namespace Assistant.Net.Storage.Abstractions
         /// <summary>
         ///     Creates MongoDB client instance.
         /// </summary>
-        IMongoClient Create();
+        IMongoClient CreateClient();
+
+        /// <summary>
+        ///     Gets MongoDB client's database instance.
+        /// </summary>
+        IMongoDatabase GetDatabase();
     }
 }
