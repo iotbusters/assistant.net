@@ -160,7 +160,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests
                 .BuildServiceProvider();
 
             string pingContent;
-            var mongoClient = Provider.GetRequiredService<IMongoClientFactory>().Create();
+            var mongoClient = Provider.GetRequiredService<IMongoClientFactory>().CreateClient();
             try
             {
                 var ping = await mongoClient.GetDatabase("db").RunCommandAsync(
@@ -183,7 +183,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests
         [SetUp, TearDown]
         public async Task Cleanup()
         {
-            var mongoClient = Provider!.GetRequiredService<IMongoClientFactory>().Create();
+            var mongoClient = Provider!.GetRequiredService<IMongoClientFactory>().CreateClient();
             await mongoClient.DropDatabaseAsync(Database);
         }
 

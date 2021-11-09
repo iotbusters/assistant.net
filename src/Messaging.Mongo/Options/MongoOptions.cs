@@ -12,5 +12,12 @@ namespace Assistant.Net.Messaging.Options
         /// </summary>
         [Required, MinLength(10)]//10:  mongodb://
         public string ConnectionString { get; set; } = null!;
+
+        /// <summary>
+        ///     Database name.
+        /// </summary>
+        [Required, MinLength(1)]
+        public string DatabaseName { get; set; } = MongoNames.DatabaseName;
+
     }
 }

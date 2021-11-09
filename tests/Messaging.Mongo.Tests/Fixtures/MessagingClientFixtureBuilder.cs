@@ -36,12 +36,10 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
         {
             Services
                 .ConfigureMessagingClient(b => b
-                    .UseMongo(o => o.ConnectionString = connectionString)
-                    .TimeoutIn(TimeSpan.FromSeconds(0.5)))
-                .ConfigureMongoHandlingClientOptions(o => o.DatabaseName = database);
+                    .UseMongo(o => o.Connection(connectionString).Database(database))
+                    .TimeoutIn(TimeSpan.FromSeconds(0.5)));
             RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureMongoMessageHandling(b => b.Use(o => o.ConnectionString = connectionString))
-                .ConfigureMongoHandlingServerOptions(o => o.DatabaseName = database));
+                .ConfigureMongoMessageHandling(b => b.Use(o => o.Connection(connectionString).Database(database))));
             return this;
         }
 
