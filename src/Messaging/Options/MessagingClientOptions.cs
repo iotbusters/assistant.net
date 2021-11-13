@@ -1,4 +1,5 @@
 using Assistant.Net.Abstractions;
+using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.RetryStrategies;
 using System;
@@ -12,9 +13,16 @@ namespace Assistant.Net.Messaging.Options
     public sealed class MessagingClientOptions
     {
         /// <summary>
+        ///     List of registered handlers.
+        /// </summary>
+        public IDictionary<Type, Func<IServiceProvider, IAbstractHandler>> Handlers { get; } =
+            new Dictionary<Type, Func<IServiceProvider, IAbstractHandler>>();
+
+        /// <summary>
         ///     List of registered interceptors.
         /// </summary>
-        public IList<Type> Interceptors { get; } = new List<Type>();
+        public IList<(Type MessageType, Type InterceptorType, Func<IServiceProvider, IAbstractInterceptor> Factory)> Interceptors { get; } =
+            new List<(Type, Type, Func<IServiceProvider, IAbstractInterceptor>)>();
 
         /// <summary>
         ///     List of allowed for exposing external exceptions.

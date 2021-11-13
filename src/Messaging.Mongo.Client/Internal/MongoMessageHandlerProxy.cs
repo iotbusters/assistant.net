@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal
 {
-    internal class MongoMessageHandlerProxy<TMessage, TResponse> : IMessageHandlingProvider<TMessage, TResponse>
+    internal class MongoMessageHandlerProxy<TMessage, TResponse> : IAbstractHandler
         where TMessage : IMessage<TResponse>
     {
         private readonly ILogger logger;

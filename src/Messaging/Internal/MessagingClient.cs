@@ -1,10 +1,8 @@
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Options;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,20 +14,14 @@ namespace Assistant.Net.Messaging.Internal
     /// </summary>
     internal class MessagingClient : IMessagingClient
     {
-        private readonly IEnumerable<KeyValuePair<Type, Type>> interceptorMap;
+        private readonly IOptionsMonitor<MessagingClientOptions> options;
         private readonly IServiceProvider provider;
 
         public MessagingClient(
-            IOptions<MessagingClientOptions> options,
+            IOptionsMonitor<MessagingClientOptions> options,
             IServiceProvider provider)
         {
-            interceptorMap = (
-                from interceptorType in options.Value.Interceptors
-                from interfaceType in interceptorType.GetMessageInterceptorInterfaceTypes()
-                let messageType = interfaceType.GetGenericArguments().First()
-                let abstractInterceptorType = typeof(AbstractInterceptor<,,>)
-                    .MakeGenericType(interceptorType, messageType, messageType.GetResponseType()!)
-                select new KeyValuePair<Type, Type>(messageType, abstractInterceptorType)).ToArray();
+            this.options = options;
             this.provider = provider;
         }
 
@@ -50,15 +42,17 @@ namespace Assistant.Net.Messaging.Internal
         /// <exception cref="MessageNotRegisteredException"/>
         private InterceptingMessageHandler CreateInterceptingHandler(Type messageType)
         {
-            var handlerType = typeof(IMessageHandlingProvider<,>).MakeGenericTypeBoundToMessage(messageType);
-            var handler = provider.GetRequiredService(handlerType);
+            if(!options.CurrentValue.Handlers.TryGetValue(messageType, out var factory))
+                throw new MessageNotRegisteredException(messageType);
 
-            var interceptors = interceptorMap
-                .Where(x => x.Key.IsAssignableFrom(messageType))
+            var handler = factory(provider);
+
+            var interceptors = options.CurrentValue.Interceptors
+                .Where(x => x.MessageType.IsAssignableFrom(messageType))
                 .Reverse()
-                .Select(x => (IAbstractInterceptor)provider.GetRequiredService(x.Value)).ToArray();
+                .Select(x => x.Factory(provider));
 
-            return new InterceptingMessageHandler((IAbstractHandler)handler, interceptors);
+            return new InterceptingMessageHandler(handler, interceptors);
         }
     }
 }

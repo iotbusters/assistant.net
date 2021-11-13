@@ -23,8 +23,6 @@ namespace Assistant.Net.Messaging
             .AddDiagnostics()
             .AddSystemServicesDefaulted()
             .TryAddScoped<IMessagingClient, MessagingClient>()
-            .TryAddTransient(typeof(IMessageHandlingProvider<,>), typeof(LocalMessageHandlingProvider<,>))
-            .TryAddTransient(typeof(AbstractInterceptor<,,>), typeof(AbstractInterceptor<,,>))
             .ConfigureMessagingClient(b => b.AddConfiguration<DefaultInterceptorConfiguration>());
 
         /// <summary>
@@ -46,7 +44,7 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Register an action used to configure the same named <see cref="MessagingClientOptions"/> options.
         /// </summary>
-        internal static IServiceCollection ConfigureMessagingClientOptions(this IServiceCollection services, Action<MessagingClientOptions> configureOptions) => services
+        public static IServiceCollection ConfigureMessagingClientOptions(this IServiceCollection services, Action<MessagingClientOptions> configureOptions) => services
             .Configure(configureOptions);
     }
 }

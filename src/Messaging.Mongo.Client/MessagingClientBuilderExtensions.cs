@@ -2,8 +2,8 @@
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Serialization;
-using Assistant.Net.Serialization;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Messaging
@@ -58,13 +58,20 @@ namespace Assistant.Net.Messaging
             if (messageType.GetResponseType() == null)
                 throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
 
-            var providerType = typeof(IMessageHandlingProvider<,>).MakeGenericTypeBoundToMessage(messageType);
-            var providerImplementationType = typeof(MongoMessageHandlerProxy<,>).MakeGenericTypeBoundToMessage(messageType);
+            var providerType = typeof(MongoMessageHandlerProxy<,>);
 
             builder.Services
                 .TryAddSingleton<ExceptionModelConverter>()
-                .ConfigureSerializer(b => b.AddJsonType(messageType))
-                .ReplaceTransient(providerType, providerImplementationType);
+                .ConfigureMessagingClientOptions(o =>
+                {
+                    o.Handlers.Remove(messageType);
+                    o.Handlers.Add(messageType, p =>
+                    {
+                        var provider = ActivatorUtilities.CreateInstance(p, providerType.MakeGenericTypeBoundToMessage(messageType));
+                        return (IAbstractHandler)provider;
+                    });
+                });
+
             return builder;
         }
     }

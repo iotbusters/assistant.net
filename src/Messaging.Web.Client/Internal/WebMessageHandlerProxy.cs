@@ -11,7 +11,7 @@ namespace Assistant.Net.Messaging.Internal
     /// <summary>
     ///     Strongly typed proxy to remote message handling.
     /// </summary>
-    internal class WebMessageHandlerProxy<TMessage, TResponse> : IMessageHandlingProvider<TMessage, TResponse>
+    internal class WebMessageHandlerProxy<TMessage, TResponse> : IAbstractHandler
         where TMessage : IMessage<TResponse>
     {
         private readonly ILogger logger;

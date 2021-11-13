@@ -18,8 +18,7 @@ namespace Assistant.Net.Messaging.Serialization
         private readonly IOptions<MessagingClientOptions> options;
 
         /// <summary/>
-        public ExceptionModelConverter(ITypeEncoder typeEncoder,
-            IOptions<MessagingClientOptions> options)
+        public ExceptionModelConverter(ITypeEncoder typeEncoder, IOptions<MessagingClientOptions> options)
         {
             this.typeEncoder = typeEncoder;
             this.options = options;
@@ -39,7 +38,7 @@ namespace Assistant.Net.Messaging.Serialization
 
             var typeName = typeEncoder.Encode(type) ?? throw NotSupportedTypeException(type);
 
-            return new ExceptionModel { Type = typeName, Message = exception.Message, InnerException = ConvertTo(exception.InnerException) };
+            return new ExceptionModel {Type = typeName, Message = exception.Message, InnerException = ConvertTo(exception.InnerException)};
         }
 
         /// <summary>
