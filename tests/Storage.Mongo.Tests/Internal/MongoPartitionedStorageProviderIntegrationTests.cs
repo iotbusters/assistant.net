@@ -142,7 +142,12 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         [OneTimeTearDown]
         public async Task OneTimeTearDown()
         {
-            await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName);
+            try
+            {
+                await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName, new CancellationTokenSource(200).Token);
+            }
+            catch { }
+
             await Provider.DisposeAsync();
         }
 
