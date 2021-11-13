@@ -4,6 +4,22 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.1.97] - 2021-11-13
+
+[Assistant.NET Release 0.1.97](https://github.com/iotbusters/assistant.net/releases/tag/0.1.97)
+
+### 0.1.97 Added
+
+- registered message handlers removal and cleanup
+
+### 0.1.97 Changed
+
+- reworked message handlers and interceptors registration
+
+### 0.1.97 Removed
+
+- message handling providers
+
 ## [0.1.96] - 2021-11-09
 
 [Assistant.NET Release 0.1.96](https://github.com/iotbusters/assistant.net/releases/tag/0.1.96)
