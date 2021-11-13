@@ -33,7 +33,6 @@ namespace Assistant.Net.Messaging
             builder.Services
                 .ConfigureMessagingClient(b => b.AddLocalHandler(handlerType))
                 .ConfigureWebHandlingServerOptions(o => o.MessageTypes.AddRange(messageTypes));
-
             return builder;
         }
 
@@ -51,7 +50,63 @@ namespace Assistant.Net.Messaging
             builder.Services
                 .ConfigureMessagingClient(b => b.AddLocalHandler(handlerInstance))
                 .ConfigureWebHandlingServerOptions(o => o.MessageTypes.AddRange(messageTypes));
+            return builder;
+        }
 
+        /// <summary>
+        ///     Removes all handlers from the list.
+        /// </summary>
+        public static WebHandlingServerBuilder ClearHandlers(this WebHandlingServerBuilder builder)
+        {
+            builder.Services
+                .ConfigureMessagingClient(b => b.ClearHandlers())
+                .ConfigureWebHandlingServerOptions(o => o.MessageTypes.Clear());
+            return builder;
+        }
+
+        /// <summary>
+        ///     Removes an handler of <typeparamref name="TMessage" /> from the list.
+        /// </summary>
+        public static WebHandlingServerBuilder Remove<TMessage>(this WebHandlingServerBuilder builder)
+            where TMessage : class => builder.Remove(typeof(TMessage));
+
+        /// <summary>
+        ///     Removes an handler of <paramref name="messageType" /> from the list.
+        /// </summary>
+        public static WebHandlingServerBuilder Remove(this WebHandlingServerBuilder builder, Type messageType)
+        {
+            if (!messageType.IsMessage())
+                throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
+
+            builder.Services
+                .ConfigureMessagingClient(b => b.Remove(messageType))
+                .ConfigureWebHandlingServerOptions(o => o.MessageTypes.Remove(messageType));
+            return builder;
+        }
+
+        /// <summary>
+        ///     Removes the handler type <typeparamref name="THandler"/> from the list.
+        /// </summary>
+        public static WebHandlingServerBuilder RemoveHandler<THandler>(this WebHandlingServerBuilder builder)
+            where THandler : class => builder.RemoveHandler(typeof(THandler));
+
+        /// <summary>
+        ///     Removes the <paramref name="handlerType" /> from the list.
+        /// </summary>
+        public static WebHandlingServerBuilder RemoveHandler(this WebHandlingServerBuilder builder, Type handlerType)
+        {
+            var handlerInterfaceTypes = handlerType.GetMessageHandlerInterfaceTypes();
+            if (!handlerInterfaceTypes.Any())
+                throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
+
+            builder.Services
+                .ConfigureMessagingClient(b => b.RemoveHandler(handlerType))
+                .ConfigureWebHandlingServerOptions(o =>
+                {
+                    var messageTypes = handlerInterfaceTypes.Select(x => x.GetGenericArguments().First());
+                    foreach (var messageType in messageTypes)
+                        o.MessageTypes.Remove(messageType);
+                });
             return builder;
         }
     }
