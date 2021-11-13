@@ -81,9 +81,10 @@ namespace Assistant.Net.Messaging.Tests.Interceptors
         public void Setup()
         {
             Services = new ServiceCollection()
+                .AddTransient<CachingInterceptor>()
                 .AddSystemClock()
                 .AddStorage(b => b.AddLocal<string, CachingResult>())
-                .ConfigureMessagingClient(b => b.AddInterceptor<CachingInterceptor>());
+                .ConfigureMessagingClientOptions(_ => { });
             Provider = Services.BuildServiceProvider();
         }
 

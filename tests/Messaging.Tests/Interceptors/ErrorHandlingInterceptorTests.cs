@@ -59,10 +59,10 @@ namespace Assistant.Net.Messaging.Tests.Interceptors
         }
 
         [SetUp]
-        public void Setup()
-        {
-            Services = new ServiceCollection().ConfigureMessagingClient(b => b.AddInterceptor<ErrorHandlingInterceptor>());
-        }
+        public void Setup() =>
+            Services = new ServiceCollection()
+                .AddTransient<ErrorHandlingInterceptor>()
+                .ConfigureMessagingClientOptions(_ => { });
 
         private IServiceCollection Services { get; set; } = null!;
         private IMessageInterceptor Interceptor => Services.BuildServiceProvider().GetRequiredService<ErrorHandlingInterceptor>();
