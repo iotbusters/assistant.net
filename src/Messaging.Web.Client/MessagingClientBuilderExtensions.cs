@@ -1,7 +1,6 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
@@ -45,12 +44,18 @@ namespace Assistant.Net.Messaging
             if (messageType.GetResponseType() == null)
                 throw new ArgumentException("Invalid message type.", nameof(messageType));
 
-            var providerType = typeof(IMessageHandlingProvider<,>).MakeGenericTypeBoundToMessage(messageType);
-            var providerImplementationType = typeof(WebMessageHandlerProxy<,>).MakeGenericTypeBoundToMessage(messageType);
+            var providerType = typeof(WebMessageHandlerProxy<,>);
 
-            builder.Services
-                .ReplaceTransient(providerType, providerImplementationType)
-                .ConfigureSerializer(b => b.AddJsonType(messageType));
+            builder.Services.ConfigureMessagingClientOptions(o =>
+            {
+                o.Handlers.Remove(messageType);
+                o.Handlers.Add(messageType, p =>
+                {
+                    var provider = ActivatorUtilities.CreateInstance(p, providerType.MakeGenericTypeBoundToMessage(messageType));
+                    return (IAbstractHandler)provider;
+                });
+            });
+
             return builder;
         }
     }
