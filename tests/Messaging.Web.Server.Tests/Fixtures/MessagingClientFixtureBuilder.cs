@@ -1,8 +1,8 @@
+using Assistant.Net.Messaging.Interceptors;
+using Assistant.Net.Messaging.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Net.Http;
 
 namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
 {
@@ -15,7 +15,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
                 .Configure(b => b.UseRemoteWebMessageHandler())
                 .ConfigureServices(s => s
                     .AddWebMessageHandling(_ => { })
-                    .ConfigureMessagingClient(b => b.ClearInterceptors())));
+                    .ConfigureMessagingClient(WebOptionsNames.DefaultName, b => b.RemoveInterceptor<CachingInterceptor>().RemoveInterceptor<RetryingInterceptor>())));
         }
 
         public IHostBuilder RemoteHostBuilder { get; init; }
@@ -23,18 +23,15 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
         public MessagingClientFixtureBuilder AddWebHandler<THandler>() where THandler : class
         {
             RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureWebMessageHandling(b => b.AddHandler<THandler>()));
+                .ConfigureWebMessageHandling(b => b.AddHandler<THandler>())
+                .ConfigureMessagingClient(WebOptionsNames.DefaultName, b => b.AddLocalHandler(typeof(THandler))));
             return this;
         }
-
+        
         public MessagingClientFixture Create()
         {
             var host = RemoteHostBuilder.Start();
-            var provider = new ServiceCollection()
-                .AddSingleton(new HttpClient(host.GetTestServer().CreateHandler()))
-                .AddJsonSerialization()
-                .BuildServiceProvider();
-            return new(provider, host);
+            return new(host);
         }
     }
 }

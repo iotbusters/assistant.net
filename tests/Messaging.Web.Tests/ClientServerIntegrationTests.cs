@@ -24,6 +24,33 @@ namespace Assistant.Net.Messaging.Web.Tests
         }
 
         [Test]
+        public async Task Send_returnsAnotherResponse_serverSideHandlerChanged()
+        {
+            // global arrange
+            using var fixture = new MessagingClientFixtureBuilder()
+                .AddWebHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
+                .Create();
+
+            // arrange 1
+            fixture.ReplaceHandlers(new TestMessageHandler<TestScenarioMessage, TestResponse>(new TestResponse(true)));
+
+            // act 1
+            var response1 = await fixture.Client.RequestObject(new TestScenarioMessage(1));
+
+            // assert 1
+            response1.Should().BeEquivalentTo(new TestResponse(true));
+
+            // arrange 2
+            fixture.ReplaceHandlers(new TestMessageHandler<TestScenarioMessage, TestResponse>(new TestResponse(false)));
+
+            // act 2
+            var response2 = await fixture.Client.RequestObject(new TestScenarioMessage(2));
+
+            // assert 2
+            response2.Should().BeEquivalentTo(new TestResponse(false));
+        }
+
+        [Test]
         public void RequestObject_throwsMessageNotRegisteredException_NoLocalHandler()
         {
             using var fixture = new MessagingClientFixtureBuilder()

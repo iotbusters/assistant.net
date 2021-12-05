@@ -1,5 +1,7 @@
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Interceptors;
+using Assistant.Net.Messaging.Mongo.Tests.Mocks;
+using Assistant.Net.Messaging.Options;
 using Assistant.Net.RetryStrategies;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,6 +12,9 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
 {
     public class MessagingClientFixtureBuilder
     {
+        private readonly TestConfigureOptionsSource remoteSource = new();
+        private readonly TestConfigureOptionsSource clientSource = new();
+
         public MessagingClientFixtureBuilder()
         {
             Services = new ServiceCollection()
@@ -17,16 +22,24 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
                 .ConfigureMongoHandlingClientOptions(o => o.ResponsePoll = new ConstantBackoff
                 {
                     Interval = TimeSpan.FromSeconds(0.01), MaxAttemptNumber = 3
-                });
+                })
+                .AddOptions<MessagingClientOptions>()
+                .Bind(clientSource)
+                .Services;
             RemoteHostBuilder = Host.CreateDefaultBuilder()
                 .ConfigureServices(s => s
                     .AddMongoMessageHandling(_ => { })
-                    .ConfigureMessagingClient(b => b.RemoveInterceptor<CachingInterceptor>().RemoveInterceptor<RetryingInterceptor>())
+                    .ConfigureMessagingClient(MongoOptionsNames.DefaultName, b => b
+                        .RemoveInterceptor<CachingInterceptor>()
+                        .RemoveInterceptor<RetryingInterceptor>()
+                        .RemoveInterceptor<TimeoutInterceptor>())
                     .ConfigureMongoHandlingServerOptions(o =>
                     {
                         o.InactivityDelayTime = TimeSpan.FromSeconds(0.005);
                         o.NextMessageDelayTime = TimeSpan.FromSeconds(0.001);
-                    }));
+                    })
+                    .AddOptions<MessagingClientOptions>(MongoOptionsNames.DefaultName)
+                    .Bind(remoteSource));
         }
 
         public IServiceCollection Services { get; init; }
@@ -34,52 +47,41 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
 
         public MessagingClientFixtureBuilder UseMongo(string connectionString, string database)
         {
-            Services
-                .ConfigureMessagingClient(b => b
-                    .UseMongo(o => o.Connection(connectionString).Database(database))
-                    .TimeoutIn(TimeSpan.FromSeconds(0.5)));
-            RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureMessagingClient(b => b
-                    .UseMongo(o => o.Connection(connectionString).Database(database))
-                    .TimeoutIn(TimeSpan.FromSeconds(0.5)))
-                .ConfigureMongoMessageHandling(b => b.Use(o => o.Connection(connectionString).Database(database))));
+            Services.ConfigureMessagingClient(b => b
+                .UseMongo(o => o.Connection(connectionString).Database(database))
+                .TimeoutIn(TimeSpan.FromSeconds(0.5)));
+            RemoteHostBuilder.ConfigureServices(s => s.ConfigureMessagingClient(b => b
+                .UseMongo(o => o.Connection(connectionString).Database(database))
+                .TimeoutIn(TimeSpan.FromSeconds(0.5))));
             return this;
         }
 
-        public MessagingClientFixtureBuilder ClearHandlers()
+        public MessagingClientFixtureBuilder AddMongoHandler<THandler>(THandler? handler = null) where THandler : class
         {
-            Services.ConfigureMessagingClient(b => b.ClearInterceptors());
-            return this;
-        }
-
-        public MessagingClientFixtureBuilder AddLocalHandler<THandler>() where THandler : class
-        {
-            Services.ConfigureMessagingClient(b => b.AddLocalHandler<THandler>());
-            return this;
-        }
-
-        public MessagingClientFixtureBuilder AddMongoHandler<THandler>(THandler? instance = null) where THandler : class
-        {
-            RemoteHostBuilder.ConfigureServices(s => s.ConfigureMongoMessageHandling(b =>
+            remoteSource.Configurations.Add(o =>
             {
-                if (instance != null)
-                    b.AddHandler(instance);
+                if (handler != null)
+                    o.AddLocalHandler(handler);
                 else
-                    b.AddHandler<THandler>();
-            }));
-
-            var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
-                              ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
-
-            Services.ConfigureMessagingClient(b => b.AddMongo(messageType));
+                    o.AddLocalHandler(typeof(THandler));
+            });
+            clientSource.Configurations.Add(o =>
+            {
+                var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
+                                  ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
+                o.AddMongo(messageType);
+            });
             return this;
         }
 
         public MessagingClientFixtureBuilder AddMongoMessageRegistrationOnly<TMessage>()
             where TMessage : IAbstractMessage
         {
-            var messageType = typeof(TMessage);
-            Services.ConfigureMessagingClient(b => b.AddMongo(messageType));
+            clientSource.Configurations.Add(o =>
+            {
+                var messageType = typeof(TMessage);
+                o.AddMongo(messageType);
+            });
             return this;
         }
 
@@ -87,7 +89,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
         {
             var provider = Services.BuildServiceProvider();
             var host = RemoteHostBuilder.Start();
-            return new(provider, host);
+            return new(remoteSource, clientSource, provider, host);
         }
     }
 }
