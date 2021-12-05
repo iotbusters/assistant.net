@@ -4,6 +4,19 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.1.99] - 2021-12-05
+
+[Assistant.NET Release 0.1.99](https://github.com/iotbusters/assistant.net/releases/tag/0.1.99)
+
+### 0.1.99 Added
+
+- core options source concept to reload options without configuration layer
+- named messaging clients
+
+### 0.1.99 Changed
+
+- referenced messaging server options to messaging client options reload
+
 ## [0.1.98] - 2021-11-13
 
 [Assistant.NET Release 0.1.98](https://github.com/iotbusters/assistant.net/releases/tag/0.1.98)
