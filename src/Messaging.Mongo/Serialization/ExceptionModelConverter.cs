@@ -34,7 +34,7 @@ namespace Assistant.Net.Messaging.Serialization
 
             var type = exception.GetType();
             if (exception is not MessageException && !options.Value.ExposedExceptions.Any(x => x.IsAssignableFrom(type)))
-                return null;
+                return ConvertTo(new MessageFailedException((Exception)null!));
 
             var typeName = typeEncoder.Encode(type) ?? throw NotSupportedTypeException(type);
 

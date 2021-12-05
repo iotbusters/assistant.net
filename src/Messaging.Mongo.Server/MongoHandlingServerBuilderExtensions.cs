@@ -1,7 +1,8 @@
 ﻿using Assistant.Net.Messaging.Options;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System;
-using System.Linq;
 
 namespace Assistant.Net.Messaging
 {
@@ -37,6 +38,7 @@ namespace Assistant.Net.Messaging
                 .ConfigureMongoOptions(MongoOptions.ServerName, configuration);
             return builder;
         }
+
         /// <summary>
         ///     Registers MongoDB based <typeparamref name="TMessageHandler" /> type accepting remote message handling requests on a server.
         /// </summary>
@@ -54,10 +56,7 @@ namespace Assistant.Net.Messaging
             if (!handlerType.IsMessageHandler())
                 throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
 
-            var messageTypes = handlerType.GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First());
-            builder.Services
-                .ConfigureMessagingClient(b => b.AddLocalHandler(handlerType))
-                .ConfigureMongoHandlingServerOptions(o => o.MessageTypes.AddRange(messageTypes));
+            builder.Services.ConfigureMessagingClient(MongoOptionsNames.DefaultName, b => b.AddLocalHandler(handlerType));
             return builder;
         }
 
@@ -71,67 +70,16 @@ namespace Assistant.Net.Messaging
             if (!handlerType.IsMessageHandler())
                 throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerInstance));
 
-            var messageTypes = handlerType.GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First());
-            builder.Services
-                .ConfigureMessagingClient(b => b.AddLocalHandler(handlerInstance))
-                .ConfigureMongoHandlingServerOptions(o => o.MessageTypes.AddRange(messageTypes));
+            builder.Services.ConfigureMessagingClient(MongoOptionsNames.DefaultName, b => b.AddLocalHandler(handlerInstance));
             return builder;
         }
 
         /// <summary>
-        ///     Removes all handlers from the list.
+        ///     Removes all MongoDB based handlers from the list.
         /// </summary>
         public static MongoHandlingServerBuilder ClearHandlers(this MongoHandlingServerBuilder builder)
         {
-            builder.Services
-                .ConfigureMessagingClient(b => b.ClearHandlers())
-                .ConfigureMongoHandlingServerOptions(o => o.MessageTypes.Clear());
-            return builder;
-        }
-
-        /// <summary>
-        ///     Removes an handler of <typeparamref name="TMessage" /> from the list.
-        /// </summary>
-        public static MongoHandlingServerBuilder Remove<TMessage>(this MongoHandlingServerBuilder builder)
-            where TMessage : class => builder.Remove(typeof(TMessage));
-
-        /// <summary>
-        ///     Removes an handler of <paramref name="messageType" /> from the list.
-        /// </summary>
-        public static MongoHandlingServerBuilder Remove(this MongoHandlingServerBuilder builder, Type messageType)
-        {
-            if(!messageType.IsMessage())
-                throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
-
-            builder.Services
-                .ConfigureMessagingClient(b => b.Remove(messageType))
-                .ConfigureMongoHandlingServerOptions(o => o.MessageTypes.Remove(messageType));
-            return builder;
-        }
-
-        /// <summary>
-        ///     Removes the handler type <typeparamref name="THandler"/> from the list.
-        /// </summary>
-        public static MongoHandlingServerBuilder RemoveHandler<THandler>(this MongoHandlingServerBuilder builder)
-            where THandler : class => builder.RemoveHandler(typeof(THandler));
-
-        /// <summary>
-        ///     Removes the <paramref name="handlerType" /> from the list.
-        /// </summary>
-        public static MongoHandlingServerBuilder RemoveHandler(this MongoHandlingServerBuilder builder, Type handlerType)
-        {
-            var handlerInterfaceTypes = handlerType.GetMessageHandlerInterfaceTypes();
-            if (!handlerInterfaceTypes.Any())
-                throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
-
-            builder.Services
-                .ConfigureMessagingClient(b => b.RemoveHandler(handlerType))
-                .ConfigureMongoHandlingServerOptions(o =>
-                {
-                    var messageTypes = handlerInterfaceTypes.Select(x => x.GetGenericArguments().First());
-                    foreach (var messageType in messageTypes)
-                        o.MessageTypes.Remove(messageType);
-                });
+            builder.Services.ConfigureMessagingClient(MongoOptionsNames.DefaultName, b => b.ClearHandlers());
             return builder;
         }
     }

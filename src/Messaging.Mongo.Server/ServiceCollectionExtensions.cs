@@ -5,6 +5,7 @@ using Assistant.Net.Messaging.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using System;
 
 namespace Assistant.Net.Messaging
@@ -26,14 +27,22 @@ namespace Assistant.Net.Messaging
         /// </summary>
         public static IServiceCollection AddMongoMessageHandling(this IServiceCollection services, Action<MongoHandlingServerBuilder> configureBuilder) => services
             .AddHostedService<MessageHandlingService>()
-            .AddSingleton<IMongoRecordReader, MongoRecordClient>()
+            .TryAddSingleton<IMongoRecordReader, MongoRecordClient>()
             .AddScoped<IMongoRecordWriter, MongoRecordClient>()
             .AddScoped<IMongoRecordProcessor, MongoRecordProcessor>()
             .TryAddSingleton<ExceptionModelConverter>()
             .AddSystemServicesHosted()
             .AddMessagingClient(b => b.RemoveExposedException<OperationCanceledException>())
             .AddMongoClientFactory()
-            .ConfigureMongoMessageHandling(configureBuilder);
+            .ConfigureMongoMessageHandling(configureBuilder)
+            .AddOptions<MongoHandlingServerOptions>()
+            .ChangeOn(MongoOptionsNames.DefaultName, typeof(MessagingClientOptions))
+            .Configure<IOptionsMonitor<MessagingClientOptions>>((o, m) =>
+            {
+                o.MessageTypes.Clear();
+                foreach (var messageType in m.Get(MongoOptionsNames.DefaultName).Handlers.Keys)
+                    o.MessageTypes.Add(messageType);
+            }).Services;
 
         /// <summary>
         ///     Configures remote message handling, required services and <see cref="MongoHandlingServerOptions"/>.

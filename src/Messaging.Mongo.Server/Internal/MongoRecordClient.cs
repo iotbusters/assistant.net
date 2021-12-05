@@ -19,14 +19,14 @@ namespace Assistant.Net.Messaging.Internal
     internal class MongoRecordClient : IMongoRecordReader, IMongoRecordWriter
     {
         private readonly ILogger logger;
-        private readonly IOptions<MongoHandlingServerOptions> options;
+        private readonly IOptionsMonitor<MongoHandlingServerOptions> options;
         private readonly ITypeEncoder typeEncoder;
         private readonly IMongoCollection<MongoRecord> collection;
 
         /// <summary/>
         public MongoRecordClient(
             ILogger<MongoRecordClient> logger,
-            IOptions<MongoHandlingServerOptions> options,
+            IOptionsMonitor<MongoHandlingServerOptions> options,
             ITypeEncoder typeEncoder,
             IMongoClientFactory clientFactory)
         {
@@ -41,7 +41,7 @@ namespace Assistant.Net.Messaging.Internal
         {
             logger.LogDebug("Lookup requested messages.");
 
-            var messageNames = options.Value.MessageTypes.Select(typeEncoder.Encode).ToArray();
+            var messageNames = options.CurrentValue.MessageTypes.Select(typeEncoder.Encode).ToArray();
 
             try
             {

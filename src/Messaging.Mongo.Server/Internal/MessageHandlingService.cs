@@ -16,17 +16,17 @@ namespace Assistant.Net.Messaging.Internal
     /// </summary>
     internal class MessageHandlingService : BackgroundService
     {
+        private readonly IOptionsMonitor<MongoHandlingServerOptions> options;
         private readonly IServiceScopeFactory scopeFactory;
-        private readonly IOptions<MongoHandlingServerOptions> handlerOptions;
         private readonly IMongoRecordReader recordReader;
 
         public MessageHandlingService(
+            IOptionsMonitor<MongoHandlingServerOptions> options,
             IServiceScopeFactory scopeFactory,
-            IOptions<MongoHandlingServerOptions> handlerOptions,
             IMongoRecordReader recordReader)
         {
+            this.options = options;
             this.scopeFactory = scopeFactory;
-            this.handlerOptions = handlerOptions;
             this.recordReader = recordReader;
         }
 
@@ -34,10 +34,11 @@ namespace Assistant.Net.Messaging.Internal
         {
             while (!token.IsCancellationRequested)
             {
-                var options = handlerOptions.Value;
+                var serverOptions = options.CurrentValue;
+
                 if (await recordReader.NextRequested(token) is not Some<MongoRecord>(var record))
                 {
-                    await Task.Delay(options.InactivityDelayTime, token);
+                    await Task.Delay(serverOptions.InactivityDelayTime, token);
                     continue;
                 }
 
@@ -53,7 +54,7 @@ namespace Assistant.Net.Messaging.Internal
                 if (await processor.Process(record, token) is Some<MongoRecord>(var updated))
                     await recordWriter.Update(updated, token);
 
-                await Task.Delay(options.NextMessageDelayTime, token);
+                await Task.Delay(serverOptions.NextMessageDelayTime, token);
             }
         }
     }

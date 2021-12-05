@@ -1,5 +1,4 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -25,7 +24,7 @@ namespace Assistant.Net.Messaging
         ///     Registers remote WEB handler of <typeparamref name="TMessage" />.
         /// </summary>
         /// <remarks>
-        ///     Pay attention, it requires <see cref="IWebMessageHandlerClient" /> remote handling provider implementation.
+        ///     Pay attention, it requires calling <see cref="UseWeb"/>.
         /// </remarks>
         /// <typeparam name="TMessage">Specific message type to be handled remotely.</typeparam>
         /// <exception cref="ArgumentException"/>
@@ -36,26 +35,15 @@ namespace Assistant.Net.Messaging
         ///     Registers remote WEB handler of <paramref name="messageType" />.
         /// </summary>
         /// <remarks>
-        ///     Pay attention, it requires <see cref="IWebMessageHandlerClient" /> remote handling provider implementation.
+        ///     Pay attention, it requires calling <see cref="UseWeb"/>.
         /// </remarks>
         /// <exception cref="ArgumentException"/>
         public static MessagingClientBuilder AddWeb(this MessagingClientBuilder builder, Type messageType)
         {
-            if (messageType.GetResponseType() == null)
+            if (!messageType.IsMessage())
                 throw new ArgumentException("Invalid message type.", nameof(messageType));
 
-            var providerType = typeof(WebMessageHandlerProxy<,>);
-
-            builder.Services.ConfigureMessagingClientOptions(o =>
-            {
-                o.Handlers.Remove(messageType);
-                o.Handlers.Add(messageType, p =>
-                {
-                    var provider = ActivatorUtilities.CreateInstance(p, providerType.MakeGenericTypeBoundToMessage(messageType));
-                    return (IAbstractHandler)provider;
-                });
-            });
-
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddWeb(messageType));
             return builder;
         }
     }

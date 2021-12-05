@@ -12,15 +12,15 @@ namespace Assistant.Net.Messaging.Internal
     /// </summary>
     internal class MessageHandlingMiddleware : IMiddleware
     {
-        private readonly IOptions<WebHandlingServerOptions> options;
-        private readonly IMessagingClient client;
+        private readonly IOptionsMonitor<WebHandlingServerOptions> options;
+        private readonly IMessagingClientFactory clientFactory;
 
         public MessageHandlingMiddleware(
-            IOptions<WebHandlingServerOptions> options,
-            IMessagingClient client)
+            IOptionsMonitor<WebHandlingServerOptions> options,
+            IMessagingClientFactory clientFactory)
         {
             this.options = options;
-            this.client = client;
+            this.clientFactory = clientFactory;
         }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
@@ -32,10 +32,13 @@ namespace Assistant.Net.Messaging.Internal
                 return;
             }
 
+            var serverOptions = options.CurrentValue;
+
             var message = await context.ReadMessageObject();
-            if (!options.Value.MessageTypes.Contains(message.GetType()))
+            if (!serverOptions.MessageTypes.Contains(message.GetType()))
                 throw new MessageNotRegisteredException(message.GetType());
 
+            var client = clientFactory.Create(WebOptionsNames.DefaultName);
             var response = await client.RequestObject(message);
 
             await context.WriteMessageResponse(StatusCodes.Status200OK, response);

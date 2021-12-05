@@ -10,10 +10,11 @@ namespace Assistant.Net.Messaging.Options
     public class MongoHandlingServerOptions
     {
         /// <summary>
-        ///     List of accepting message types.
+        ///     List of registered messages for remote handling.
         /// </summary>
         [MinLength(1)]
-        public List<Type> MessageTypes { get; } = new();
+        public IList<Type> MessageTypes { get; } = new List<Type>();
+
 
         /// <summary>
         ///     Time to delay after no messages to handle were found.

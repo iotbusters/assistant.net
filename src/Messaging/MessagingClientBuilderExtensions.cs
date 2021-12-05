@@ -1,13 +1,10 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Interceptors;
-using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.RetryStrategies;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Linq;
 
 namespace Assistant.Net.Messaging
 {
@@ -19,6 +16,7 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Registers a local in-memory handler type <typeparamref name="THandler" />.
         /// </summary>
+        /// <param name="builder">The <see cref="IMessagingClient"/> builder.</param>
         /// <exception cref="ArgumentException"/>
         public static MessagingClientBuilder AddLocalHandler<THandler>(this MessagingClientBuilder builder)
             where THandler : class => builder.AddLocalHandler(typeof(THandler));
@@ -26,114 +24,86 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Registers a local in-memory <paramref name="handlerType" />.
         /// </summary>
+        /// <param name="builder">The <see cref="IMessagingClient"/> builder.</param>
+        /// <param name="handlerType">The message handler implementation type.</param>
         /// <exception cref="ArgumentException"/>
         public static MessagingClientBuilder AddLocalHandler(this MessagingClientBuilder builder, Type handlerType)
         {
-            var handlerInterfaceTypes = handlerType.GetMessageHandlerInterfaceTypes();
-            if (!handlerInterfaceTypes.Any())
+            if (!handlerType.IsMessageHandler())
                 throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
 
-            var providerType = typeof(LocalMessageHandlingProxy<,>);
-            var messageTypes = handlerInterfaceTypes.Select(x => x.GetGenericArguments().First());
-
-            builder.Services.ConfigureMessagingClientOptions(o =>
-            {
-                foreach (var messageType in messageTypes)
-                {
-                    o.Handlers.Remove(messageType);
-                    o.Handlers.Add(messageType, p =>
-                    {
-                        var handler = ActivatorUtilities.CreateInstance(p, handlerType);
-                        var provider = ActivatorUtilities.CreateInstance(p, providerType.MakeGenericTypeBoundToMessage(messageType), handler);
-                        return (IAbstractHandler)provider;
-                    });
-                }
-            });
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddLocalHandler(handlerType));
             return builder;
         }
 
         /// <summary>
         ///     Registers a local in-memory <paramref name="handlerInstance" />.
         /// </summary>
+        /// <param name="builder">The <see cref="IMessagingClient"/> builder.</param>
+        /// <param name="handlerInstance">The message handler implementation instance.</param>
         /// <exception cref="ArgumentException"/>
         public static MessagingClientBuilder AddLocalHandler(this MessagingClientBuilder builder, object handlerInstance)
         {
             var handlerType = handlerInstance.GetType();
-            var handlerInterfaceTypes = handlerType.GetMessageHandlerInterfaceTypes();
-            if (!handlerInterfaceTypes.Any())
+            if (!handlerType.IsMessageHandler())
                 throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerInstance));
 
-            var providerType = typeof(LocalMessageHandlingProxy<,>);
-            var messageTypes = handlerInterfaceTypes.Select(x => x.GetGenericArguments().First());
-            
-            builder.Services.ConfigureMessagingClientOptions(o =>
-            {
-                foreach (var messageType in messageTypes)
-                {
-                    o.Handlers.Remove(messageType);
-                    o.Handlers.Add(messageType, provider =>
-                    {
-                        var handler = ActivatorUtilities.CreateInstance(
-                            provider,
-                            providerType.MakeGenericTypeBoundToMessage(messageType),
-                            handlerInstance);
-                        return (IAbstractHandler)handler;
-                    });
-                }
-            });
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddLocalHandler(handlerInstance));
             return builder;
         }
 
         /// <summary>
-        ///     Removes all handlers from the list.
+        ///     Removes all handlers.
         /// </summary>
+        /// <param name="builder">The <see cref="IMessagingClient"/> builder.</param>
         public static MessagingClientBuilder ClearHandlers(this MessagingClientBuilder builder)
         {
-            builder.Services.ConfigureMessagingClientOptions(o => o.Handlers.Clear());
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.Handlers.Clear());
             return builder;
         }
 
         /// <summary>
-        ///     Removes an handler of <typeparamref name="TMessage" /> from the list.
+        ///     Removes an handler of <typeparamref name="TMessage" />.
         /// </summary>
+        /// <typeparam name="TMessage">The message type to find associated handler.</typeparam>
+        /// <param name="builder">The <see cref="IMessagingClient"/> builder.</param>
         public static MessagingClientBuilder Remove<TMessage>(this MessagingClientBuilder builder)
             where TMessage : class => builder
             .Remove(typeof(TMessage));
 
         /// <summary>
-        ///     Removes an handler of <paramref name="messageType" /> from the list.
+        ///     Removes an handler of <paramref name="messageType" />.
         /// </summary>
+        /// <param name="builder">The <see cref="IMessagingClient"/> builder.</param>
+        /// <param name="messageType">The message type to find associated handler.</param>
         public static MessagingClientBuilder Remove(this MessagingClientBuilder builder, Type messageType)
         {
             if (!messageType.IsMessage())
                 throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
 
-            builder.Services.ConfigureMessagingClientOptions(o => o.Handlers.Remove(messageType));
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.Handlers.Remove(messageType));
             return builder;
         }
 
         /// <summary>
-        ///     Removes the handler type <typeparamref name="THandler"/> from the list.
+        ///     Removes the handler type <typeparamref name="THandler"/>.
         /// </summary>
+        /// <typeparam name="THandler">The message handler type.</typeparam>
+        /// <param name="builder">The <see cref="IMessagingClient"/> builder.</param>
         public static MessagingClientBuilder RemoveHandler<THandler>(this MessagingClientBuilder builder)
             where THandler : class => builder.RemoveHandler(typeof(THandler));
 
         /// <summary>
-        ///     Removes the <paramref name="handlerType" /> from the list.
+        ///     Removes the <paramref name="handlerType" />.
         /// </summary>
+        /// <param name="builder">The <see cref="IMessagingClient"/> builder.</param>
+        /// <param name="handlerType">The message handler implementation type.</param>
         public static MessagingClientBuilder RemoveHandler(this MessagingClientBuilder builder, Type handlerType)
         {
-            var handlerInterfaceTypes = handlerType.GetMessageHandlerInterfaceTypes();
-            if (!handlerInterfaceTypes.Any())
+            if (!handlerType.IsMessageHandler())
                 throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
 
-            var messageTypes = handlerInterfaceTypes.Select(x => x.GetGenericArguments().First());
-
-            builder.Services.ConfigureMessagingClientOptions(o =>
-            {
-                foreach (var messageType in messageTypes)
-                    o.Handlers.Remove(messageType);
-            });
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.RemoveHandler(handlerType));
             return builder;
         }
 
@@ -168,24 +138,7 @@ namespace Assistant.Net.Messaging
             if (!interceptorType.IsMessageInterceptor())
                 throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
 
-            var interfaceTypes = interceptorType.GetMessageInterceptorInterfaceTypes();
-
-            builder.Services.ConfigureMessagingClientOptions(o =>
-            {
-                foreach (var interfaceType in interfaceTypes)
-                {
-                    var messageType = interfaceType.GetGenericArguments().First();
-                    o.Interceptors.Add((messageType, interceptorType, provider =>
-                        {
-                            var interceptor = ActivatorUtilities.CreateInstance(provider, interceptorType);
-                            var wrapper = ActivatorUtilities.CreateInstance(
-                                provider,
-                                typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, messageType.GetResponseType()!),
-                                interceptor);
-                            return (IAbstractInterceptor)wrapper;
-                        }));
-                }
-            });
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddInterceptor(interceptorType));
             return builder;
         }
 
@@ -196,59 +149,38 @@ namespace Assistant.Net.Messaging
         public static MessagingClientBuilder AddInterceptor(this MessagingClientBuilder builder, object interceptorInstance)
         {
             var interceptorType = interceptorInstance.GetType();
-            if (!interceptorType.IsMessageHandler())
+            if (!interceptorType.IsMessageInterceptor())
                 throw new ArgumentException($"Expected message interceptor but provided {interceptorType}.", nameof(interceptorInstance));
 
-            var interfaceTypes = interceptorType.GetMessageInterceptorInterfaceTypes();
-
-            builder.Services.ConfigureMessagingClientOptions(o =>
-            {
-                foreach (var interfaceType in interfaceTypes)
-                {
-                    var messageType = interfaceType.GetGenericArguments().First();
-                    o.Interceptors.Add((messageType, interceptorInstance.GetType(), provider =>
-                    {
-                        var wrapper = ActivatorUtilities.CreateInstance(
-                            provider,
-                            typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, messageType.GetResponseType()!),
-                            interceptorInstance);
-                        return (IAbstractInterceptor)wrapper;
-                    }));
-                }
-            });
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddInterceptor(interceptorInstance));
             return builder;
         }
 
         /// <summary>
-        ///     Removes all interceptors from the list.
+        ///     Removes all interceptors.
         /// </summary>
         public static MessagingClientBuilder ClearInterceptors(this MessagingClientBuilder builder)
         {
-            builder.Services.ConfigureMessagingClientOptions(o => o.Interceptors.Clear());
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.Interceptors.Clear());
             return builder;
         }
 
         /// <summary>
-        ///     Removes an interceptor type <typeparamref name="TInterceptor" /> from the list.
+        ///     Removes an interceptor type <typeparamref name="TInterceptor" />.
         /// </summary>
         public static MessagingClientBuilder RemoveInterceptor<TInterceptor>(this MessagingClientBuilder builder)
             where TInterceptor : class => builder
             .RemoveInterceptor(typeof(TInterceptor));
 
         /// <summary>
-        ///     Removes an interceptor type <paramref name="interceptorType" /> from the list.
+        ///     Removes an interceptor type <paramref name="interceptorType" />.
         /// </summary>
         public static MessagingClientBuilder RemoveInterceptor(this MessagingClientBuilder builder, Type interceptorType)
         {
             if (!interceptorType.IsMessageInterceptor())
                 throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
 
-            builder.Services.ConfigureMessagingClientOptions(o =>
-            {
-                var interceptorDefinitions = o.Interceptors.Where(x => x.InterceptorType == interceptorType).ToArray();
-                foreach (var definition in interceptorDefinitions)
-                    o.Interceptors.Remove(definition);
-            });
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.RemoveInterceptor(interceptorType));
             return builder;
         }
 
@@ -273,7 +205,7 @@ namespace Assistant.Net.Messaging
             if (!exceptionType.IsAssignableTo(typeof(Exception)))
                 throw new ArgumentException($"Expected exception but provided {exceptionType}.", nameof(exceptionType));
 
-            builder.Services.ConfigureMessagingClientOptions(o => o.ExposedExceptions.Add(exceptionType));
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.ExposedExceptions.Add(exceptionType));
             return builder;
         }
 
@@ -286,7 +218,7 @@ namespace Assistant.Net.Messaging
         public static MessagingClientBuilder RemoveExposedException<TException>(this MessagingClientBuilder builder)
             where TException : Exception
         {
-            builder.Services.ConfigureMessagingClientOptions(o => o.ExposedExceptions.Remove(typeof(TException)));
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.ExposedExceptions.Remove(typeof(TException)));
             return builder;
         }
 
@@ -298,7 +230,7 @@ namespace Assistant.Net.Messaging
         /// </remarks>
         public static MessagingClientBuilder ClearExposedExceptions(this MessagingClientBuilder builder)
         {
-            builder.Services.ConfigureMessagingClientOptions(o => o.ExposedExceptions.Clear());
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.ExposedExceptions.Clear());
             return builder;
         }
 
@@ -323,7 +255,7 @@ namespace Assistant.Net.Messaging
             if (!exceptionType.IsAssignableTo(typeof(Exception)))
                 throw new ArgumentException($"Expected exception but provided {exceptionType}.", nameof(exceptionType));
 
-            builder.Services.ConfigureMessagingClientOptions(o => o.TransientExceptions.Add(exceptionType));
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.TransientExceptions.Add(exceptionType));
             return builder;
         }
 
@@ -336,7 +268,7 @@ namespace Assistant.Net.Messaging
         public static MessagingClientBuilder RemoveTransientException<TException>(this MessagingClientBuilder builder)
             where TException : Exception
         {
-            builder.Services.ConfigureMessagingClientOptions(o => o.TransientExceptions.Remove(typeof(TException)));
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.TransientExceptions.Remove(typeof(TException)));
             return builder;
         }
 
@@ -348,7 +280,7 @@ namespace Assistant.Net.Messaging
         /// </remarks>
         public static MessagingClientBuilder ClearTransientExceptions(this MessagingClientBuilder builder)
         {
-            builder.Services.ConfigureMessagingClientOptions(o => o.TransientExceptions.Clear());
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.TransientExceptions.Clear());
             return builder;
         }
 
@@ -360,7 +292,7 @@ namespace Assistant.Net.Messaging
         /// </remarks>
         public static MessagingClientBuilder Retry(this MessagingClientBuilder builder, IRetryStrategy strategy)
         {
-            builder.Services.ConfigureMessagingClientOptions(o => o.Retry = strategy);
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.Retry = strategy);
             return builder;
         }
 
@@ -380,8 +312,7 @@ namespace Assistant.Net.Messaging
                 _               => throw new ArgumentException($"Key 'type' at {configuration.Path} is expected to be: "
                                                                + $"'Exponential', 'Linear' or 'Constant' but was '{configuration["type"]}'.")
             };
-            builder.Services.ConfigureMessagingClientOptions(o => o.Retry = strategy);
-            return builder;
+            return builder.Retry(strategy);
         }
 
         /// <summary>
@@ -392,7 +323,7 @@ namespace Assistant.Net.Messaging
         /// </remarks>
         public static MessagingClientBuilder TimeoutIn(this MessagingClientBuilder builder, TimeSpan timeout)
         {
-            builder.Services.ConfigureMessagingClientOptions(o => o.Timeout = timeout);
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.Timeout = timeout);
             return builder;
         }
     }

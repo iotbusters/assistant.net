@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using System;
 
 namespace Assistant.Net.Messaging
@@ -40,7 +41,15 @@ namespace Assistant.Net.Messaging
             .AddJsonSerialization()
             .AddMessagingClient()
             .ConfigureMessagingClient(b => b.AddConfiguration<ServerInterceptorConfiguration>())
-            .ConfigureWebMessageHandling(configureBuilder);
+            .ConfigureWebMessageHandling(configureBuilder)
+            .AddOptions<WebHandlingServerOptions>()
+            .ChangeOn(WebOptionsNames.DefaultName, typeof(MessagingClientOptions))
+            .Configure<IOptionsMonitor<MessagingClientOptions>>((o, m) =>
+            {
+                o.MessageTypes.Clear();
+                foreach (var messageType in m.Get(WebOptionsNames.DefaultName).Handlers.Keys)
+                    o.MessageTypes.Add(messageType);
+            }).Services;
 
         /// <summary>
         ///     Registers WEB message handling middlewares:
