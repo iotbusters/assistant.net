@@ -5,6 +5,7 @@ using Assistant.Net.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 using System.Threading;
@@ -58,15 +59,20 @@ namespace Assistant.Net
             .TryAddSingleton<ITypeEncoder, TypeEncoder>();
 
         /// <summary>
-        ///     Registers an action used to configure a particular type of options with following validation.
+        ///     Registers a configuration instance which TOptions will bind against.
         /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+        /// <param name="config">The configuration being bound.</param>
         public static IServiceCollection Configure<TOptions>(this IServiceCollection services, IConfigurationSection config)
             where TOptions : class => services
-            .Configure<TOptions>(Microsoft.Extensions.Options.Options.DefaultName, config);
+            .Configure<TOptions>(Options.DefaultName, config);
 
         /// <summary>
-        ///     Registers an action used to configure a particular type of options with following validation.
+        ///     Registers a configuration instance which TOptions will bind against.
         /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+        /// <param name="name">The name of the options instance.</param>
+        /// <param name="config">The configuration being bound.</param>
         public static IServiceCollection Configure<TOptions>(this IServiceCollection services, string name, IConfigurationSection config)
             where TOptions : class => services
             .AddOptions<TOptions>(name)
@@ -75,15 +81,31 @@ namespace Assistant.Net
             .Services;
 
         /// <summary>
-        ///     Registers an action used to configure a particular type of options with following validation.
+        ///     Registers an options source instance which TOptions will bind against.
         /// </summary>
-        public static IServiceCollection Configure<TOptions>(this IServiceCollection services, Action<TOptions> configureOptions)
+        /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+        /// <param name="name">The name of the options instance.</param>
+        /// <param name="source">The options source being bound.</param>
+        public static IServiceCollection Configure<TOptions>(this IServiceCollection services, string name, IConfigureOptionsSource<TOptions> source)
             where TOptions : class => services
-            .Configure(Microsoft.Extensions.Options.Options.DefaultName, configureOptions);
+            .AddOptions<TOptions>(name)
+            .Bind(source)
+            .ValidateDataAnnotations()
+            .Services;
 
         /// <summary>
         ///     Registers an action used to configure a particular type of options with following validation.
         /// </summary>
+        public static IServiceCollection Configure<TOptions>(this IServiceCollection services, Action<TOptions> configureOptions)
+            where TOptions : class => services
+            .Configure(Options.DefaultName, configureOptions);
+
+        /// <summary>
+        ///     Registers an action used to configure a particular type of options with following validation.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+        /// <param name="name">The name of the options instance.</param>
+        /// <param name="configureOptions">The action used to configure the options.</param>
         public static IServiceCollection Configure<TOptions>(this IServiceCollection services, string name, Action<TOptions> configureOptions)
             where TOptions : class => services
             .AddOptions<TOptions>(name)
@@ -94,14 +116,19 @@ namespace Assistant.Net
         /// <summary>
         ///     Registers an action used to configure a particular type of options with following validation.
         /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+        /// <param name="configureOptions">The action used to configure the options.</param>
         public static IServiceCollection Configure<TOptions, TDep>(this IServiceCollection services, Action<TOptions, TDep> configureOptions)
             where TOptions : class
             where TDep : class => services
-            .Configure(Microsoft.Extensions.Options.Options.DefaultName, configureOptions);
+            .Configure(Options.DefaultName, configureOptions);
 
         /// <summary>
         ///     Registers an action used to configure a particular type of options with following validation.
         /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+        /// <param name="name">The name of the options instance.</param>
+        /// <param name="configureOptions">The action used to configure the options.</param>
         public static IServiceCollection Configure<TOptions, TDep>(this IServiceCollection services, string name, Action<TOptions, TDep> configureOptions)
             where TOptions : class
             where TDep : class => services
