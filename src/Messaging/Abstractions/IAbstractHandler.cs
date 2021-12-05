@@ -23,6 +23,6 @@ namespace Assistant.Net.Messaging.Abstractions
         /// <remarks>
         ///     Fire-and-forget behavior.
         /// </remarks>
-        Task Publish(object message, CancellationToken token);
+        Task Publish(object message, CancellationToken token = default);
     }
 }

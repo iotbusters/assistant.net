@@ -1,6 +1,7 @@
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Options;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
@@ -14,15 +15,15 @@ namespace Assistant.Net.Messaging.Internal
     /// </summary>
     internal class MessagingClient : IMessagingClient
     {
-        private readonly IOptionsMonitor<MessagingClientOptions> options;
+        private readonly string name;
         private readonly IServiceProvider provider;
+        private readonly IOptionsMonitor<MessagingClientOptions> optionsMonitor;
 
-        public MessagingClient(
-            IOptionsMonitor<MessagingClientOptions> options,
-            IServiceProvider provider)
+        public MessagingClient(string name, IServiceProvider provider)
         {
-            this.options = options;
+            this.name = name;
             this.provider = provider;
+            this.optionsMonitor = provider.GetRequiredService<IOptionsMonitor<MessagingClientOptions>>();
         }
 
         /// <exception cref="MessageNotRegisteredException"/>
@@ -42,15 +43,16 @@ namespace Assistant.Net.Messaging.Internal
         /// <exception cref="MessageNotRegisteredException"/>
         private InterceptingMessageHandler CreateInterceptingHandler(Type messageType)
         {
-            if(!options.CurrentValue.Handlers.TryGetValue(messageType, out var factory))
+            var options = optionsMonitor.Get(name);
+            if(!options.Handlers.TryGetValue(messageType, out var definition))
                 throw new MessageNotRegisteredException(messageType);
 
-            var handler = factory(provider);
+            var handler = definition.Create(provider);
 
-            var interceptors = options.CurrentValue.Interceptors
+            var interceptors = options.Interceptors
                 .Where(x => x.MessageType.IsAssignableFrom(messageType))
                 .Reverse()
-                .Select(x => x.Factory(provider));
+                .Select(x => x.Create(provider));
 
             return new InterceptingMessageHandler(handler, interceptors);
         }

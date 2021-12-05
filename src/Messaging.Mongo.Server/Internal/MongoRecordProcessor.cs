@@ -20,23 +20,23 @@ namespace Assistant.Net.Messaging.Internal
     internal class MongoRecordProcessor : IMongoRecordProcessor
     {
         private readonly ILogger logger;
-        private readonly MessagingClientOptions options;
-        private readonly IMessagingClient client;
+        private readonly IOptionsMonitor<MessagingClientOptions> options;
+        private readonly IMessagingClientFactory clientFactory;
         private readonly ISystemClock clock;
         private readonly ExceptionModelConverter converter;
 
         /// <summary/>
         public MongoRecordProcessor(
             ILogger<MongoRecordProcessor> logger,
-            IOptions<MessagingClientOptions> options,
+            IOptionsMonitor<MessagingClientOptions> options,
             ExceptionModelConverter converter,
-            IMessagingClient client,
+            IMessagingClientFactory clientFactory,
             ISystemClock clock)
         {
             this.logger = logger;
-            this.options = options.Value;
+            this.options = options;
             this.converter = converter;
-            this.client = client;
+            this.clientFactory = clientFactory;
             this.clock = clock;
         }
 
@@ -46,13 +46,14 @@ namespace Assistant.Net.Messaging.Internal
             logger.LogInformation("Message({MessageName}/{MessageId}) handling: started.", record.MessageName, record.Id);
             try
             {
+                var client = clientFactory.Create(MongoOptionsNames.DefaultName);
                 var response = await client.RequestObject(record.Message, token);
                 return record.Succeed(response, clock.UtcNow).AsOption();
             }
             catch (Exception ex)
             {
                 if (ex is MessageDeferredException or TimeoutException or OperationCanceledException
-                    || options.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
+                    || options.CurrentValue.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
                 {
                     logger.LogInformation(ex, "Message({MessageType}/{MessageId}) handling: deferred or transient error.", record.MessageName, record.Id);
                     return Option.None;

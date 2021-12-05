@@ -1,9 +1,7 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Serialization;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Messaging
@@ -44,6 +42,9 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Registers remote MongoDB based handler of <typeparamref name="TMessage" /> from a client.
         /// </summary>
+        /// <remarks>
+        ///     Pay attention, it requires calling one of <see cref="UseMongo(MessagingClientBuilder,string)"/>.
+        /// </remarks>
         /// <typeparam name="TMessage">Specific message type to be handled remotely.</typeparam>
         /// <exception cref="ArgumentException"/>
         public static MessagingClientBuilder AddMongo<TMessage>(this MessagingClientBuilder builder)
@@ -52,26 +53,18 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Registers remote MongoDB based handler of <paramref name="messageType" /> from a client.
         /// </summary>
+        /// <remarks>
+        ///     Pay attention, it requires calling one of <see cref="UseMongo(MessagingClientBuilder,string)"/>.
+        /// </remarks>
         /// <exception cref="ArgumentException"/>
         public static MessagingClientBuilder AddMongo(this MessagingClientBuilder builder, Type messageType)
         {
-            if (messageType.GetResponseType() == null)
+            if (!messageType.IsMessage())
                 throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
-
-            var providerType = typeof(MongoMessageHandlerProxy<,>);
 
             builder.Services
                 .TryAddSingleton<ExceptionModelConverter>()
-                .ConfigureMessagingClientOptions(o =>
-                {
-                    o.Handlers.Remove(messageType);
-                    o.Handlers.Add(messageType, p =>
-                    {
-                        var provider = ActivatorUtilities.CreateInstance(p, providerType.MakeGenericTypeBoundToMessage(messageType));
-                        return (IAbstractHandler)provider;
-                    });
-                });
-
+                .ConfigureMessagingClientOptions(builder.Name, o => o.AddMongo(messageType));
             return builder;
         }
     }

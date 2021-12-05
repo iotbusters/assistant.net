@@ -8,7 +8,16 @@ namespace Assistant.Net.Messaging.Options
     public class MessagingClientBuilder
     {
         /// <summary/>
-        public MessagingClientBuilder(IServiceCollection services) => Services = services;
+        public MessagingClientBuilder(string name, IServiceCollection services)
+        {
+            Name = name;
+            Services = services;
+        }
+
+        /// <summary>
+        ///     The name of the <see cref="MessagingClientOptions"/> instance.
+        /// </summary>
+        public string Name { get; }
 
         /// <summary/>
         public IServiceCollection Services { get; }
