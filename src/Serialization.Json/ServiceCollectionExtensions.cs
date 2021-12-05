@@ -4,6 +4,8 @@ using Assistant.Net.Serialization.Converters;
 using Assistant.Net.Serialization.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -39,13 +41,13 @@ namespace Assistant.Net.Serialization
                 options.PropertyNameCaseInsensitive = true;
                 options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-                options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, false));
+                options.Converters.TryAdd(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, false));
             })
             .ConfigureSerializer(configure)
             .Configure<JsonSerializerOptions, ExceptionJsonConverter<Exception>>((options, converter) => options
-                .Converters.Add(converter))
+                .Converters.TryAdd(converter))
             .Configure<JsonSerializerOptions, AdvancedJsonConverterFactory>((options, converter) => options
-                .Converters.Add(converter));
+                .Converters.TryAdd(converter));
 
         /// <summary>
         ///     Configures <see cref="ISerializer{TValue}" /> implementations for specific values.
@@ -61,5 +63,18 @@ namespace Assistant.Net.Serialization
         /// </summary>
         public static IServiceCollection ConfigureJsonSerializationOptions(this IServiceCollection services, Action<JsonSerializerOptions> configureOptions) => services
             .Configure(configureOptions);
+
+        /// <summary>
+        ///     Adds new converter unless the same converter is already added.
+        /// </summary>
+        public static IList<JsonConverter> TryAdd(this IList<JsonConverter> converters, JsonConverter converter)
+        {
+            var converterType = converter.GetType();
+            if (converters.Any(x => x.GetType() == converterType))
+                return converters;
+
+            converters.Add(converter);
+            return converters;
+        }
     }
 }
