@@ -16,7 +16,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests
             var provider = new ServiceCollection()
                 .AddWebMessageHandling(_ => { })
                 .ConfigureMessagingClient(b => b
-                    .AddLocalHandler<TestFailMessageHandler>()) // to have at least one handler configured
+                    .AddHandler<TestFailMessageHandler>()) // to have at least one handler configured
                 .BuildServiceProvider();
 
             provider.GetService<IMessagingClient>()
@@ -28,7 +28,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests
         {
             var services = new ServiceCollection()
                 .AddWebMessageHandling(_ => { })
-                .ConfigureMessagingClient(b => b.AddLocalHandler<TestFailMessageHandler>()); // to have at least one handler configured
+                .ConfigureMessagingClient(b => b.AddHandler<TestFailMessageHandler>()); // to have at least one handler configured
             var provider = services.BuildServiceProvider();
             provider.GetRequiredService<IHttpContextAccessor>().HttpContext = new DefaultHttpContext
             {

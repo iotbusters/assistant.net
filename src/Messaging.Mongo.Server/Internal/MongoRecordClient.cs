@@ -33,7 +33,9 @@ namespace Assistant.Net.Messaging.Internal
             this.logger = logger;
             this.options = options;
             this.typeEncoder = typeEncoder;
-            this.collection = clientFactory.GetDatabase(MongoOptions.ClientName).GetCollection<MongoRecord>(MongoNames.MessageCollectionName);
+            this.collection = clientFactory
+                .GetDatabase(MongoOptionsNames.DefaultName)
+                .GetCollection<MongoRecord>(MongoNames.MessageCollectionName);
         }
 
         /// <inheritdoc/>

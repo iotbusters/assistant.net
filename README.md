@@ -124,7 +124,7 @@ See also available extensions in `assistant.net.messaging.*` packages for more i
 
 ```csharp
 services.AddMessagingClient(b => b
-    .AddLocalHandler<SomeMessageHandler>()
+    .AddHandler<SomeMessageHandler>()
     .AddInterceptor<SomeMessageInterceptor>()
     );
 

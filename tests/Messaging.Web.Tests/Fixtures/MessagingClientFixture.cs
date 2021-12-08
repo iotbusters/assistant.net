@@ -34,7 +34,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
             {
                 o.Handlers.Clear();
                 foreach (var handlerInstance in handlerInstances)
-                    o.AddLocalHandler(handlerInstance);
+                    o.AddHandler(handlerInstance);
             });
             clientSource.Configurations.Add(o =>
             {

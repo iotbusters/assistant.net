@@ -8,6 +8,6 @@
         /// <summary>
         ///     WEB oriented <see cref="MessagingClientOptions"/> instance name.
         /// </summary>
-        public const string DefaultName = "web";
+        public const string DefaultName = "web.server";
     }
 }

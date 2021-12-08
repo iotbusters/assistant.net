@@ -15,7 +15,7 @@ namespace Assistant.Net.Messaging.Tests.Internal
         public async Task RequestObject_returnsResponseObject()
         {
             var client = new ServiceCollection()
-                .AddMessagingClient(b => b.AddLocalHandler<TestScenarioMessageHandler>().ClearInterceptors())
+                .AddMessagingClient(b => b.AddHandler<TestScenarioMessageHandler>().ClearInterceptors())
                 .BuildServiceProvider()
                 .GetRequiredService<IMessagingClient>();
 
@@ -40,7 +40,7 @@ namespace Assistant.Net.Messaging.Tests.Internal
         public async Task RequestObject_throwsException_handlingFailed()
         {
             var client = new ServiceCollection()
-                .AddMessagingClient(b => b.AddLocalHandler<TestScenarioMessageHandler>().ClearInterceptors())
+                .AddMessagingClient(b => b.AddHandler<TestScenarioMessageHandler>().ClearInterceptors())
                 .BuildServiceProvider()
                 .GetRequiredService<IMessagingClient>();
 
@@ -52,7 +52,7 @@ namespace Assistant.Net.Messaging.Tests.Internal
         public async Task RequestObject_returnsResponseObject_defaultInterceptors()
         {
             var client = new ServiceCollection()
-                .AddMessagingClient(b => b.AddLocalHandler<TestScenarioMessageHandler>())
+                .AddMessagingClient(b => b.AddHandler<TestScenarioMessageHandler>())
                 .BuildServiceProvider()
                 .GetRequiredService<IMessagingClient>();
 
@@ -66,7 +66,7 @@ namespace Assistant.Net.Messaging.Tests.Internal
         {
             var handler = new TestMessageHandler<TestMessage, TestResponse>(new TestResponse(false));
             var client = new ServiceCollection()
-                .AddMessagingClient(b => b.AddLocalHandler(handler).ClearInterceptors())
+                .AddMessagingClient(b => b.AddHandler(handler).ClearInterceptors())
                 .BuildServiceProvider()
                 .GetRequiredService<IMessagingClient>();
 
@@ -91,7 +91,7 @@ namespace Assistant.Net.Messaging.Tests.Internal
         public async Task PublishObject_throwsException_handlingFailed()
         {
             var client = new ServiceCollection()
-                .AddMessagingClient(b => b.AddLocalHandler<TestScenarioMessageHandler>().ClearInterceptors())
+                .AddMessagingClient(b => b.AddHandler<TestScenarioMessageHandler>().ClearInterceptors())
                 .BuildServiceProvider()
                 .GetRequiredService<IMessagingClient>();
 
@@ -104,7 +104,7 @@ namespace Assistant.Net.Messaging.Tests.Internal
         {
             var handler = new TestMessageHandler<TestMessage, TestResponse>(new TestResponse(false));
             var client = new ServiceCollection()
-                .AddMessagingClient(b => b.AddLocalHandler(handler))
+                .AddMessagingClient(b => b.AddHandler(handler))
                 .BuildServiceProvider()
                 .GetRequiredService<IMessagingClient>();
 

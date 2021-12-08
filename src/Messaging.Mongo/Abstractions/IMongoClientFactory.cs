@@ -8,12 +8,22 @@ namespace Assistant.Net.Messaging.Abstractions
     public interface IMongoClientFactory
     {
         /// <summary>
-        ///     Creates MongoDB client instance.
+        ///     Creates MongoDB client default instance.
+        /// </summary>
+        IMongoClient CreateClient() => CreateClient(Microsoft.Extensions.Options.Options.DefaultName);
+
+        /// <summary>
+        ///     Creates MongoDB client named instance.
         /// </summary>
         IMongoClient CreateClient(string name);
 
         /// <summary>
-        ///     Gets MongoDB client's database instance.
+        ///     Gets MongoDB client's default database instance.
+        /// </summary>
+        IMongoDatabase GetDatabase() => GetDatabase(Microsoft.Extensions.Options.Options.DefaultName);
+
+        /// <summary>
+        ///     Gets MongoDB client's named database instance.
         /// </summary>
         IMongoDatabase GetDatabase(string name);
     }

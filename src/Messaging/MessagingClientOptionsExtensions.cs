@@ -19,7 +19,7 @@ namespace Assistant.Net.Messaging
         ///     Pay attention, the method overrides already registered handlers.
         /// </remarks>
         /// <exception cref="ArgumentException"/>
-        public static MessagingClientOptions AddLocalHandler(this MessagingClientOptions options, Type handlerType)
+        public static MessagingClientOptions AddHandler(this MessagingClientOptions options, Type handlerType)
         {
             var handlerInterfaceTypes = handlerType.GetMessageHandlerInterfaceTypes();
             if (!handlerInterfaceTypes.Any())
@@ -45,7 +45,7 @@ namespace Assistant.Net.Messaging
         ///     Pay attention, the method overrides already registered handlers.
         /// </remarks>
         /// <exception cref="ArgumentException"/>
-        public static MessagingClientOptions AddLocalHandler(this MessagingClientOptions options, object handlerInstance)
+        public static MessagingClientOptions AddHandler(this MessagingClientOptions options, object handlerInstance)
         {
             var handlerType = handlerInstance.GetType();
             var handlerInterfaceTypes = handlerType.GetMessageHandlerInterfaceTypes();
