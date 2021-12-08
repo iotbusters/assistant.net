@@ -18,8 +18,8 @@ namespace Assistant.Net.Messaging
         /// </summary>
         /// <param name="builder">The <see cref="IMessagingClient"/> builder.</param>
         /// <exception cref="ArgumentException"/>
-        public static MessagingClientBuilder AddLocalHandler<THandler>(this MessagingClientBuilder builder)
-            where THandler : class => builder.AddLocalHandler(typeof(THandler));
+        public static MessagingClientBuilder AddHandler<THandler>(this MessagingClientBuilder builder)
+            where THandler : class => builder.AddHandler(typeof(THandler));
 
         /// <summary>
         ///     Registers a local in-memory <paramref name="handlerType" />.
@@ -27,12 +27,12 @@ namespace Assistant.Net.Messaging
         /// <param name="builder">The <see cref="IMessagingClient"/> builder.</param>
         /// <param name="handlerType">The message handler implementation type.</param>
         /// <exception cref="ArgumentException"/>
-        public static MessagingClientBuilder AddLocalHandler(this MessagingClientBuilder builder, Type handlerType)
+        public static MessagingClientBuilder AddHandler(this MessagingClientBuilder builder, Type handlerType)
         {
             if (!handlerType.IsMessageHandler())
                 throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
 
-            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddLocalHandler(handlerType));
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddHandler(handlerType));
             return builder;
         }
 
@@ -42,13 +42,13 @@ namespace Assistant.Net.Messaging
         /// <param name="builder">The <see cref="IMessagingClient"/> builder.</param>
         /// <param name="handlerInstance">The message handler implementation instance.</param>
         /// <exception cref="ArgumentException"/>
-        public static MessagingClientBuilder AddLocalHandler(this MessagingClientBuilder builder, object handlerInstance)
+        public static MessagingClientBuilder AddHandler(this MessagingClientBuilder builder, object handlerInstance)
         {
             var handlerType = handlerInstance.GetType();
             if (!handlerType.IsMessageHandler())
                 throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerInstance));
 
-            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddLocalHandler(handlerInstance));
+            builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddHandler(handlerInstance));
             return builder;
         }
 

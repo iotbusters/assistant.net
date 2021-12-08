@@ -8,6 +8,6 @@
         /// <summary>
         ///     MongoDB based <see cref="MessagingClientOptions"/> instance name.
         /// </summary>
-        public const string DefaultName = "mongo";
+        public const string DefaultName = "mongo.server";
     }
 }

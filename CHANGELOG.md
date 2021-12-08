@@ -4,6 +4,15 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.1.100] - 2021-12-08
+
+[Assistant.NET Release 0.1.100](https://github.com/iotbusters/assistant.net/releases/tag/0.1.100)
+
+### 0.1.100 Changed
+
+- replaced dedicated messaging server options with named messaging client options
+- mongo options naming to be compatible with messaging client options naming
+
 ## [0.1.99] - 2021-12-05
 
 [Assistant.NET Release 0.1.99](https://github.com/iotbusters/assistant.net/releases/tag/0.1.99)

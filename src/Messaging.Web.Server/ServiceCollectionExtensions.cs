@@ -34,7 +34,7 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Registers WEB message handling server configuration.
         /// </summary>
-        public static IServiceCollection AddWebMessageHandling(this IServiceCollection services, Action<WebHandlingServerBuilder> configureBuilder) => services
+        public static IServiceCollection AddWebMessageHandling(this IServiceCollection services, Action<MessagingClientBuilder> configureBuilder) => services
             .AddWebMessageHandlingMiddlewares()
             .AddSystemServicesHosted()
             .AddDiagnosticsWebHosted()
@@ -63,9 +63,9 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Configures remote message handling, required services and <see cref="WebHandlingServerOptions"/>.
         /// </summary>
-        public static IServiceCollection ConfigureWebMessageHandling(this IServiceCollection services, Action<WebHandlingServerBuilder> configureBuilder)
+        public static IServiceCollection ConfigureWebMessageHandling(this IServiceCollection services, Action<MessagingClientBuilder> configureBuilder)
         {
-            var builder = new WebHandlingServerBuilder(services);
+            var builder = new MessagingClientBuilder(WebOptionsNames.DefaultName, services);
             configureBuilder(builder);
             return services;
         }

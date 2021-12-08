@@ -50,7 +50,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
             Services.ConfigureMessagingClient(b => b
                 .UseMongo(o => o.Connection(connectionString).Database(database))
                 .TimeoutIn(TimeSpan.FromSeconds(0.5)));
-            RemoteHostBuilder.ConfigureServices(s => s.ConfigureMessagingClient(b => b
+            RemoteHostBuilder.ConfigureServices(s => s.ConfigureMongoMessageHandling(b => b
                 .UseMongo(o => o.Connection(connectionString).Database(database))
                 .TimeoutIn(TimeSpan.FromSeconds(0.5))));
             return this;
@@ -61,9 +61,9 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
             remoteSource.Configurations.Add(o =>
             {
                 if (handler != null)
-                    o.AddLocalHandler(handler);
+                    o.AddHandler(handler);
                 else
-                    o.AddLocalHandler(typeof(THandler));
+                    o.AddHandler(typeof(THandler));
             });
             clientSource.Configurations.Add(o =>
             {

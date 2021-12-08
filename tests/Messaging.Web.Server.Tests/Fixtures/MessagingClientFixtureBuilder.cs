@@ -24,7 +24,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
         {
             RemoteHostBuilder.ConfigureServices(s => s
                 .ConfigureWebMessageHandling(b => b.AddHandler<THandler>())
-                .ConfigureMessagingClient(WebOptionsNames.DefaultName, b => b.AddLocalHandler(typeof(THandler))));
+                .ConfigureMessagingClient(WebOptionsNames.DefaultName, b => b.AddHandler(typeof(THandler))));
             return this;
         }
         

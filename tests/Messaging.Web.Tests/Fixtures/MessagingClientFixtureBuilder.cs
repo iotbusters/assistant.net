@@ -53,9 +53,9 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
             remoteSource.Configurations.Add(o =>
             {
                 if (handler != null)
-                    o.AddLocalHandler(handler);
+                    o.AddHandler(handler);
                 else
-                    o.AddLocalHandler(typeof(THandler));
+                    o.AddHandler(typeof(THandler));
             });
             clientSource.Configurations.Add(o =>
             {

@@ -25,7 +25,7 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Registers remote message handling server configuration.
         /// </summary>
-        public static IServiceCollection AddMongoMessageHandling(this IServiceCollection services, Action<MongoHandlingServerBuilder> configureBuilder) => services
+        public static IServiceCollection AddMongoMessageHandling(this IServiceCollection services, Action<MessagingClientBuilder> configureBuilder) => services
             .AddHostedService<MessageHandlingService>()
             .TryAddSingleton<IMongoRecordReader, MongoRecordClient>()
             .AddScoped<IMongoRecordWriter, MongoRecordClient>()
@@ -47,9 +47,9 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Configures remote message handling, required services and <see cref="MongoHandlingServerOptions"/>.
         /// </summary>
-        public static IServiceCollection ConfigureMongoMessageHandling(this IServiceCollection services, Action<MongoHandlingServerBuilder> configureBuilder)
+        public static IServiceCollection ConfigureMongoMessageHandling(this IServiceCollection services, Action<MessagingClientBuilder> configureBuilder)
         {
-            var builder = new MongoHandlingServerBuilder(services);
+            var builder = new MessagingClientBuilder(MongoOptionsNames.DefaultName, services);
             configureBuilder(builder);
             return services;
         }
