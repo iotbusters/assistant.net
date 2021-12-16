@@ -4,6 +4,14 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.2.101] - 2021-12-16
+
+[Assistant.NET Release 0.2.101](https://github.com/iotbusters/assistant.net/releases/tag/0.2.101)
+
+### 0.2.101 Changed
+
+- reworked messaging client and handling configuraiton builders to hide unsupported options
+
 ## [0.1.100] - 2021-12-08
 
 [Assistant.NET Release 0.1.100](https://github.com/iotbusters/assistant.net/releases/tag/0.1.100)
