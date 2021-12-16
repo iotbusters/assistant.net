@@ -18,7 +18,10 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
         public MessagingClientFixtureBuilder()
         {
             Services = new ServiceCollection()
-                .AddMessagingClient(b => b.RemoveInterceptor<CachingInterceptor>().RemoveInterceptor<RetryingInterceptor>())
+                .AddMessagingClient(b => b
+                    .RemoveInterceptor<CachingInterceptor>()
+                    .RemoveInterceptor<RetryingInterceptor>()
+                    .RemoveInterceptor<TimeoutInterceptor>())
                 .ConfigureMongoHandlingClientOptions(o => o.ResponsePoll = new ConstantBackoff
                 {
                     Interval = TimeSpan.FromSeconds(0.01), MaxAttemptNumber = 3
@@ -28,12 +31,11 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
                 .Services;
             RemoteHostBuilder = Host.CreateDefaultBuilder()
                 .ConfigureServices(s => s
-                    .AddMongoMessageHandling(_ => { })
-                    .ConfigureMessagingClient(MongoOptionsNames.DefaultName, b => b
+                    .AddMongoMessageHandling(b => b
                         .RemoveInterceptor<CachingInterceptor>()
                         .RemoveInterceptor<RetryingInterceptor>()
                         .RemoveInterceptor<TimeoutInterceptor>())
-                    .ConfigureMongoHandlingServerOptions(o =>
+                    .ConfigureMongoHandlingOptions(o =>
                     {
                         o.InactivityDelayTime = TimeSpan.FromSeconds(0.005);
                         o.NextMessageDelayTime = TimeSpan.FromSeconds(0.001);

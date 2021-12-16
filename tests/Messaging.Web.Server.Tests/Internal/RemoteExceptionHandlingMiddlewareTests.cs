@@ -20,6 +20,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Internal
         {
             using var fixture = new MessagingClientFixtureBuilder()
                 .AddWebHandler<TestFailMessageHandler>()
+                .ClearInterceptors()
                 .Create();
 
             var response = await fixture.Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
