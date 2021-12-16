@@ -7,7 +7,7 @@ namespace Assistant.Net.Messaging.Options
     /// <summary>
     ///     MongoDB server configuration used for remote message handling coordination.
     /// </summary>
-    public class MongoHandlingServerOptions
+    public class MongoHandlingOptions
     {
         /// <summary>
         ///     List of registered messages for remote handling.

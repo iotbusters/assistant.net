@@ -7,18 +7,18 @@ namespace Assistant.Net.Messaging
     /// <summary>
     ///     MongoDB based messaging client configuration extensions.
     /// </summary>
-    public static class MessagingClientBuilderExtensions
+    public static class MongoHandlingBuilderExtensions
     {
         /// <summary>
         ///     Configures the messaging client to connect a MongoDB database from a client.
         /// </summary>
-        public static MessagingClientBuilder UseMongo(this MessagingClientBuilder builder, string connectionString) =>
+        public static MongoHandlingBuilder UseMongo(this MongoHandlingBuilder builder, string connectionString) =>
             builder.UseMongo(o => o.ConnectionString = connectionString);
 
         /// <summary>
         ///     Configures the messaging client to connect a MongoDB database from a client.
         /// </summary>
-        public static MessagingClientBuilder UseMongo(this MessagingClientBuilder builder, Action<MongoOptions> configureOptions)
+        public static MongoHandlingBuilder UseMongo(this MongoHandlingBuilder builder, Action<MongoOptions> configureOptions)
         {
             builder.Services
                 .AddMongoClientFactory()
@@ -29,7 +29,7 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Configures the messaging client to connect a MongoDB database from a client.
         /// </summary>
-        public static MessagingClientBuilder UseMongo(this MessagingClientBuilder builder, IConfigurationSection configuration)
+        public static MongoHandlingBuilder UseMongo(this MongoHandlingBuilder builder, IConfigurationSection configuration)
         {
             builder.Services
                 .AddMongoClientFactory()

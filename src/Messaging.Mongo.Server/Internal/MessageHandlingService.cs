@@ -16,12 +16,12 @@ namespace Assistant.Net.Messaging.Internal
     /// </summary>
     internal class MessageHandlingService : BackgroundService
     {
-        private readonly IOptionsMonitor<MongoHandlingServerOptions> options;
+        private readonly IOptionsMonitor<MongoHandlingOptions> options;
         private readonly IServiceScopeFactory scopeFactory;
         private readonly IMongoRecordReader recordReader;
 
         public MessageHandlingService(
-            IOptionsMonitor<MongoHandlingServerOptions> options,
+            IOptionsMonitor<MongoHandlingOptions> options,
             IServiceScopeFactory scopeFactory,
             IMongoRecordReader recordReader)
         {
