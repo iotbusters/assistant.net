@@ -42,7 +42,7 @@ namespace Assistant.Net.Messaging
             .AddMessagingClient()
             .ConfigureWebMessageHandling(b => b.AddConfiguration<ServerInterceptorConfiguration>())
             .ConfigureWebMessageHandling(configureBuilder)
-            .AddOptions<WebHandlingOptions>()
+            .AddOptions<WebHandlingServerOptions>()
             .ChangeOn(WebOptionsNames.DefaultName, typeof(MessagingClientOptions))
             .Configure<IOptionsMonitor<MessagingClientOptions>>((o, m) =>
             {
@@ -61,7 +61,7 @@ namespace Assistant.Net.Messaging
             .TryAddTransient<MessageHandlingMiddleware>();
 
         /// <summary>
-        ///     Configures remote message handling, required services and <see cref="WebHandlingOptions"/>.
+        ///     Configures remote message handling, required services and <see cref="WebHandlingServerOptions"/>.
         /// </summary>
         public static IServiceCollection ConfigureWebMessageHandling(this IServiceCollection services, Action<WebHandlingBuilder> configureBuilder)
         {
@@ -71,16 +71,16 @@ namespace Assistant.Net.Messaging
         }
 
         /// <summary>
-        ///    Register an action used to configure <see cref="WebHandlingOptions"/> options.
+        ///    Register an action used to configure <see cref="WebHandlingServerOptions"/> options.
         /// </summary>
-        public static IServiceCollection ConfigureWebHandlingOptions(this IServiceCollection services, Action<WebHandlingOptions> configureOptions) => services
+        public static IServiceCollection ConfigureWebHandlingServerOptions(this IServiceCollection services, Action<WebHandlingServerOptions> configureOptions) => services
             .Configure(configureOptions);
 
         /// <summary>
-        ///    Register an action used to configure <see cref="WebHandlingOptions"/> options.
+        ///    Register an action used to configure <see cref="WebHandlingServerOptions"/> options.
         /// </summary>
-        public static IServiceCollection ConfigureWebHandlingOptions(this IServiceCollection services, IConfigurationSection configuration) => services
-            .Configure<WebHandlingOptions>(configuration);
+        public static IServiceCollection ConfigureWebHandlingServerOptions(this IServiceCollection services, IConfigurationSection configuration) => services
+            .Configure<WebHandlingServerOptions>(configuration);
 
         /// <exception cref="InvalidOperationException" />
         private static void InitializeFromHttpContext(IServiceProvider provider, DiagnosticContext diagnosticContext)

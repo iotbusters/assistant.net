@@ -12,11 +12,11 @@ namespace Assistant.Net.Messaging.Internal
     /// </summary>
     internal class MessageHandlingMiddleware : IMiddleware
     {
-        private readonly IOptionsMonitor<WebHandlingOptions> options;
+        private readonly IOptionsMonitor<WebHandlingServerOptions> options;
         private readonly IMessagingClientFactory clientFactory;
 
         public MessageHandlingMiddleware(
-            IOptionsMonitor<WebHandlingOptions> options,
+            IOptionsMonitor<WebHandlingServerOptions> options,
             IMessagingClientFactory clientFactory)
         {
             this.options = options;
