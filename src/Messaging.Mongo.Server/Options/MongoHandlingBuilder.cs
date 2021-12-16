@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Assistant.Net.Messaging.Options
 {
@@ -9,5 +11,33 @@ namespace Assistant.Net.Messaging.Options
     {
         /// <summary/>
         public MongoHandlingBuilder(IServiceCollection services) : base(services, MongoOptionsNames.DefaultName) { }
+
+        /// <summary>
+        ///     Configures the messaging client to connect a MongoDB database from a client.
+        /// </summary>
+        public MongoHandlingBuilder UseMongo(string connectionString) =>
+            UseMongo(o => o.ConnectionString = connectionString);
+
+        /// <summary>
+        ///     Configures the messaging client to connect a MongoDB database from a client.
+        /// </summary>
+        public MongoHandlingBuilder UseMongo(Action<MongoOptions> configureOptions)
+        {
+            Services
+                .AddMongoClientFactory()
+                .ConfigureMongoOptions(Name, configureOptions);
+            return this;
+        }
+
+        /// <summary>
+        ///     Configures the messaging client to connect a MongoDB database from a client.
+        /// </summary>
+        public MongoHandlingBuilder UseMongo(IConfigurationSection configuration)
+        {
+            Services
+                .AddMongoClientFactory()
+                .ConfigureMongoOptions(Name, configuration);
+            return this;
+        }
     }
 }
