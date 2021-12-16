@@ -29,6 +29,7 @@ namespace Assistant.Net.Messaging.Web.Tests
             // global arrange
             using var fixture = new MessagingClientFixtureBuilder()
                 .AddWebHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
+                .ClearInterceptors()
                 .Create();
 
             // arrange 1
@@ -85,6 +86,7 @@ namespace Assistant.Net.Messaging.Web.Tests
         {
             using var fixture = new MessagingClientFixtureBuilder()
                 .AddWebHandler<TestSuccessFailureMessageHandler>()
+                .ClearInterceptors()
                 .Create();
 
             fixture.Client.Awaiting(x => x.RequestObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
@@ -179,7 +181,8 @@ namespace Assistant.Net.Messaging.Web.Tests
         public void PublishObject_throwsInterruptingKindOfException_thrownNoException(Type exceptionType)
         {
             using var fixture = new MessagingClientFixtureBuilder()
-                .AddWebHandler<TestSuccessFailureMessageHandler>().ClearInterceptors()
+                .AddWebHandler<TestSuccessFailureMessageHandler>()
+                .ClearInterceptors()
                 .Create();
 
             fixture.Client.Awaiting(x => x.PublishObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))

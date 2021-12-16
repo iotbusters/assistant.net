@@ -1,4 +1,5 @@
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Web.Tests.Mocks;
 using Microsoft.AspNetCore.Hosting;
@@ -28,7 +29,9 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
                             hc.Timeout = TimeSpan.FromSeconds(300);
                     }))
                     .TimeoutIn(TimeSpan.FromSeconds(0.5))
-                    .ClearInterceptors())
+                    .RemoveInterceptor<CachingInterceptor>()
+                    .RemoveInterceptor<RetryingInterceptor>()
+                    .RemoveInterceptor<TimeoutInterceptor>())
                 .AddOptions<MessagingClientOptions>()
                 .Bind(clientSource)
                 .Services;
@@ -36,8 +39,10 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
                 .UseTestServer()
                 .Configure(b => b.UseRemoteWebMessageHandler()))
                 .ConfigureServices(s => s
-                    .AddWebMessageHandling(_ => { })
-                    .ConfigureMessagingClient(b => b.ClearInterceptors())
+                    .AddWebMessageHandling(b => b
+                        .RemoveInterceptor<CachingInterceptor>()
+                        .RemoveInterceptor<RetryingInterceptor>()
+                        .RemoveInterceptor<TimeoutInterceptor>())
                     .AddOptions<MessagingClientOptions>(WebOptionsNames.DefaultName)
                     .Bind(remoteSource));
         }
@@ -45,6 +50,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures
         public MessagingClientFixtureBuilder ClearInterceptors()
         {
             Services.ConfigureMessagingClient(b => b.ClearInterceptors());
+            RemoteHostBuilder.ConfigureServices(s => s.ConfigureWebMessageHandling(b => b.ClearInterceptors()));
             return this;
         }
 

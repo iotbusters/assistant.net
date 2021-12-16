@@ -14,11 +14,21 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
                 .UseTestServer()
                 .Configure(b => b.UseRemoteWebMessageHandler())
                 .ConfigureServices(s => s
-                    .AddWebMessageHandling(_ => { })
-                    .ConfigureMessagingClient(WebOptionsNames.DefaultName, b => b.RemoveInterceptor<CachingInterceptor>().RemoveInterceptor<RetryingInterceptor>())));
+                    .AddWebMessageHandling(b => b
+                        .RemoveInterceptor<CachingInterceptor>()
+                        .RemoveInterceptor<DeferredCachingInterceptor>()
+                        .RemoveInterceptor<RetryingInterceptor>()
+                        .RemoveInterceptor<TimeoutInterceptor>())));
         }
 
         public IHostBuilder RemoteHostBuilder { get; init; }
+
+        public MessagingClientFixtureBuilder ClearInterceptors()
+        {
+            RemoteHostBuilder.ConfigureServices(s => s.ConfigureWebMessageHandling(b => b.ClearInterceptors()));
+            return this;
+        }
+
 
         public MessagingClientFixtureBuilder AddWebHandler<THandler>() where THandler : class
         {
@@ -27,7 +37,7 @@ namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures
                 .ConfigureMessagingClient(WebOptionsNames.DefaultName, b => b.AddHandler(typeof(THandler))));
             return this;
         }
-        
+
         public MessagingClientFixture Create()
         {
             var host = RemoteHostBuilder.Start();
