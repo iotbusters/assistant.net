@@ -11,10 +11,10 @@ namespace Assistant.Net.Messaging.Interceptors
     ///     <see cref="CachingInterceptor" />, <see cref="DeferredCachingInterceptor" />,
     ///     <see cref="TimeoutInterceptor" />
     /// </summary>
-    public class ServerInterceptorConfiguration : IMessageConfiguration
+    public class ServerInterceptorConfiguration : IMessageConfiguration<WebHandlingBuilder>
     {
         /// <inheritdoc/>
-        public void Configure(MessagingClientBuilder builder)
+        public void Configure(WebHandlingBuilder builder)
         {
             builder.Services.AddStorage(b => b.AddLocal<string, CachingResult>());
             builder
