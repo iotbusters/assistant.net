@@ -3,23 +3,14 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Assistant.Net.Messaging.Options
 {
     /// <summary>
-    ///     Type marker designed to be hooked by associated messaging extensions methods.
+    ///     Regular messaging client builder implementation.
     /// </summary>
-    public class MessagingClientBuilder
+    public class MessagingClientBuilder : MessagingClientBuilder<MessagingClientBuilder>
     {
         /// <summary/>
-        public MessagingClientBuilder(string name, IServiceCollection services)
-        {
-            Name = name;
-            Services = services;
-        }
-
-        /// <summary>
-        ///     The name of the <see cref="MessagingClientOptions"/> instance.
-        /// </summary>
-        public string Name { get; }
+        public MessagingClientBuilder(IServiceCollection services) : base(services, Microsoft.Extensions.Options.Options.DefaultName) { }
 
         /// <summary/>
-        public IServiceCollection Services { get; }
+        public MessagingClientBuilder(IServiceCollection services, string name) : base(services, name) { }
     }
 }
