@@ -42,7 +42,7 @@ namespace Assistant.Net.Messaging
         /// <param name="configure">The action used to configure the default messaging client.</param>
         public static IServiceCollection ConfigureMessagingClient(this IServiceCollection services, Action<MessagingClientBuilder> configure)
         {
-            configure(new MessagingClientBuilder(Microsoft.Extensions.Options.Options.DefaultName, services));
+            configure(new MessagingClientBuilder(services));
             return services;
         }
 
@@ -54,7 +54,7 @@ namespace Assistant.Net.Messaging
         /// <param name="configure">The action used to configure the named <see cref="MessagingClientOptions"/> instance.</param>
         public static IServiceCollection ConfigureMessagingClient(this IServiceCollection services, string name, Action<MessagingClientBuilder> configure)
         {
-            configure(new MessagingClientBuilder(name, services));
+            configure(new MessagingClientBuilder(services, name));
             return services;
         }
 
