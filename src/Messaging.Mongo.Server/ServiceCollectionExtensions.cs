@@ -36,7 +36,7 @@ namespace Assistant.Net.Messaging
             .AddMongoClientFactory()
             .ConfigureMongoMessageHandling(b => b.RemoveExposedException<OperationCanceledException>())
             .ConfigureMongoMessageHandling(configureBuilder)
-            .AddOptions<MongoHandlingOptions>()
+            .AddOptions<MongoHandlingServerOptions>()
             .ChangeOn(MongoOptionsNames.DefaultName, typeof(MessagingClientOptions))
             .Configure<IOptionsMonitor<MessagingClientOptions>>((o, m) =>
             {
@@ -46,7 +46,7 @@ namespace Assistant.Net.Messaging
             }).Services;
 
         /// <summary>
-        ///     Configures remote message handling, required services and <see cref="MongoHandlingOptions"/>.
+        ///     Configures remote message handling, required services and <see cref="MongoHandlingServerOptions"/>.
         /// </summary>
         public static IServiceCollection ConfigureMongoMessageHandling(this IServiceCollection services, Action<MongoHandlingBuilder> configureBuilder)
         {
@@ -56,15 +56,15 @@ namespace Assistant.Net.Messaging
         }
 
         /// <summary>
-        ///    Register an action used to configure <see cref="MongoHandlingOptions"/> options.
+        ///    Register an action used to configure <see cref="MongoHandlingServerOptions"/> options.
         /// </summary>
-        public static IServiceCollection ConfigureMongoHandlingOptions(this IServiceCollection services, Action<MongoHandlingOptions> configureOptions) => services
+        public static IServiceCollection ConfigureMongoHandlingServerOptions(this IServiceCollection services, Action<MongoHandlingServerOptions> configureOptions) => services
             .Configure(configureOptions);
 
         /// <summary>
-        ///    Register an action used to configure <see cref="MongoHandlingOptions"/> options.
+        ///    Register an action used to configure <see cref="MongoHandlingServerOptions"/> options.
         /// </summary>
-        public static IServiceCollection ConfigureMongoHandlingOptions(this IServiceCollection services, IConfigurationSection configuration) => services
-            .Configure<MongoHandlingOptions>(configuration);
+        public static IServiceCollection ConfigureMongoHandlingServerOptions(this IServiceCollection services, IConfigurationSection configuration) => services
+            .Configure<MongoHandlingServerOptions>(configuration);
     }
 }
