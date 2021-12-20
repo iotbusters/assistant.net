@@ -19,14 +19,14 @@ namespace Assistant.Net.Messaging.Internal
     internal class MongoRecordClient : IMongoRecordReader, IMongoRecordWriter
     {
         private readonly ILogger logger;
-        private readonly IOptionsMonitor<MongoHandlingOptions> options;
+        private readonly IOptionsMonitor<MongoHandlingServerOptions> options;
         private readonly ITypeEncoder typeEncoder;
         private readonly IMongoCollection<MongoRecord> collection;
 
         /// <summary/>
         public MongoRecordClient(
             ILogger<MongoRecordClient> logger,
-            IOptionsMonitor<MongoHandlingOptions> options,
+            IOptionsMonitor<MongoHandlingServerOptions> options,
             ITypeEncoder typeEncoder,
             IMongoClientFactory clientFactory)
         {

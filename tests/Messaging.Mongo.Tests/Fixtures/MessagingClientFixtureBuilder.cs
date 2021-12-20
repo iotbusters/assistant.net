@@ -35,7 +35,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
                         .RemoveInterceptor<CachingInterceptor>()
                         .RemoveInterceptor<RetryingInterceptor>()
                         .RemoveInterceptor<TimeoutInterceptor>())
-                    .ConfigureMongoHandlingOptions(o =>
+                    .ConfigureMongoHandlingServerOptions(o =>
                     {
                         o.InactivityDelayTime = TimeSpan.FromSeconds(0.005);
                         o.NextMessageDelayTime = TimeSpan.FromSeconds(0.001);
