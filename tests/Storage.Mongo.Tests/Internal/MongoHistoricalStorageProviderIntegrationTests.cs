@@ -198,8 +198,9 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
                 Storage.AddOrUpdate(TestKey, TestValue("value-5")));
 
             var value = await Storage.TryGet(TestKey);
-            (removeTask.Result.GetValueOrDefault()?.Audit.Version ?? 0
-             + value.GetValueOrDefault()?.Audit.Version ?? 0).Should().Be(5);
+            var version1 = removeTask.Result.GetValueOrDefault()?.Audit.Version ?? 0;
+            var version2 = value.GetValueOrDefault()?.Audit.Version ?? 0;
+            (version1 + version2).Should().Be(5);
         }
 
         [Test]
@@ -237,7 +238,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             var value = Storage.GetKeys().ToArray();
 
-            value.Should().BeEquivalentTo(TestKey);
+            value.Should().BeEquivalentTo(new[] {TestKey});
         }
 
         [OneTimeSetUp]
@@ -245,7 +246,9 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         {
             var connectionString = "mongodb://127.0.0.1:27017";
             Provider = new ServiceCollection()
-                .AddStorage(b => b.AddMongoHistorical<TestKey, TestValue>().UseMongo(o => o.ConnectionString = connectionString))
+                .AddStorage(b => b
+                    .UseMongo(o => o.ConnectionString = connectionString)
+                    .AddMongoHistorical<TestKey, TestValue>())
                 .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
                 .AddSystemClock(_ => TestDate)
                 .BuildServiceProvider();
@@ -256,7 +259,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
                 var ping = await MongoClient.GetDatabase("db").RunCommandAsync(
                     (Command<BsonDocument>)"{ping:1}",
                     ReadPreference.Nearest,
-                    new CancellationTokenSource(200).Token);
+                    new CancellationTokenSource(1000).Token);
                 pingContent = ping.ToString();
             }
             catch
@@ -285,20 +288,20 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         [SetUp]
         public void Setup()
         {
-            TestKey = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: new byte[0]);
+            TestKey = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>());
             TestCorrelationId = Guid.NewGuid().ToString();
             TestUser = Guid.NewGuid().ToString();
             TestDate = DateTimeOffset.UtcNow;
         }
 
-        private ValueRecord TestValue(string type) => new(Type: type, Content: new byte[0], new Audit(TestCorrelationId, TestUser));
+        private ValueRecord TestValue(string type) => new(Type: type, Content: Array.Empty<byte>(), new Audit(TestCorrelationId, TestUser));
         private Audit Audit(int version = 1) => new(new Audit(TestCorrelationId, TestUser).Details, version) {Created = TestDate};
         private KeyRecord TestKey { get; set; } = default!;
         private string TestCorrelationId { get; set; } = default!;
         private string TestUser { get; set; } = default!;
         private DateTimeOffset TestDate { get; set; }
         private ServiceProvider Provider { get; set; } = default!;
-        private IMongoClient MongoClient => Provider!.CreateScope().ServiceProvider.GetRequiredService<IMongoClientFactory>().CreateClient();
-        private IHistoricalStorageProvider<TestValue> Storage => Provider!.CreateScope().ServiceProvider.GetRequiredService<IHistoricalStorageProvider<TestValue>>();
+        private IMongoClient MongoClient => Provider.CreateScope().ServiceProvider.GetRequiredService<IMongoClientFactory>().CreateClient();
+        private IHistoricalStorageProvider<TestValue> Storage => Provider.CreateScope().ServiceProvider.GetRequiredService<IHistoricalStorageProvider<TestValue>>();
     }
 }

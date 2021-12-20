@@ -69,7 +69,7 @@ namespace Assistant.Net.Storage.Tests.Internal
             await Storage.AddOrGet(new TestKey("key"), new TestValue("value"));
 
             var value = await Storage.GetKeys().AsEnumerableAsync();
-            value.Should().BeEquivalentTo(new TestKey("key"));
+            value.Should().BeEquivalentTo(new[] {new TestKey("key")});
         }
 
         [Test]

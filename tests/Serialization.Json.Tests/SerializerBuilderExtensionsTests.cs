@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -20,17 +19,11 @@ namespace Assistant.Net.Serialization.Json.Tests
 
             builder.AddJsonTypeAny();
 
-            services.Should().BeEquivalentTo(
-                new
-                {
-                    ServiceType = typeof(IJsonSerializer),
-                    ImplementationType = new { Name = "DefaultJsonSerializer" }
-                },
-                new
-                {
-                    ServiceType = typeof(ISerializer<>),
-                    ImplementationType = new { Name = "TypedJsonSerializer`1" }
-                });
+            services.Should().BeEquivalentTo(new[]
+            {
+                new {ServiceType = typeof(IJsonSerializer), ImplementationType = new {Name = "DefaultJsonSerializer"}},
+                new {ServiceType = typeof(ISerializer<>), ImplementationType = new {Name = "TypedJsonSerializer`1"}}
+            });
         }
 
         [Test]
@@ -41,17 +34,11 @@ namespace Assistant.Net.Serialization.Json.Tests
 
             builder.AddJsonType(typeof(object));
 
-            services.Should().BeEquivalentTo(
-                new
-                {
-                    ServiceType = typeof(IJsonSerializer),
-                    ImplementationType = new {Name = "DefaultJsonSerializer"}
-                },
-                new
-                {
-                    ServiceType = typeof(ISerializer<object>),
-                    ImplementationType = new {Name = "TypedJsonSerializer`1"}
-                });
+            services.Should().BeEquivalentTo(new[]
+            {
+                new {ServiceType = typeof(IJsonSerializer), ImplementationType = new {Name = "DefaultJsonSerializer"}},
+                new {ServiceType = typeof(ISerializer<object>), ImplementationType = new {Name = "TypedJsonSerializer`1"}}
+            });
         }
 
         [Test]
@@ -62,17 +49,11 @@ namespace Assistant.Net.Serialization.Json.Tests
 
             builder.AddJsonType<object>();
 
-            services.Should().BeEquivalentTo(
-                new
-                {
-                    ServiceType = typeof(IJsonSerializer),
-                    ImplementationType = new {Name = "DefaultJsonSerializer"}
-                },
-                new
-                {
-                    ServiceType = typeof(ISerializer<object>),
-                    ImplementationType = new {Name = "TypedJsonSerializer`1"}
-                });
+            services.Should().BeEquivalentTo(new[]
+            {
+                new {ServiceType = typeof(IJsonSerializer), ImplementationType = new {Name = "DefaultJsonSerializer"}},
+                new {ServiceType = typeof(ISerializer<object>), ImplementationType = new {Name = "TypedJsonSerializer`1"}}
+            });
         }
         
         [Test]
