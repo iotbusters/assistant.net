@@ -32,13 +32,13 @@ namespace Assistant.Net.Serialization.Json.Tests.Internal
         [Test]
         public void Serialize_throws_unregistered() =>
             factory.Create(typeof(object))
-                .Invoking(x => x.SerializeObject(new MemoryStream(), new TestClass(DateTime.UtcNow)))
-                .Should().Throw<SerializerTypeNotRegisteredException>();
+                .Awaiting(x => x.SerializeObject(new MemoryStream(), new TestClass(DateTime.UtcNow)))
+                .Should().ThrowAsync<SerializerTypeNotRegisteredException>();
 
         [Test]
         public void Deserialize_throws_unregistered() =>
             factory.Create(typeof(object))
-                .Invoking(x => x.DeserializeObject(new MemoryStream()))
-                .Should().Throw<SerializerTypeNotRegisteredException>();
+                .Awaiting(x => x.DeserializeObject(new MemoryStream()))
+                .Should().ThrowAsync<SerializerTypeNotRegisteredException>();
     }
 }

@@ -70,7 +70,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             var value = PartitionedStorage.GetKeys().ToArray();
 
-            value.Should().BeEquivalentTo(TestKey);
+            value.Should().BeEquivalentTo(new[] {TestKey});
         }
 
         [Test]

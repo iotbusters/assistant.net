@@ -59,9 +59,9 @@ namespace Assistant.Net.Messaging.Web.Tests
                 .Create();
 
             fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
-                .Should().ThrowExactly<MessageNotRegisteredException>()
+                .Should().ThrowExactlyAsync<MessageNotRegisteredException>()
                 .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
-                .Which.InnerException.Should().BeNull();
+                .Result.Which.InnerException.Should().BeNull();
         }
 
         [Test]
@@ -73,9 +73,9 @@ namespace Assistant.Net.Messaging.Web.Tests
                 .Create();
 
             fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
-                .Should().ThrowExactly<MessageNotRegisteredException>()
+                .Should().ThrowExactlyAsync<MessageNotRegisteredException>()
                 .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
-                .Which.InnerException.Should().BeNull();
+                .Result.Which.InnerException.Should().BeNull();
         }
 
         [TestCase(typeof(TimeoutException))]
@@ -90,8 +90,8 @@ namespace Assistant.Net.Messaging.Web.Tests
                 .Create();
 
             fixture.Client.Awaiting(x => x.RequestObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
-                .Should().ThrowExactly<MessageDeferredException>()
-                .Which.InnerException.Should().BeNull();
+                .Should().ThrowExactlyAsync<MessageDeferredException>()
+                .Result.Which.InnerException.Should().BeNull();
         }
 
         [Test]
@@ -102,9 +102,9 @@ namespace Assistant.Net.Messaging.Web.Tests
                 .Create();
 
             fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(1)))
-                .Should().ThrowExactly<MessageFailedException>()
+                .Should().ThrowExactlyAsync<MessageFailedException>()
                 .WithMessage("Message handling has failed.")
-                .Which.InnerException.Should().BeNull();
+                .Result.Which.InnerException.Should().BeNull();
         }
 
         [Test]
@@ -115,9 +115,9 @@ namespace Assistant.Net.Messaging.Web.Tests
                 .Create();
 
             fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(2)))
-                .Should().ThrowExactly<MessageFailedException>()
+                .Should().ThrowExactlyAsync<MessageFailedException>()
                 .WithMessage("2")
-                .Which.InnerException.Should().BeNull();
+                .Result.Which.InnerException.Should().BeNull();
         }
 
         [Test]
@@ -128,9 +128,9 @@ namespace Assistant.Net.Messaging.Web.Tests
                 .Create();
 
             fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(3)))
-                .Should().ThrowExactly<MessageFailedException>()
+                .Should().ThrowExactlyAsync<MessageFailedException>()
                 .WithMessage("3")
-                .WithInnerExceptionExactly<MessageFailedException>()
+                .Result.WithInnerExceptionExactly<MessageFailedException>()
                 .Which.InnerException?.Message.Should().Be("inner");
         }
 
@@ -155,9 +155,9 @@ namespace Assistant.Net.Messaging.Web.Tests
                 .Create();
 
             fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(0)))
-                .Should().ThrowExactly<MessageNotRegisteredException>()
+                .Should().ThrowExactlyAsync<MessageNotRegisteredException>()
                 .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
-                .Which.InnerException.Should().BeNull();
+                .Result.Which.InnerException.Should().BeNull();
         }
 
         [Test]
@@ -169,9 +169,9 @@ namespace Assistant.Net.Messaging.Web.Tests
                 .Create();
 
             fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(0)))
-                .Should().ThrowExactly<MessageNotRegisteredException>()
+                .Should().ThrowExactlyAsync<MessageNotRegisteredException>()
                 .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
-                .Which.InnerException.Should().BeNull();
+                .Result.Which.InnerException.Should().BeNull();
         }
 
         [TestCase(typeof(TimeoutException))]
@@ -186,7 +186,7 @@ namespace Assistant.Net.Messaging.Web.Tests
                 .Create();
 
             fixture.Client.Awaiting(x => x.PublishObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
-                .Should().NotThrow();
+                .Should().NotThrowAsync();
         }
 
         [Test]
@@ -197,9 +197,9 @@ namespace Assistant.Net.Messaging.Web.Tests
                 .Create();
 
             fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(1)))
-                .Should().ThrowExactly<MessageFailedException>()
+                .Should().ThrowExactlyAsync<MessageFailedException>()
                 .WithMessage("Message handling has failed.")
-                .Which.InnerException.Should().BeNull();
+                .Result.Which.InnerException.Should().BeNull();
         }
 
         [Test]
@@ -210,9 +210,9 @@ namespace Assistant.Net.Messaging.Web.Tests
                 .Create();
 
             fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(2)))
-                .Should().ThrowExactly<MessageFailedException>()
+                .Should().ThrowExactlyAsync<MessageFailedException>()
                 .WithMessage("2")
-                .Which.InnerException.Should().BeNull();
+                .Result.Which.InnerException.Should().BeNull();
         }
 
         [Test]
@@ -223,9 +223,9 @@ namespace Assistant.Net.Messaging.Web.Tests
                 .Create();
 
             fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(3)))
-                .Should().ThrowExactly<MessageFailedException>()
+                .Should().ThrowExactlyAsync<MessageFailedException>()
                 .WithMessage("3")
-                .WithInnerExceptionExactly<MessageFailedException>()
+                .Result.WithInnerExceptionExactly<MessageFailedException>()
                 .Which.InnerException?.Message.Should().Be("inner");
         }
     }

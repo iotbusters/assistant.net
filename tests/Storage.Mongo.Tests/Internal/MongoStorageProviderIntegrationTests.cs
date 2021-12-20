@@ -132,7 +132,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             var value = Storage.GetKeys().ToArray();
 
-            value.Should().BeEquivalentTo(TestKey);
+            value.Should().BeEquivalentTo(new[] {TestKey});
         }
 
         [OneTimeSetUp]
@@ -154,7 +154,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
                 var ping = await mongoClient.GetDatabase("db").RunCommandAsync(
                     (Command<BsonDocument>)"{ping:1}",
                     ReadPreference.Nearest,
-                    new CancellationTokenSource(200).Token);
+                    new CancellationTokenSource(1000).Token);
                 pingContent = ping.ToString();
             }
             catch
