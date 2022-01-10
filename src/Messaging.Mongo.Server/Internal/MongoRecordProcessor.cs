@@ -52,8 +52,9 @@ namespace Assistant.Net.Messaging.Internal
             }
             catch (Exception ex)
             {
+                var clientOptions = options.Get(MongoOptionsNames.DefaultName);
                 if (ex is MessageDeferredException or TimeoutException or OperationCanceledException
-                    || options.CurrentValue.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
+                    || clientOptions.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
                 {
                     logger.LogInformation(ex, "Message({MessageType}/{MessageId}) handling: deferred or transient error.", record.MessageName, record.Id);
                     return Option.None;
