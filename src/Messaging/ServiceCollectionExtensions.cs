@@ -22,8 +22,8 @@ namespace Assistant.Net.Messaging
         public static IServiceCollection AddMessagingClient(this IServiceCollection services) => services
             .AddDiagnostics()
             .AddSystemServicesDefaulted()
-            .TryAddSingleton<IMessagingClientFactory, MessagingClientFactory>()
-            .TryAddSingleton(p => p.GetRequiredService<IMessagingClientFactory>().Create())
+            .TryAddScoped<IMessagingClientFactory, MessagingClientFactory>()
+            .TryAddScoped(p => p.GetRequiredService<IMessagingClientFactory>().Create())
             .ConfigureMessagingClient(b => b.AddConfiguration<DefaultInterceptorConfiguration>());
 
         /// <summary>
