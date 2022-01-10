@@ -59,13 +59,20 @@ namespace Assistant.Net
             var dependentPostConfigureOptionsInterfaceType = typeof(IPostConfigureOptions<>).MakeGenericType(dependentOptionsType);
             var dependentPostConfigureOptionsImplementationType = typeof(Internal.PostConfigureOptions<>).MakeGenericType(dependentOptionsType);
 
-            builder.Services.AddSingleton(dependentPostConfigureOptionsInterfaceType, p =>
-                Activator.CreateInstance(dependentPostConfigureOptionsImplementationType, name, new Action(() =>
-                {
-                    var cache = p.GetRequiredService<IOptionsMonitorCache<TOptions>>();
-                    cache.TryRemove(builder.Name);
-                }))!);
+            //builder.Services.AddSingleton(dependentPostConfigureOptionsInterfaceType, p =>
+            //    Activator.CreateInstance(dependentPostConfigureOptionsImplementationType, name, new Action(() =>
+            //    {
+            //        var cache = p.GetRequiredService<IOptionsMonitorCache<TOptions>>();
+            //        cache.TryRemove(builder.Name);
+            //    }))!);
+
             return builder;
         }
+
+        /// <summary>
+        ///     Registers a cascade change dependency between <typeparamref name="TOptions"/> <paramref name="dependentOptionsType"/> options.
+        /// </summary>
+        public static OptionsBuilder<TOptions> ChangeOn<TOptions>(this OptionsBuilder<TOptions> builder, Type dependentOptionsType)
+            where TOptions : class => builder.ChangeOn(Options.DefaultName, dependentOptionsType);
     }
 }
