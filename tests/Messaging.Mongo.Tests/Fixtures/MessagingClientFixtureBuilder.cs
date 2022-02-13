@@ -60,6 +60,9 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
 
         public MessagingClientFixtureBuilder AddMongoHandler<THandler>(THandler? handler = null) where THandler : class
         {
+            var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
+                              ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
+
             remoteSource.Configurations.Add(o =>
             {
                 if (handler != null)
@@ -67,12 +70,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures
                 else
                     o.AddHandler(typeof(THandler));
             });
-            clientSource.Configurations.Add(o =>
-            {
-                var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
-                                  ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
-                o.AddMongo(messageType);
-            });
+            clientSource.Configurations.Add(o => o.AddMongo(messageType));
             return this;
         }
 

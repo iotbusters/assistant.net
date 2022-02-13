@@ -4,6 +4,18 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.2.103] - 2022-02-13
+
+[Assistant.NET Release 0.2.103](https://github.com/iotbusters/assistant.net/releases/tag/0.2.103)
+
+### 0.2.103 Changed
+
+- refactored options dependency mechanism
+
+### 0.2.103 Fixed
+
+- fixed issues with options
+
 ## [0.2.102] - 2021-12-20
 
 [Assistant.NET Release 0.2.102](https://github.com/iotbusters/assistant.net/releases/tag/0.2.102)

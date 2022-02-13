@@ -43,7 +43,7 @@ namespace Assistant.Net.Messaging
             .ConfigureWebMessageHandling(b => b.AddConfiguration<ServerInterceptorConfiguration>())
             .ConfigureWebMessageHandling(configureBuilder)
             .AddOptions<WebHandlingServerOptions>()
-            .ChangeOn(WebOptionsNames.DefaultName, typeof(MessagingClientOptions))
+            .ChangeOn<MessagingClientOptions>(WebOptionsNames.DefaultName)
             .Configure<IOptionsMonitor<MessagingClientOptions>>((o, m) =>
             {
                 o.MessageTypes.Clear();

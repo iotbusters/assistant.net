@@ -5,7 +5,6 @@ using Assistant.Net.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 using System.Threading;
@@ -59,13 +58,50 @@ namespace Assistant.Net
             .TryAddSingleton<ITypeEncoder, TypeEncoder>();
 
         /// <summary>
+        ///     Gets a custom options builder that forwards Configure calls for the same <typeparamref name="TOptions"/>
+        ///     to the underlying service collection and custom options binding configuration.
+        /// </summary>
+        /// <typeparam name="TOptions">The options type to be configured.</typeparam>
+        /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+        public static Options.OptionsBuilder<TOptions> AddOptions<TOptions>(this IServiceCollection services)
+            where TOptions : class
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            services.AddOptions();
+            return new Options.OptionsBuilder<TOptions>(services, Microsoft.Extensions.Options.Options.DefaultName);
+        }
+
+        /// <summary>
+        ///     Gets a custom options builder that forwards Configure calls for the same named <typeparamref name="TOptions"/>
+        ///     to the underlying service collection and custom options binding configuration.
+        /// </summary>
+        /// <typeparam name="TOptions">The options type to be configured.</typeparam>
+        /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+        /// <param name="name">The name of the options instance.</param>
+        public static Options.OptionsBuilder<TOptions> AddOptions<TOptions>(this IServiceCollection services, string name)
+            where TOptions : class
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            services.AddOptions();
+            return new Options.OptionsBuilder<TOptions>(services, name);
+        }
+
+        /// <summary>
         ///     Registers a configuration instance which TOptions will bind against.
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
         /// <param name="config">The configuration being bound.</param>
         public static IServiceCollection Configure<TOptions>(this IServiceCollection services, IConfigurationSection config)
             where TOptions : class => services
-            .Configure<TOptions>(Options.DefaultName, config);
+            .Configure<TOptions>(Microsoft.Extensions.Options.Options.DefaultName, config);
 
         /// <summary>
         ///     Registers a configuration instance which TOptions will bind against.
@@ -98,7 +134,7 @@ namespace Assistant.Net
         /// </summary>
         public static IServiceCollection Configure<TOptions>(this IServiceCollection services, Action<TOptions> configureOptions)
             where TOptions : class => services
-            .Configure(Options.DefaultName, configureOptions);
+            .Configure(Microsoft.Extensions.Options.Options.DefaultName, configureOptions);
 
         /// <summary>
         ///     Registers an action used to configure a particular type of options with following validation.
@@ -121,7 +157,7 @@ namespace Assistant.Net
         public static IServiceCollection Configure<TOptions, TDep>(this IServiceCollection services, Action<TOptions, TDep> configureOptions)
             where TOptions : class
             where TDep : class => services
-            .Configure(Options.DefaultName, configureOptions);
+            .Configure(Microsoft.Extensions.Options.Options.DefaultName, configureOptions);
 
         /// <summary>
         ///     Registers an action used to configure a particular type of options with following validation.
