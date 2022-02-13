@@ -37,7 +37,7 @@ namespace Assistant.Net.Messaging
             .ConfigureMongoMessageHandling(b => b.RemoveExposedException<OperationCanceledException>())
             .ConfigureMongoMessageHandling(configureBuilder)
             .AddOptions<MongoHandlingServerOptions>()
-            .ChangeOn(MongoOptionsNames.DefaultName, typeof(MessagingClientOptions))
+            .ChangeOn<MessagingClientOptions>(MongoOptionsNames.DefaultName)
             .Configure<IOptionsMonitor<MessagingClientOptions>>((o, m) =>
             {
                 o.MessageTypes.Clear();
