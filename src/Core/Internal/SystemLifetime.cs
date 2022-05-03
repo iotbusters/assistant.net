@@ -7,7 +7,7 @@ namespace Assistant.Net.Internal
     /// <summary>
     ///     Default system lifetime implementation.
     /// </summary>
-    internal class SystemLifetime : ISystemLifetime
+    internal class SystemLifetime : ISystemLifetime, IDisposable
     {
         private readonly CancellationTokenSource stopping;
 
@@ -19,5 +19,7 @@ namespace Assistant.Net.Internal
         public CancellationToken Stopping => stopping.Token;
 
         public void RequestStopping(TimeSpan? after) => stopping.CancelAfter(after ?? TimeSpan.Zero);
+
+        public void Dispose() => stopping.Dispose();
     }
 }

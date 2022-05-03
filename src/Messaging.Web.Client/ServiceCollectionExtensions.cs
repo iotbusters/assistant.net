@@ -17,18 +17,15 @@ namespace Assistant.Net.Messaging
         /// <summary>
         ///     Registers empty remote messaging handling configuration.
         /// </summary>
-        public static IHttpClientBuilder AddRemoteWebMessagingClient(this IServiceCollection services)
-        {
-            return services
-                .AddSystemLifetime()
-                .AddDiagnostics()
-                .AddTypeEncoder()
-                .AddJsonSerialization()
-                .AddHttpClient<IWebMessageHandlerClient, WebMessageHandlerClient>(c => c.Timeout = DefaultTimeout)
-                .AddHttpMessageHandler<CorrelationHandler>()
-                .AddHttpMessageHandler<OperationHandler>()
-                .AddHttpMessageHandler<AuthorizationHandler>()
-                .AddHttpMessageHandler<ErrorPropagationHandler>();
-        }
+        public static IHttpClientBuilder AddRemoteWebMessagingClient(this IServiceCollection services) => services
+            .AddSystemLifetime()
+            .AddDiagnostics()
+            .AddTypeEncoder()
+            .AddJsonSerialization()
+            .AddHttpClient<IWebMessageHandlerClient, WebMessageHandlerClient>(c => c.Timeout = DefaultTimeout)
+            .AddHttpMessageHandler<CorrelationHandler>()
+            .AddHttpMessageHandler<OperationHandler>()
+            .AddHttpMessageHandler<AuthorizationHandler>()
+            .AddHttpMessageHandler<ErrorPropagationHandler>();
     }
 }
