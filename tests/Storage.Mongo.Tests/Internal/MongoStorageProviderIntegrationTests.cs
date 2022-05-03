@@ -172,9 +172,9 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         [SetUp, TearDown]
         public Task Cleanup() => MongoClient.DropDatabaseAsync(MongoNames.DatabaseName);
 
-        private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: new byte[0]);
-        private ValueRecord TestValue(string type) => new(Type: type, Content: new byte[0], new Audit(TestCorrelationId, TestUser));
-        private Audit Audit(int version = 1) => new(new Audit(TestCorrelationId, TestUser).Details, version) {Created = TestDate};
+        private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>());
+        private ValueRecord TestValue(string type) => new(Type: type, Content: Array.Empty<byte>(), new Audit(TestCorrelationId, TestUser, TestDate, version: 1));
+        private Audit Audit(int version = 1) => new(TestCorrelationId, TestUser, TestDate, version);
         private string TestCorrelationId { get; set; } = Guid.NewGuid().ToString();
         private string TestUser { get; set; } = Guid.NewGuid().ToString();
         private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;

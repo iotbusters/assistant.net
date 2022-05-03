@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Abstractions;
-using Assistant.Net.Storage.Abstractions;
+﻿using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Exceptions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Options;
@@ -23,22 +22,19 @@ namespace Assistant.Net.Storage.Internal
         private readonly IMongoCollection<MongoKeyRecord> keyCollection;
         private readonly IMongoCollection<MongoKeyValueRecord> keyValueCollection;
         private readonly IMongoCollection<MongoValueRecord> valueCollection;
-        private readonly ISystemClock clock;
 
         public MongoHistoricalStorageProvider(
             ILogger<MongoHistoricalStorageProvider<TValue>> logger,
             IOptions<MongoStoringOptions> options,
-            IMongoClientFactory clientFactory,
-            ISystemClock clock)
+            IMongoClientFactory clientFactory)
         {
             this.logger = logger;
             this.options = options.Value;
-            this.clock = clock;
 
             var database = clientFactory.GetDatabase();
-            this.keyCollection = database.GetCollection<MongoKeyRecord>(this.options.KeyCollectionName);
-            this.keyValueCollection = database.GetCollection<MongoKeyValueRecord>(this.options.KeyValueCollectionName);
-            this.valueCollection = database.GetCollection<MongoValueRecord>(this.options.ValueCollectionName);
+            this.keyCollection = database.GetCollection<MongoKeyRecord>(MongoNames.HistoricalStorageKeyCollectionName);
+            this.keyValueCollection = database.GetCollection<MongoKeyValueRecord>(MongoNames.HistoricalStorageKeyValueCollectionName);
+            this.valueCollection = database.GetCollection<MongoValueRecord>(MongoNames.HistoricalStorageValueCollectionName);
         }
 
         public async Task<ValueRecord> AddOrGet(
@@ -63,7 +59,7 @@ namespace Assistant.Net.Storage.Internal
                 await InsertOne(keyCollection, addedKey, token);
 
                 var newValue = await addFactory(key);
-                if (await AddValue(key, currentValue: null, newValue, token) is Some<ValueRecord>(var added))
+                if (await AddValue(key, newValue, token) is Some<ValueRecord>(var added))
                 {
                     logger.LogDebug("Storage.AddOrGet({KeyId}): {Attempt} added initial version.", key.Id, attempt);
                     return added;
@@ -100,8 +96,7 @@ namespace Assistant.Net.Storage.Internal
                 {
                     var addedKey = new MongoKeyRecord(key.Id, key.Type, key.Content);
                     await InsertOne(keyCollection, addedKey, token);
-
-                    currentValue = null;
+                    
                     newValue = await addFactory(key);
                     logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} adding value.", key.Id, attempt);
                 }
@@ -111,7 +106,7 @@ namespace Assistant.Net.Storage.Internal
                     logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} updating value.", key.Id, attempt);
                 }
 
-                if (await AddValue(key, currentValue, newValue, token) is Some<ValueRecord>(var added))
+                if (await AddValue(key, newValue, token) is Some<ValueRecord>(var added))
                 {
                     logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} added new version.", key.Id, attempt);
                     return added;
@@ -273,29 +268,24 @@ namespace Assistant.Net.Storage.Internal
 
         private async Task<Option<ValueRecord>> AddValue(
             KeyRecord key,
-            ValueRecord? currentValue,
             ValueRecord newValue,
             CancellationToken token)
         {
-            var oldVersion = currentValue?.Audit.Version ?? 0;
-            var newVersion = oldVersion + 1;
-            var addedValue = newValue with {Audit = new Audit(newValue.Audit.Details, newVersion) {Created = clock.UtcNow}};
-
             var valueRecord = new MongoValueRecord(
                 Id: Guid.NewGuid().ToString(),
-                addedValue.Type,
-                addedValue.Content,
-                addedValue.Audit.Details);
+                newValue.Type,
+                newValue.Content,
+                newValue.Audit.Details);
             if (!await InsertOne(valueCollection, valueRecord, token))
                 return Option.None; // note: not really expected issue.
 
-            var keyValueRecord = new MongoKeyValueRecord(new(key.Id, newVersion), valueRecord.Id);
+            var keyValueRecord = new MongoKeyValueRecord(new(key.Id, newValue.Audit.Version), valueRecord.Id);
             var isInserted = await InsertOne(keyValueCollection, keyValueRecord, token);
 
             if (!isInserted)
                 return Option.None; // note: the value version is added.
 
-            return Option.Some(addedValue);
+            return Option.Some(newValue);
         }
 
         private async Task<bool> InsertOne<T>(IMongoCollection<T> collection, T record, CancellationToken token)

@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Abstractions;
-using Assistant.Net.Storage.Abstractions;
+﻿using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Exceptions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Options;
@@ -19,18 +18,15 @@ namespace Assistant.Net.Storage.Internal
         private readonly ILogger logger;
         private readonly MongoStoringOptions options;
         private readonly IMongoCollection<MongoRecord> collection;
-        private readonly ISystemClock clock;
 
         public MongoStorageProvider(
             ILogger<MongoStorageProvider<TValue>> logger,
             IOptions<MongoStoringOptions> options,
-            IMongoClientFactory clientFactory,
-            ISystemClock clock)
+            IMongoClientFactory clientFactory)
         {
             this.logger = logger;
             this.options = options.Value;
-            this.collection = clientFactory.GetDatabase().GetCollection<MongoRecord>(this.options.SingleCollectionName);
-            this.clock = clock;
+            this.collection = clientFactory.GetDatabase().GetCollection<MongoRecord>(MongoNames.StorageCollectionName);
         }
 
         public async Task<ValueRecord> AddOrGet(
@@ -122,12 +118,11 @@ namespace Assistant.Net.Storage.Internal
         private async Task<Option<ValueRecord>> InsertOne(KeyRecord key, Func<KeyRecord, Task<ValueRecord>> addFactory, CancellationToken token)
         {
             var added = await addFactory(key);
-            added.Audit.Created = clock.UtcNow;
             var addedRecord = new MongoRecord(
                 key.Id,
                 key.Type,
                 key.Content,
-                version: 1,
+                added.Audit.Version,
                 added.Type,
                 added.Content,
                 added.Audit.Details);
@@ -160,12 +155,11 @@ namespace Assistant.Net.Storage.Internal
                 return Option.None;
 
             var updated = await updateFactory(key, found);
-            updated.Audit.Created = clock.UtcNow;
             var updatedRecord = new MongoRecord(
                 key.Id,
                 key.Type,
                 key.Content,
-                version: found.Audit.Version + 1,
+                found.Audit.Version,
                 updated.Type,
                 updated.Content,
                 updated.Audit.Details);

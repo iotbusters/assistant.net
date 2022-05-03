@@ -1,6 +1,5 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.RetryStrategies;
-using Assistant.Net.Storage.Abstractions;
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -11,30 +10,6 @@ namespace Assistant.Net.Storage.Options
     /// </summary>
     public class MongoStoringOptions
     {
-        /// <summary>
-        ///     Collection name for <see cref="IStorage{TKey,TValue}"/>.
-        /// </summary>
-        [Required]
-        public string SingleCollectionName { get; set; } = MongoNames.StorageCollectionName;
-
-        /// <summary>
-        ///     Keys collection name for <see cref="IHistoricalStorage{TKey,TValue}"/> and <see cref="IPartitionedStorage{TKey,TValue}"/>.
-        /// </summary>
-        [Required]
-        public string KeyCollectionName { get; set; } = MongoNames.HistoricalStorageKeyCollectionName;
-
-        /// <summary>
-        ///     Key-Values reference collection name for <see cref="IHistoricalStorage{TKey,TValue}"/> and <see cref="IPartitionedStorage{TKey,TValue}"/>.
-        /// </summary>
-        [Required]
-        public string KeyValueCollectionName { get; set; } = MongoNames.HistoricalStorageKeyValueCollectionName;
-
-        /// <summary>
-        ///     Values collection name for <see cref="IHistoricalStorage{TKey,TValue}"/> and <see cref="IPartitionedStorage{TKey,TValue}"/>.
-        /// </summary>
-        [Required]
-        public string ValueCollectionName { get; set; } = MongoNames.HistoricalStorageValueCollectionName;
-
         /// <summary>
         ///     Optimistic concurrent insert operation retrying strategy.
         /// </summary>

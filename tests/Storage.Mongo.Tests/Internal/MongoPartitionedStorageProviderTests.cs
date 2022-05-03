@@ -83,11 +83,11 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         public void TearDown() => Provider.Dispose();
         
         private Mock<IHistoricalStorageProvider<TestValue>> HistoricalStorageProviderMock { get; set; } = default!;
-        private KeyRecord TestKey { get; } = new KeyRecord(id: Guid.NewGuid().ToString(), type: "key", content: new byte[0]);
-        private ValueRecord TestValue => new(Type: "type", Content: new byte[0], new Audit(TestCorrelationId, TestUser));
+        private KeyRecord TestKey { get; } = new(id: Guid.NewGuid().ToString(), type: "key", content: Array.Empty<byte>());
+        private ValueRecord TestValue => new(Type: "type", Content: Array.Empty<byte>(), new Audit(TestCorrelationId, TestUser, created: DateTimeOffset.UtcNow, version: 1));
         private string TestCorrelationId { get; } = Guid.NewGuid().ToString();
         private string TestUser { get;  } = Guid.NewGuid().ToString();
         private ServiceProvider Provider { get; set; } = default!;
-        private IPartitionedStorageProvider<TestValue> Storage => Provider!.CreateScope().ServiceProvider.GetRequiredService<IPartitionedStorageProvider<TestValue>>();
+        private IPartitionedStorageProvider<TestValue> Storage => Provider.CreateScope().ServiceProvider.GetRequiredService<IPartitionedStorageProvider<TestValue>>();
     }
 }

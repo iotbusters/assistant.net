@@ -21,7 +21,7 @@ namespace Assistant.Net.Storage.Models
             long version,
             string valueType,
             byte[] valueContent,
-            IDictionary<string, object> details)
+            IDictionary<string, string> details)
         {
             Id = id;
             KeyType = keyType;
@@ -66,6 +66,6 @@ namespace Assistant.Net.Storage.Models
         /// <summary>
         ///     Value content auditing details.
         /// </summary>
-        public IDictionary<string, object> Details { get; set; } = default!;
+        public IDictionary<string, string> Details { get; set; } = default!;
     }
 }

@@ -14,7 +14,7 @@ namespace Assistant.Net.Storage.Models
         [property: BsonId] string Id,
         string Type,
         byte[] Content,
-        IDictionary<string, object> Details) : IRecordIdentity;
+        IDictionary<string, string> Details) : IRecordIdentity;
 
     internal interface IRecordIdentity
     {

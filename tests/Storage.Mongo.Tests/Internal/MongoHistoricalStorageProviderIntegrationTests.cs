@@ -272,36 +272,21 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName);
         }
-        
+
         [OneTimeTearDown]
-        public async Task OneTimeTearDown()
-        {
-            try
-            {
-                await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName, new CancellationTokenSource(200).Token);
-            }
-            catch { }
+        public void OneTimeTearDown() => Provider?.Dispose();
 
-            await Provider.DisposeAsync();
-        }
+        [SetUp, TearDown]
+        public async Task Cleanup() => await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName, new CancellationTokenSource(200).Token);
 
-        [SetUp]
-        public void Setup()
-        {
-            TestKey = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>());
-            TestCorrelationId = Guid.NewGuid().ToString();
-            TestUser = Guid.NewGuid().ToString();
-            TestDate = DateTimeOffset.UtcNow;
-        }
-
-        private ValueRecord TestValue(string type) => new(Type: type, Content: Array.Empty<byte>(), new Audit(TestCorrelationId, TestUser));
-        private Audit Audit(int version = 1) => new(new Audit(TestCorrelationId, TestUser).Details, version) {Created = TestDate};
-        private KeyRecord TestKey { get; set; } = default!;
-        private string TestCorrelationId { get; set; } = default!;
-        private string TestUser { get; set; } = default!;
-        private DateTimeOffset TestDate { get; set; }
-        private ServiceProvider Provider { get; set; } = default!;
-        private IMongoClient MongoClient => Provider.CreateScope().ServiceProvider.GetRequiredService<IMongoClientFactory>().CreateClient();
-        private IHistoricalStorageProvider<TestValue> Storage => Provider.CreateScope().ServiceProvider.GetRequiredService<IHistoricalStorageProvider<TestValue>>();
+        private ValueRecord TestValue(string type) => new(Type: type, Content: Array.Empty<byte>(), new Audit(TestCorrelationId, TestUser, TestDate, version: 1));
+        private Audit Audit(int version = 1) => new(TestCorrelationId, TestUser, TestDate, version);
+        private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>());
+        private string TestCorrelationId { get; } = Guid.NewGuid().ToString();
+        private string TestUser { get; } = Guid.NewGuid().ToString();
+        private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;
+        private ServiceProvider? Provider { get; set; }
+        private IMongoClient MongoClient => Provider!.CreateScope().ServiceProvider.GetRequiredService<IMongoClientFactory>().CreateClient();
+        private IHistoricalStorageProvider<TestValue> Storage => Provider!.CreateScope().ServiceProvider.GetRequiredService<IHistoricalStorageProvider<TestValue>>();
     }
 }

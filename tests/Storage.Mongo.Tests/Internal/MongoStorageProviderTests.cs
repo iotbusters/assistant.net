@@ -82,7 +82,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         [Test]
         public async Task AddOrUpdate_callsFindAsyncAndReplaceOneAsync()
         {
-            var record = new MongoRecord {Details = new Audit(TestCorrelationId, TestUser).Details};
+            var record = new MongoRecord {Details = Audit.Details};
             MongoCollectionMock.Setup(x => x.FindAsync(
                     It.IsAny<FilterDefinition<MongoRecord>>(),
                     It.IsAny<FindOptions<MongoRecord>>(),
@@ -185,9 +185,11 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
         private Mock<IMongoCollection<MongoRecord>> MongoCollectionMock { get; set; } = default!;
         private KeyRecord TestKey { get; set; } = default!;
-        private ValueRecord TestValue => new(Type: "type", Content: new byte[0], new Audit(TestCorrelationId, TestUser));
+        private ValueRecord TestValue => new(Type: "type", Content: Array.Empty<byte>(), Audit);
+        private Audit Audit => new(TestCorrelationId, TestUser, TestDate, version: 1);
         private string TestCorrelationId { get; set; } = Guid.NewGuid().ToString();
         private string TestUser { get; set; } = Guid.NewGuid().ToString();
+        private DateTimeOffset TestDate { get; set; } = DateTimeOffset.UtcNow;
         private ServiceProvider? Provider { get; set; }
         private IStorageProvider<TestValue> Storage => Provider!.CreateScope().ServiceProvider.GetRequiredService<IStorageProvider<TestValue>>();
         
