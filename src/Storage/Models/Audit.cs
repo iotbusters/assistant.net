@@ -9,18 +9,19 @@ namespace Assistant.Net.Storage.Models
     public class Audit
     {
         /// <summary/>
-        public Audit(IDictionary<string, object> details, long version)
+        public Audit(IDictionary<string, string> details, long version)
         {
             Details = details;
             Version = version;
         }
 
         /// <summary/>
-        public Audit(string? correlationId, string? user)
+        public Audit(string? correlationId, string? user, DateTimeOffset created, long version)
+            : this(new Dictionary<string, string>(), version)
         {
-            Details = new Dictionary<string, object>();
             CorrelationId = correlationId;
             User = user;
+            Created = created;
         }
 
         /// <summary>
@@ -28,8 +29,8 @@ namespace Assistant.Net.Storage.Models
         /// </summary>
         public string? CorrelationId
         {
-            get => Get<string?>("correlationId");
-            set => Set("correlationId", value!);
+            get => GetString("correlationId");
+            set => SetString("correlationId", value);
         }
 
         /// <summary>
@@ -37,8 +38,8 @@ namespace Assistant.Net.Storage.Models
         /// </summary>
         public string? User
         {
-            get => Get<string?>("user");
-            set => Set("user", value!);
+            get => GetString("user");
+            set => SetString("user", value);
         }
 
         /// <summary>
@@ -49,19 +50,30 @@ namespace Assistant.Net.Storage.Models
         /// <summary>
         ///     The date when value was created.
         /// </summary>
-        public DateTimeOffset? Created
+        public DateTimeOffset Created
         {
-            get => Get<DateTimeOffset?>("created");
-            set => Set("created", value!);
+            get => GetDate("created");
+            set => SetDate("created", value);
         }
 
         /// <summary>
         ///     All auditing details.
         /// </summary>
-        public IDictionary<string, object> Details { get; set; }
+        public IDictionary<string, string> Details { get; set; }
 
-        private void Set(string propertyName, object propertyValue) => Details[propertyName] = propertyValue;
+        private void SetString(string propertyName, string? propertyValue)
+        {
+            if (propertyValue != null)
+                Details[propertyName] = propertyValue;
+        }
 
-        private T? Get<T>(string name) => Details.TryGetValue(name, out var value) ? (T?)value : default;
+        private void SetDate(string propertyName, DateTimeOffset? propertyValue) =>
+            Details[propertyName] = propertyValue?.ToString("O") ?? throw new ArgumentNullException(nameof(propertyValue));
+
+        private string? GetString(string name) =>
+            Details.TryGetValue(name, out var value) ? value : null;
+
+        private DateTimeOffset GetDate(string name) =>
+            Details.TryGetValue(name, out var value) ? DateTimeOffset.Parse(value) : throw new NotImplementedException();
     }
 }

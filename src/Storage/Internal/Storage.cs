@@ -21,6 +21,7 @@ namespace Assistant.Net.Storage.Internal
         protected readonly IValueConverter<TValue> ValueConverter;
         private readonly IStorageProvider<TValue> backedStorage;
         private readonly IDiagnosticContext diagnosticContext;
+        private readonly ISystemClock clock;
 
         /// <exception cref="NotSupportedException"/>
         protected Storage(
@@ -28,7 +29,8 @@ namespace Assistant.Net.Storage.Internal
             IValueConverter<TValue> valueConverter,
             IStorageProvider<TValue> backedStorage,
             ITypeEncoder typeEncoder,
-            IDiagnosticContext diagnosticContext)
+            IDiagnosticContext diagnosticContext,
+            ISystemClock clock)
         {
             this.KeyType = typeEncoder.Encode(typeof(TKey)) ?? throw NotSupportedTypeException(typeof(TKey));
             this.ValueType = typeEncoder.Encode(typeof(TValue)) ?? throw NotSupportedTypeException(typeof(TValue));
@@ -36,6 +38,7 @@ namespace Assistant.Net.Storage.Internal
             this.ValueConverter = valueConverter;
             this.backedStorage = backedStorage;
             this.diagnosticContext = diagnosticContext;
+            this.clock = clock;
         }
 
         /// <exception cref="ArgumentException"/>
@@ -43,13 +46,15 @@ namespace Assistant.Net.Storage.Internal
         public Storage(
             IServiceProvider provider,
             ITypeEncoder typeEncoder,
-            IDiagnosticContext diagnosticContext)
+            IDiagnosticContext diagnosticContext,
+            ISystemClock clock)
             : this(
                 provider.GetService<IValueConverter<TKey>>() ?? throw ImproperlyConfiguredException(typeof(TKey)),
                 provider.GetService<IValueConverter<TValue>>() ?? throw ImproperlyConfiguredException(typeof(TValue)),
                 provider.GetService<IStorageProvider<TValue>>() ?? throw ImproperlyConfiguredException(typeof(TValue)),
                 typeEncoder,
-                diagnosticContext)
+                diagnosticContext,
+                clock)
         {
         }
 
@@ -66,7 +71,7 @@ namespace Assistant.Net.Storage.Internal
                 {
                     var value = await addFactory(key);
                     var content = await ValueConverter.Convert(value, token);
-                    var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User);
+                    var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, 1);
                     return new ValueRecord(ValueType, content, audit);
                 }, token);
             return await ValueConverter.Convert(valueRecord.Content, token);
@@ -89,7 +94,7 @@ namespace Assistant.Net.Storage.Internal
                     {
                         var value = await addFactory(key);
                         var content = await ValueConverter.Convert(value, token);
-                        var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User);
+                        var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, 1);
                         return new ValueRecord(ValueType, content, audit);
                     },
                     updateFactory: async (_, old) =>
@@ -97,7 +102,7 @@ namespace Assistant.Net.Storage.Internal
                         var oldValue = await ValueConverter.Convert(old.Content, token);
                         var newValue = await updateFactory(key, oldValue);
                         var content = await ValueConverter.Convert(newValue, token);
-                        var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User);
+                        var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, old.Audit.Version + 1);
                         return new ValueRecord(ValueType, content, audit);
                     },
                     token);
