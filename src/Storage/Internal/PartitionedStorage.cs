@@ -15,18 +15,20 @@ namespace Assistant.Net.Storage.Internal
 {
     internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey, TValue>
     {
-        private readonly IDiagnosticContext diagnosticContext;
         private readonly string keyType;
         private readonly string valueType;
         private readonly IValueConverter<TKey> keyConverter;
         private readonly IValueConverter<TValue> valueConverter;
         private readonly IPartitionedStorageProvider<TValue> backedStorage;
+        private readonly IDiagnosticContext diagnosticContext;
+        private readonly ISystemClock clock;
 
         /// <exception cref="ArgumentException"/>
         public PartitionedStorage(
             IServiceProvider provider,
             ITypeEncoder typeEncoder,
-            IDiagnosticContext diagnosticContext)
+            IDiagnosticContext diagnosticContext,
+            ISystemClock clock)
         {
             this.keyType = typeEncoder.Encode(typeof(TKey)) ?? throw NotSupportedTypeException(typeof(TKey));
             this.valueType = typeEncoder.Encode(typeof(TValue)) ?? throw NotSupportedTypeException(typeof(TValue));
@@ -34,6 +36,7 @@ namespace Assistant.Net.Storage.Internal
             this.keyConverter = provider.GetService<IValueConverter<TKey>>() ?? throw ImproperlyConfiguredException();
             this.valueConverter = provider.GetService<IValueConverter<TValue>>() ?? throw ImproperlyConfiguredException();
             this.diagnosticContext = diagnosticContext;
+            this.clock = clock;
         }
 
         public async Task<long> Add(TKey key, TValue value, CancellationToken token)
@@ -44,7 +47,7 @@ namespace Assistant.Net.Storage.Internal
                 type: keyType,
                 content: keyContent);
             var content = await valueConverter.Convert(value, token);
-            var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User);
+            var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, 1);
             var valueRecord = new ValueRecord(valueType, content, audit);
             return await backedStorage.Add(keyRecord, valueRecord, token);
         }

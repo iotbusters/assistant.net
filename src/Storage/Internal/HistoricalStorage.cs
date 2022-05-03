@@ -19,13 +19,15 @@ namespace Assistant.Net.Storage.Internal
         public HistoricalStorage(
             IServiceProvider provider,
             ITypeEncoder typeEncoder,
-            IDiagnosticContext diagnosticContext)
+            IDiagnosticContext diagnosticContext,
+            ISystemClock clock)
             : base(
                 provider.GetService<IValueConverter<TKey>>() ?? throw ImproperlyConfiguredException(typeof(TKey)),
                 provider.GetService<IValueConverter<TValue>>() ?? throw ImproperlyConfiguredException(typeof(TValue)),
                 provider.GetService<IHistoricalStorageProvider<TValue>>() ?? throw ImproperlyConfiguredException(typeof(TValue)),
                 typeEncoder,
-                diagnosticContext) =>
+                diagnosticContext,
+                clock) =>
             backedStorage = provider.GetService<IHistoricalStorageProvider<TValue>>()!;
 
         public async Task<Option<TValue>> TryGet(TKey key, long version, CancellationToken token)

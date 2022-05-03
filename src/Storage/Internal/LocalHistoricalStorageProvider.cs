@@ -39,15 +39,14 @@ namespace Assistant.Net.Storage.Internal
                 if (!versions.TryGetValue(versions.Keys.DefaultIfEmpty(0).Max(), out var currentVersion))
                 {
                     var added = addFactory(key).ConfigureAwait(false).GetAwaiter().GetResult();
-                    if (versions.TryAdd(1, added))
-                        return Task.FromResult(added with {Audit = new Audit(added.Audit.Details, version: 1)});
+                    if (versions.TryAdd(added.Audit.Version, added))
+                        return Task.FromResult(added);
                 }
                 else
                 {
-                    var newVersion = versions.Keys.Max() + 1;
                     var added = updateFactory(key, currentVersion).ConfigureAwait(false).GetAwaiter().GetResult();
-                    if(versions.TryAdd(newVersion, added))
-                        return Task.FromResult(added with { Audit = new Audit(added.Audit.Details, newVersion) });
+                    if(versions.TryAdd(added.Audit.Version, added))
+                        return Task.FromResult(added);
                 }
         }
 
