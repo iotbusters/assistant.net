@@ -139,11 +139,12 @@ namespace Assistant.Net.Storage
         public static StorageBuilder AddMongoPartitioned(this StorageBuilder builder, Type keyType, Type valueType)
         {
             var serviceType = typeof(IPartitionedStorageProvider<>).MakeGenericType(valueType);
-            var implementationType = typeof(MongoPartitionedStorageProvider<>).MakeGenericType(valueType);
+            var implementationType = typeof(GenericPartitionedStorageProvider<>).MakeGenericType(valueType);
+            var backedServiceType = typeof(IHistoricalStorageProvider<>).MakeGenericType(valueType);
+            var backedImplementationType = typeof(MongoHistoricalStorageProvider<>).MakeGenericType(valueType);
 
-            builder
-                .AddMongoHistorical(keyType, valueType)
-                .Services
+            builder.Services
+                .TryAddScoped(backedServiceType, backedImplementationType)
                 .ReplaceScoped(serviceType, implementationType)
                 .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
             return builder;
@@ -154,11 +155,9 @@ namespace Assistant.Net.Storage
         /// </summary>
         public static StorageBuilder AddMongoPartitionedAny(this StorageBuilder builder)
         {
-
-            builder
-                .AddMongoHistoricalAny()
-                .Services
-                .ReplaceScoped(typeof(IPartitionedStorageProvider<>), typeof(MongoPartitionedStorageProvider<>))
+            builder.Services
+                .TryAddScoped(typeof(IHistoricalStorageProvider<>), typeof(MongoHistoricalStorageProvider<>))
+                .ReplaceScoped(typeof(IPartitionedStorageProvider<>), typeof(GenericPartitionedStorageProvider<>))
                 .ConfigureSerializer(b => b.AddJsonTypeAny());
             return builder;
         }
