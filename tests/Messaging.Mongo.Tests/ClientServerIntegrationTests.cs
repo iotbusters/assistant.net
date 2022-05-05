@@ -27,7 +27,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests
                 .Create();
 
             var tasks = Enumerable.Range(1, concurrencyCount).Select(
-                _ => fixture.Client.RequestObject(new TestScenarioMessage(0)));
+                _ => fixture.Client.RequestObject(new TestScenarioMessage(0))).ToArray();
             await Task.WhenAll(tasks);
 
             handler.CallCount.Should().Be(1);
@@ -45,7 +45,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests
             handler.CallCount = 0;
 
             var tasks = Enumerable.Range(1, concurrencyCount).Select(
-                _ => fixture.Client.RequestObject(new TestScenarioMessage(0)));
+                _ => fixture.Client.RequestObject(new TestScenarioMessage(0))).ToArray();
             await Task.WhenAll(tasks);
 
             handler.CallCount.Should().Be(0);

@@ -28,11 +28,11 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         [Test]
         public async Task Add_returnsExistingValue_keyExists()
         {
-            await PartitionedStorage.Add(TestKey, TestValue("added-1"));
+            await PartitionedStorage.Add(TestKey, TestValue("added-1", version: 1));
 
-            var value = await PartitionedStorage.Add(TestKey, TestValue("added-2"));
+            var value = await PartitionedStorage.Add(TestKey, TestValue("added-2", version: 20));
 
-            value.Should().Be(2);
+            value.Should().Be(20);
         }
 
         [Test]
@@ -57,9 +57,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             var value = await PartitionedStorage.TryGet(TestKey, 1);
 
-            value.Should().BeEquivalentTo(
-                new {Value = TestValue("added") with {Audit = Audit()}},
-                o => o.ComparingByMembers<ValueRecord>());
+            value.Should().BeEquivalentTo(new {Value = TestValue("added")}, o => o.ComparingByMembers<ValueRecord>());
         }
 
         [Test]
@@ -94,8 +92,8 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         [Test]
         public async Task TryRemove_returnsOne_twoKeysExist()
         {
-            await PartitionedStorage.Add(TestKey, TestValue("value-1"));
-            await PartitionedStorage.Add(TestKey, TestValue("value-2"));
+            await PartitionedStorage.Add(TestKey, TestValue("value-1", version: 1));
+            await PartitionedStorage.Add(TestKey, TestValue("value-2", version: 2));
 
             var count1 = await PartitionedStorage.TryRemove(TestKey, 1);
             count1.Should().Be(1);
@@ -126,7 +124,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
                 var ping = await MongoClient.GetDatabase("db").RunCommandAsync(
                     (Command<BsonDocument>)"{ping:1}",
                     ReadPreference.Nearest,
-                    new CancellationTokenSource(200).Token);
+                    CancellationToken);
                 pingContent = ping.ToString();
             }
             catch
@@ -135,18 +133,17 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
             }
             if (!pingContent.Contains("ok"))
                 Assert.Ignore($"The tests require mongodb instance at {connectionString}.");
-
-            await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName);
         }
 
         [OneTimeTearDown]
         public void OneTimeTearDown() => Provider?.Dispose();
 
         [SetUp, TearDown]
-        public async Task Cleanup() => await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName, new CancellationTokenSource(200).Token);
+        public async Task Cleanup() => await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName, CancellationToken);
 
-        private ValueRecord TestValue(string type) => new(Type: type, Content: Array.Empty<byte>(), new Audit(TestCorrelationId, TestUser, TestDate, version: 1));
-        private Audit Audit(int version = 1) => new(TestCorrelationId, TestUser, TestDate, version);
+        private static CancellationToken CancellationToken => new CancellationTokenSource(200).Token;
+        private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
+        private Audit Audit(int version) => new(TestCorrelationId, TestUser, TestDate, version);
         private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>());
         private string TestCorrelationId { get; } = Guid.NewGuid().ToString();
         private string TestUser { get; } = Guid.NewGuid().ToString();

@@ -9,7 +9,7 @@ namespace Assistant.Net.Core.Tests;
 public class ConfigureOptionsSourceTests
 {
     [Test]
-    public void ChangeOn_notSynchronizesOptions()
+    public void ChangeOn_notSynchronizesOptions_boundToAnotherNamedOptions()
     {
         var source = new TestConfigureOptionsSource<TestOptions2> {ConfigureAction = o => o.Value = "1"};
         var provider = new ServiceCollection()
