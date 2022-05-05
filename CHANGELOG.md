@@ -4,6 +4,22 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.2.105] - 2022-05-05
+
+[Assistant.NET Release 0.2.105](https://github.com/iotbusters/assistant.net/releases/tag/0.2.105)
+
+### 0.2.105 Added
+
+- options binding extensions
+
+### 0.2.105 Changed
+
+- refactored mongo storage providers
+
+### 0.2.105 Fixed
+
+- issues with options binding
+
 ## [0.2.103] - 2022-02-13
 
 [Assistant.NET Release 0.2.103](https://github.com/iotbusters/assistant.net/releases/tag/0.2.103)
@@ -14,7 +30,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 ### 0.2.103 Fixed
 
-- fixed issues with options
+- issues with options
 
 ## [0.2.102] - 2021-12-20
 
