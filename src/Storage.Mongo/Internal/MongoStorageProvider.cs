@@ -159,7 +159,7 @@ namespace Assistant.Net.Storage.Internal
                 key.Id,
                 key.Type,
                 key.Content,
-                found.Audit.Version,
+                updated.Audit.Version,
                 updated.Type,
                 updated.Content,
                 updated.Audit.Details);
