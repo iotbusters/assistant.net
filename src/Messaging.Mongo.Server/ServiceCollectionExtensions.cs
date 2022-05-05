@@ -41,7 +41,8 @@ namespace Assistant.Net.Messaging
             .Configure<IOptionsMonitor<MessagingClientOptions>>((o, m) =>
             {
                 o.MessageTypes.Clear();
-                foreach (var messageType in m.Get(MongoOptionsNames.DefaultName).Handlers.Keys)
+                var dependencyOptions = m.Get(MongoOptionsNames.DefaultName);
+                foreach (var messageType in dependencyOptions.Handlers.Keys)
                     o.MessageTypes.Add(messageType);
             }).Services;
 

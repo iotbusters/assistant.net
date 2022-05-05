@@ -63,11 +63,33 @@ public class OptionsBuilder<TOptions> : Microsoft.Extensions.Options.OptionsBuil
 
         var configureOptionsType = typeof(ChangeOnConfigureNamedOptions<,>).MakeGenericType(typeof(TOptions), typeof(TDependentOptions));
 
-        Services.TryAddSingleton(p => (IConfigureOptions<TDependentOptions>)ActivatorUtilities.CreateInstance(
+        Services.AddSingleton(p => (IConfigureOptions<TDependentOptions>)ActivatorUtilities.CreateInstance(
             p,
             configureOptionsType,
             Name,
             name));
+
+        return this;
+    }
+
+    /// <summary>
+    ///     Registers a cascade change dependency between <typeparamref name="TOptions"/> and <typrparamref name="TDependentOptions"/> options.
+    /// </summary>
+    public OptionsBuilder<TOptions> ChangeOn<TDependentOptions>(string name, Action<TOptions, TDependentOptions> configureOptions)
+        where TDependentOptions : class
+    {
+        if (typeof(TOptions) == typeof(TDependentOptions))
+            throw new ArgumentException("Dependent options cannot be equal to principal options.");
+
+        var configureOptionsType = typeof(ChangeOnConfigureNamedOptions<,>).MakeGenericType(typeof(TOptions), typeof(TDependentOptions));
+
+        Services.AddSingleton(p => (IConfigureOptions<TDependentOptions>)ActivatorUtilities.CreateInstance(
+            p,
+            configureOptionsType,
+            Name,
+            name));
+
+        Configure<IOptionsMonitor<TDependentOptions>>((o, m) => configureOptions(o, m.Get(name)));
 
         return this;
     }
