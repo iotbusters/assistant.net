@@ -33,9 +33,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             var value = await Storage.AddOrGet(TestKey, TestValue("added-2"));
 
-            value.Should().BeEquivalentTo(
-                TestValue("added-1") with {Audit = Audit()},
-                o => o.ComparingByMembers<ValueRecord>());
+            value.Should().BeEquivalentTo(TestValue("added-1"), o => o.ComparingByMembers<ValueRecord>());
         }
 
         [TestCase(5)]
@@ -47,7 +45,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             var lastValue = await Storage.TryGet(TestKey);
 
-            lastValue.Should().BeEquivalentTo(new {Value = new {Audit = Audit()}});
+            lastValue.Should().BeEquivalentTo(new {Value = new {Audit = Audit(1)}});
             values.Select(x => x.Type).Distinct().Should().HaveCount(1);
         }
 
@@ -56,53 +54,52 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         {
             var value = await Storage.AddOrUpdate(TestKey, _ => TestValue("added"), (_, _) => TestValue("updated"));
 
-            value.Should().BeEquivalentTo(
-                TestValue("added") with {Audit = Audit()},
-                o => o.ComparingByMembers<ValueRecord>());
+            value.Should().BeEquivalentTo(TestValue("added"), o => o.ComparingByMembers<ValueRecord>());
         }
 
         [Test]
         public async Task AddOrUpdate_returnsUpdatedValue()
         {
-            await Storage.AddOrGet(TestKey, TestValue("added-1"));
+            await Storage.AddOrGet(TestKey, TestValue("added-1", version: 1));
 
-            var value = await Storage.AddOrUpdate(TestKey, _ => TestValue("added-2"), (_, _) => TestValue("updated"));
+            var value = await Storage.AddOrUpdate(TestKey, _ => TestValue("added-2", version: 2), (_, _) => TestValue("updated", version: 3));
 
-            value.Should().BeEquivalentTo(
-                TestValue("updated") with {Audit = Audit(2)},
-                o => o.ComparingByMembers<ValueRecord>());
+            value.Should().BeEquivalentTo(TestValue("updated", version: 3), o => o.ComparingByMembers<ValueRecord>());
         }
 
         [TestCase(5)]
-        public async Task AddOrUpdate_returnsValuesAndLastVersion_concurrently(int concurrencyCount)
+        public async Task AddOrUpdate_returnsValuesAndOneOfRequestedVersions_concurrently(int concurrencyCount)
         {
-            var tasks = Enumerable.Range(1, concurrencyCount).Select(i =>
-                Storage.AddOrUpdate(TestKey, TestValue($"value-{i}")));
+            var requestedValues = Enumerable.Range(1, concurrencyCount).Select(i => TestValue($"value-{i}", version: i)).ToArray();
+            var tasks = requestedValues.Select(x => Storage.AddOrUpdate(TestKey, x));
+
             var values = await Task.WhenAll(tasks);
+            values.Should().BeEquivalentTo(requestedValues);
 
             var lastValue = await Storage.TryGet(TestKey);
-
-            lastValue.Should().BeEquivalentTo(new {Value = new {Audit = Audit(concurrencyCount)}});
-            values.Should().BeEquivalentTo(Enumerable.Range(1, concurrencyCount).Select(i => new {Type = $"value-{i}"}));
+            lastValue.Should().BeOfType<Some<ValueRecord>>();
+            requestedValues.Should().ContainEquivalentOf(lastValue.GetValueOrFail());
         }
 
         [TestCase(1000), Ignore("Manual run only")]
         public async Task AddOrUpdate_returnsUpdatedValueInTime_keysAndVersions(int count)
         {
+            // arrange: storage population
             foreach (var i in Enumerable.Range(1, count))
             {
-                await Storage.AddOrUpdate(new KeyRecord(i.ToString(), "type", new byte[0]), TestValue($"{i}-1"));
+                await Storage.AddOrUpdate(new KeyRecord(i.ToString(), "type", Array.Empty<byte>()), TestValue($"{i}-1"));
                 await Storage.AddOrUpdate(TestKey, TestValue($"value-{i}"));
             }
 
+            // act: time measurement
             var watch = Stopwatch.StartNew();
-            var value = await Storage.AddOrUpdate(TestKey, TestValue("value-X"));
+            // act: operation
+            var value = await Storage.AddOrUpdate(TestKey, TestValue("value-X", version: count + 1));
             watch.Stop();
-            watch.Elapsed.Should().BeLessOrEqualTo(TimeSpan.FromSeconds(0.1));
 
-            value.Should().BeEquivalentTo(
-                TestValue("value-X") with { Audit = Audit(count + 1) },
-                o => o.ComparingByMembers<ValueRecord>());
+            // assert
+            watch.Elapsed.Should().BeLessOrEqualTo(TimeSpan.FromSeconds(0.1));
+            value.Should().BeEquivalentTo(TestValue("value-X", version: count + 1), o => o.ComparingByMembers<ValueRecord>());
         }
 
         [Test]
@@ -120,9 +117,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             var value = await Storage.TryGet(TestKey);
 
-            value.Should().BeEquivalentTo(
-                new {Value = TestValue("value") with {Audit = Audit()}},
-                o => o.ComparingByMembers<ValueRecord>());
+            value.Should().BeEquivalentTo(new {Value = TestValue("value")}, o => o.ComparingByMembers<ValueRecord>());
         }
 
         [Test]
@@ -140,25 +135,27 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             var value = await Storage.TryGet(TestKey, version: 1);
 
-            value.Should().BeEquivalentTo(
-                new { Value = TestValue("value") with { Audit = Audit() } },
-                o => o.ComparingByMembers<ValueRecord>());
+            value.Should().BeEquivalentTo(new {Value = TestValue("value")}, o => o.ComparingByMembers<ValueRecord>());
         }
 
         [TestCase(1000), Ignore("Manual run only")]
         public async Task TryGet_returnsValueInTime_keysAndVersions(int count)
         {
+            // arrange: storage population
             foreach (var i in Enumerable.Range(1, count))
             {
                 await Storage.AddOrUpdate(new KeyRecord(i.ToString(), "type", new byte[0]), TestValue($"{i}-1"));
                 await Storage.AddOrUpdate(TestKey, TestValue($"value-{i}"));
             }
 
+            // act: time measurement
             var watch = Stopwatch.StartNew();
+            // act: operation
             var value = await Storage.TryGet(TestKey);
             watch.Stop();
-            watch.Elapsed.Should().BeLessOrEqualTo(TimeSpan.FromSeconds(0.1));
 
+            // assert
+            watch.Elapsed.Should().BeLessOrEqualTo(TimeSpan.FromSeconds(0.1));
             value.Should().BeEquivalentTo(
                 TestValue($"value-{count}") with { Audit = Audit(count) },
                 o => o.ComparingByMembers<ValueRecord>());
@@ -179,23 +176,22 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             var value = await Storage.TryRemove(TestKey);
 
-            value.Should().BeEquivalentTo(
-                new {Value = TestValue("value") with {Audit = Audit()}},
-                o => o.ComparingByMembers<ValueRecord>());
+            value.Should().BeEquivalentTo(new {Value = TestValue("value")}, o => o.ComparingByMembers<ValueRecord>());
         }
 
         [Test]
         public async Task TryRemove_doesNotLostVersions_AddOrUpdateConcurrently()
         {
-            await Storage.AddOrGet(TestKey, TestValue("value-1"));
+            var requestedValues = Enumerable.Range(1, 5).Select(i => TestValue($"value-{i}", version: i)).ToArray();
+            await Storage.AddOrGet(TestKey, requestedValues[0]);
 
             var removeTask = Storage.TryRemove(TestKey);
             await Task.WhenAll(
                 removeTask,
-                Storage.AddOrUpdate(TestKey, TestValue("value-2")),
-                Storage.AddOrUpdate(TestKey, TestValue("value-3")),
-                Storage.AddOrUpdate(TestKey, TestValue("value-4")),
-                Storage.AddOrUpdate(TestKey, TestValue("value-5")));
+                Storage.AddOrUpdate(TestKey, requestedValues[1]),
+                Storage.AddOrUpdate(TestKey, requestedValues[2]),
+                Storage.AddOrUpdate(TestKey, requestedValues[3]),
+                Storage.AddOrUpdate(TestKey, requestedValues[4]));
 
             var value = await Storage.TryGet(TestKey);
             var version1 = removeTask.Result.GetValueOrDefault()?.Audit.Version ?? 0;
@@ -215,7 +211,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         public async Task TryRemoveByVersion_returnsSome_exists()
         {
             foreach (var i in Enumerable.Range(1, 5))
-                await Storage.AddOrUpdate(TestKey, TestValue($"value-{i}"));
+                await Storage.AddOrUpdate(TestKey, TestValue($"value-{i}", version: i));
 
             var count = await Storage.TryRemove(TestKey, upToVersion: 4);
 
@@ -259,7 +255,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
                 var ping = await MongoClient.GetDatabase("db").RunCommandAsync(
                     (Command<BsonDocument>)"{ping:1}",
                     ReadPreference.Nearest,
-                    new CancellationTokenSource(1000).Token);
+                    CancellationToken);
                 pingContent = ping.ToString();
             }
             catch
@@ -269,18 +265,17 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             if (!pingContent.Contains("ok"))
                 Assert.Ignore($"The tests require mongodb instance at {connectionString}.");
-
-            await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName);
         }
 
         [OneTimeTearDown]
         public void OneTimeTearDown() => Provider?.Dispose();
 
         [SetUp, TearDown]
-        public async Task Cleanup() => await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName, new CancellationTokenSource(200).Token);
+        public async Task Cleanup() => await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName, CancellationToken);
 
-        private ValueRecord TestValue(string type) => new(Type: type, Content: Array.Empty<byte>(), new Audit(TestCorrelationId, TestUser, TestDate, version: 1));
-        private Audit Audit(int version = 1) => new(TestCorrelationId, TestUser, TestDate, version);
+        private static CancellationToken CancellationToken => new CancellationTokenSource(200).Token;
+        private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
+        private Audit Audit(int version) => new(TestCorrelationId, TestUser, TestDate, version);
         private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>());
         private string TestCorrelationId { get; } = Guid.NewGuid().ToString();
         private string TestUser { get; } = Guid.NewGuid().ToString();

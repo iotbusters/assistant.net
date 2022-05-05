@@ -32,22 +32,19 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             var value = await Storage.AddOrGet(TestKey, TestValue("added-2"));
 
-            value.Should().BeEquivalentTo(
-                TestValue("added-1") with {Audit = Audit()},
-                o => o.ComparingByMembers<ValueRecord>());
+            value.Should().BeEquivalentTo(TestValue("added-1"), o => o.ComparingByMembers<ValueRecord>());
         }
 
         [TestCase(5)]
         public async Task AddOrGet_returnsValuesAndInitialVersion_concurrently(int concurrencyCount)
         {
             var tasks = Enumerable.Range(1, concurrencyCount).Select(
-                i => Storage.AddOrGet(TestKey, TestValue($"value-{i}")));
+                i => Storage.AddOrGet(TestKey, TestValue($"value-{i}", version: 1)));
             var values = await Task.WhenAll(tasks);
+            values.Select(x => x.Type).Distinct().Should().HaveCount(1);
 
             var lastValue = await Storage.TryGet(TestKey);
-
-            lastValue.Should().BeEquivalentTo(new {Value = new {Audit = Audit()}});
-            values.Select(x => x.Type).Distinct().Should().HaveCount(1);
+            lastValue.Should().BeEquivalentTo(new {Value = new {Audit = Audit(version: 1)}});
         }
 
         [Test]
@@ -55,9 +52,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         {
             var value = await Storage.AddOrUpdate(TestKey, _ => TestValue("added"), (_, _) => TestValue("updated"));
 
-            value.Should().BeEquivalentTo(
-                TestValue("added") with {Audit = Audit()},
-                o => o.ComparingByMembers<ValueRecord>());
+            value.Should().BeEquivalentTo(TestValue("added"), o => o.ComparingByMembers<ValueRecord>());
         }
 
         [Test]
@@ -67,22 +62,21 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             var value = await Storage.AddOrUpdate(TestKey, _ => TestValue("added-2"), (_, _) => TestValue("updated"));
 
-            value.Should().BeEquivalentTo(
-                TestValue("updated") with {Audit = Audit(2)},
-                o => o.ComparingByMembers<ValueRecord>());
+            value.Should().BeEquivalentTo(TestValue("updated"), o => o.ComparingByMembers<ValueRecord>());
         }
 
         [TestCase(5)]
-        public async Task AddOrUpdate_returnsValuesAndLastVersion_concurrently(int concurrencyCount)
+        public async Task AddOrUpdate_returnsValuesAndOneOfRequestedVersions_concurrently(int concurrencyCount)
         {
-            var tasks = Enumerable.Range(1, concurrencyCount).Select(
-                i => Storage.AddOrUpdate(TestKey, TestValue($"value-{i}")));
+            var requestedValues = Enumerable.Range(1, concurrencyCount).Select(i => TestValue($"value-{i}", version: i)).ToArray();
+            var tasks = requestedValues.Select(x => Storage.AddOrUpdate(TestKey, x));
+
             var values = await Task.WhenAll(tasks);
+            values.Should().BeEquivalentTo(requestedValues);
 
             var lastValue = await Storage.TryGet(TestKey);
-
-            lastValue.Should().BeEquivalentTo(new {Value = new {Audit = Audit(concurrencyCount)}});
-            values.Should().BeEquivalentTo(Enumerable.Range(1, concurrencyCount).Select(i => new {Type = $"value-{i}"}));
+            lastValue.Should().BeOfType<Some<ValueRecord>>();
+            requestedValues.Should().ContainEquivalentOf(lastValue.GetValueOrFail());
         }
 
         [Test]
@@ -100,9 +94,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             var value = await Storage.TryGet(TestKey);
 
-            value.Should().BeEquivalentTo(
-                new {Value = TestValue("value") with {Audit = Audit()}},
-                o => o.ComparingByMembers<ValueRecord>());
+            value.Should().BeEquivalentTo(new {Value = TestValue("value")}, o => o.ComparingByMembers<ValueRecord>());
         }
 
         [Test]
@@ -120,9 +112,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
 
             var value = await Storage.TryRemove(TestKey);
 
-            value.Should().BeEquivalentTo(
-                new {Value = TestValue("value") with {Audit = Audit()}},
-                o => o.ComparingByMembers<ValueRecord>());
+            value.Should().BeEquivalentTo(new {Value = TestValue("value")}, o => o.ComparingByMembers<ValueRecord>());
         }
 
         [Test]
@@ -154,7 +144,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
                 var ping = await mongoClient.GetDatabase("db").RunCommandAsync(
                     (Command<BsonDocument>)"{ping:1}",
                     ReadPreference.Nearest,
-                    new CancellationTokenSource(1000).Token);
+                    CancellationToken);
                 pingContent = ping.ToString();
             }
             catch
@@ -170,11 +160,12 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         public void OneTimeTearDown() => Provider?.Dispose();
 
         [SetUp, TearDown]
-        public Task Cleanup() => MongoClient.DropDatabaseAsync(MongoNames.DatabaseName);
+        public Task Cleanup() => MongoClient.DropDatabaseAsync(MongoNames.DatabaseName, CancellationToken);
 
+        private static CancellationToken CancellationToken => new CancellationTokenSource(200).Token;
+        private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
+        private Audit Audit(int version) => new(TestCorrelationId, TestUser, TestDate, version);
         private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>());
-        private ValueRecord TestValue(string type) => new(Type: type, Content: Array.Empty<byte>(), new Audit(TestCorrelationId, TestUser, TestDate, version: 1));
-        private Audit Audit(int version = 1) => new(TestCorrelationId, TestUser, TestDate, version);
         private string TestCorrelationId { get; set; } = Guid.NewGuid().ToString();
         private string TestUser { get; set; } = Guid.NewGuid().ToString();
         private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;
