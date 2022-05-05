@@ -95,6 +95,31 @@ namespace Assistant.Net
         }
 
         /// <summary>
+        ///     Registers Configure calls for the same named <typeparamref name="TOptions"/>
+        ///     to the underlying service collection and custom options binding configuration.
+        /// </summary>
+        /// <typeparam name="TOptions">The options type to be configured.</typeparam>
+        /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+        /// <param name="source">Custom configuration options source instance.</param>
+        public static IServiceCollection BindOptions<TOptions>(this IServiceCollection services, IConfigureOptionsSource<TOptions> source)
+            where TOptions : class => services
+            .BindOptions(Microsoft.Extensions.Options.Options.DefaultName, source);
+
+        /// <summary>
+        ///     Registers Configure calls for the same named <typeparamref name="TOptions"/>
+        ///     to the underlying service collection and custom options binding configuration.
+        /// </summary>
+        /// <typeparam name="TOptions">The options type to be configured.</typeparam>
+        /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+        /// <param name="name">The name of the options instance.</param>
+        /// <param name="source">Custom configuration options source instance.</param>
+        public static IServiceCollection BindOptions<TOptions>(this IServiceCollection services, string name, IConfigureOptionsSource<TOptions> source)
+            where TOptions : class => services
+            .AddOptions<TOptions>(name)
+            .Bind(source)
+            .Services;
+
+        /// <summary>
         ///     Registers a configuration instance which TOptions will bind against.
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
