@@ -36,16 +36,9 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         }
 
         [Test]
-        public async Task TryGet_throwsException_indexIsZero()
-        {
-            await PartitionedStorage.Awaiting(x => x.TryGet(TestKey, 0))
-                .Should().ThrowAsync<ArgumentOutOfRangeException>();
-        }
-
-        [Test]
         public async Task TryGet_returnsNone_noKey()
         {
-            var value = await PartitionedStorage.TryGet(TestKey, 1);
+            var value = await PartitionedStorage.TryGet(TestKey, index: 1);
 
             value.Should().Be((Option<ValueRecord>)Option.None);
         }
@@ -55,7 +48,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         {
             await PartitionedStorage.Add(TestKey, TestValue("added"));
 
-            var value = await PartitionedStorage.TryGet(TestKey, 1);
+            var value = await PartitionedStorage.TryGet(TestKey, index: 1);
 
             value.Should().BeEquivalentTo(new {Value = TestValue("added")}, o => o.ComparingByMembers<ValueRecord>());
         }
@@ -74,7 +67,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         [Test]
         public async Task TryRemove_returnsZero_noKey()
         {
-            var count = await PartitionedStorage.TryRemove(TestKey, 10);
+            var count = await PartitionedStorage.TryRemove(TestKey, upToIndex: 10);
 
             count.Should().Be(0);
         }
@@ -84,7 +77,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         {
             await PartitionedStorage.Add(TestKey, TestValue("value"));
 
-            var count = await PartitionedStorage.TryRemove(TestKey, 10);
+            var count = await PartitionedStorage.TryRemove(TestKey, upToIndex: 10);
 
             count.Should().Be(1);
         }
@@ -95,16 +88,16 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
             await PartitionedStorage.Add(TestKey, TestValue("value-1", version: 1));
             await PartitionedStorage.Add(TestKey, TestValue("value-2", version: 2));
 
-            var count1 = await PartitionedStorage.TryRemove(TestKey, 1);
+            var count1 = await PartitionedStorage.TryRemove(TestKey, upToIndex: 1);
             count1.Should().Be(1);
 
-            var value1 = await PartitionedStorage.TryGet(TestKey, 1);
+            var value1 = await PartitionedStorage.TryGet(TestKey, index: 1);
             value1.Should().Be((Option<ValueRecord>)Option.None);
 
-            var value2 = await PartitionedStorage.TryGet(TestKey, 2);
+            var value2 = await PartitionedStorage.TryGet(TestKey, index: 2);
             value2.Should().BeEquivalentTo(new {Value = new {Type = "value-2"}});
 
-            var count2 = await PartitionedStorage.TryRemove(TestKey, 2);
+            var count2 = await PartitionedStorage.TryRemove(TestKey, upToIndex: 2);
             count2.Should().Be(1);
         }
 
