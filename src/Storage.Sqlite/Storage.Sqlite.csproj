@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <RootNamespace>Assistant.Net.Storage</RootNamespace>
+    <AssemblyName>assistant.net.storage.sqlite</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Nullable>enable</Nullable>
+    <WarningsAsErrors>nullbale</WarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.3" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Storage\Storage.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <Product>Assistant.NET</Product>
+    <RepositoryType>github</RepositoryType>
+    <PackageTags>storage store sqlite</PackageTags>
+    <Description>A SQLite based storage implementation.</Description>
+    <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetstoragesqlite</PackageProjectUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>
