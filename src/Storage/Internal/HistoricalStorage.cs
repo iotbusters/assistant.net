@@ -1,6 +1,7 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Storage.Exceptions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
 using Assistant.Net.Utils;
@@ -32,22 +33,40 @@ namespace Assistant.Net.Storage.Internal
 
         public async Task<Option<TValue>> TryGet(TKey key, long version, CancellationToken token)
         {
-            var keyContent = await KeyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: KeyType,
-                content: keyContent);
-            return await backedStorage.TryGet(keyRecord, version, token).MapOption(x => ValueConverter.Convert(x.Content, token));
+            if (version <= 0)
+                throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {version}.", nameof(version));
+            try
+            {
+                var keyContent = await KeyConverter.Convert(key, token);
+                var keyRecord = new KeyRecord(
+                    id: keyContent.GetSha1(),
+                    type: KeyType,
+                    content: keyContent);
+                return await backedStorage.TryGet(keyRecord, version, token).MapOption(x => ValueConverter.Convert(x.Content, token));
+            }
+            catch (Exception ex)
+            {
+                throw new StorageException(ex);
+            }
         }
 
         public async Task<long> TryRemove(TKey key, long upToVersion, CancellationToken token)
         {
-            var keyContent = await KeyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: KeyType,
-                content: keyContent);
-            return await backedStorage.TryRemove(keyRecord, upToVersion, token);
+            if (upToVersion <= 0)
+                throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {upToVersion}.", nameof(upToVersion));
+            try
+            {
+                var keyContent = await KeyConverter.Convert(key, token);
+                var keyRecord = new KeyRecord(
+                    id: keyContent.GetSha1(),
+                    type: KeyType,
+                    content: keyContent);
+                return await backedStorage.TryRemove(keyRecord, upToVersion, token);
+            }
+            catch (Exception ex)
+            {
+                throw new StorageException(ex);
+            }
         }
     }
 }

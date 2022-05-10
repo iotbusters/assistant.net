@@ -1,6 +1,7 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Storage.Exceptions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
 using Assistant.Net.Utils;
@@ -60,21 +61,28 @@ namespace Assistant.Net.Storage.Internal
 
         public async Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory, CancellationToken token)
         {
-            var keyContent = await KeyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: KeyType,
-                content: keyContent);
-            var valueRecord = await backedStorage.AddOrGet(
-                keyRecord,
-                addFactory: async _ =>
-                {
-                    var value = await addFactory(key);
-                    var content = await ValueConverter.Convert(value, token);
-                    var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, 1);
-                    return new ValueRecord(ValueType, content, audit);
-                }, token);
-            return await ValueConverter.Convert(valueRecord.Content, token);
+            try
+            {
+                var keyContent = await KeyConverter.Convert(key, token);
+                var keyRecord = new KeyRecord(
+                    id: keyContent.GetSha1(),
+                    type: KeyType,
+                    content: keyContent);
+                var valueRecord = await backedStorage.AddOrGet(
+                    keyRecord,
+                    addFactory: async _ =>
+                    {
+                        var value = await addFactory(key);
+                        var content = await ValueConverter.Convert(value, token);
+                        var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, 1);
+                        return new ValueRecord(ValueType, content, audit);
+                    }, token);
+                return await ValueConverter.Convert(valueRecord.Content, token);
+            }
+            catch (Exception ex)
+            {
+                throw new StorageException(ex);
+            }
         }
 
         public async Task<TValue> AddOrUpdate(
@@ -83,12 +91,14 @@ namespace Assistant.Net.Storage.Internal
             Func<TKey, TValue, Task<TValue>> updateFactory,
             CancellationToken token)
         {
-            var keyContent = await KeyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: KeyType,
-                content: keyContent);
-            var valueRecord = await backedStorage.AddOrUpdate(
+            try
+            {
+                var keyContent = await KeyConverter.Convert(key, token);
+                var keyRecord = new KeyRecord(
+                    id: keyContent.GetSha1(),
+                    type: KeyType,
+                    content: keyContent);
+                var valueRecord = await backedStorage.AddOrUpdate(
                     keyRecord,
                     addFactory: async _ =>
                     {
@@ -106,27 +116,46 @@ namespace Assistant.Net.Storage.Internal
                         return new ValueRecord(ValueType, content, audit);
                     },
                     token);
-            return await ValueConverter.Convert(valueRecord.Content, token);
+                return await ValueConverter.Convert(valueRecord.Content, token);
+            }
+            catch (Exception ex)
+            {
+                throw new StorageException(ex);
+            }
         }
 
         public async Task<Option<TValue>> TryGet(TKey key, CancellationToken token)
         {
-            var keyContent = await KeyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: KeyType,
-                content: keyContent);
-            return await backedStorage.TryGet(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
+            try
+            {
+                var keyContent = await KeyConverter.Convert(key, token);
+                var keyRecord = new KeyRecord(
+                    id: keyContent.GetSha1(),
+                    type: KeyType,
+                    content: keyContent);
+                return await backedStorage.TryGet(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
+            }
+            catch (Exception ex)
+            {
+                throw new StorageException(ex);
+            }
         }
 
         public async Task<Option<TValue>> TryRemove(TKey key, CancellationToken token)
         {
-            var keyContent = await KeyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: KeyType,
-                content: keyContent);
-            return await backedStorage.TryRemove(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
+            try
+            {
+                var keyContent = await KeyConverter.Convert(key, token);
+                var keyRecord = new KeyRecord(
+                    id: keyContent.GetSha1(),
+                    type: KeyType,
+                    content: keyContent);
+                return await backedStorage.TryRemove(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
+            }
+            catch (Exception ex)
+            {
+                throw new StorageException(ex);
+            }
         }
 
         public IAsyncEnumerable<TKey> GetKeys(CancellationToken token) =>

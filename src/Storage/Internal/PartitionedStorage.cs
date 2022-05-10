@@ -1,6 +1,7 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Storage.Exceptions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
 using Assistant.Net.Utils;
@@ -41,26 +42,42 @@ namespace Assistant.Net.Storage.Internal
 
         public async Task<long> Add(TKey key, TValue value, CancellationToken token)
         {
-            var keyContent = await keyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: keyType,
-                content: keyContent);
-            var content = await valueConverter.Convert(value, token);
-            var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, 1);
-            var valueRecord = new ValueRecord(valueType, content, audit);
-            return await backedStorage.Add(keyRecord, valueRecord, token);
+            try
+            {
+                var keyContent = await keyConverter.Convert(key, token);
+                var keyRecord = new KeyRecord(
+                    id: keyContent.GetSha1(),
+                    type: keyType,
+                    content: keyContent);
+                var content = await valueConverter.Convert(value, token);
+                var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, 1);
+                var valueRecord = new ValueRecord(valueType, content, audit);
+                return await backedStorage.Add(keyRecord, valueRecord, token);
+            }
+            catch (Exception ex)
+            {
+                throw new StorageException(ex);
+            }
         }
 
         public async Task<Option<TValue>> TryGet(TKey key, long index, CancellationToken token)
         {
-            var keyContent = await keyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: keyType,
-                content: keyContent);
-            var option = await backedStorage.TryGet(keyRecord, index, token);
-            return await option.MapOption(x => valueConverter.Convert(x.Content, token));
+            if (index <= 0)
+                throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {index}.", nameof(index));
+            try
+            {
+                var keyContent = await keyConverter.Convert(key, token);
+                var keyRecord = new KeyRecord(
+                    id: keyContent.GetSha1(),
+                    type: keyType,
+                    content: keyContent);
+                var option = await backedStorage.TryGet(keyRecord, index, token);
+                return await option.MapOption(x => valueConverter.Convert(x.Content, token));
+            }
+            catch (Exception ex)
+            {
+                throw new StorageException(ex);
+            }
         }
 
         public IAsyncEnumerable<TKey> GetKeys(CancellationToken token) =>
