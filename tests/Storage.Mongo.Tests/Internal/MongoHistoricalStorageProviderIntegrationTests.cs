@@ -144,7 +144,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
             // arrange: storage population
             foreach (var i in Enumerable.Range(1, count))
             {
-                await Storage.AddOrUpdate(new KeyRecord(i.ToString(), "type", new byte[0]), TestValue($"{i}-1"));
+                await Storage.AddOrUpdate(new KeyRecord(i.ToString(), "type", Array.Empty<byte>()), TestValue($"{i}-1"));
                 await Storage.AddOrUpdate(TestKey, TestValue($"value-{i}"));
             }
 
@@ -157,8 +157,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
             // assert
             watch.Elapsed.Should().BeLessOrEqualTo(TimeSpan.FromSeconds(0.1));
             value.Should().BeEquivalentTo(
-                TestValue($"value-{count}") with { Audit = Audit(count) },
-                o => o.ComparingByMembers<ValueRecord>());
+                TestValue($"value-{count}", version: count), o => o.ComparingByMembers<ValueRecord>());
         }
 
         [Test]
@@ -218,7 +217,7 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
             count.Should().Be(4);
             var value5 = await Storage.TryGet(TestKey, version: 5);
             value5.Should().BeEquivalentTo(
-                new {Value = TestValue("value-5") with {Audit = Audit(5)}},
+                new {Value = TestValue("value-5", version: 5)},
                 o => o.ComparingByMembers<ValueRecord>());
             var value4 = await Storage.TryGet(TestKey, version: 4);
             value4.Should().BeEquivalentTo(new None<ValueRecord>());
@@ -270,8 +269,8 @@ namespace Assistant.Net.Storage.Mongo.Tests.Internal
         [OneTimeTearDown]
         public void OneTimeTearDown() => Provider?.Dispose();
 
-        [SetUp, TearDown]
-        public async Task Cleanup() => await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName, CancellationToken);
+        [SetUp]
+        public async Task SetUp() => await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName, CancellationToken);
 
         private static CancellationToken CancellationToken => new CancellationTokenSource(200).Token;
         private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));

@@ -150,9 +150,6 @@ namespace Assistant.Net.Storage.Internal
         /// <exception cref="ArgumentOutOfRangeException" />
         public async Task<Option<ValueRecord>> TryGet(KeyRecord key, long version, CancellationToken token)
         {
-            if (version <= 0)
-                throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {version}.");
-
             logger.LogDebug("Storage.TryGet({KeyId}:{Version}): begins.", key.Id, version);
 
             var currentValue = await (
@@ -236,9 +233,6 @@ namespace Assistant.Net.Storage.Internal
 
         public async Task<long> TryRemove(KeyRecord key, long upToVersion, CancellationToken token)
         {
-            if (upToVersion <= 0)
-                throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {upToVersion}.");
-
             logger.LogDebug("Storage.TryRemove({KeyId}:*/{Version}): cleaning key-value references.", key.Id, upToVersion);
 
             var deletedCount = await DeleteMany(
