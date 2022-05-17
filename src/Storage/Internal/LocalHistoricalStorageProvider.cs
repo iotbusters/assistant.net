@@ -7,92 +7,98 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Storage.Internal
+namespace Assistant.Net.Storage.Internal;
+
+internal sealed class LocalHistoricalStorageProvider<TValue> : IHistoricalStorageProvider<TValue>, IPartitionedStorageProvider<TValue>
 {
-    internal sealed class LocalHistoricalStorageProvider<TValue> : IHistoricalStorageProvider<TValue>
+    private readonly ConcurrentDictionary<KeyRecord, ConcurrentDictionary<long, ValueRecord>> backedStorage = new();
+
+    public Task<ValueRecord> AddOrGet(KeyRecord key, Func<KeyRecord, Task<ValueRecord>> addFactory, CancellationToken token)
     {
-        private readonly ConcurrentDictionary<KeyRecord, ConcurrentDictionary<long, ValueRecord>> backedStorage = new();
+        var versions = backedStorage.GetOrAdd(key, valueFactory: _ => new());
 
-        public Task<ValueRecord> AddOrGet(KeyRecord key, Func<KeyRecord, Task<ValueRecord>> addFactory, CancellationToken token)
+        ValueRecord? currentVersion;
+        while (!versions.TryGetValue(versions.Keys.DefaultIfEmpty(0).Max(), out currentVersion))
         {
-            var versions = backedStorage.GetOrAdd(key, valueFactory: _ => new());
+            var added = addFactory(key).ConfigureAwait(false).GetAwaiter().GetResult();
+            versions.TryAdd(1, added with { Audit = new Audit(added.Audit.Details, version: 1) });
+        }
 
-            ValueRecord? currentVersion;
-            while (!versions.TryGetValue(versions.Keys.DefaultIfEmpty(0).Max(), out currentVersion))
+        return Task.FromResult(currentVersion);
+    }
+
+    public Task<ValueRecord> AddOrUpdate(
+        KeyRecord key,
+        Func<KeyRecord, Task<ValueRecord>> addFactory,
+        Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
+        CancellationToken _)
+    {
+        var versions = backedStorage.GetOrAdd(key, valueFactory: _ => new());
+
+        while (true)
+            if (!versions.TryGetValue(versions.Keys.DefaultIfEmpty(0).Max(), out var currentVersion))
             {
                 var added = addFactory(key).ConfigureAwait(false).GetAwaiter().GetResult();
-                versions.TryAdd(1, added with { Audit = new Audit(added.Audit.Details, version: 1) });
+                if (versions.TryAdd(added.Audit.Version, added))
+                    return Task.FromResult(added);
             }
-
-            return Task.FromResult(currentVersion);
-        }
-
-        public Task<ValueRecord> AddOrUpdate(
-            KeyRecord key,
-            Func<KeyRecord, Task<ValueRecord>> addFactory,
-            Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
-            CancellationToken _)
-        {
-            var versions = backedStorage.GetOrAdd(key, valueFactory: _ => new());
-
-            while (true)
-                if (!versions.TryGetValue(versions.Keys.DefaultIfEmpty(0).Max(), out var currentVersion))
-                {
-                    var added = addFactory(key).ConfigureAwait(false).GetAwaiter().GetResult();
-                    if (versions.TryAdd(added.Audit.Version, added))
-                        return Task.FromResult(added);
-                }
-                else
-                {
-                    var added = updateFactory(key, currentVersion).ConfigureAwait(false).GetAwaiter().GetResult();
-                    if(versions.TryAdd(added.Audit.Version, added))
-                        return Task.FromResult(added);
-                }
-        }
-
-        public Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken _) =>
-            Task.FromResult(
-                backedStorage.TryGetValue(key, out var versions)
-                && versions.TryGetValue(versions.Keys.DefaultIfEmpty(0).Max(), out var value)
-                    ? Option.Some(value)
-                    : Option.None);
-
-        public Task<Option<ValueRecord>> TryGet(KeyRecord key, long version, CancellationToken _) =>
-            Task.FromResult(
-                backedStorage.TryGetValue(key, out var versions) && versions.TryGetValue(version, out var value)
-                    ? Option.Some(value)
-                    : Option.None);
-
-        public Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken _)
-        {
-            if(!backedStorage.TryRemove(key, out var versions))
-                return Task.FromResult<Option<ValueRecord>>(Option.None);
-
-            return Task.FromResult(
-                versions.TryGetValue(versions.Keys.DefaultIfEmpty(0).Max(), out var value)
-                    ? Option.Some(value)
-                    : Option.None);
-        }
-
-        public Task<long> TryRemove(KeyRecord key, long upToVersion, CancellationToken _)
-        {
-            if (!backedStorage.TryGetValue(key, out var versions))
-                return Task.FromResult(0L);
-
-            var count = 0L;
-            foreach (var version in versions.Keys.OrderBy(x => x).Where(x => x <= upToVersion))
-                if (versions.TryRemove(version, out var _))
-                    count++;
-
-            if (!versions.Any())
-                if (backedStorage.TryRemove(key, out var latestVersions))
-                    count += latestVersions.Count;// note: race condition.
-
-            return Task.FromResult(count);
-        }
-
-        public IQueryable<KeyRecord> GetKeys() => backedStorage.Keys.AsQueryable();
-
-        void IDisposable.Dispose() { }
+            else
+            {
+                var added = updateFactory(key, currentVersion).ConfigureAwait(false).GetAwaiter().GetResult();
+                if(versions.TryAdd(added.Audit.Version, added))
+                    return Task.FromResult(added);
+            }
     }
+
+    public async Task<long> Add(
+        KeyRecord key,
+        Func<KeyRecord, Task<ValueRecord>> addFactory,
+        Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
+        CancellationToken token = default) =>
+        await AddOrUpdate(key, addFactory, updateFactory, token).MapCompleted(x => x.Audit.Version);
+
+    public Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken _) =>
+        Task.FromResult(
+            backedStorage.TryGetValue(key, out var versions)
+            && versions.TryGetValue(versions.Keys.DefaultIfEmpty(0).Max(), out var value)
+                ? Option.Some(value)
+                : Option.None);
+
+    public Task<Option<ValueRecord>> TryGet(KeyRecord key, long version, CancellationToken _) =>
+        Task.FromResult(
+            backedStorage.TryGetValue(key, out var versions) && versions.TryGetValue(version, out var value)
+                ? Option.Some(value)
+                : Option.None);
+
+    public Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken _)
+    {
+        if(!backedStorage.TryRemove(key, out var versions))
+            return Task.FromResult<Option<ValueRecord>>(Option.None);
+
+        return Task.FromResult(
+            versions.TryGetValue(versions.Keys.DefaultIfEmpty(0).Max(), out var value)
+                ? Option.Some(value)
+                : Option.None);
+    }
+
+    public Task<long> TryRemove(KeyRecord key, long upToVersion, CancellationToken _)
+    {
+        if (!backedStorage.TryGetValue(key, out var versions))
+            return Task.FromResult(0L);
+
+        var count = 0L;
+        foreach (var version in versions.Keys.OrderBy(x => x).Where(x => x <= upToVersion))
+            if (versions.TryRemove(version, out var _))
+                count++;
+
+        if (!versions.Any())
+            if (backedStorage.TryRemove(key, out var latestVersions))
+                count += latestVersions.Count;// note: race condition.
+
+        return Task.FromResult(count);
+    }
+
+    public IQueryable<KeyRecord> GetKeys() => backedStorage.Keys.AsQueryable();
+
+    void IDisposable.Dispose() { }
 }
