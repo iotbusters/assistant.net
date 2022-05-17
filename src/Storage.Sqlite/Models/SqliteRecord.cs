@@ -28,9 +28,6 @@ public class SqliteRecord
         Details = details.Select(x => new Detail(x.Key, x.Value)).ToArray();
     }
 
-    /// <inheritdoc cref="SqliteKeyRecord"/>
-    public SqliteKeyRecord Key { get; set; } = default!;
-
     /// <summary/>
     public string KeyId { get; set; } = default!;
 

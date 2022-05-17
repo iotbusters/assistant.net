@@ -8,14 +8,8 @@ namespace Assistant.Net.Storage.Options
     /// <summary>
     ///     SQLite client configuration for specific storage usage.
     /// </summary>
-    public class SqliteOptions
+    public class SqliteStoringOptions
     {
-        /// <summary>
-        ///     Sqlite server connection string.
-        /// </summary>
-        [Required, MinLength(11)]//11:  DataSource=
-        public string ConnectionString { get; set; } = null!;
-
         /// <summary>
         ///     Optimistic concurrent insert operation retrying strategy.
         /// </summary>

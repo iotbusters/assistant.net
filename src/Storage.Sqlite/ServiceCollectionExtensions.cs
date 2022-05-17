@@ -3,29 +3,22 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace Assistant.Net.Storage
+namespace Assistant.Net.Storage;
+
+/// <summary>
+///     Service collection extensions for SQLite storage.
+/// </summary>
+public static class ServiceCollectionExtensions
 {
     /// <summary>
-    ///     Service collection extensions for MongoDB storage.
+    ///     Registers a configuration instance which <see cref="SqliteStoringOptions"/> will bind against.
     /// </summary>
-    public static class ServiceCollectionExtensions
-    {
-        /// <summary>
-        ///     Registers a <see cref="SqliteOptions"/> configuration from MongoDB <paramref name="connectionString"/>.
-        /// </summary>
-        public static IServiceCollection ConfigureSqliteOptions(this IServiceCollection services, string connectionString) => services
-            .Configure<SqliteOptions>(o => o.Connection(connectionString));
+    public static IServiceCollection ConfigureSqliteStoringOptions(this IServiceCollection services, IConfigurationSection configuration) => services
+        .Configure<SqliteStoringOptions>(configuration);
 
-        /// <summary>
-        ///     Registers a configuration instance which <see cref="SqliteOptions"/> will bind against.
-        /// </summary>
-        public static IServiceCollection ConfigureSqliteOptions(this IServiceCollection services, IConfigurationSection configuration) => services
-            .Configure<SqliteOptions>(configuration);
-
-        /// <summary>
-        ///    Register an action used to configure <see cref="SqliteOptions"/> options.
-        /// </summary>
-        public static IServiceCollection ConfigureSqliteOptions(this IServiceCollection services, Action<SqliteOptions> configureOptions) => services
-            .Configure(configureOptions);
-    }
+    /// <summary>
+    ///    Register an action used to configure <see cref="SqliteStoringOptions"/> options.
+    /// </summary>
+    public static IServiceCollection ConfigureSqliteStoringOptions(this IServiceCollection services, Action<SqliteStoringOptions> configureOptions) => services
+        .Configure(configureOptions);
 }
