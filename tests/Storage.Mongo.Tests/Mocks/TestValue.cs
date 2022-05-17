@@ -1,4 +1,3 @@
-﻿namespace Assistant.Net.Storage.Mongo.Tests.Mocks
-{
-    public record TestValue(bool IsSuccess);
-}
+﻿namespace Assistant.Net.Storage.Mongo.Tests.Mocks;
+
+public record TestValue(bool IsSuccess);

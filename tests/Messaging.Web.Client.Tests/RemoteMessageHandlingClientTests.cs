@@ -11,67 +11,66 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging.Web.Client.Tests
+namespace Assistant.Net.Messaging.Web.Client.Tests;
+
+public class RemoteMessageHandlingClientTests
 {
-    public class RemoteMessageHandlingClientTests
+    private const string RequestUri = "http://localhost";
+    private static readonly TestScenarioMessage ValidMessage = new(0);
+    private static readonly TestResponse SuccessResponse = new(true);
+    private static readonly MessageFailedException FailedResponse = new("test");
+
+    private static Task<byte[]> Binary<T>(T value) => Provider.GetRequiredService<ISerializer<T>>().Serialize(value);
+    private static readonly IServiceProvider Provider = new ServiceCollection().AddExceptionJsonSerialization().BuildServiceProvider();
+
+    [Test]
+    public async Task DelegateHandling_sendsHttpRequestMessage()
     {
-        private const string RequestUri = "http://localhost";
-        private static readonly TestScenarioMessage ValidMessage = new(0);
-        private static readonly TestResponse SuccessResponse = new(true);
-        private static readonly MessageFailedException FailedResponse = new("test");
+        var handler = new TestDelegatingHandler(await Binary(SuccessResponse), HttpStatusCode.OK);
+        var client = Client(handler);
 
-        private static Task<byte[]> Binary<T>(T value) => Provider.GetRequiredService<ISerializer<T>>().Serialize(value);
-        private static readonly IServiceProvider Provider = new ServiceCollection().AddJsonSerialization().BuildServiceProvider();
+        await client.DelegateHandling(ValidMessage);
 
-        [Test]
-        public async Task DelegateHandling_sendsHttpRequestMessage()
+        handler.Request.Should().BeEquivalentTo(new HttpRequestMessage(HttpMethod.Post, RequestUri)
         {
-            var handler = new TestDelegatingHandler(await Binary(SuccessResponse), HttpStatusCode.OK);
-            var client = Client(handler);
+            Headers = { { ClientHeaderNames.MessageName, nameof(TestScenarioMessage) } },
+            Content = new ByteArrayContent(await Binary(SuccessResponse))
+        });
+    }
 
-            await client.DelegateHandling(ValidMessage);
+    [Test]
+    public async Task DelegateHandling_returnsTestResponse()
+    {
+        var handler = new TestDelegatingHandler(await Binary(SuccessResponse), HttpStatusCode.OK);
+        var client = Client(handler);
 
-            handler.Request.Should().BeEquivalentTo(new HttpRequestMessage(HttpMethod.Post, RequestUri)
-            {
-                Headers = { { HeaderNames.MessageName, nameof(TestScenarioMessage) } },
-                Content = new ByteArrayContent(await Binary(SuccessResponse))
-            });
-        }
+        var response = await client.DelegateHandling(ValidMessage);
 
-        [Test]
-        public async Task DelegateHandling_returnsTestResponse()
-        {
-            var handler = new TestDelegatingHandler(await Binary(SuccessResponse), HttpStatusCode.OK);
-            var client = Client(handler);
+        response.Should().Be(SuccessResponse);
+    }
 
-            var response = await client.DelegateHandling(ValidMessage);
+    [Test]
+    public async Task DelegateHandling_throwMessageFailedException()
+    {
+        var handler = new TestDelegatingHandler(await Binary(FailedResponse), HttpStatusCode.InternalServerError);
+        var client = Client(handler);
 
-            response.Should().Be(SuccessResponse);
-        }
+        await client.Awaiting(x => x.DelegateHandling(ValidMessage))
+            .Should().ThrowAsync<MessageFailedException>()
+            .WithMessage("test");
+    }
 
-        [Test]
-        public async Task DelegateHandling_throwMessageFailedException()
-        {
-            var handler = new TestDelegatingHandler(await Binary(FailedResponse), HttpStatusCode.InternalServerError);
-            var client = Client(handler);
-
-           await client.Awaiting(x => x.DelegateHandling(ValidMessage))
-               .Should().ThrowAsync<MessageFailedException>()
-               .WithMessage("test");
-        }
-
-        private static IWebMessageHandlerClient Client(DelegatingHandler handler)
-        {
-            var services = new ServiceCollection();
-            services
-                .AddRemoteWebMessagingClient()
-                .ConfigureHttpClient(c => c.BaseAddress = new Uri(RequestUri))
-                .ClearAllHttpMessageHandlers()
-                .AddHttpMessageHandler<ErrorPropagationHandler>()
-                .AddHttpMessageHandler(() => handler);
-            return services
-                .BuildServiceProvider()
-                .GetRequiredService<IWebMessageHandlerClient>();
-        }
+    private static IWebMessageHandlerClient Client(DelegatingHandler handler)
+    {
+        var services = new ServiceCollection();
+        services
+            .AddRemoteWebMessagingClient()
+            .ConfigureHttpClient(c => c.BaseAddress = new Uri(RequestUri))
+            .ClearAllHttpMessageHandlers()
+            .AddHttpMessageHandler<ErrorPropagationHandler>()
+            .AddHttpMessageHandler(() => handler);
+        return services
+            .BuildServiceProvider()
+            .GetRequiredService<IWebMessageHandlerClient>();
     }
 }

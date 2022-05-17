@@ -7,26 +7,25 @@ using NUnit.Framework;
 using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Json.Tests.Mocks;
 
-namespace Assistant.Net.Serialization.Json.Tests.Internal
+namespace Assistant.Net.Serialization.Json.Tests.Internal;
+
+public class TypedJsonSerializerTests
 {
-    public class TypedJsonSerializerTests
+    [Test]
+    public async Task SerializeAndDeserialize()
     {
-        [Test]
-        public async Task SerializeAndDeserialize()
-        {
-            var serializer = new ServiceCollection()
-                .AddSerializer(b => b.AddJsonType<TestClass>())
-                .BuildServiceProvider()
-                .GetRequiredService<ISerializer<TestClass>>();
+        var serializer = new ServiceCollection()
+            .AddSerializer(b => b.AddJsonType<TestClass>())
+            .BuildServiceProvider()
+            .GetRequiredService<ISerializer<TestClass>>();
 
-            var stream = new MemoryStream();
-            var value = new TestClass(DateTime.UtcNow);
+        var stream = new MemoryStream();
+        var value = new TestClass(DateTime.UtcNow);
 
-            await serializer.Serialize(stream, value);
-            stream.Position = 0;
-            var result = await serializer.Deserialize(stream);
+        await serializer.Serialize(stream, value);
+        stream.Position = 0;
+        var result = await serializer.Deserialize(stream);
 
-            result.Should().Be(value);
-        }
+        result.Should().Be(value);
     }
 }

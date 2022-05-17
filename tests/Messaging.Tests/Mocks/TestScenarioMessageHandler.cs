@@ -3,30 +3,29 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging.Tests.Mocks
+namespace Assistant.Net.Messaging.Tests.Mocks;
+
+public class TestScenarioMessageHandler : IMessageHandler<TestMessage, TestResponse>, IMessageHandler<IMessage<object>, object>
 {
-    public class TestScenarioMessageHandler : IMessageHandler<TestMessage, TestResponse>, IMessageHandler<IMessage<object>, object>
+    private readonly Func<TestMessage, Task<TestResponse>> handler;
+
+    public TestScenarioMessageHandler() : this(DefaultBehavior) { }
+
+    public TestScenarioMessageHandler(Exception exception) : this(_ => Task.FromException<TestResponse>(exception)) { }
+
+    public TestScenarioMessageHandler(TestResponse response) : this(_ => Task.FromResult(response)) { }
+
+    public TestScenarioMessageHandler(Func<TestMessage, Task<TestResponse>> handler) =>
+        this.handler = handler;
+
+    public Task<TestResponse> Handle(TestMessage message, CancellationToken token) => handler(message);
+
+    public async Task<object> Handle(IMessage<object> message, CancellationToken token = default) =>
+        await Handle((TestMessage)message, token);
+
+    private static Task<TestResponse> DefaultBehavior(TestMessage message) => message.Scenario switch
     {
-        private readonly Func<TestMessage, Task<TestResponse>> handler;
-
-        public TestScenarioMessageHandler() : this(DefaultBehavior) { }
-
-        public TestScenarioMessageHandler(Exception exception) : this(_ => Task.FromException<TestResponse>(exception)) { }
-
-        public TestScenarioMessageHandler(TestResponse response) : this(_ => Task.FromResult(response)) { }
-
-        public TestScenarioMessageHandler(Func<TestMessage, Task<TestResponse>> handler) =>
-            this.handler = handler;
-
-        public Task<TestResponse> Handle(TestMessage message, CancellationToken token) => handler(message);
-
-        public async Task<object> Handle(IMessage<object> message, CancellationToken token = default) =>
-            await Handle((TestMessage)message, token);
-
-        private static Task<TestResponse> DefaultBehavior(TestMessage message) => message.Scenario switch
-        {
-            0 => Task.FromResult(new TestResponse(false)),
-            _ => Task.FromException<TestResponse>(new InvalidOperationException("test"))
-        };
-    }
+        0 => Task.FromResult(new TestResponse(false)),
+        _ => Task.FromException<TestResponse>(new InvalidOperationException("test"))
+    };
 }
