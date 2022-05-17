@@ -6,7 +6,7 @@ using static Assistant.Net.Storage.SqliteNames;
 namespace Assistant.Net.Storage.Models;
 
 /// <summary>
-/// 
+///     SQLite regular storage database context.
 /// </summary>
 public class StorageDbContext : DbContext
 {
@@ -14,12 +14,12 @@ public class StorageDbContext : DbContext
     public StorageDbContext(DbContextOptions<StorageDbContext> options) : base(options) { }
 
     /// <summary>
-    /// 
+    ///     Storage keys.
     /// </summary>
     public DbSet<SqliteKeyRecord> Keys { get; set; } = null!;
 
     /// <summary>
-    /// 
+    ///     Storage values.
     /// </summary>
     public DbSet<SqliteRecord> Values { get; set; } = null!;
 
@@ -49,7 +49,7 @@ public class StorageDbContext : DbContext
             .HasConversion(x => Convert.ToBase64String(x), x => Convert.FromBase64String(x));
         valueBuilder.Property(x => x.Version)
             .IsConcurrencyToken();
-        valueBuilder.HasOne(x => x.Key)
+        valueBuilder.HasOne<SqliteKeyRecord>()
             .WithMany()
             .HasForeignKey(x => x.KeyId)
             .OnDelete(DeleteBehavior.Cascade);

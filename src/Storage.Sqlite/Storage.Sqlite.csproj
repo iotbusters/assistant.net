@@ -19,13 +19,14 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Storage\Storage.csproj" />
+    <ProjectReference Include="..\Core.Sqlite\Core.Sqlite.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
     <Product>Assistant.NET</Product>
     <RepositoryType>github</RepositoryType>
-    <PackageTags>storage store sqlite</PackageTags>
-    <Description>A SQLite based storage implementation.</Description>
+    <PackageTags>storage store sqlite sql</PackageTags>
+    <Description>An SQLite based storage implementation.</Description>
     <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
     <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetstoragesqlite</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>

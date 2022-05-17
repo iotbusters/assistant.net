@@ -6,21 +6,20 @@ using static Assistant.Net.Storage.SqliteNames;
 namespace Assistant.Net.Storage.Models;
 
 /// <summary>
-/// 
+///     SQLite historical storage database context.
 /// </summary>
 public class HistoricalStorageDbContext : DbContext
 {
-
     /// <summary/>
     public HistoricalStorageDbContext(DbContextOptions<HistoricalStorageDbContext> options) : base(options) { }
 
     /// <summary>
-    /// 
+    ///     Storage keys.
     /// </summary>
     public DbSet<SqliteKeyRecord> Keys { get; set; } = null!;
 
     /// <summary>
-    /// 
+    ///     Historical storage values.
     /// </summary>
     public DbSet<SqliteRecord> Values { get; set; } = null!;
 
@@ -50,7 +49,7 @@ public class HistoricalStorageDbContext : DbContext
             .HasConversion(x => Convert.ToBase64String(x), x => Convert.FromBase64String(x));
         valueBuilder.Property(x => x.Version)
             .IsConcurrencyToken();
-        valueBuilder.HasOne(x => x.Key)
+        valueBuilder.HasOne<SqliteKeyRecord>()
             .WithMany()
             .HasForeignKey(x => x.KeyId)
             .OnDelete(DeleteBehavior.Cascade);
