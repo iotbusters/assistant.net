@@ -4,6 +4,29 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.2.106] - 2022-05-17
+
+[Assistant.NET Release 0.2.106](https://github.com/iotbusters/assistant.net/releases/tag/0.2.106)
+
+### 0.2.106 Added
+
+- sqlite storage and messaging providers
+
+### 0.2.106 Changed
+
+- mongo messaging providers to use mongo storage instead of custom implementation
+
+### 0.2.106 Fixed
+
+- bugs in messaging client
+  - interceptor invalid ordering
+  - interceptor invalid options injecting
+  - storage invalid options registering
+
+### 0.2.106 Removed
+
+- messaging web/mongo packagees
+
 ## [0.2.105] - 2022-05-05
 
 [Assistant.NET Release 0.2.105](https://github.com/iotbusters/assistant.net/releases/tag/0.2.105)
