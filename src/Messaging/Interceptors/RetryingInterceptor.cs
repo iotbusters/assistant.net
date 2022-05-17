@@ -4,89 +4,90 @@ using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Utils;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging.Interceptors
+namespace Assistant.Net.Messaging.Interceptors;
+
+/// <inheritdoc cref="RetryingInterceptor{TMessage,TResponse}"/>
+public class RetryingInterceptor : RetryingInterceptor<IMessage<object>, object>, IMessageInterceptor
 {
-    /// <inheritdoc cref="RetryingInterceptor{TMessage,TResponse}"/>
-    public class RetryingInterceptor : RetryingInterceptor<IMessage<object>, object>, IMessageInterceptor
+    /// <summary/>
+    public RetryingInterceptor(ILogger<RetryingInterceptor> logger, IDiagnosticFactory diagnosticFactory, MessagingClientOptions options) : base(logger, diagnosticFactory, options) { }
+}
+
+/// <summary>
+///     Retrying message handling interceptor.
+/// </summary>
+/// <remarks>
+///     The interceptor depends on <see cref="MessagingClientOptions.TransientExceptions"/> and <see cref="MessagingClientOptions.Retry"/>.
+/// </remarks>
+public class RetryingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
+    where TMessage : IMessage<TResponse>
+{
+    private readonly ILogger<RetryingInterceptor> logger;
+    private readonly IDiagnosticFactory diagnosticFactory;
+    private readonly MessagingClientOptions options;
+
+    /// <summary/>
+    public RetryingInterceptor(
+        ILogger<RetryingInterceptor> logger,
+        IDiagnosticFactory diagnosticFactory,
+        MessagingClientOptions options)
     {
-        /// <summary/>
-        public RetryingInterceptor(ILogger<RetryingInterceptor> logger, IDiagnosticFactory diagnosticFactory, IOptions<MessagingClientOptions> options) : base(logger, diagnosticFactory, options) { }
+        this.logger = logger;
+        this.diagnosticFactory = diagnosticFactory;
+        this.options = options;
     }
 
-    /// <summary>
-    ///     Retrying message handling interceptor.
-    /// </summary>
-    /// <remarks>
-    ///     The interceptor depends on <see cref="MessagingClientOptions.TransientExceptions"/> and <see cref="MessagingClientOptions.Retry"/>.
-    /// </remarks>
-    public class RetryingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
-        where TMessage : IMessage<TResponse>
+    /// <inheritdoc/>
+    /// <exception cref="MessageRetryLimitExceededException" />
+    public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
     {
-        private readonly ILogger<RetryingInterceptor> logger;
-        private readonly IDiagnosticFactory diagnosticFactory;
-        private readonly MessagingClientOptions options;
+        var messageId = message.GetSha1();
+        var messageName = message.GetType().Name.ToLower();
 
-        /// <summary/>
-        public RetryingInterceptor(
-            ILogger<RetryingInterceptor> logger,
-            IDiagnosticFactory diagnosticFactory,
-            IOptions<MessagingClientOptions> options)
+        var attempt = 1;
+        while(true)
         {
-            this.logger = logger;
-            this.diagnosticFactory = diagnosticFactory;
-            this.options = options.Value;
-        }
+            var operation = diagnosticFactory.Start($"{messageName}-handling-attempt-{attempt}");
+            logger.LogDebug("Message({MessageName}/{MessageId}) retrying: {Attempt} begins.", messageName, messageId, attempt);
 
-        /// <inheritdoc/>
-        /// <exception cref="MessageRetryLimitExceededException" />
-        public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
-        {
-            var messageId = message.GetSha1();
-            var messageName = message.GetType().Name.ToLower();
-
-            var attempt = 1;
-            while(true)
+            TResponse response;
+            try
             {
-                var operation = diagnosticFactory.Start($"{messageName}-handling-attempt-{attempt}");
-                logger.LogDebug("Message({MessageName}/{MessageId}) retrying: {Attempt} begins.", messageName, messageId, attempt);
-
-                try
-                {
-                    var response = await next(message, token);
-                    logger.LogInformation("Message({MessageName}/{MessageId}) retrying: {Attempt} succeeded.", messageName, messageId, attempt);
-                    operation.Complete();
-                    return response;
-                }
-                catch (Exception ex)
-                {
-                    operation.Fail();
+                response = await next(message, token);
+            }
+            catch (Exception ex)
+            {
+                operation.Fail();
                     
-                    if (!options.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
-                    {
-                        logger.LogError(ex, "Message({MessageName}/{MessageId}) retrying: {Attempt} ends on permanent error.", messageName, messageId, attempt);
-                        throw;
-                    }
+                if (!options.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
+                {
+                    logger.LogError(ex, "Message({MessageName}/{MessageId}) retrying: {Attempt} ends on permanent error.", messageName, messageId, attempt);
+                    throw;
+                }
 
-                    logger.LogWarning(ex, "Message({MessageName}/{MessageId}) retrying: {Attempt} ends on transient error.", messageName, messageId, attempt);
+                logger.LogWarning(ex, "Message({MessageName}/{MessageId}) retrying: {Attempt} ends on transient error.", messageName, messageId, attempt);
 
-                    attempt++;
-                    if (!options.Retry.CanRetry(attempt))
-                    {
-                        logger.LogError(ex, "Message({MessageName}/{MessageId}) retrying: {Attempt} won't proceed.", messageName, messageId, attempt);
-                        break;
-                    }
+                attempt++;
+                if (!options.Retry.CanRetry(attempt))
+                {
+                    logger.LogError(ex, "Message({MessageName}/{MessageId}) retrying: {Attempt} won't proceed.", messageName, messageId, attempt);
+                    break;
                 }
 
                 await Task.Delay(options.Retry.DelayTime(attempt), token);
+                continue;
             }
 
-            throw new MessageRetryLimitExceededException();
+            operation.Complete();
+            logger.LogInformation("Message({MessageName}/{MessageId}) retrying: {Attempt} succeeded.", messageName, messageId, attempt);
+            return response;
         }
+
+        throw new MessageRetryLimitExceededException();
     }
 }
