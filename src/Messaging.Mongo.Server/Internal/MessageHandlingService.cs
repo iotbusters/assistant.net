@@ -1,61 +1,113 @@
-﻿using Assistant.Net.Diagnostics;
+﻿using Assistant.Net.Abstractions;
+using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
+using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Unions;
+using Assistant.Net.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging.Internal
+namespace Assistant.Net.Messaging.Internal;
+
+/// <summary>
+///     Message handling orchestrating service.
+/// </summary>
+internal class MessageHandlingService : BackgroundService
 {
-    /// <summary>
-    ///     Message handling orchestrating service.
-    /// </summary>
-    internal class MessageHandlingService : BackgroundService
+    private readonly ILogger<MessageHandlingService> logger;
+    private readonly IOptionsMonitor<MongoHandlingServerOptions> options;
+    private readonly IPartitionedAdminStorage<int, IAbstractMessage> requestStorage;
+    private readonly IStorage<int, long> processedIndexStorage;
+    private readonly ITypeEncoder typeEncoder;
+    private readonly IServiceProvider provider;
+
+    public MessageHandlingService(
+        ILogger<MessageHandlingService> logger,
+        IOptionsMonitor<MongoHandlingServerOptions> options,
+        IPartitionedAdminStorage<int, IAbstractMessage> requestStorage,
+        IStorage<int, long> processedIndexStorage,
+        ITypeEncoder typeEncoder,
+        IServiceProvider provider)
     {
-        private readonly IOptionsMonitor<MongoHandlingServerOptions> options;
-        private readonly IServiceScopeFactory scopeFactory;
-        private readonly IMongoRecordReader recordReader;
+        this.logger = logger;
+        this.options = options;
+        this.requestStorage = requestStorage;
+        this.processedIndexStorage = processedIndexStorage;
+        this.typeEncoder = typeEncoder;
+        this.provider = provider;
+    }
 
-        public MessageHandlingService(
-            IOptionsMonitor<MongoHandlingServerOptions> options,
-            IServiceScopeFactory scopeFactory,
-            IMongoRecordReader recordReader)
+    protected override async Task ExecuteAsync(CancellationToken token)
+    {
+        var index = 1L;
+        while (!token.IsCancellationRequested)
         {
-            this.options = options;
-            this.scopeFactory = scopeFactory;
-            this.recordReader = recordReader;
-        }
+            logger.LogDebug("#{Index:D5}: Find next message.", index);
 
-        protected override async Task ExecuteAsync(CancellationToken token)
-        {
-            while (!token.IsCancellationRequested)
+            var serverOptions = options.CurrentValue;
+            if (await requestStorage.TryGet(serverOptions.InstanceId, index, token) is not Some<IAbstractMessage>(var message)
+                || await requestStorage.TryGetAudit(serverOptions.InstanceId, index, token) is not Some<Storage.Models.Audit>(var audit))
             {
-                var serverOptions = options.CurrentValue;
-
-                if (await recordReader.NextRequested(token) is not Some<MongoRecord>(var record))
-                {
-                    await Task.Delay(serverOptions.InactivityDelayTime, token);
-                    continue;
-                }
-
-                using var scope = scopeFactory.CreateScope();
-                var provider = scope.ServiceProvider;
-
-                var diagnosticContext = provider.GetRequiredService<DiagnosticContext>();
-                diagnosticContext.CorrelationId = new Audit(record.Details).CorrelationId;
-
-                var processor = provider.GetRequiredService<IMongoRecordProcessor>();
-                var recordWriter = provider.GetRequiredService<IMongoRecordWriter>();
-
-                if (await processor.Process(record, token) is Some<MongoRecord>(var updated))
-                    await recordWriter.Update(updated, token);
-
-                await Task.Delay(serverOptions.NextMessageDelayTime, token);
+                logger.LogDebug("#{Index:D5}: No message has found yet.", index);
+                await Task.Delay(serverOptions.InactivityDelayTime, token);
+                continue;
             }
+
+            var messageName = typeEncoder.Encode(message.GetType())
+                              ?? throw new NotSupportedException($"Not supported  message type '{message.GetType()}'.");
+            var messageId = message.GetSha1();
+
+            logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) found.", index, messageName, messageId);
+
+            await using var scope = provider.CreateAsyncScope();
+            var copedProvider = scope.ServiceProvider;
+
+            var diagnosticContext = copedProvider.GetRequiredService<DiagnosticContext>();
+            diagnosticContext.CorrelationId = audit.CorrelationId;
+
+            var clientFactory = copedProvider.GetRequiredService<IMessagingClientFactory>();
+            var client = clientFactory.Create(MongoOptionsNames.DefaultName);
+
+            logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) publishing: begins.", index, messageName, messageId);
+
+            try
+            {
+                await client.PublishObject(message, token);
+            }
+            catch (OperationCanceledException ex) when (token.IsCancellationRequested)
+            {
+                logger.LogInformation(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) publishing: cancelled.", index, messageName,
+                    messageId);
+                break;
+            }
+            catch (Exception ex)
+            {
+                logger.LogCritical(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) publishing: failed.", index, messageName,
+                    messageId);
+            }
+            finally
+            {
+                logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) publishing: ends.", index, messageName, messageId);
+            }
+
+            if (index % 100 == 0)
+            {
+                logger.LogDebug("#{Index:D5}: Old message cleanup: begins.", index);
+                await processedIndexStorage.AddOrUpdate(serverOptions.InstanceId, index, token);
+                await requestStorage.TryRemove(serverOptions.InstanceId, index, token);
+                logger.LogDebug("#{Index:D5}: Old message Cleanup: ends.", index);
+            }
+
+            index++;
+            await Task.Delay(serverOptions.NextMessageDelayTime, token);
         }
+
+        logger.LogInformation("#{Index:D5}: Exit by cancellation.", index);
     }
 }
