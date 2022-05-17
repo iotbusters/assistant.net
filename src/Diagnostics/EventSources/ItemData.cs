@@ -1,16 +1,15 @@
 using System.Diagnostics.Tracing;
 
-namespace Assistant.Net.Diagnostics.EventSources
+namespace Assistant.Net.Diagnostics.EventSources;
+
+/// <summary>
+///     Event source metadata item.
+/// </summary>
+[EventData]
+public class ItemData
 {
     /// <summary>
-    ///     Event source metadata item.
+    ///     Metadata value.
     /// </summary>
-    [EventData]
-    public class ItemData
-    {
-        /// <summary>
-        ///     Metadata value.
-        /// </summary>
-        public string Value { get; set; } = null!;
-    }
+    public string Value { get; set; } = null!;
 }
