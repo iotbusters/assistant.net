@@ -14,11 +14,11 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MongoDB.Driver" Version="2.15.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Storage\Storage.csproj" />
+    <ProjectReference Include="..\Core.Mongo\Core.Mongo.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
