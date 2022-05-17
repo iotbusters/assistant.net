@@ -1,0 +1,24 @@
+﻿using Assistant.Net.Messaging.Interceptors;
+using System;
+
+namespace Assistant.Net.Messaging.Models;
+
+/// <summary>
+///     Exception result for caching mechanism.
+/// </summary>
+public sealed class CachingExceptionResult : CachingResult
+{
+    /// <summary/>
+    public CachingExceptionResult(Exception exception) =>
+        Exception = exception;
+
+    /// <summary>
+    ///     Failed result exception.
+    /// </summary>
+    public Exception Exception { get; }
+
+    /// <summary>
+    ///     Throws occurred exception.
+    /// </summary>
+    public override object GetValue() => Exception.Throw<object>();
+}

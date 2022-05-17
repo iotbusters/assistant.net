@@ -1,19 +1,18 @@
 ﻿using System;
 
-namespace Assistant.Net.Messaging.Exceptions
+namespace Assistant.Net.Messaging.Exceptions;
+
+/// <summary>
+///     Race condition issues occurred to remote message handler in concurrent environment.
+/// </summary>
+public class MessageConcurrencyException : MessageException
 {
-    /// <summary>
-    ///     Race condition issues occurred to remote message handler in concurrent environment.
-    /// </summary>
-    public class MessageConcurrencyException : MessageException
-    {
-        /// <summary/>
-        public MessageConcurrencyException() : this("Message handling failed in concurrent environment.") { }
+    /// <summary/>
+    public MessageConcurrencyException() : this("Message handling failed in concurrent environment.") { }
 
-        /// <summary/>
-        public MessageConcurrencyException(string? message) : base(message) { }
+    /// <summary/>
+    public MessageConcurrencyException(string? message) : base(message) { }
 
-        /// <summary/>
-        public MessageConcurrencyException(string? message, Exception? ex) : base(message, ex) { }
-    }
+    /// <summary/>
+    public MessageConcurrencyException(string? message, Exception? ex) : base(message, ex) { }
 }
