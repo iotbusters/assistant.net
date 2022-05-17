@@ -4,38 +4,36 @@ using Microsoft.Extensions.DependencyInjection;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace Assistant.Net.Storage.Tests.Configuration
+namespace Assistant.Net.Storage.Tests.Configuration;
+
+public class StorageBuilderExtensionsTests
 {
-    public class StorageBuilderExtensionsTests
+    private ServiceCollection services = null!;
+
+    [SetUp]
+    public void Setup() => services = new ServiceCollection();
+
+    [Test]
+    public void AddLocalOfType_registersLocalStorageOfType()
     {
-        private ServiceCollection services = null!;
+        new StorageBuilder(services).AddLocal<object, object>();
 
-        [SetUp]
-        public void Setup() => services = new ServiceCollection();
-
-        [Test]
-        public void AddLocalOfType_registersLocalStorageOfType()
+        services.Should().ContainEquivalentOf(new
         {
-            new StorageBuilder(services).AddLocal<object, object>();
+            ServiceType = typeof(IStorageProvider<object>),
+            ImplementationType = new { Name = "LocalStorageProvider`1" }
+        });
+    }
 
-            services.Should().ContainEquivalentOf(new
-            {
-                ServiceType = typeof(IStorageProvider<object>),
-                ImplementationType = new { Name = "LocalStorageProvider`1" }
-            });
-        }
+    [Test]
+    public void AddLocalAny_registersLocalStorageOfAny()
+    {
+        new StorageBuilder(services).AddLocalAny();
 
-        [Test]
-        public void AddLocalAny_registersLocalStorageOfAny()
+        services.Should().ContainEquivalentOf(new
         {
-            new StorageBuilder(services).AddLocalAny();
-
-            services.Should().ContainEquivalentOf(new
-            {
-                ServiceType = typeof(IStorageProvider<>),
-                ImplementationType = new { Name = "LocalStorageProvider`1" }
-            });
-        }
-
+            ServiceType = typeof(IStorageProvider<>),
+            ImplementationType = new { Name = "LocalStorageProvider`1" }
+        });
     }
 }

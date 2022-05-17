@@ -4,30 +4,29 @@ using FluentAssertions;
 using Assistant.Net.Messaging.Serialization;
 using Assistant.Net.Serialization.Abstractions;
 
-namespace Assistant.Net.Messaging.Web.Tests
+namespace Assistant.Net.Messaging.Web.Tests;
+
+public class ServiceCollectionExtensionsTests
 {
-    public class ServiceCollectionExtensionsTests
+    [Test]
+    public void GetServiceOfMessageExceptionJsonConverter_resolvesObject()
     {
-        [Test]
-        public void GetServiceOfMessageExceptionJsonConverter_resolvesObject()
-        {
-            var provider = new ServiceCollection()
-                .AddJsonSerialization()
-                .BuildServiceProvider();
+        var provider = new ServiceCollection()
+            .AddExceptionJsonSerialization()
+            .BuildServiceProvider();
 
-            provider.GetService<MessageExceptionJsonConverter>()
-                .Should().NotBeNull();
-        }
+        provider.GetService<MessageExceptionJsonConverter>()
+            .Should().NotBeNull();
+    }
 
-        [Test]
-        public void GetServiceOfSerializer_resolvesObject()
-        {
-            var provider = new ServiceCollection()
-                .AddJsonSerialization()
-                .BuildServiceProvider();
+    [Test]
+    public void GetServiceOfSerializer_resolvesObject()
+    {
+        var provider = new ServiceCollection()
+            .AddExceptionJsonSerialization()
+            .BuildServiceProvider();
 
-            provider.GetService<ISerializer<object>>()
-                .Should().NotBeNull();
-        }
+        provider.GetService<ISerializer<object>>()
+            .Should().NotBeNull();
     }
 }

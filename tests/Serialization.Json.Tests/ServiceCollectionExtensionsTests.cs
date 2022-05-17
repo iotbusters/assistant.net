@@ -9,96 +9,95 @@ using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Converters;
 using Assistant.Net.Serialization.Json.Tests.Mocks;
 
-namespace Assistant.Net.Serialization.Json.Tests
+namespace Assistant.Net.Serialization.Json.Tests;
+
+public class ServiceCollectionExtensionsTests
 {
-    public class ServiceCollectionExtensionsTests
+    [Test]
+    public void GetServiceOfExceptionJsonConverter_resolvesObject()
     {
-        [Test]
-        public void GetServiceOfExceptionJsonConverter_resolvesObject()
-        {
-            var provider = new ServiceCollection()
-                .AddSerializer(_ => {})
-                .BuildServiceProvider();
+        var provider = new ServiceCollection()
+            .AddSerializer(_ => {})
+            .BuildServiceProvider();
 
-            provider.GetService<ExceptionJsonConverter<Exception>>()
-                .Should().NotBeNull();
-        }
+        provider.GetService<ExceptionJsonConverter<Exception>>()
+            .Should().NotBeNull();
+    }
 
-        [Test]
-        public void GetServiceOfAdvancedJsonConverter_resolvesObject()
-        {
-            var provider = new ServiceCollection()
-                .AddSerializer(_ => {})
-                .BuildServiceProvider();
+    [Test]
+    public void GetServiceOfAdvancedJsonConverter_resolvesObject()
+    {
+        var provider = new ServiceCollection()
+            .AddSerializer(_ => {})
+            .BuildServiceProvider();
 
-            provider.GetService<AdvancedJsonConverter<TestClass>>()
-                .Should().NotBeNull();
-        }
+        provider.GetService<AdvancedJsonConverter<TestClass>>()
+            .Should().NotBeNull();
+    }
 
-        [Test]
-        public void GetServiceOfEnumerableJsonConverter_resolvesObject()
-        {
-            var provider = new ServiceCollection()
-                .AddSerializer(_ => {})
-                .BuildServiceProvider();
+    [Test]
+    public void GetServiceOfEnumerableJsonConverter_resolvesObject()
+    {
+        var provider = new ServiceCollection()
+            .AddSerializer(_ => {})
+            .BuildServiceProvider();
 
-            provider.GetService<EnumerableJsonConverter<TestClass>>()
-                .Should().NotBeNull();
-        }
+        provider.GetService<EnumerableJsonConverter<TestClass>>()
+            .Should().NotBeNull();
+    }
 
-        [Test]
-        public void GetServiceOfTypeEncoder_resolvesObject()
-        {
-            var provider = new ServiceCollection()
-                .AddSerializer(_ => {})
-                .BuildServiceProvider();
+    [Test]
+    public void GetServiceOfTypeEncoder_resolvesObject()
+    {
+        var provider = new ServiceCollection()
+            .AddSerializer(_ => {})
+            .BuildServiceProvider();
 
-            provider.GetService<ITypeEncoder>()
-                .Should().NotBeNull();
-        }
+        provider.GetService<ITypeEncoder>()
+            .Should().NotBeNull();
+    }
 
-        [Test]
-        public void GetServiceOfSerializerFactory_resolvesObject()
-        {
-            var provider = new ServiceCollection()
-                .AddSerializer(_ => {})
-                .BuildServiceProvider();
+    [Test]
+    public void GetServiceOfSerializerFactory_resolvesObject()
+    {
+        var provider = new ServiceCollection()
+            .AddSerializer(_ => {})
+            .BuildServiceProvider();
 
-            provider.GetService<ISerializerFactory>()
-                .Should().NotBeNull();
-        }
+        provider.GetService<ISerializerFactory>()
+            .Should().NotBeNull();
+    }
 
-        [Test]
-        public void GetServiceOfSerializer_resolvesObject_configured()
-        {
-            var provider = new ServiceCollection()
-                .AddSerializer(b => b.AddJsonType<object>())
-                .BuildServiceProvider();
+    [Test]
+    public void GetServiceOfSerializer_resolvesObject_configured()
+    {
+        var provider = new ServiceCollection()
+            .AddSerializer(b => b.AddJsonType<object>())
+            .BuildServiceProvider();
 
-            provider.GetService<ISerializer<object>>()
-                .Should().NotBeNull();
-        }
+        provider.GetService<ISerializer<object>>()
+            .Should().NotBeNull();
+    }
 
-        [Test]
-        public void GetServiceOfSerializer_resolvesObject_notConfigured()
-        {
-            var provider = new ServiceCollection()
-                .AddSerializer(_ => { })
-                .BuildServiceProvider();
+    [Test]
+    public void GetServiceOfSerializer_resolvesObject_notConfigured()
+    {
+        var provider = new ServiceCollection()
+            .AddSerializer(_ => { })
+            .BuildServiceProvider();
 
-            provider.GetService<ISerializer<object>>()
-                .Should().NotBeNull();
-        }
+        provider.GetService<ISerializer<object>>()
+            .Should().NotBeNull();
+    }
 
-        [Test]
-        public void GetServiceOfJsonSerializerOptions_resolvesObject()
-        {
-            var provider = new ServiceCollection()
-                .AddSerializer(_ => { })
-                .BuildServiceProvider();
+    [Test]
+    public void GetServiceOfJsonSerializerOptions_resolvesObject()
+    {
+        var provider = new ServiceCollection()
+            .AddSerializer(_ => { })
+            .BuildServiceProvider();
 
-            provider.GetService<IOptions<JsonSerializerOptions>>()
-                .Should().NotBeNull();
-        }
+        provider.GetService<IOptions<JsonSerializerOptions>>()
+            .Should().NotBeNull();
     }
 }
