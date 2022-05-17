@@ -381,6 +381,14 @@ namespace Assistant.Net
             services.Replace(ServiceDescriptor.Transient(serviceType, implementationType));
 
         /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <paramref name="serviceType"/>
+        ///     and adds it as a <see cref="ServiceLifetime.Transient" /> service using the factory
+        ///     specified in <paramref name="implementationFactory" />.
+        /// </summary>
+        public static IServiceCollection ReplaceTransient(this IServiceCollection services, Type serviceType, Func<IServiceProvider, object> implementationFactory) =>
+            services.Replace(ServiceDescriptor.Transient(serviceType, implementationFactory));
+
+        /// <summary>
         ///     Removes the first service in <see cref="IServiceCollection" /> with the same <typeparamref name="TService" />
         ///     and adds it as a <see cref="ServiceLifetime.Scoped" /> service implementation type
         ///     specified in <typeparamref name="TImplementation" />.
@@ -416,6 +424,14 @@ namespace Assistant.Net
             services.Replace(ServiceDescriptor.Scoped(serviceType, implementationType));
 
         /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <paramref name="serviceType"/>
+        ///     and adds it as a <see cref="ServiceLifetime.Scoped" /> service using the factory
+        ///     specified in <paramref name="implementationFactory" />.
+        /// </summary>
+        public static IServiceCollection ReplaceScoped(this IServiceCollection services, Type serviceType, Func<IServiceProvider, object> implementationFactory) =>
+            services.Replace(ServiceDescriptor.Scoped(serviceType, implementationFactory));
+
+        /// <summary>
         ///     Removes the first service in <see cref="IServiceCollection" /> with the same <typeparamref name="TService" />
         ///     and adds it as a <see cref="ServiceLifetime.Singleton" /> service implementation type
         ///     specified in <typeparamref name="TImplementation" />.
@@ -449,6 +465,14 @@ namespace Assistant.Net
         /// </summary>
         public static IServiceCollection ReplaceSingleton(this IServiceCollection services, Type serviceType, Type implementationType) =>
             services.Replace(ServiceDescriptor.Singleton(serviceType, implementationType));
+
+        /// <summary>
+        ///     Removes the first service in <see cref="IServiceCollection" /> with the same <paramref name="serviceType"/>
+        ///     and adds it as a <see cref="ServiceLifetime.Singleton" /> service using the factory
+        ///     specified in <paramref name="implementationFactory" />.
+        /// </summary>
+        public static IServiceCollection ReplaceSingleton(this IServiceCollection services, Type serviceType, Func<IServiceProvider, object> implementationFactory) =>
+            services.Replace(ServiceDescriptor.Singleton(serviceType, implementationFactory));
 
         /// <summary>
         ///     Decorates the registered <typeparamref name="TService" /> to the <paramref name="services" />.
