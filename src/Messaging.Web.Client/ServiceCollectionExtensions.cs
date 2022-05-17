@@ -5,27 +5,26 @@ using Assistant.Net.Messaging.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace Assistant.Net.Messaging
-{
-    /// <summary>
-    ///     Service collection extensions for remote WEB messaging handling client.
-    /// </summary>
-    public static class ServiceCollectionExtensions
-    {
-        private static TimeSpan DefaultTimeout => TimeSpan.FromSeconds(10);
+namespace Assistant.Net.Messaging;
 
-        /// <summary>
-        ///     Registers empty remote messaging handling configuration.
-        /// </summary>
-        public static IHttpClientBuilder AddRemoteWebMessagingClient(this IServiceCollection services) => services
-            .AddSystemLifetime()
-            .AddDiagnostics()
-            .AddTypeEncoder()
-            .AddJsonSerialization()
-            .AddHttpClient<IWebMessageHandlerClient, WebMessageHandlerClient>(c => c.Timeout = DefaultTimeout)
-            .AddHttpMessageHandler<CorrelationHandler>()
-            .AddHttpMessageHandler<OperationHandler>()
-            .AddHttpMessageHandler<AuthorizationHandler>()
-            .AddHttpMessageHandler<ErrorPropagationHandler>();
-    }
+/// <summary>
+///     Service collection extensions for remote WEB messaging handling client.
+/// </summary>
+public static class ServiceCollectionExtensions
+{
+    private static TimeSpan DefaultTimeout => TimeSpan.FromSeconds(10);
+
+    /// <summary>
+    ///     Registers empty remote messaging handling configuration.
+    /// </summary>
+    public static IHttpClientBuilder AddRemoteWebMessagingClient(this IServiceCollection services) => services
+        .AddSystemLifetime()
+        .AddDiagnostics()
+        .AddTypeEncoder()
+        .AddExceptionJsonSerialization()
+        .AddHttpClient<IWebMessageHandlerClient, WebMessageHandlerClient>(c => c.Timeout = DefaultTimeout)
+        .AddHttpMessageHandler<CorrelationHandler>()
+        .AddHttpMessageHandler<OperationHandler>()
+        .AddHttpMessageHandler<AuthorizationHandler>()
+        .AddHttpMessageHandler<ErrorPropagationHandler>();
 }

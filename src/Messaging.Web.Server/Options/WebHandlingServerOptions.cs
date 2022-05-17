@@ -2,17 +2,16 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace Assistant.Net.Messaging.Options
+namespace Assistant.Net.Messaging.Options;
+
+/// <summary>
+///     WEB server configuration used for remote message handling coordination.
+/// </summary>
+public class WebHandlingServerOptions
 {
     /// <summary>
-    ///     WEB server configuration used for remote message handling coordination.
+    ///     List of accepting message types.
     /// </summary>
-    public class WebHandlingServerOptions
-    {
-        /// <summary>
-        ///     List of accepting message types.
-        /// </summary>
-        [MinLength(1)]
-        public List<Type> MessageTypes { get; } = new();
-    }
+    [MinLength(1)]
+    public List<Type> MessageTypes { get; } = new();
 }
