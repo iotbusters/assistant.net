@@ -1,19 +1,18 @@
 ﻿using Assistant.Net.Options;
 
-namespace Assistant.Net
+namespace Assistant.Net;
+
+/// <summary>
+///     SQLite options extensions.
+/// </summary>
+public static class SqliteOptionsExtensions
 {
     /// <summary>
-    ///     SQLite options extensions.
+    ///     Configures SQLite database connection string.
     /// </summary>
-    public static class SqliteOptionsExtensions
+    public static SqliteOptions Connection(this SqliteOptions options, string connectionString)
     {
-        /// <summary>
-        ///     Configures SQLite database connection string.
-        /// </summary>
-        public static SqliteOptions Connection(this SqliteOptions options, string connectionString)
-        {
-            options.ConnectionString = connectionString;
-            return options;
-        }
+        options.ConnectionString = connectionString;
+        return options;
     }
 }

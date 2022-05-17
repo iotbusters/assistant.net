@@ -1,13 +1,12 @@
-﻿namespace Assistant.Net.Diagnostics.Abstractions
+﻿namespace Assistant.Net.Diagnostics.Abstractions;
+
+/// <summary>
+///     
+/// </summary>
+public interface IDiagnosticFactory
 {
     /// <summary>
-    ///     
+    ///     Starts new operation within current operation context.
     /// </summary>
-    public interface IDiagnosticFactory
-    {
-        /// <summary>
-        ///     Starts new operation within current operation context.
-        /// </summary>
-        IOperation Start(string name);
-    }
+    IOperation Start(string name);
 }

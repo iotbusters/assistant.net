@@ -1,28 +1,27 @@
 ﻿using Assistant.Net.Options;
 
-namespace Assistant.Net
+namespace Assistant.Net;
+
+/// <summary>
+///     MongoDB options extensions.
+/// </summary>
+public static class MongoOptionsExtensions
 {
     /// <summary>
-    ///     MongoDB options extensions.
+    ///     Configures MongoDB connection string.
     /// </summary>
-    public static class MongoOptionsExtensions
+    public static MongoOptions Connection(this MongoOptions options, string connectionString)
     {
-        /// <summary>
-        ///     Configures MongoDB connection string.
-        /// </summary>
-        public static MongoOptions Connection(this MongoOptions options, string connectionString)
-        {
-            options.ConnectionString = connectionString;
-            return options;
-        }
+        options.ConnectionString = connectionString;
+        return options;
+    }
 
-        /// <summary>
-        ///     Configures MongoDB database name.
-        /// </summary>
-        public static MongoOptions Database(this MongoOptions options, string databaseName)
-        {
-            options.DatabaseName = databaseName;
-            return options;
-        }
+    /// <summary>
+    ///     Configures MongoDB database name.
+    /// </summary>
+    public static MongoOptions Database(this MongoOptions options, string databaseName)
+    {
+        options.DatabaseName = databaseName;
+        return options;
     }
 }

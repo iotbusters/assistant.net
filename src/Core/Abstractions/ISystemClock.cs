@@ -1,15 +1,14 @@
 using System;
 
-namespace Assistant.Net.Abstractions
+namespace Assistant.Net.Abstractions;
+
+/// <summary>
+///     System clock abstraction. Provides access to system data/time.
+/// </summary>
+public interface ISystemClock
 {
     /// <summary>
-    ///     System clock abstraction. Provides access to system data/time.
+    ///     Current UTC date/time.
     /// </summary>
-    public interface ISystemClock
-    {
-        /// <summary>
-        ///     Current UTC date/time.
-        /// </summary>
-        DateTimeOffset UtcNow { get; }
-    }
+    DateTimeOffset UtcNow { get; }
 }

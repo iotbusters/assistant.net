@@ -6,19 +6,18 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Serialization.Internal
+namespace Assistant.Net.Serialization.Internal;
+
+internal class DefaultJsonSerializer : IJsonSerializer
 {
-    internal class DefaultJsonSerializer : IJsonSerializer
-    {
-        private readonly IOptions<JsonSerializerOptions> options;
+    private readonly IOptions<JsonSerializerOptions> options;
 
-        public DefaultJsonSerializer(IOptions<JsonSerializerOptions> options) =>
-            this.options = options;
+    public DefaultJsonSerializer(IOptions<JsonSerializerOptions> options) =>
+        this.options = options;
 
-        public Task<object> Deserialize(Stream stream, Type type, CancellationToken token) =>
-            JsonSerializer.DeserializeAsync(stream, type, options.Value, token).AsTask()!;
+    public Task<object> Deserialize(Stream stream, Type type, CancellationToken token) =>
+        JsonSerializer.DeserializeAsync(stream, type, options.Value, token).AsTask()!;
 
-        public Task Serialize(Stream stream, object value, CancellationToken token) =>
-            JsonSerializer.SerializeAsync(stream, value, options.Value, token);
-    }
+    public Task Serialize(Stream stream, object value, CancellationToken token) =>
+        JsonSerializer.SerializeAsync(stream, value, options.Value, token);
 }
