@@ -120,6 +120,33 @@ public static class ServiceCollectionExtensions
         .Services;
 
     /// <summary>
+    ///     Registers Configure calls for the same named <typeparamref name="TOptions"/>
+    ///     to the underlying service collection and custom options binding configuration.
+    /// </summary>
+    /// <typeparam name="TOptions">The options type to be configured.</typeparam>
+    /// <typeparam name="TConfigureOptionsSource">Custom configuration options source type.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+    public static IServiceCollection BindOptions<TOptions, TConfigureOptionsSource>(this IServiceCollection services)
+        where TConfigureOptionsSource : IConfigureOptionsSource<TOptions>
+        where TOptions : class => services
+        .BindOptions<TOptions, TConfigureOptionsSource>(Microsoft.Extensions.Options.Options.DefaultName);
+
+    /// <summary>
+    ///     Registers Configure calls for the same named <typeparamref name="TOptions"/>
+    ///     to the underlying service collection and custom options binding configuration.
+    /// </summary>
+    /// <typeparam name="TOptions">The options type to be configured.</typeparam>
+    /// <typeparam name="TConfigureOptionsSource">Custom configuration options source type.</typeparam>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+    /// <param name="name">The name of the options instance.</param>
+    public static IServiceCollection BindOptions<TOptions, TConfigureOptionsSource>(this IServiceCollection services, string name)
+        where TConfigureOptionsSource : IConfigureOptionsSource<TOptions>
+        where TOptions : class => services
+        .AddOptions<TOptions>(name)
+        .Bind<TConfigureOptionsSource>()
+        .Services;
+
+    /// <summary>
     ///     Registers a configuration instance which TOptions will bind against.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
