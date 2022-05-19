@@ -4,6 +4,14 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.2.106] - 2022-05-19
+
+[Assistant.NET Release 0.2.107](https://github.com/iotbusters/assistant.net/releases/tag/0.2.107)
+
+### 0.2.106 Fix
+
+- configure options source extension method
+
 ## [0.2.106] - 2022-05-17
 
 [Assistant.NET Release 0.2.106](https://github.com/iotbusters/assistant.net/releases/tag/0.2.106)
