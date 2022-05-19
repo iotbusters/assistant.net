@@ -66,12 +66,12 @@ internal class MessageHandlingService : BackgroundService
             logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) found.", index, messageName, messageId);
 
             await using var scope = provider.CreateAsyncScope();
-            var copedProvider = scope.ServiceProvider;
+            var scopedProvider = scope.ServiceProvider;
 
-            var diagnosticContext = copedProvider.GetRequiredService<DiagnosticContext>();
+            var diagnosticContext = scopedProvider.GetRequiredService<DiagnosticContext>();
             diagnosticContext.CorrelationId = audit.CorrelationId;
 
-            var clientFactory = copedProvider.GetRequiredService<IMessagingClientFactory>();
+            var clientFactory = scopedProvider.GetRequiredService<IMessagingClientFactory>();
             var client = clientFactory.Create(MongoOptionsNames.DefaultName);
 
             logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) publishing: begins.", index, messageName, messageId);
@@ -82,14 +82,12 @@ internal class MessageHandlingService : BackgroundService
             }
             catch (OperationCanceledException ex) when (token.IsCancellationRequested)
             {
-                logger.LogInformation(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) publishing: cancelled.", index, messageName,
-                    messageId);
+                logger.LogInformation(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) publishing: cancelled.", index, messageName, messageId);
                 break;
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) publishing: failed.", index, messageName,
-                    messageId);
+                logger.LogCritical(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) publishing: failed.", index, messageName, messageId);
             }
             finally
             {

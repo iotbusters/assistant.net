@@ -26,9 +26,7 @@ public class MessagingClientFixtureBuilder
             {
                 Interval = TimeSpan.FromSeconds(0.01), MaxAttemptNumber = 5
             })
-            .AddOptions<MessagingClientOptions>()
-            .Bind(clientSource)
-            .Services;
+            .BindOptions(clientSource);
         RemoteHostBuilder = Host.CreateDefaultBuilder()
             .ConfigureServices(s => s
                 .AddMongoMessageHandling(b => b
@@ -40,8 +38,7 @@ public class MessagingClientFixtureBuilder
                     o.InactivityDelayTime = TimeSpan.FromSeconds(0.005);
                     o.NextMessageDelayTime = TimeSpan.FromSeconds(0.001);
                 })
-                .AddOptions<MessagingClientOptions>(MongoOptionsNames.DefaultName)
-                .Bind(remoteSource));
+                .BindOptions(MongoOptionsNames.DefaultName, remoteSource));
     }
 
     public IServiceCollection Services { get; init; }
