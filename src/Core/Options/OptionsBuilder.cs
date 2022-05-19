@@ -37,18 +37,19 @@ public class OptionsBuilder<TOptions> : Microsoft.Extensions.Options.OptionsBuil
     public OptionsBuilder<TOptions> Bind<TConfigureOptionsSource>()
     {
         var configureOptionsSourceType = typeof(IConfigureOptionsSource<TOptions>);
+        var implementationType = typeof(TConfigureOptionsSource);
 
-        if (!typeof(TConfigureOptionsSource).IsAssignableTo(configureOptionsSourceType))
-            throw new ArgumentException($"Expected {configureOptionsSourceType.Name} implementation but received {typeof(TConfigureOptionsSource)}.");
+        if (!implementationType.IsAssignableTo(configureOptionsSourceType))
+            throw new ArgumentException($"Expected {configureOptionsSourceType.Name} implementation but received {implementationType}.");
 
         Services
-            .TryAddSingleton(configureOptionsSourceType, configureOptionsSourceType)
+            .TryAddSingleton(implementationType, implementationType)
             .AddSingleton<IOptionsChangeTokenSource<TOptions>>(p => new LambdaOptionsChangeTokenSource<TOptions>(
                 Name,
-                ((IConfigureOptionsSource<TOptions>)p.GetRequiredService(configureOptionsSourceType)).GetChangeToken))
+                ((IConfigureOptionsSource<TOptions>)p.GetRequiredService(implementationType)).GetChangeToken))
             .AddSingleton<IConfigureOptions<TOptions>>(p => new ConfigureNamedOptions<TOptions>(
                 Name,
-                ((IConfigureOptionsSource<TOptions>)p.GetRequiredService(configureOptionsSourceType)).Configure));
+                ((IConfigureOptionsSource<TOptions>)p.GetRequiredService(implementationType)).Configure));
         return this;
     }
 
