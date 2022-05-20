@@ -26,8 +26,7 @@ public static class MessagingClientOptionsExtensions
         options.Handlers[messageType] = new HandlerDefinition(p =>
         {
             var providerType = typeof(MongoMessageHandlerProxy<,>).MakeGenericTypeBoundToMessage(messageType);
-            var provider = ActivatorUtilities.CreateInstance(p, providerType);
-            return (IAbstractHandler)provider;
+            return (IAbstractHandler)p.GetRequiredService(providerType);
         });
 
         return options;

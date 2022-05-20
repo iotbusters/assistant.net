@@ -26,7 +26,7 @@ public static class ServiceCollectionExtensions
     ///     Registers remote message handling server configuration.
     /// </summary>
     public static IServiceCollection AddMongoMessageHandling(this IServiceCollection services, Action<MongoHandlingBuilder> configureBuilder) => services
-        .AddHostedService<MessageHandlingService>()
+        .AddHostedService<MongoMessageHandlingService>()
         .AddSystemServicesHosted()
         .AddMessagingClient()
         .AddStorage(b => b

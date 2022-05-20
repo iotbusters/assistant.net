@@ -14,6 +14,9 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal;
 
+/// <summary>
+///     MongoDB remote message handling proxy.
+/// </summary>
 internal class MongoMessageHandlerProxy<TMessage, TResponse> : IAbstractHandler
     where TMessage : IMessage<TResponse>
 {

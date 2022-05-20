@@ -1,4 +1,5 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Options;
@@ -25,6 +26,7 @@ public static class MessagingClientBuilderExtensions
     public static MessagingClientBuilder UseMongo(this MessagingClientBuilder builder, Action<MongoOptions> configureOptions)
     {
         builder.Services
+            .TryAddScoped(typeof(MongoMessageHandlerProxy<,>), typeof(MongoMessageHandlerProxy<,>))
             .AddStorage(b => b
                 .UseMongo(o => o.Database(MongoNames.DatabaseName))
                 .UseMongo(configureOptions)
@@ -39,6 +41,7 @@ public static class MessagingClientBuilderExtensions
     public static MessagingClientBuilder UseMongo(this MessagingClientBuilder builder, IConfigurationSection configuration)
     {
         builder.Services
+            .TryAddScoped(typeof(MongoMessageHandlerProxy<,>), typeof(MongoMessageHandlerProxy<,>))
             .AddStorage(b => b
                 .UseMongo(o => o.Database(MongoNames.DatabaseName))
                 .UseMongo(configuration)
