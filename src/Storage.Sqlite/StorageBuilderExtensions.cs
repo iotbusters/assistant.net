@@ -24,13 +24,11 @@ public static class StorageBuilderExtensions
     /// </summary>
     public static StorageBuilder UseSqlite(this StorageBuilder builder, SqliteConnection connection)
     {
-        builder.Services.ReplaceSingleton(_ =>
-        {
-            connection.Open();
-            return connection;
-        });
-        // the connection string won't be used but only it just reflects provided connection.
-        return builder.UseSqlite(o => o.Connection(connection.ConnectionString));
+        builder.Services
+            .AddDbContext(connection)
+            .ConfigureSqliteOptions(SqliteOptionsNames.DefaultName, o => o.Connection(connection.ConnectionString))
+            .ConfigureSqliteStoringOptions(_ => { });
+        return builder;
     }
 
     /// <summary>
@@ -158,22 +156,10 @@ public static class StorageBuilderExtensions
         return builder;
     }
 
+    private static IServiceCollection AddDbContext(this IServiceCollection services, SqliteConnection connection) => services
+        .AddPooledDbContextFactory<StorageDbContext>(b => b.UseSqlite(connection));
+
     private static IServiceCollection AddDbContext(this IServiceCollection services) => services
-        .TryAddSingleton(p =>
-        {
-            var connectionString = p.GetRequiredService<IOptions<SqliteOptions>>().Value.ConnectionString;
-            var connection = new SqliteConnection(connectionString);
-            connection.Open();
-            return connection;
-        })
-        .AddPooledDbContextFactory<StorageDbContext>((p, b) =>
-        {
-            var connection = p.GetRequiredService<SqliteConnection>();
-            b.UseSqlite(connection);
-        })
-        .AddPooledDbContextFactory<HistoricalStorageDbContext>((p, b) =>
-        {
-            var connection = p.GetRequiredService<SqliteConnection>();
-            b.UseSqlite(connection);
-        });
+        .AddPooledDbContextFactory<StorageDbContext>((p, b) => b
+            .UseSqlite(p.GetRequiredService<IOptionsMonitor<SqliteOptions>>().Get(SqliteOptionsNames.DefaultName).ConnectionString));
 }
