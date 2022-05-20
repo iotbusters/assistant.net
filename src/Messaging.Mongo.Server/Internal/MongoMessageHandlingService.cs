@@ -1,6 +1,7 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Unions;
@@ -16,22 +17,24 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Internal;
 
 /// <summary>
-///     Message handling orchestrating service.
+///     MongoDB message handling orchestrating service.
 /// </summary>
-internal class MessageHandlingService : BackgroundService
+internal class MongoMessageHandlingService : BackgroundService
 {
-    private readonly ILogger<MessageHandlingService> logger;
+    private readonly ILogger<MongoMessageHandlingService> logger;
     private readonly IOptionsMonitor<MongoHandlingServerOptions> options;
     private readonly IPartitionedAdminStorage<int, IAbstractMessage> requestStorage;
     private readonly IStorage<int, long> processedIndexStorage;
+    private readonly IStorage<IAbstractMessage, CachingResult> responseStorage;
     private readonly ITypeEncoder typeEncoder;
     private readonly IServiceProvider provider;
 
-    public MessageHandlingService(
-        ILogger<MessageHandlingService> logger,
+    public MongoMessageHandlingService(
+        ILogger<MongoMessageHandlingService> logger,
         IOptionsMonitor<MongoHandlingServerOptions> options,
         IPartitionedAdminStorage<int, IAbstractMessage> requestStorage,
         IStorage<int, long> processedIndexStorage,
+        IStorage<IAbstractMessage, CachingResult> responseStorage,
         ITypeEncoder typeEncoder,
         IServiceProvider provider)
     {
@@ -39,6 +42,7 @@ internal class MessageHandlingService : BackgroundService
         this.options = options;
         this.requestStorage = requestStorage;
         this.processedIndexStorage = processedIndexStorage;
+        this.responseStorage = responseStorage;
         this.typeEncoder = typeEncoder;
         this.provider = provider;
     }
@@ -55,7 +59,7 @@ internal class MessageHandlingService : BackgroundService
                 || await requestStorage.TryGetAudit(serverOptions.InstanceId, index, token) is not Some<Storage.Models.Audit>(var audit))
             {
                 logger.LogDebug("#{Index:D5}: No message has found yet.", index);
-                await Task.Delay(serverOptions.InactivityDelayTime, token);
+                await Task.WhenAny(Task.Delay(serverOptions.InactivityDelayTime, token));
                 continue;
             }
 
@@ -78,20 +82,36 @@ internal class MessageHandlingService : BackgroundService
 
             try
             {
-                await client.PublishObject(message, token);
+                await responseStorage.AddOrGet(message, async _ =>
+                {
+                    CachingResult result;
+                    try
+                    {
+                        var response = await client.RequestObject(message, token);
+                        result = CachingResult.OfValue((dynamic)response);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Message({MessageName}/{MessageId}) handling has failed.", messageName, messageId);
+                        result = CachingResult.OfException(ex);
+                    }
+
+                    logger.LogDebug("Message({MessageName}/{MessageId}) handling has succeeded.", messageName, messageId);
+                    return result;
+                }, token);
             }
             catch (OperationCanceledException ex) when (token.IsCancellationRequested)
             {
-                logger.LogInformation(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) publishing: cancelled.", index, messageName, messageId);
+                logger.LogInformation(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) handling: cancelled.", index, messageName, messageId);
                 break;
             }
             catch (Exception ex)
             {
-                logger.LogCritical(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) publishing: failed.", index, messageName, messageId);
+                logger.LogCritical(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) handling: failed.", index, messageName, messageId);
             }
             finally
             {
-                logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) publishing: ends.", index, messageName, messageId);
+                logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) handling: succeeded.", index, messageName, messageId);
             }
 
             if (index % 100 == 0)
@@ -103,7 +123,7 @@ internal class MessageHandlingService : BackgroundService
             }
 
             index++;
-            await Task.Delay(serverOptions.NextMessageDelayTime, token);
+            await Task.WhenAny(Task.Delay(serverOptions.NextMessageDelayTime, token));
         }
 
         logger.LogInformation("#{Index:D5}: Exit by cancellation.", index);
