@@ -55,7 +55,7 @@ public class MessagingClientFixtureBuilder
         return this;
     }
 
-    public MessagingClientFixtureBuilder AddMongoHandler<THandler>(THandler? handler = null) where THandler : class
+    public MessagingClientFixtureBuilder AddHandler<THandler>(THandler? handler = null) where THandler : class
     {
         var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
                           ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
@@ -71,7 +71,7 @@ public class MessagingClientFixtureBuilder
         return this;
     }
 
-    public MessagingClientFixtureBuilder AddMongoMessageRegistrationOnly<TMessage>()
+    public MessagingClientFixtureBuilder AddMessageRegistrationOnly<TMessage>()
         where TMessage : IAbstractMessage
     {
         clientSource.Configurations.Add(o => o.AddMongo(typeof(TMessage)));
