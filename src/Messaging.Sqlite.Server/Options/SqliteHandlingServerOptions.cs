@@ -10,6 +10,11 @@ namespace Assistant.Net.Messaging.Options;
 public class SqliteHandlingServerOptions
 {
     /// <summary>
+    ///     Server instance ID.
+    /// </summary>
+    public int InstanceId { get; set; } = 1;
+
+    /// <summary>
     ///     List of registered messages for remote handling.
     /// </summary>
     [MinLength(1)]

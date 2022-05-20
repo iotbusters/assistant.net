@@ -1,125 +1,92 @@
-﻿//using Assistant.Net.Abstractions;
-//using Assistant.Net.Diagnostics.Abstractions;
-//using Assistant.Net.Messaging.Abstractions;
-//using Assistant.Net.Messaging.Exceptions;
-//using Assistant.Net.Messaging.Models;
-//using Assistant.Net.Messaging.Options;
-//using Assistant.Net.Messaging.Serialization;
-//using Assistant.Net.Unions;
-//using Assistant.Net.Utils;
-//using Microsoft.EntityFrameworkCore;
-//using Microsoft.Extensions.Logging;
-//using Microsoft.Extensions.Options;
-//using System;
-//using System.Threading;
-//using System.Threading.Tasks;
+﻿using Assistant.Net.Abstractions;
+using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Models;
+using Assistant.Net.Messaging.Options;
+using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Unions;
+using Assistant.Net.Utils;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
-//namespace Assistant.Net.Messaging.Internal
-//{
-//    internal class SqliteMessageHandlerProxy<TMessage, TResponse> : IAbstractHandler
-//        where TMessage : IMessage<TResponse>
-//    {
-//        private readonly ILogger logger;
-//        private readonly IDiagnosticContext context;
-//        private readonly ITypeEncoder typeEncoder;
-//        private readonly SqliteHandlingClientOptions options;
-//        private readonly IDbContextFactory<MessageDbContext> dbContextFactory;
-//        private readonly ISystemClock clock;
-//        private readonly ExceptionModelConverter converter;
+namespace Assistant.Net.Messaging.Internal;
 
-//        public SqliteMessageHandlerProxy(
-//            ILogger<SqliteMessageHandlerProxy<TMessage, TResponse>> logger,
-//            IOptions<SqliteHandlingClientOptions> options,
-//            IDiagnosticContext context,
-//            ITypeEncoder typeEncoder,
-//            IDbContextFactory<MessageDbContext> dbContextFactory,
-//            ISystemClock clock,
-//            ExceptionModelConverter converter)
-//        {
-//            this.logger = logger;
-//            this.context = context;
-//            this.typeEncoder = typeEncoder;
-//            this.clock = clock;
-//            this.options = options.Value;
-//            this.dbContextFactory = dbContextFactory;
-//            this.converter = converter;
-//        }
+/// <summary>
+///     SQLite remote message handling proxy.
+/// </summary>
+internal class SqliteMessageHandlerProxy<TMessage, TResponse> : IAbstractHandler
+    where TMessage : IMessage<TResponse>
+{
+    private readonly ILogger logger;
+    private readonly IOptionsMonitor<SqliteHandlingClientOptions> options;
+    private readonly IPartitionedStorage<int, IAbstractMessage> requestStorage;
+    private readonly IAdminStorage<IAbstractMessage, CachingResult> responseStorage;
+    private readonly ITypeEncoder typeEncoder;
 
-//        public async Task<object> Request(object message, CancellationToken token)
-//        {
-//            var attempt = 1;
-//            var strategy = options.ResponsePoll;
+    public SqliteMessageHandlerProxy(
+        ILogger<SqliteMessageHandlerProxy<TMessage, TResponse>> logger,
+        IOptionsMonitor<SqliteHandlingClientOptions> options,
+        IPartitionedStorage<int, IAbstractMessage> requestStorage,
+        IAdminStorage<IAbstractMessage, CachingResult> responseStorage,
+        ITypeEncoder typeEncoder)
+    {
+        this.logger = logger;
+        this.options = options;
+        this.requestStorage = requestStorage;
+        this.responseStorage = responseStorage;
+        this.typeEncoder = typeEncoder;
+    }
 
-//            var messageName = typeEncoder.Encode(message.GetType())
-//                              ?? throw new NotSupportedException($"Not supported  message type '{message.GetType()}'.");
-//            var messageId = message.GetSha1();
-//            await Publish((TMessage)message, token);
-//            await Task.Delay(strategy.DelayTime(attempt), token);
+    public async Task<object> Request(object message, CancellationToken token)
+    {
+        var clientOptions = options.CurrentValue;
+        var strategy = clientOptions.ResponsePoll;
+        var attempt = 1;
 
-//            while (true)
-//            {
-//                logger.LogDebug("Message({MessageName}/{MessageId}) polling: {Attempt} begins.", messageName, messageId, attempt);
+        var messageName = typeEncoder.Encode(message.GetType())
+                          ?? throw new NotSupportedException($"Not supported  message type '{message.GetType()}'.");
+        var messageId = message.GetSha1();
 
-//                if (await FindOneResponded(messageId, token) is Some<SqliteRecord>(var responded))
-//                {
-//                    logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} ends with {status}.", messageName, messageId, attempt, responded.Status);
+        await Publish((TMessage)message, token);
+        await Task.Delay(strategy.DelayTime(attempt), token);
 
-//                    if (responded.Status == HandlingStatus.Succeeded)
-//                        return (TResponse)responded.Response!;
+        logger.LogDebug("Message({MessageName}/{MessageId}) polling: {Attempt} begins.", messageName, messageId, attempt);
 
-//                    if (responded.Status == HandlingStatus.Failed)
-//                        converter.ConvertFrom((ExceptionModel)responded.Response!)!.Throw();
+        while (!token.IsCancellationRequested)
+        {
+            if (await responseStorage.TryGet((IAbstractMessage)message, token) is Some<CachingResult>(var response))
+            {
+                logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} ends with response.", messageName, messageId, attempt);
+                return response.GetValue();
+            }
 
-//                    throw new MessageContractException($"Not expected status {responded.Status}.");
-//                }
+            logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} ends without response.", messageName, messageId, attempt);
 
-//                logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} ends without response.", messageName, messageId, attempt);
+            attempt++;
+            if (!strategy.CanRetry(attempt))
+            {
+                logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} won't proceed.", messageName, messageId, attempt);
+                break;
+            }
 
-//                attempt++;
-//                if (!strategy.CanRetry(attempt))
-//                {
-//                    logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} won't proceed.", messageName, messageId, attempt);
-//                    break;
-//                }
+            await Task.Delay(strategy.DelayTime(attempt), token);
+        }
 
-//                await Task.Delay(strategy.DelayTime(attempt), token);
-//            }
+        throw new MessageDeferredException("No response from server in defined amount of time.");
+    }
 
-//            throw new MessageDeferredException("No response from server in defined amount of time.");
-//        }
+    public async Task Publish(object message, CancellationToken token)
+    {
+        var clientOptions = options.CurrentValue;
 
-//        public async Task Publish(object message, CancellationToken token)
-//        {
-//            var messageName = typeEncoder.Encode(message.GetType())
-//                              ?? throw new NotSupportedException($"Not supported  message type '{message.GetType()}'.");
-//            var messageId = message.GetSha1();
-//            var audit = new Audit { CorrelationId = context.CorrelationId, Requested = clock.UtcNow, User = context.User };
+        await requestStorage.Add(clientOptions.InstanceId, (IAbstractMessage)message, token);
 
-//            var requested = new SqliteRecord(messageId, messageName, message, audit);
-//            await InsertOne(requested, token);
-//        }
-
-//        private async Task InsertOne(SqliteRecord record, CancellationToken token)
-//        {
-//            try
-//            {
-//                await collection.InsertOneAsync(
-//                    record,
-//                    new InsertOneOptions(),
-//                    token);
-//            }
-//            catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
-//            {
-//                logger.LogDebug("Message({MessageName}/{MessageId}) polling: already requested.", record.MessageName, record.Id);
-//            }
-//        }
-
-//        private async Task<Option<SqliteRecord>> FindOneResponded(string id, CancellationToken token)
-//        {
-//            var existed = await collection
-//                .Find(filter: x => x.Id == id && x.Status != HandlingStatus.Requested, new FindOptions())
-//                .SingleOrDefaultAsync(token);
-//            return existed.AsOption();
-//        }
-//    }
-//}
+        var messageName = typeEncoder.Encode(message.GetType())
+                          ?? throw new NotSupportedException($"Not supported  message type '{message.GetType()}'.");
+        var messageId = message.GetSha1();
+        logger.LogDebug("Message({MessageName}/{MessageId}) publishing: succeeded.", messageName, messageId);
+    }
+}

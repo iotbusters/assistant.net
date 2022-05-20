@@ -1,4 +1,6 @@
 ﻿using Assistant.Net.Options;
+using Assistant.Net.Storage;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -14,26 +16,35 @@ public class SqliteHandlingBuilder : MessagingClientBuilder<SqliteHandlingBuilde
     public SqliteHandlingBuilder(IServiceCollection services) : base(services, SqliteOptionsNames.DefaultName) { }
 
     /// <summary>
-    ///     Configures the messaging client to connect a MongoDB database from a client.
+    ///     Configures the messaging client to connect a SQLite database from a client.
     /// </summary>
     public SqliteHandlingBuilder UseSqlite(string connectionString) =>
         UseSqlite(o => o.ConnectionString = connectionString);
 
     /// <summary>
-    ///     Configures the messaging client to connect a MongoDB database from a client.
+    ///     Configures the messaging client to connect a SQLite database from a client.
     /// </summary>
-    public SqliteHandlingBuilder UseSqlite(Action<SqliteOptions> configureOptions)
+    public SqliteHandlingBuilder UseSqlite(SqliteConnection connection)
     {
-        Services.ConfigureSqliteOptions(Name, configureOptions);
+        Services.ConfigureStorage(b => b.UseSqlite(connection));
         return this;
     }
 
     /// <summary>
-    ///     Configures the messaging client to connect a MongoDB database from a client.
+    ///     Configures the messaging client to connect a SQLite database from a client.
+    /// </summary>
+    public SqliteHandlingBuilder UseSqlite(Action<SqliteOptions> configureOptions)
+    {
+        Services.ConfigureStorage(b => b.UseSqlite(configureOptions));
+        return this;
+    }
+
+    /// <summary>
+    ///     Configures the messaging client to connect a SQLite database from a client.
     /// </summary>
     public SqliteHandlingBuilder UseSqlite(IConfigurationSection configuration)
     {
-        Services.ConfigureSqliteOptions(Name, configuration);
+        Services.ConfigureStorage(b => b.UseSqlite(configuration));
         return this;
     }
 }
