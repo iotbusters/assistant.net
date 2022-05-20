@@ -24,7 +24,7 @@ public class ClientServerIntegrationTests
         var handler = new TestScenarioMessageHandler();
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
-            .AddMongoHandler(handler)
+            .AddHandler(handler)
             .Create();
 
         var tasks = Enumerable.Range(1, concurrencyCount).Select(
@@ -40,7 +40,7 @@ public class ClientServerIntegrationTests
         var handler = new TestScenarioMessageHandler();
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
-            .AddMongoHandler(handler)
+            .AddHandler(handler)
             .Create();
         await fixture.Client.RequestObject(new TestScenarioMessage(0));
         handler.CallCount = 0;
@@ -57,7 +57,7 @@ public class ClientServerIntegrationTests
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
-            .AddMongoHandler<TestScenarioMessageHandler>()
+            .AddHandler<TestScenarioMessageHandler>()
             .Create();
 
         var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
@@ -71,7 +71,7 @@ public class ClientServerIntegrationTests
         // global arrange
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
-            .AddMongoHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
+            .AddHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
             .Create();
 
         // arrange 1
@@ -98,7 +98,7 @@ public class ClientServerIntegrationTests
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
-            .AddMongoHandler<TestSuccessFailureMessageHandler>()
+            .AddHandler<TestSuccessFailureMessageHandler>()
             .Create();
 
         fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
@@ -112,8 +112,8 @@ public class ClientServerIntegrationTests
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
-            .AddMongoMessageRegistrationOnly<TestScenarioMessage>()
-            .AddMongoHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
+            .AddMessageRegistrationOnly<TestScenarioMessage>()
+            .AddHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
             .Create();
 
         fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
@@ -127,7 +127,7 @@ public class ClientServerIntegrationTests
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
-            .AddMongoHandler<TestSuccessFailureMessageHandler>()
+            .AddHandler<TestSuccessFailureMessageHandler>()
             .Create();
 
         fixture.Client.Awaiting(x => x.RequestObject(new TestSuccessFailureMessage(typeof(TimeoutException).AssemblyQualifiedName)))
@@ -140,7 +140,7 @@ public class ClientServerIntegrationTests
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
-            .AddMongoHandler<TestSuccessFailureMessageHandler>()
+            .AddHandler<TestSuccessFailureMessageHandler>()
             .Create();
 
         fixture.Client.Awaiting(x => x.RequestObject(new TestSuccessFailureMessage(typeof(MessageDeferredException).AssemblyQualifiedName)))
@@ -153,7 +153,7 @@ public class ClientServerIntegrationTests
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
-            .AddMongoHandler<TestScenarioMessageHandler>()
+            .AddHandler<TestScenarioMessageHandler>()
             .Create();
 
         fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(1)))
@@ -167,7 +167,7 @@ public class ClientServerIntegrationTests
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
-            .AddMongoHandler<TestScenarioMessageHandler>()
+            .AddHandler<TestScenarioMessageHandler>()
             .Create();
 
         fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(2)))
@@ -181,7 +181,7 @@ public class ClientServerIntegrationTests
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
-            .AddMongoHandler<TestScenarioMessageHandler>()
+            .AddHandler<TestScenarioMessageHandler>()
             .Create();
 
         fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(3)))
