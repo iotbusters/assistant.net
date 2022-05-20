@@ -57,34 +57,27 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - messaging web/mongo packagees
 
-## [0.2.106] - 2022-05-19
+## [0.2.108] - 2022-05-20
 
-[Assistant.NET Release 0.2.107](https://github.com/iotbusters/assistant.net/releases/tag/0.2.107)
+[Assistant.NET Release 0.2.108](https://github.com/iotbusters/assistant.net/releases/tag/0.2.108)
 
-### 0.2.106 Fix
-
-- configure options source extension method
-
-## [0.2.106] - 2022-05-17
-
-[Assistant.NET Release 0.2.106](https://github.com/iotbusters/assistant.net/releases/tag/0.2.106)
-
-### 0.2.106 Added
+### 0.2.108 Added
 
 - sqlite storage and messaging providers
 
-### 0.2.106 Changed
+### 0.2.108 Changed
 
 - mongo messaging providers to use mongo storage instead of custom implementation
 
-### 0.2.106 Fixed
+### 0.2.108 Fixed
 
 - bugs in messaging client
   - interceptor invalid ordering
   - interceptor invalid options injecting
   - storage invalid options registering
+- configure options source extension method
 
-### 0.2.106 Removed
+### 0.2.108 Removed
 
 - messaging web/mongo packagees
 
