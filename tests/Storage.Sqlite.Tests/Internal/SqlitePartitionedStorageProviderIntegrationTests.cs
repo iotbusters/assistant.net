@@ -4,6 +4,7 @@ using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Sqlite.Tests.Mocks;
 using Assistant.Net.Unions;
 using FluentAssertions;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -123,36 +124,37 @@ public class SqlitePartitionedStorageProviderIntegrationTests
         count2.Should().Be(1);
     }
 
-
     [OneTimeSetUp]
     public async Task OneTimeSetup()
     {
-        var connectionString = "Data Source=:memory:";
+        await MasterConnection.OpenAsync(CancellationToken);
         Provider = new ServiceCollection()
             .AddStorage(b => b
-                .UseSqlite(connectionString)
+                .UseSqlite(ConnectionString)
                 .AddSqlitePartitioned<TestKey, TestValue>())
             .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
             .AddSystemClock(_ => TestDate)
             .BuildServiceProvider();
-        DbContext = await Provider.GetRequiredService<IDbContextFactory<HistoricalStorageDbContext>>().CreateDbContextAsync();
-        await DbContext.Database.EnsureCreatedAsync(CancellationToken);
+        var dbContext = await Provider.GetRequiredService<IDbContextFactory<StorageDbContext>>().CreateDbContextAsync(CancellationToken);
+        await dbContext.Database.EnsureCreatedAsync(CancellationToken);
     }
 
     [OneTimeTearDown]
-    public void OneTimeTearDown()
+    public void OneTimeTearDown() => Provider?.Dispose();
+
+    [TearDown]
+    public async Task TearDown()
     {
-        DbContext?.Database.EnsureDeleted();
-        Provider?.Dispose();
+        var dbContext = await Provider!.GetRequiredService<IDbContextFactory<StorageDbContext>>().CreateDbContextAsync(CancellationToken);
+        dbContext.HistoricalKeys.RemoveRange(dbContext.HistoricalKeys);
+        await dbContext.SaveChangesAsync(CancellationToken);
     }
 
-    [SetUp]
-    public void SetUp()
-    {
-        DbContext?.Keys.RemoveRange(DbContext.Keys);
-        DbContext?.SaveChanges();
-    }
-
+    private const string ConnectionString = "Data Source=test;Mode=Memory;Cache=Shared";
+    /// <summary>
+    ///     Shared SQLite in-memory database connection keeping the data shared between other connections.
+    /// </summary>
+    private SqliteConnection MasterConnection { get; } = new(ConnectionString);
     private static CancellationToken CancellationToken => new CancellationTokenSource(500).Token;
     private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version = 1) => new(TestCorrelationId, TestUser, TestDate, version);
@@ -161,6 +163,6 @@ public class SqlitePartitionedStorageProviderIntegrationTests
     private string TestUser { get; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;
     private ServiceProvider? Provider { get; set; }
-    private HistoricalStorageDbContext? DbContext { get; set; }
+    private StorageDbContext? DbContext { get; set; }
     private IPartitionedStorageProvider<TestValue> PartitionedStorage => Provider!.CreateScope().ServiceProvider.GetRequiredService<IPartitionedStorageProvider<TestValue>>();
 }
