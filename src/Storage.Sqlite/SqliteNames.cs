@@ -6,27 +6,32 @@
 public class SqliteNames
 {
     /// <summary>
-    ///     Storage schema name.
+    ///     Storage keys table name.
     /// </summary>
-    public const string StorageSchemaName = "storage";
+    public const string StorageKeysTableName = "StorageKeys";
 
     /// <summary>
-    ///     Storage schema name.
+    ///     Storage values table name.
     /// </summary>
-    public const string HistoricalStorageSchemaName = "historical";
+    public const string StorageValuesTableName = "StorageValues";
 
     /// <summary>
-    ///     Keys table name.
+    ///     Storage values table name.
     /// </summary>
-    public const string KeysTableName = "Keys";
+    public const string StorageDetailsTableName = "StorageDetails";
 
     /// <summary>
-    ///     Values table name.
+    ///     Historical storage keys table name.
     /// </summary>
-    public const string ValuesTableName = "Values";
+    public const string HistoricalKeysTableName = "HistoricalKeys";
 
     /// <summary>
-    ///     Values table name.
+    ///     Historical storage values table name.
     /// </summary>
-    public const string DetailsTableName = "Details";
+    public const string HistoricalValuesTableName = "HistoricalValues";
+
+    /// <summary>
+    ///     Historical storage values table name.
+    /// </summary>
+    public const string HistoricalDetailsTableName = "HistoricalDetails";
 }

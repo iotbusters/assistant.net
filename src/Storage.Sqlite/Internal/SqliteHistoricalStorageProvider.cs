@@ -18,18 +18,16 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
 {
     private readonly ILogger logger;
     private readonly SqliteStoringOptions options;
-    private readonly IDbContextFactory<HistoricalStorageDbContext> dbContextFactory;
-    private readonly HistoricalStorageDbContext readonlyDbContext;
+    private readonly IDbContextFactory<StorageDbContext> dbContextFactory;
 
     public SqliteHistoricalStorageProvider(
         ILogger<SqliteStorageProvider<TValue>> logger,
         IOptions<SqliteStoringOptions> options,
-        IDbContextFactory<HistoricalStorageDbContext> dbContextFactory)
+        IDbContextFactory<StorageDbContext> dbContextFactory)
     {
         this.logger = logger;
         this.options = options.Value;
         this.dbContextFactory = dbContextFactory;
-        this.readonlyDbContext = CreateDbContext();
     }
 
     public async Task<ValueRecord> AddOrGet(
@@ -124,7 +122,9 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
     {
         logger.LogDebug("SQLite({KeyId}:latest) querying: begins.", key.Id);
 
-        var found = await readonlyDbContext.Values
+        await using var storageDbContext = CreateDbContext();
+
+        var found = await storageDbContext.HistoricalValues
             .AsNoTracking()
             .OrderBy(x => x.Version)
             .LastOrDefaultAsync(x => x.KeyId == key.Id, token);
@@ -135,7 +135,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
             logger.LogDebug("SQLite({KeyId}:latest) querying: not found.", key.Id);
 
         return found.AsOption().MapOption(x =>
-            new ValueRecord(x.ValueType, x.ValueContent, new Audit(x.Details.ToDictionary(), x.Version)));
+            new ValueRecord(x.ValueType, x.ValueContent, new Audit(x.Details.FromDetailArray(), x.Version)));
     }
 
     /// <exception cref="ArgumentOutOfRangeException" />
@@ -143,9 +143,11 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
     {
         logger.LogDebug("SQLite({KeyId}:{Version}) querying: begins.", key.Id, version);
 
-        var found = await readonlyDbContext.Values
+        await using var storageDbContext = CreateDbContext();
+
+        var found = await storageDbContext.HistoricalValues
             .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.KeyId == key.Id && x.Version == version, token);
+            .SingleOrDefaultAsync(x => x.KeyId == key.Id && x.Version == version, token); 
 
         if (found != null)
             logger.LogDebug("SQLite({KeyId}:{Version}) querying: found.", key.Id, found.Version);
@@ -153,7 +155,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
             logger.LogDebug("SQLite({KeyId}:{Version}) querying: not found.", key.Id, version);
 
         return found.AsOption().MapOption(x =>
-            new ValueRecord(x.ValueType, x.ValueContent, new Audit(x.Details.ToDictionary(), x.Version)));
+            new ValueRecord(x.ValueType, x.ValueContent, new Audit(x.Details.FromDetailArray(), x.Version)));
     }
 
     public async Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken token)
@@ -214,36 +216,34 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
     }
 
     public IQueryable<KeyRecord> GetKeys() =>
-        readonlyDbContext.Keys.AsNoTracking().Select(x => new KeyRecord(x.Id, x.Type, x.Content));
+        CreateDbContext().HistoricalKeys.AsNoTracking().Select(x => new KeyRecord(x.Id, x.Type, x.Content));
 
-    public void Dispose() => readonlyDbContext.Dispose();
+    public void Dispose() { }
 
-    private HistoricalStorageDbContext CreateDbContext() => dbContextFactory.CreateDbContext();
-        
+    private StorageDbContext CreateDbContext() => dbContextFactory.CreateDbContext();
+
     private async Task<bool> InsertValue(KeyRecord key, ValueRecord newValue, CancellationToken token)
     {
         logger.LogDebug("SQLite({KeyId}) inserting: begins.", key.Id);
 
         await using var dbContext = CreateDbContext();
 
-        if (await dbContext.Keys.AnyAsync(x => x.Id == key.Id, token))
-        {
+        if (await dbContext.HistoricalKeys.AnyAsync(x => x.Id == key.Id, token))
             logger.LogDebug("SQLite({KeyId}) key: found.", key.Id);
-        }
         else
         {
-            var keyRecord = new SqliteKeyRecord(key.Id, key.Type, key.Content);
+            var keyRecord = new HistoricalKeyRecord(key.Id, key.Type, key.Content);
             await dbContext.AddAsync(keyRecord, token);
 
             logger.LogDebug("SQLite({KeyId}) key: adding.", key.Id);
         }
 
-        var valueRecord = new SqliteRecord(
+        var valueRecord = new HistoricalValueRecord(
             key.Id,
             newValue.Type,
             newValue.Content,
             newValue.Audit.Version,
-            newValue.Audit.Details);
+            newValue.Audit.Details.ToDetailArray());
 
         try
         {
@@ -257,7 +257,6 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
         {
             // note: primary key constraint violation (https://www.sqlite.org/rescode.html#constraint_primarykey)
             logger.LogWarning(ex, "SQLite({KeyId}) inserting: already present.", key.Id);
-            dbContext.ChangeTracker.Clear();
             return false;
         }
     }
@@ -270,7 +269,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
             return Option.None;
 
         await using var dbContext = CreateDbContext();
-        var valueQuery = dbContext.Values.Where(x => x.KeyId == key.Id && x.Version <= found.Audit.Version);
+        var valueQuery = dbContext.HistoricalValues.Where(x => x.KeyId == key.Id && x.Version <= found.Audit.Version);
 
         var count = await valueQuery.LongCountAsync(token);
         logger.LogDebug("SQLite({KeyId}) deleting: found {Count}.", key.Id, count);
@@ -287,7 +286,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
         logger.LogDebug("SQLite({KeyId}) deleting: begins.", key.Id);
 
         await using var dbContext = CreateDbContext();
-        var valueQuery = dbContext.Values.Where(x => x.KeyId == key.Id && x.Version <= upToVersion);
+        var valueQuery = dbContext.HistoricalValues.Where(x => x.KeyId == key.Id && x.Version <= upToVersion);
 
         var count = await valueQuery.LongCountAsync(token);
         logger.LogDebug("SQLite({KeyId}) deleting: found {Count}.", key.Id, count);
@@ -304,8 +303,8 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
         logger.LogDebug("SQLite(*) deleting: key cleanup begins.");
 
         await using var dbContext = CreateDbContext();
-        var keys = dbContext.Keys;
-        var values = dbContext.Values;
+        var keys = dbContext.HistoricalKeys;
+        var values = dbContext.HistoricalValues;
         var keyQuery = keys.Where(key => !values.Any(x => x.KeyId == key.Id));
 
         var count = await keyQuery.LongCountAsync(token);

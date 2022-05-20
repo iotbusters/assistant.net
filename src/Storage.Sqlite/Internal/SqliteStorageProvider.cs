@@ -19,7 +19,6 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
     private readonly ILogger logger;
     private readonly SqliteStoringOptions options;
     private readonly IDbContextFactory<StorageDbContext> dbContextFactory;
-    private readonly StorageDbContext readonlyDbContext;
 
     public SqliteStorageProvider(
         ILogger<SqliteStorageProvider<TValue>> logger,
@@ -29,7 +28,6 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         this.logger = logger;
         this.options = options.Value;
         this.dbContextFactory = dbContextFactory;
-        this.readonlyDbContext = CreateDbContext();
     }
 
     public async Task<ValueRecord> AddOrGet(
@@ -76,7 +74,8 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         {
             logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} begins.", key.Id, attempt);
 
-            if (await readonlyDbContext.Values.AnyAsync(x => x.KeyId == key.Id, token))
+            await using var storageDbContext = CreateDbContext();
+            if (await storageDbContext.StorageValues.AnyAsync(x => x.KeyId == key.Id, token))
             {
                 if (await UpdateValue(key, updateFactory, token) is Some<ValueRecord>(var updated))
                 {
@@ -108,30 +107,31 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         throw new StorageConcurrencyException();
     }
 
-    public Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token) =>
-        FindRecord(readonlyDbContext.Values.AsNoTracking(), key, token).MapOption(ToValue);
+    public async Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token)
+    {
+        await using var storageDbContext = CreateDbContext();
+        return await FindRecord(storageDbContext.StorageValues.AsNoTracking(), key, token).MapOption(ToValue);
+    }
 
     public async Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken token) =>
         await DeleteValue(key, token);
 
     public IQueryable<KeyRecord> GetKeys() =>
-        readonlyDbContext.Keys.AsNoTracking().Select(x => new KeyRecord(x.Id, x.Type, x.Content));
+        CreateDbContext().StorageKeys.AsNoTracking().Select(x => new KeyRecord(x.Id, x.Type, x.Content));
 
-    public void Dispose() =>
-        readonlyDbContext.Dispose();
+    public void Dispose() { }
 
     private StorageDbContext CreateDbContext() =>
         dbContextFactory.CreateDbContext();
 
-    private ValueRecord ToValue(SqliteRecord record) =>
-        new(record.ValueType, record.ValueContent, new Audit(record.Details.ToDictionary(), record.Version));
+    private ValueRecord ToValue(StorageValueRecord record) =>
+        new(record.ValueType, record.ValueContent, new Audit(record.Details.FromDetailArray(), record.Version));
 
-    private async Task<Option<SqliteRecord>> FindRecord(IQueryable<SqliteRecord> values, KeyRecord key, CancellationToken token)
+    private async Task<Option<StorageValueRecord>> FindRecord(IQueryable<StorageValueRecord> values, KeyRecord key, CancellationToken token)
     {
         logger.LogDebug("SQLite({KeyId}) querying: begins.", key.Id);
 
         var found = await values.SingleOrDefaultAsync(x => x.KeyId == key.Id, token);
-
         if (found != null)
             logger.LogDebug("SQLite({KeyId}:{Version}) querying: found.", key.Id, found.Version);
         else
@@ -148,20 +148,20 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         logger.LogDebug("SQLite({KeyId}) inserting: begins.", key.Id);
 
         var added = await addFactory(key);
-        var valueRecord = new SqliteRecord(
+        var valueRecord = new StorageValueRecord(
             key.Id,
             added.Type,
             added.Content,
             added.Audit.Version,
-            added.Audit.Details);
+            added.Audit.Details.ToDetailArray());
 
         await using var dbContext = CreateDbContext();
 
-        if (await dbContext.Keys.AnyAsync(x => x.Id == key.Id, token))
+        if (await dbContext.StorageKeys.AnyAsync(x => x.Id == key.Id, token))
             logger.LogDebug("SQLite({KeyId}) key: found.", key.Id);
         else
         {
-            var keyRecord = new SqliteKeyRecord(key.Id, key.Type, key.Content);
+            var keyRecord = new StorageKeyRecord(key.Id, key.Type, key.Content);
             await dbContext.AddAsync(keyRecord, token);
 
             logger.LogDebug("SQLite({KeyId}) key: adding.", key.Id);
@@ -195,7 +195,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         CancellationToken token)
     {
         await using var dbContext = CreateDbContext();
-        if (await FindRecord(dbContext.Values, key, token) is not Some<SqliteRecord>(var found))
+        if (await FindRecord(dbContext.StorageValues, key, token) is not Some<StorageValueRecord>(var found))
             return Option.None;
 
         var oldValue = ToValue(found);
@@ -237,7 +237,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         logger.LogDebug("SQLite({KeyId}) deleting: begins.", key.Id);
 
         await using var dbContext = CreateDbContext();
-        if (await FindRecord(dbContext.Values, key, token) is not Some<SqliteRecord>(var found))
+        if (await FindRecord(dbContext.StorageValues, key, token) is not Some<StorageValueRecord>(var found))
             return Option.None;
 
         try

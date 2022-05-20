@@ -1,35 +1,34 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace Assistant.Net.Storage.Models;
 
 /// <summary>
-///     SQLite storage persisting record.
+///     SQLite storage persisting value record.
 /// </summary>
-public class SqliteRecord
+public class StorageValueRecord
 {
     /// <summary>
     ///     EF only.
     /// </summary>
-    private SqliteRecord() { }
+    private StorageValueRecord() { }
 
     /// <summary />
-    public SqliteRecord(
+    public StorageValueRecord(
         string keyId,
         string valueType,
         byte[] valueContent,
         long version,
-        IDictionary<string, string> details)
+        IEnumerable<StorageValueDetail> details)
     {
         KeyId = keyId;
         Version = version;
         ValueType = valueType;
         ValueContent = valueContent;
-        Details = details.Select(x => new Detail(x.Key, x.Value)).ToArray();
+        Details = details;
     }
 
     /// <summary/>
-    public string KeyId { get; set; } = default!;
+    public string KeyId { get; init; } = default!;
 
     /// <summary>
     ///     <see cref="ValueContent"/> state version.
@@ -39,7 +38,7 @@ public class SqliteRecord
     /// <summary>
     ///     Value type name.
     /// </summary>
-    public string ValueType { get; set; } = default!;
+    public string ValueType { get; init; } = default!;
 
     /// <summary>
     ///     Binary value content.
@@ -49,5 +48,5 @@ public class SqliteRecord
     /// <summary>
     ///     Value content auditing details.
     /// </summary>
-    public IEnumerable<Detail> Details { get; set; } = default!;
+    public IEnumerable<StorageValueDetail> Details { get; set; } = default!;
 }
