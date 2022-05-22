@@ -216,7 +216,7 @@ public abstract class MessagingClientBuilder<TBuilder> : IMessagingClientBuilder
     ///     Allows exposing the external exception type <typeparamref name="TException" />.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="ErrorHandlingInterceptor"/>.
+    ///     It impacts <see cref="ErrorHandlingInterceptor"/>.
     /// </remarks>
     public TBuilder ExposeException<TException>()
         where TException : Exception => ExposeException(typeof(TException));
@@ -225,7 +225,7 @@ public abstract class MessagingClientBuilder<TBuilder> : IMessagingClientBuilder
     ///     Allows exposing the exception <paramref name="type"/>.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="ErrorHandlingInterceptor"/>.
+    ///     It impacts <see cref="ErrorHandlingInterceptor"/>.
     /// </remarks>
     public TBuilder ExposeException(Type type)
     {
@@ -240,7 +240,7 @@ public abstract class MessagingClientBuilder<TBuilder> : IMessagingClientBuilder
     ///     Removes the exposed exception type <typeparamref name="TException" />.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="ErrorHandlingInterceptor"/>.
+    ///     It impacts <see cref="ErrorHandlingInterceptor"/>.
     /// </remarks>
     public TBuilder RemoveExposedException<TException>()
         where TException : Exception
@@ -253,7 +253,7 @@ public abstract class MessagingClientBuilder<TBuilder> : IMessagingClientBuilder
     ///     Removes all exposed external exception types.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="ErrorHandlingInterceptor"/>.
+    ///     It impacts <see cref="ErrorHandlingInterceptor"/>.
     /// </remarks>
     public TBuilder ClearExposedExceptions()
     {
@@ -265,7 +265,7 @@ public abstract class MessagingClientBuilder<TBuilder> : IMessagingClientBuilder
     ///     Allows retrying the transient exception type <typeparamref name="TException" />.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
+    ///     It impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
     /// </remarks>
     public TBuilder AddTransientException<TException>()
         where TException : Exception => AddTransientException(typeof(TException));
@@ -274,7 +274,7 @@ public abstract class MessagingClientBuilder<TBuilder> : IMessagingClientBuilder
     ///     Allows retrying the transient exception <paramref name="type" />.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
+    ///     It impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
     /// </remarks>
     public TBuilder AddTransientException(Type type)
     {
@@ -289,7 +289,7 @@ public abstract class MessagingClientBuilder<TBuilder> : IMessagingClientBuilder
     ///     Removes the transient exception type <typeparamref name="TException" />.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="CachingInterceptor"/> and <see cref="RetryingInterceptor"/>.
+    ///     It impacts <see cref="CachingInterceptor"/> and <see cref="RetryingInterceptor"/>.
     /// </remarks>
     public TBuilder RemoveTransientException<TException>()
         where TException : Exception
@@ -302,7 +302,7 @@ public abstract class MessagingClientBuilder<TBuilder> : IMessagingClientBuilder
     ///     Removes all transient exception types.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
+    ///     It impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
     /// </remarks>
     public TBuilder ClearTransientExceptions()
     {
@@ -314,7 +314,7 @@ public abstract class MessagingClientBuilder<TBuilder> : IMessagingClientBuilder
     ///     Overrides retrying strategy.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="RetryingInterceptor"/>.
+    ///     It impacts <see cref="RetryingInterceptor"/>.
     /// </remarks>
     public TBuilder Retry(IRetryStrategy strategy)
     {
@@ -326,7 +326,7 @@ public abstract class MessagingClientBuilder<TBuilder> : IMessagingClientBuilder
     ///     Overrides retrying strategy.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="RetryingInterceptor"/>.
+    ///     It impacts <see cref="RetryingInterceptor"/>.
     /// </remarks>
     public TBuilder Retry(IConfigurationSection configuration)
     {
@@ -345,7 +345,7 @@ public abstract class MessagingClientBuilder<TBuilder> : IMessagingClientBuilder
     ///     Overrides message handling timeout.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="TimeoutInterceptor"/>.
+    ///     It impacts <see cref="TimeoutInterceptor"/>.
     /// </remarks>
     public TBuilder TimeoutIn(TimeSpan timeout)
     {

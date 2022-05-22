@@ -25,7 +25,7 @@ public sealed class MessagingClientOptions
     ///     List of allowed for exposing external exceptions.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="ErrorHandlingInterceptor{TMessage,TResponse}"/>.
+    ///     It impacts <see cref="ErrorHandlingInterceptor{TMessage,TResponse}"/>.
     /// </remarks>
     public IList<Type> ExposedExceptions { get; } = new List<Type>();
 
@@ -33,7 +33,7 @@ public sealed class MessagingClientOptions
     ///     List of allowed for retrying transient exceptions.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor{TMessage,TResponse}"/>.
+    ///     It impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor{TMessage,TResponse}"/>.
     /// </remarks>
     public IList<Type> TransientExceptions { get; } = new List<Type>();
 
@@ -41,7 +41,7 @@ public sealed class MessagingClientOptions
     ///     Message handling retry strategy.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="RetryingInterceptor{TMessage,TResponse}"/>.
+    ///     It impacts <see cref="RetryingInterceptor{TMessage,TResponse}"/>.
     /// </remarks>
     public IRetryStrategy Retry { get; set; } = new ExponentialBackoff
     {
@@ -54,7 +54,7 @@ public sealed class MessagingClientOptions
     ///     Message handling timeout.
     /// </summary>
     /// <remarks>
-    ///     Impacts <see cref="TimeoutInterceptor{TMessage,TResponse}"/>.
+    ///     It impacts <see cref="TimeoutInterceptor{TMessage,TResponse}"/>.
     /// </remarks>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
 }
