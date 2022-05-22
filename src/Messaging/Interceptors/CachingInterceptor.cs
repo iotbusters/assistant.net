@@ -22,7 +22,8 @@ public class CachingInterceptor : CachingInterceptor<IMessage<object>, object>, 
 ///     Message response (including failures) caching interceptor.
 /// </summary>
 /// <remarks>
-///     The interceptor depends on <see cref="MessagingClientOptions.TransientExceptions"/>
+///     The interceptor depends on <see cref="MessagingClientOptions.TransientExceptions"/>,
+///     <see cref="IMessageCacheIgnored"/> and <see cref="IMessageCacheConfigured"/>.
 /// </remarks>
 public class CachingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
     where TMessage : IMessage<TResponse>
@@ -40,7 +41,13 @@ public class CachingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMess
     /// <inheritdoc/>
     public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
     {
-        var key = message.GetSha1();
+        if(message is IMessageCacheIgnored)
+            return await next(message, token);
+
+        var key = message is IMessageCacheConfigured configured
+            ? configured.GetCacheId().GetSha1()
+            : message.GetSha1();
+
         var result = await cache.AddOrGet(key, async _ =>
         {
             try
