@@ -24,7 +24,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 ### 0.2.106 Removed
 
-- messaging web/mongo packagees
+- messaging web/mongo packages
 
 ## [0.2.106] - 2022-05-19
 
@@ -55,7 +55,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 ### 0.2.106 Removed
 
-- messaging web/mongo packagees
+- messaging web/mongo packages
 
 ## [0.2.108] - 2022-05-20
 
@@ -79,7 +79,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 ### 0.2.108 Removed
 
-- messaging web/mongo packagees
+- messaging web/mongo packages
 
 ## [0.2.105] - 2022-05-05
 
@@ -123,7 +123,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 ### 0.2.101 Changed
 
-- reworked messaging client and handling configuraiton builders to hide unsupported options
+- reworked messaging client and handling configuration builders to hide unsupported options
 
 ## [0.1.100] - 2021-12-08
 
@@ -185,14 +185,14 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 ### 0.1.95 Changed
 
-- serilizer converter exposes internal json exceptions
+- serializer converter exposes internal json exceptions
 - introduced none backward compatible change to messaging client and storage
   - moved database name from client/server options to `MongoOptions`
 - added extension methods for configuring `MongoOptions` in messaging client and storage
 
 ### 0.1.95 Fixed
 
-- overriding local handlers (after providers recent intruduction)
+- overriding local handlers (after providers recent introduction)
 
 ## [0.1.94] - 2021-11-03
 
