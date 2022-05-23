@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Messaging.Interceptors;
-using System;
+﻿using System;
 
 namespace Assistant.Net.Messaging.Models;
 

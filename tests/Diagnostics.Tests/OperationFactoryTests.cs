@@ -43,7 +43,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Start,
-                    Payload = new object[] {correlationId, Array.Empty<object>(), Array.Empty<object>()},
+                    Payload = new object[] {correlationId!, Array.Empty<object>(), Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Metadata"}
                 },
                 new
@@ -53,7 +53,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Stop,
-                    Payload = new object[] {correlationId, Array.Empty<object>(), new TimeSpan(), "Operation wasn't properly stopped or lost.", "incomplete", Array.Empty<object>()},
+                    Payload = new object[] {correlationId!, Array.Empty<object>(), new TimeSpan(), "Operation wasn't properly stopped or lost.", "incomplete", Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Duration", "Message", "Status", "Metadata"}
                 }
             },
@@ -91,7 +91,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Start,
-                    Payload = new object[] {correlationId1, Array.Empty<object>(), Array.Empty<object>()},
+                    Payload = new object[] {correlationId1!, Array.Empty<object>(), Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Metadata"}
                 },
                 new
@@ -101,7 +101,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Start,
-                    Payload = new object[] {correlationId2, ItemData(correlationId1), Array.Empty<object>()},
+                    Payload = new object[] {correlationId2!, ItemData(correlationId1!), Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Metadata"}
                 },
                 new
@@ -111,7 +111,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Stop,
-                    Payload = new object[] {correlationId2, ItemData(correlationId1), new TimeSpan(), "Operation has successfully completed.", "complete", Array.Empty<object>()},
+                    Payload = new object[] {correlationId2!, ItemData(correlationId1!), new TimeSpan(), "Operation has successfully completed.", "complete", Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Duration", "Message", "Status", "Metadata"}
                 },
                 new
@@ -121,7 +121,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Stop,
-                    Payload = new object[] { correlationId1, Array.Empty<object>(), new TimeSpan(), "Operation has successfully completed.", "complete", Array.Empty<object>()},
+                    Payload = new object[] { correlationId1!, Array.Empty<object>(), new TimeSpan(), "Operation has successfully completed.", "complete", Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Duration", "Message", "Status", "Metadata"}
                 }
             },
@@ -155,7 +155,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Start,
-                    Payload = new object[] {correlationId, Array.Empty<object>(), Array.Empty<object>()},
+                    Payload = new object[] {correlationId!, Array.Empty<object>(), Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Metadata"}
                 },
                 new
@@ -165,7 +165,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Start,
-                    Payload = new object[] {correlationId, Array.Empty<object>(), Array.Empty<object>()},
+                    Payload = new object[] {correlationId!, Array.Empty<object>(), Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Metadata"}
                 },
                 new
@@ -175,7 +175,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Stop,
-                    Payload = new object[] {correlationId, Array.Empty<object>(), new TimeSpan(), "Operation has successfully completed.", "complete", Array.Empty<object>()},
+                    Payload = new object[] {correlationId!, Array.Empty<object>(), new TimeSpan(), "Operation has successfully completed.", "complete", Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Duration", "Message", "Status", "Metadata"}
                 },
                 new
@@ -185,7 +185,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Stop,
-                    Payload = new object[] {correlationId, Array.Empty<object>(), new TimeSpan(), "test-message", "complete", Array.Empty<object>()},
+                    Payload = new object[] {correlationId!, Array.Empty<object>(), new TimeSpan(), "test-message", "complete", Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Duration", "Message", "Status", "Metadata"}
                 }
             },
@@ -218,7 +218,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Start,
-                    Payload = new object[] {correlationId, Array.Empty<object>(), Array.Empty<object>()},
+                    Payload = new object[] {correlationId!, Array.Empty<object>(), Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Metadata"}
                 },
                 new
@@ -228,7 +228,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Start,
-                    Payload = new object[] {correlationId, Array.Empty<object>(), Array.Empty<object>()},
+                    Payload = new object[] {correlationId!, Array.Empty<object>(), Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Metadata"}
                 },
                 new
@@ -238,7 +238,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Stop,
-                    Payload = new object[] {correlationId, Array.Empty<object>(), new TimeSpan(), "Operation has successfully completed.", "complete", Array.Empty<object>()},
+                    Payload = new object[] {correlationId!, Array.Empty<object>(), new TimeSpan(), "Operation has successfully completed.", "complete", Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Duration", "Message", "Status", "Metadata"}
                 },
                 new
@@ -248,7 +248,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Stop,
-                    Payload = new object[] {correlationId, Array.Empty<object>(), new TimeSpan(), "Operation has successfully completed.", "complete", Array.Empty<object>()},
+                    Payload = new object[] {correlationId!, Array.Empty<object>(), new TimeSpan(), "Operation has successfully completed.", "complete", Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Duration", "Message", "Status", "Metadata"}
                 }
             },
@@ -284,7 +284,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Start,
-                    Payload = new object[] {correlationId, Array.Empty<object>(), Array.Empty<object>()},
+                    Payload = new object[] {correlationId!, Array.Empty<object>(), Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Metadata"}
                 },
                 new
@@ -294,7 +294,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Start,
-                    Payload = new object[] {correlationId, Array.Empty<object>(), Array.Empty<object>()},
+                    Payload = new object[] {correlationId!, Array.Empty<object>(), Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Metadata"}
                 },
                 new
@@ -304,7 +304,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Stop,
-                    Payload = new object[] {correlationId, Array.Empty<object>(), new TimeSpan(), "Operation has successfully completed.", "complete", Array.Empty<object>()},
+                    Payload = new object[] {correlationId!, Array.Empty<object>(), new TimeSpan(), "Operation has successfully completed.", "complete", Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Duration", "Message", "Status", "Metadata"}
                 },
                 new
@@ -314,7 +314,7 @@ public class OperationFactoryTests
                     RelatedActivityId = Guid.Empty,
                     EventSource = new {Name = "Assistant.Net.Diagnostics.Operation"},
                     Opcode = EventOpcode.Stop,
-                    Payload = new object[] {correlationId, Array.Empty<object>(), new TimeSpan(), "Operation wasn't properly stopped or lost.", "incomplete", Array.Empty<object>()},
+                    Payload = new object[] {correlationId!, Array.Empty<object>(), new TimeSpan(), "Operation wasn't properly stopped or lost.", "incomplete", Array.Empty<object>()},
                     PayloadNames = new[] {"CorrelationId", "ParentCorrelationIds", "Duration", "Message", "Status", "Metadata"}
                 }
             },

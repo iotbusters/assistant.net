@@ -86,14 +86,13 @@ internal sealed class LocalHistoricalStorageProvider<TValue> : IHistoricalStorag
         if (!backedStorage.TryGetValue(key, out var versions))
             return Task.FromResult(0L);
 
-        var count = 0L;
-        foreach (var version in versions.Keys.OrderBy(x => x).Where(x => x <= upToVersion))
-            if (versions.TryRemove(version, out var _))
-                count++;
+        var count = versions.Keys
+            .OrderBy(x => x)
+            .Where(x => x <= upToVersion)
+            .LongCount(version => versions.TryRemove(version, out var _));
 
-        if (!versions.Any())
-            if (backedStorage.TryRemove(key, out var latestVersions))
-                count += latestVersions.Count;// note: race condition.
+        if (!versions.Any() && backedStorage.TryRemove(key, out var latestVersions))
+            count += latestVersions.Count; // note: race condition.
 
         return Task.FromResult(count);
     }

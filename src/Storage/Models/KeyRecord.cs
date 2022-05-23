@@ -34,7 +34,7 @@ public class KeyRecord
     public bool Equals(KeyRecord key) => Type.Equals(key.Type) && Id.Equals(key.Id);
 
     /// <inheritdoc/>
-    public override bool Equals(object? obj) => obj is KeyRecord key && Equals(key);
+    public override bool Equals(object? obj) => obj?.GetType() == GetType() && Equals((KeyRecord)obj!);
 
     /// <inheritdoc/>
     public override int GetHashCode() => HashCode.Combine(Type, Id);

@@ -59,7 +59,7 @@ public sealed class AdvancedJsonConverter<T> : JsonConverter<T>
         foreach (var getter in getters)
         {
             var propertyValue = getter.GetValue(value);
-            if (propertyValue == null && !options.IgnoreNullValues)
+            if (propertyValue == null && options.DefaultIgnoreCondition != JsonIgnoreCondition.WhenWritingNull)
                 continue;
 
             writer.WritePropertyName(getter.Name);
@@ -72,9 +72,9 @@ public sealed class AdvancedJsonConverter<T> : JsonConverter<T>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="TypeResolvingFailedJsonException"/>
+    /// <exception cref="NotResolvedJsonException"/>
     /// <exception cref="JsonException"/>
-    public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.TokenType == JsonTokenType.Null)
             return default!;
@@ -125,13 +125,13 @@ public sealed class AdvancedJsonConverter<T> : JsonConverter<T>
 
                 return (T)valueToConvert;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                initializationErrors.Add(e);
+                initializationErrors.Add(ex);
             }
         }
 
-        throw new TypeResolvingFailedJsonException(
+        throw new NotResolvedJsonException(
             typeName,
             $"The type '{typeof(T)}' failed to deserialize.",
             new AggregateException(initializationErrors));
@@ -224,9 +224,9 @@ public sealed class AdvancedJsonConverter<T> : JsonConverter<T>
             {
                 throw;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                throw new JsonException($"Failed to read property '{propertyName}' value.", e);
+                throw new JsonException($"Failed to read property '{propertyName}' value.", ex);
             }
         }
 

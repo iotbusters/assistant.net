@@ -27,9 +27,9 @@ public static class TaskExtensions
         {
             throw;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            return faultFactory(e);
+            return faultFactory(ex);
         }
     }
 
