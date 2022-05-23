@@ -42,7 +42,7 @@ public static class AsyncEnumerableExtensions
     public static async IAsyncEnumerable<TSource> Where<TSource>(this IAsyncEnumerable<TSource> source, Func<TSource, Task<bool>> predicate)
     {
         await foreach (var item in source)
-            if(await predicate(item))
+            if (await predicate(item))
                 yield return item;
     }
 

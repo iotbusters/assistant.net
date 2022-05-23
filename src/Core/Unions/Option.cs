@@ -8,7 +8,7 @@ public record Option<T>
     /// <summary>
     ///    Whether current option has some value.
     /// </summary>
-    public bool IsSome => this is Some<T>;
+    public virtual bool IsSome { get; }
 
     /// <summary>
     ///    Whether current option has none value.

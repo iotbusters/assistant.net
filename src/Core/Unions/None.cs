@@ -3,7 +3,11 @@ namespace Assistant.Net.Unions;
 /// <summary>
 ///    Represents none value for maybe monad implementation.
 /// </summary>
-public record None<T> : Option<T>;
+public record None<T> : Option<T>
+{
+    /// <inheritdoc/>
+    public override bool IsSome => false;
+}
 
 /// <summary>
 ///    Represents none value for maybe monad implementation.

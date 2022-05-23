@@ -73,9 +73,9 @@ internal static class HttpContextExtensions
         {
             throw;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            throw new MessageContractException($"Reading '{messageType.Name}' object has failed.", e);
+            throw new MessageContractException($"Reading '{messageType.Name}' object has failed.", ex);
         }
     }
 
@@ -115,7 +115,7 @@ internal static class HttpContextExtensions
     /// <exception cref="InvalidOperationException" />
     public static ILogger GetLogger(this HttpContext context) => context
         .GetService<ILoggerFactory>()
-        .CreateLogger(typeof(HttpContextExtensions).Namespace);
+        .CreateLogger(typeof(HttpContextExtensions).Namespace!);
 
     /// <summary>
     ///     Resolves a <typeparamref name="T"/> service configured in DI.

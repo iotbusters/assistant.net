@@ -48,7 +48,7 @@ public class ExceptionJsonConverter<T> : JsonConverter<T>
     }
 
     /// <inheritdoc/>
-    /// <exception cref="TypeResolvingFailedJsonException"/>
+    /// <exception cref="NotResolvedJsonException"/>
     /// <exception cref="JsonException"/>
     public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
@@ -63,21 +63,30 @@ public class ExceptionJsonConverter<T> : JsonConverter<T>
         if (message == null)
             throw new JsonException($"Property '{MessagePropertyName}' is required.");
 
-        var type = typeEncoder.Decode(encodedType!);
+        var type = typeEncoder.Decode(encodedType);
         if (type == null)
-            throw new TypeResolvingFailedJsonException(encodedType, message, inner);
+            throw new ExceptionNotResolvedJsonException(
+                $"Type '{encodedType}' wasn't found.",
+                null,
+                encodedType,
+                message,
+                inner);
         if (!CanConvert(type))
             throw new JsonException($"Unsupported by converter exception type `{type.Name}`.");
 
-        var ctorArguments = new object?[] { message, inner }
-            .Where(x => x != null).Select(x => x!).ToArray();
+        var ctorArguments = new object?[] {message, inner}.Where(x => x != null).ToArray();
         try
         {
-            return (T)Activator.CreateInstance(type!, ctorArguments)!;
+            return (T)Activator.CreateInstance(type, ctorArguments)!;
         }
-        catch (Exception)
+        catch(Exception ex)
         {
-            throw new TypeResolvingFailedJsonException(encodedType, message, inner);
+            throw new ExceptionNotResolvedJsonException(
+                $"The type '{typeof(T)}' failed to deserialize.",
+                ex,
+                encodedType,
+                message,
+                inner);
         }
     }
 

@@ -41,7 +41,7 @@ public sealed class EnumerableJsonConverter<T> : JsonConverter<IEnumerable<T>>
     public override bool CanConvert(Type typeToConvert) => EnumerableJsonConverter.CanConvert(typeToConvert, out _);
 
     /// <inheritdoc/>
-    /// <exception cref="TypeResolvingFailedJsonException"/>
+    /// <exception cref="NotResolvedJsonException"/>
     /// <exception cref="JsonException"/>
     public override IEnumerable<T> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
@@ -73,9 +73,12 @@ public sealed class EnumerableJsonConverter<T> : JsonConverter<IEnumerable<T>>
         {
             return (IEnumerable<T>)Activator.CreateInstance(typeToConvert, list.ToArray())!;
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            throw new TypeResolvingFailedJsonException(typeToConvert.Name, $"Failed to instantiate type '{typeToConvert}'.", e);
+            throw new NotResolvedJsonException(
+                typeToConvert.Name,
+                $"The type '{typeToConvert}' failed to deserialize.",
+                ex);
         }
     }
 

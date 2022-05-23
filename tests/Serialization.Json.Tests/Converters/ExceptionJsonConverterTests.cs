@@ -82,7 +82,7 @@ public class ExceptionJsonConverterTests
         stream.Position = 0;
 
         await this.Awaiting(_ => JsonSerializer.DeserializeAsync<SystemException>(stream, options))
-            .Should().ThrowAsync<TypeResolvingFailedJsonException>();
+            .Should().ThrowAsync<NotResolvedJsonException>();
     }
 
     private static IServiceProvider Provider { get; } = new ServiceCollection()

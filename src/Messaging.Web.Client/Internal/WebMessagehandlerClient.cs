@@ -41,14 +41,15 @@ internal class WebMessageHandlerClient : IWebMessageHandlerClient
 
         var messageName = typeEncoder.Encode(messageType);
 
-        var response = await client.SendAsync(new HttpRequestMessage(HttpMethod.Post, "")
+        using var request = new HttpRequestMessage(HttpMethod.Post, "")
         {
             Headers = {{ClientHeaderNames.MessageName, messageName}},
             Content = new StreamContent(requestStream)
-        }, token);
+        };
+        var response = await client.SendAsync(request, token);
 
         var responseSerializer = factory.Create(typeof(TResponse));
-        var responseStream = await response.Content.ReadAsStreamAsync(token);
+        await using var responseStream = await response.Content.ReadAsStreamAsync(token);
         var responseObject = (TResponse)await responseSerializer.DeserializeObject(responseStream, token);
         return responseObject!;
     }

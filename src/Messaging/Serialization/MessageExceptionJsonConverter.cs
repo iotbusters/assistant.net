@@ -37,9 +37,9 @@ public class MessageExceptionJsonConverter : ExceptionJsonConverter<Exception>
         {
             return base.Read(ref reader, typeToConvert, options);
         }
-        catch(TypeResolvingFailedJsonException e)
+        catch(ExceptionNotResolvedJsonException ex)
         {
-            return new UnknownMessageException(e.Type, e.Message, e.InnerException);
+            return new UnknownMessageException(ex.TargetType, ex.TargetMessage, ex.TargetInner);
         }
     }
 }

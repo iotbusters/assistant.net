@@ -4,4 +4,8 @@ namespace Assistant.Net.Unions;
 ///    Represents some value for maybe monad implementation.
 /// </summary>
 /// <param name="Value">A value.</param>
-public record Some<T>(T Value) : Option<T>;
+public record Some<T>(T Value) : Option<T>
+{
+    /// <inheritdoc/>
+    public override bool IsSome => true;
+}

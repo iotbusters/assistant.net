@@ -31,9 +31,8 @@ public class TimeoutInterceptor<TMessage, TResponse> : IMessageInterceptor<TMess
     /// <inheritdoc/>
     public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
     {
-        using var newSource = CancellationTokenSource.CreateLinkedTokenSource(
-            new CancellationTokenSource(options.Timeout).Token,
-            token);
+        using var timeoutSource = new CancellationTokenSource(options.Timeout);
+        using var newSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutSource.Token, token);
 
         return await next(message, newSource.Token);
     }

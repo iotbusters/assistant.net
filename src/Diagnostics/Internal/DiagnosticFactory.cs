@@ -24,8 +24,7 @@ internal sealed class DiagnosticFactory : IDiagnosticFactory, IDisposable
     internal IDiagnosticContext Context { get; }
     internal IDictionary<string, IDisposable> Operations { get; } = new ConcurrentDictionary<string, IDisposable>();
 
-    IOperation IDiagnosticFactory.Start(string name) =>
-        new Operation(name, this);
+    IOperation IDiagnosticFactory.Start(string name) => new Operation(name, this);
 
     void IDisposable.Dispose()
     {

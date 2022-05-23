@@ -49,14 +49,14 @@ public class ErrorPropagationHandler : DelegatingHandler
     /// <exception cref="MessageContractException"/>
     private async Task<MessageException> ReadException(HttpResponseMessage response, CancellationToken token)
     {
-        var stream = await response.Content.ReadAsStreamAsync(token);
+        await using var stream = await response.Content.ReadAsStreamAsync(token);
         try
         {
             return await serializer.Deserialize(stream, token);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            return new MessageContractException(ErrorContentMessage(response.StatusCode), e);
+            return new MessageContractException(ErrorContentMessage(response.StatusCode), ex);
         }
     }
 

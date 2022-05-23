@@ -27,8 +27,10 @@ internal sealed class Operation : IOperation, IDisposable
             .Start();
 
         // the following can be called after operation is started only.
-        this.activity.AddCorrelationId(factory.Context.CorrelationId);
-        this.factory.Operations.Add(activity.Id!, this);
+        var activityId = activity.Id ?? throw new InvalidOperationException("Activity wasn't started.");
+        var correlationId = factory.Context.CorrelationId ?? throw new InvalidOperationException("CorrelationId wasn't setup properly.");
+        this.activity.AddCorrelationId(correlationId);
+        this.factory.Operations.Add(activityId, this);
 
         WriteOperationStarted();
     }
