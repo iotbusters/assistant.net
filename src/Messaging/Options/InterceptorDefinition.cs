@@ -1,4 +1,5 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Options;
 using System;
 
 namespace Assistant.Net.Messaging.Options;
@@ -8,17 +9,15 @@ namespace Assistant.Net.Messaging.Options;
 /// </summary>
 public class InterceptorDefinition
 {
-    private readonly Func<IServiceProvider, IAbstractInterceptor> factory;
-
     /// <summary/>
     public InterceptorDefinition(
         Type messageType,
         Type interceptorType,
-        Func<IServiceProvider, IAbstractInterceptor> factory)
+        InstanceFactory<IAbstractInterceptor> factory)
     {
         MessageType = messageType;
         InterceptorType = interceptorType;
-        this.factory = factory;
+        Factory = factory;
     }
 
     /// <summary>
@@ -32,7 +31,7 @@ public class InterceptorDefinition
     public Type InterceptorType { get; }
 
     /// <summary>
-    ///     Creates message interceptor instance.
+    ///     Interceptor instance factory.
     /// </summary>
-    public IAbstractInterceptor Create(IServiceProvider provider) => factory(provider);
+    public InstanceFactory<IAbstractInterceptor> Factory { get; }
 }

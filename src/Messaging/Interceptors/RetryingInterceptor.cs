@@ -1,3 +1,4 @@
+using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
@@ -15,7 +16,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 public class RetryingInterceptor : RetryingInterceptor<IMessage<object>, object>, IMessageInterceptor
 {
     /// <summary/>
-    public RetryingInterceptor(ILogger<RetryingInterceptor> logger, IDiagnosticFactory diagnosticFactory, MessagingClientOptions options) : base(logger, diagnosticFactory, options) { }
+    public RetryingInterceptor(ILogger<RetryingInterceptor> logger, IDiagnosticFactory diagnosticFactory, INamedOptions<MessagingClientOptions> options) : base(logger, diagnosticFactory, options) { }
 }
 
 /// <summary>
@@ -35,11 +36,11 @@ public class RetryingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMes
     public RetryingInterceptor(
         ILogger<RetryingInterceptor> logger,
         IDiagnosticFactory diagnosticFactory,
-        MessagingClientOptions options)
+        INamedOptions<MessagingClientOptions> options)
     {
         this.logger = logger;
         this.diagnosticFactory = diagnosticFactory;
-        this.options = options;
+        this.options = options.Value;
     }
 
     /// <inheritdoc/>

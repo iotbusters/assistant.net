@@ -1,8 +1,7 @@
+using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Options;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 using System.Threading;
@@ -15,15 +14,13 @@ namespace Assistant.Net.Messaging.Internal;
 /// </summary>
 internal class MessagingClient : IMessagingClient
 {
-    private readonly string name;
     private readonly IServiceProvider provider;
-    private readonly IOptionsMonitor<MessagingClientOptions> optionsMonitor;
+    private readonly MessagingClientOptions options;
 
-    public MessagingClient(string name, IServiceProvider provider)
+    public MessagingClient(IServiceProvider provider, INamedOptions<MessagingClientOptions> options)
     {
-        this.name = name;
         this.provider = provider;
-        this.optionsMonitor = provider.GetRequiredService<IOptionsMonitor<MessagingClientOptions>>();
+        this.options = options.Value;
     }
 
     /// <exception cref="MessageNotRegisteredException"/>
@@ -36,14 +33,13 @@ internal class MessagingClient : IMessagingClient
     /// <exception cref="MessageNotRegisteredException"/>
     public Task PublishObject(object message, CancellationToken token)
     {
-        var client = CreateInterceptingHandler(message.GetType());
-        return client.Publish(message, token);
+        var handler = CreateInterceptingHandler(message.GetType());
+        return handler.Publish(message, token);
     }
 
     /// <exception cref="MessageNotRegisteredException"/>
     private InterceptingMessageHandler CreateInterceptingHandler(Type messageType)
     {
-        var options = optionsMonitor.Get(name);
         if(!options.Handlers.TryGetValue(messageType, out var definition))
             throw new MessageNotRegisteredException(messageType);
 
@@ -51,7 +47,7 @@ internal class MessagingClient : IMessagingClient
 
         var interceptors = options.Interceptors
             .Where(x => x.MessageType.IsAssignableFrom(messageType))
-            .Select(x => x.Create(provider));
+            .Select(x => x.Factory.Create(provider));
 
         return new InterceptingMessageHandler(handler, interceptors);
     }

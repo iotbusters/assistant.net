@@ -1,3 +1,4 @@
+using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Models;
@@ -15,7 +16,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 public class CachingInterceptor : CachingInterceptor<IMessage<object>, object>, IMessageInterceptor
 {
     /// <summary/>
-    public CachingInterceptor(IStorage<string, CachingResult> cache, MessagingClientOptions options) : base(cache, options) { }
+    public CachingInterceptor(IStorage<string, CachingResult> cache, INamedOptions<MessagingClientOptions> options) : base(cache, options) { }
 }
 
 /// <summary>
@@ -32,10 +33,10 @@ public class CachingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMess
     private readonly MessagingClientOptions options;
 
     /// <summary/>
-    public CachingInterceptor(IStorage<string, CachingResult> cache, MessagingClientOptions options)
+    public CachingInterceptor(IStorage<string, CachingResult> cache, INamedOptions<MessagingClientOptions> options)
     {
         this.cache = cache;
-        this.options = options;
+        this.options = options.Value;
     }
 
     /// <inheritdoc/>

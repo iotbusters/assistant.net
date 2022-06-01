@@ -1,3 +1,4 @@
+using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Options;
@@ -11,7 +12,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 public class ErrorHandlingInterceptor : ErrorHandlingInterceptor<IMessage<object>, object>, IMessageInterceptor
 {
     /// <summary/>
-    public ErrorHandlingInterceptor(MessagingClientOptions options) : base(options) { }
+    public ErrorHandlingInterceptor(INamedOptions<MessagingClientOptions> options) : base(options) { }
 }
 
 /// <summary>
@@ -26,8 +27,8 @@ public class ErrorHandlingInterceptor<TMessage, TResponse> : IMessageInterceptor
     private readonly MessagingClientOptions options;
 
     /// <summary/>
-    public ErrorHandlingInterceptor(MessagingClientOptions options) =>
-        this.options = options;
+    public ErrorHandlingInterceptor(INamedOptions<MessagingClientOptions> options) =>
+        this.options = options.Value;
 
     /// <inheritdoc/>
     public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
@@ -42,6 +43,5 @@ public class ErrorHandlingInterceptor<TMessage, TResponse> : IMessageInterceptor
                 throw;
             throw new MessageFailedException(ex);
         }
-            
     }
 }

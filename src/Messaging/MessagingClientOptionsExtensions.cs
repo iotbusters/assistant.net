@@ -1,6 +1,7 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
+using Assistant.Net.Options;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
@@ -13,6 +14,48 @@ namespace Assistant.Net.Messaging;
 public static class MessagingClientOptionsExtensions
 {
     /// <summary>
+    ///     Configures the messaging client to use a single provider feature.
+    /// </summary>
+    public static MessagingClientOptions UseSingleProvider(this MessagingClientOptions options, Func<IServiceProvider, IAbstractHandler> factory)
+    {
+        options.SingleProvider = new(factory);
+        return options;
+    }
+
+    /// <summary>
+    ///     Registers single provider based handler of <typeparamref name="TMessage"/>.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, it requires calling one of Use***SingleProvider method.
+    /// </remarks>
+    /// <typeparam name="TMessage">Specific message type to be handled by a single provider.</typeparam>
+    /// <exception cref="ArgumentException"/>
+    public static MessagingClientOptions Add<TMessage>(this MessagingClientOptions options)
+        where TMessage : IAbstractMessage => options
+        .Add(typeof(TMessage));
+
+    /// <summary>
+    ///     Registers single provider based handler of <paramref name="messageType" />.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, it requires calling one of Use***SingleProvider method.
+    /// </remarks>
+    /// <exception cref="ArgumentException"/>
+    public static MessagingClientOptions Add(this MessagingClientOptions options, Type messageType)
+    {
+        if (!messageType.IsMessage())
+            throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
+
+        options.Handlers[messageType] = new(p =>
+        {
+            var definition = options.SingleProvider ?? throw new ArgumentException("Single provider wasn't properly configured.");
+            return definition.Create(p);
+        });
+
+        return options;
+    }
+
+    /// <summary>
     ///     Registers a named message handler definition.
     /// </summary>
     /// <remarks>
@@ -21,13 +64,12 @@ public static class MessagingClientOptionsExtensions
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddHandler(this MessagingClientOptions options, Type handlerType)
     {
-        var handlerInterfaceTypes = handlerType.GetMessageHandlerInterfaceTypes();
-        if (!handlerInterfaceTypes.Any())
+        var messageTypes = handlerType.GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
+        if (!messageTypes.Any())
             throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
 
-        var messageTypes = handlerInterfaceTypes.Select(x => x.GetGenericArguments().First());
         foreach (var messageType in messageTypes)
-            options.Handlers[messageType] = new HandlerDefinition(p =>
+            options.Handlers[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
             {
                 var handlerInstance = ActivatorUtilities.CreateInstance(p, handlerType);
                 var providerType = typeof(LocalMessageHandlingProxy<,>).MakeGenericTypeBoundToMessage(messageType);
@@ -48,13 +90,12 @@ public static class MessagingClientOptionsExtensions
     public static MessagingClientOptions AddHandler(this MessagingClientOptions options, object handlerInstance)
     {
         var handlerType = handlerInstance.GetType();
-        var handlerInterfaceTypes = handlerType.GetMessageHandlerInterfaceTypes();
-        if (!handlerInterfaceTypes.Any())
+        var messageTypes = handlerType.GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
+        if (!messageTypes.Any())
             throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerInstance));
 
-        var messageTypes = handlerInterfaceTypes.Select(x => x.GetGenericArguments().First());
         foreach (var messageType in messageTypes)
-            options.Handlers[messageType] = new HandlerDefinition(p =>
+            options.Handlers[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
             {
                 var providerType = typeof(LocalMessageHandlingProxy<,>).MakeGenericTypeBoundToMessage(messageType);
                 var handler = ActivatorUtilities.CreateInstance(p, providerType, handlerInstance);
@@ -65,16 +106,15 @@ public static class MessagingClientOptionsExtensions
     }
 
     /// <summary>
-    ///     Removes the <paramref name="handlerType" /> from the list.
+    ///     Removes the <paramref name="handlerType"/> from the list.
     /// </summary>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions RemoveHandler(this MessagingClientOptions options, Type handlerType)
     {
-        var handlerInterfaceTypes = handlerType.GetMessageHandlerInterfaceTypes();
-        if (!handlerInterfaceTypes.Any())
+        var messageTypes = handlerType.GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
+        if (!messageTypes.Any())
             throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
 
-        var messageTypes = handlerInterfaceTypes.Select(x => x.GetGenericArguments().First());
         foreach (var messageType in messageTypes)
             options.Handlers.Remove(messageType);
 
@@ -82,52 +122,45 @@ public static class MessagingClientOptionsExtensions
     }
 
     /// <summary>
-    ///     Adds the <paramref name="interceptorType" /> to the end of the list.
+    ///     Adds the <paramref name="interceptorType"/> to the end of the list.
     /// </summary>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddInterceptor(this MessagingClientOptions options, Type interceptorType)
     {
-        if (!interceptorType.IsMessageInterceptor())
+        var messageTypes = interceptorType.GetMessageInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
+        if(!messageTypes.Any())
             throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
 
-        var messageTypes = interceptorType.GetMessageInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First());
         foreach (var messageType in messageTypes)
-            options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, p =>
+        {
+            var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
             {
-                var interceptor = interceptorType.GetConstructors()
-                    .Any(x => x.GetParameters().Any(y => y.ParameterType == typeof(MessagingClientOptions)))
-                    ? ActivatorUtilities.CreateInstance(p, interceptorType, options)
-                    : ActivatorUtilities.CreateInstance(p, interceptorType);
-                var wrapper = ActivatorUtilities.CreateInstance(
-                    p,
-                    typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, messageType.GetResponseType()!),
-                    interceptor);
-                return (IAbstractInterceptor)wrapper;
-            }));
+                var interceptor = ActivatorUtilities.CreateInstance(p, interceptorType);
+                var responseType = messageType.GetResponseType();
+                var abstractInterceptorType = typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, responseType!);
+                var abstractInterceptor = ActivatorUtilities.CreateInstance(p, abstractInterceptorType, interceptor);
+                return (IAbstractInterceptor)abstractInterceptor;
+            });
+            options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, factory));
+        }
 
         return options;
     }
 
     /// <summary>
-    ///     Adds the <paramref name="interceptorInstance" /> to the end of the list.
+    ///     Adds the <paramref name="interceptorInstance"/> to the end of the list.
     /// </summary>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddInterceptor(this MessagingClientOptions options, object interceptorInstance)
     {
         var interceptorType = interceptorInstance.GetType();
-        if (!interceptorType.IsMessageInterceptor())
+        var messageTypes = interceptorType.GetMessageInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
+        if (!messageTypes.Any())
             throw new ArgumentException($"Expected message interceptor but provided {interceptorType}.", nameof(interceptorInstance));
 
-        var messageTypes = interceptorType.GetMessageInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First());
+        var factory = new InstanceFactory<IAbstractInterceptor>(_ => (IAbstractInterceptor)interceptorInstance);
         foreach (var messageType in messageTypes)
-            options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorInstance.GetType(), p =>
-            {
-                var wrapper = ActivatorUtilities.CreateInstance(
-                    p,
-                    typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, messageType.GetResponseType()!),
-                    interceptorInstance);
-                return (IAbstractInterceptor)wrapper;
-            }));
+            options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, factory));
 
         return options;
     }
@@ -153,18 +186,12 @@ public static class MessagingClientOptionsExtensions
         {
             var index = options.Interceptors.IndexOf(definition);
             options.Interceptors.RemoveAt(index);
-            options.Interceptors.Insert(index, new InterceptorDefinition(definition.MessageType, replacementType, p =>
+            var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
             {
-                var interceptor = replacementType.GetConstructors()
-                    .Any(x => x.GetParameters().Any(y => y.ParameterType == typeof(MessagingClientOptions)))
-                    ? ActivatorUtilities.CreateInstance(p, replacementType, options)
-                    : ActivatorUtilities.CreateInstance(p, replacementType);
-                var wrapper = ActivatorUtilities.CreateInstance(
-                    p,
-                    typeof(AbstractInterceptor<,,>).MakeGenericType(replacementType, definition.MessageType, definition.MessageType.GetResponseType()!),
-                    interceptor);
-                return (IAbstractInterceptor)wrapper;
-            }));
+                var interceptor = p.GetService(replacementType) ?? ActivatorUtilities.CreateInstance(p, replacementType);
+                return (IAbstractInterceptor)interceptor;
+            });
+            options.Interceptors.Insert(index, new InterceptorDefinition(definition.MessageType, replacementType, factory));
         }
 
         return options;
@@ -194,5 +221,4 @@ public static class MessagingClientOptionsExtensions
         options.Interceptors.Clear();
         return options;
     }
-
 }
