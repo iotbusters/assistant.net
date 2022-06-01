@@ -2,6 +2,7 @@ using Assistant.Net.Abstractions;
 using Assistant.Net.Dynamics;
 using Assistant.Net.Dynamics.Abstractions;
 using Assistant.Net.Internal;
+using Assistant.Net.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -58,12 +59,19 @@ public static class ServiceCollectionExtensions
         .TryAddSingleton<ITypeEncoder, TypeEncoder>();
 
     /// <summary>
+    ///     Adds default <see cref="NamedOptionsContext"/>.
+    /// </summary>
+    public static IServiceCollection AddNamedOptionsContext(this IServiceCollection services) => services
+        .TryAddScoped<NamedOptionsContext>()
+        .TryAddScoped(typeof(INamedOptions<>), typeof(NamedOptions<>));
+
+    /// <summary>
     ///     Gets a custom options builder that forwards Configure calls for the same <typeparamref name="TOptions"/>
     ///     to the underlying service collection and custom options binding configuration.
     /// </summary>
     /// <typeparam name="TOptions">The options type to be configured.</typeparam>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    public static Options.OptionsBuilder<TOptions> AddOptions<TOptions>(this IServiceCollection services)
+    public static OptionsBuilder<TOptions> AddOptions<TOptions>(this IServiceCollection services)
         where TOptions : class
     {
         if (services == null)
@@ -72,7 +80,7 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddOptions();
-        return new Options.OptionsBuilder<TOptions>(services, Microsoft.Extensions.Options.Options.DefaultName);
+        return new OptionsBuilder<TOptions>(services, Microsoft.Extensions.Options.Options.DefaultName);
     }
 
     /// <summary>
@@ -82,7 +90,7 @@ public static class ServiceCollectionExtensions
     /// <typeparam name="TOptions">The options type to be configured.</typeparam>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
     /// <param name="name">The name of the options instance.</param>
-    public static Options.OptionsBuilder<TOptions> AddOptions<TOptions>(this IServiceCollection services, string name)
+    public static OptionsBuilder<TOptions> AddOptions<TOptions>(this IServiceCollection services, string name)
         where TOptions : class
     {
         if (services == null)
@@ -91,7 +99,7 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddOptions();
-        return new Options.OptionsBuilder<TOptions>(services, name);
+        return new OptionsBuilder<TOptions>(services, name);
     }
 
     /// <summary>
