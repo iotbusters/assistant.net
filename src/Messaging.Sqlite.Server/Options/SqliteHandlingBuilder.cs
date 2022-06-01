@@ -26,7 +26,7 @@ public class SqliteHandlingBuilder : MessagingClientBuilder<SqliteHandlingBuilde
     /// </summary>
     public SqliteHandlingBuilder UseSqlite(SqliteConnection connection)
     {
-        Services.ConfigureStorage(b => b.UseSqlite(connection));
+        Services.ConfigureStorage(Name, b => b.UseSqlite(connection));
         return this;
     }
 
@@ -35,7 +35,7 @@ public class SqliteHandlingBuilder : MessagingClientBuilder<SqliteHandlingBuilde
     /// </summary>
     public SqliteHandlingBuilder UseSqlite(Action<SqliteOptions> configureOptions)
     {
-        Services.ConfigureStorage(b => b.UseSqlite(configureOptions));
+        Services.ConfigureStorage(Name, b => b.UseSqlite(configureOptions));
         return this;
     }
 
@@ -44,7 +44,7 @@ public class SqliteHandlingBuilder : MessagingClientBuilder<SqliteHandlingBuilde
     /// </summary>
     public SqliteHandlingBuilder UseSqlite(IConfigurationSection configuration)
     {
-        Services.ConfigureStorage(b => b.UseSqlite(configuration));
+        Services.ConfigureStorage(Name, b => b.UseSqlite(configuration));
         return this;
     }
 }
