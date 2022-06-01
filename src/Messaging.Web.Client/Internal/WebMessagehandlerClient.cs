@@ -1,6 +1,7 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Serialization.Abstractions;
+using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
@@ -30,9 +31,13 @@ internal class WebMessageHandlerClient : IWebMessageHandlerClient
     /// <summary>
     ///     Delegates <paramref name="message"/> handling to remote WEB server.
     /// </summary>
-    public async Task<TResponse> DelegateHandling<TResponse>(IMessage<TResponse> message, CancellationToken token)
+    public async Task<object> DelegateHandling(object message, CancellationToken token)
     {
         var messageType = message.GetType();
+        if (!messageType.IsMessage())
+            throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
+
+        var responseType = messageType.GetResponseType()!;
         var requestSerializer = factory.Create(messageType);
 
         var requestStream = new MemoryStream();
@@ -48,9 +53,9 @@ internal class WebMessageHandlerClient : IWebMessageHandlerClient
         };
         var response = await client.SendAsync(request, token);
 
-        var responseSerializer = factory.Create(typeof(TResponse));
+        var responseSerializer = factory.Create(responseType);
         await using var responseStream = await response.Content.ReadAsStreamAsync(token);
-        var responseObject = (TResponse)await responseSerializer.DeserializeObject(responseStream, token);
+        var responseObject = await responseSerializer.DeserializeObject(responseStream, token);
         return responseObject!;
     }
 }

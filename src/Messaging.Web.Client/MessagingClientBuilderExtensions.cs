@@ -11,6 +11,15 @@ namespace Assistant.Net.Messaging;
 public static class MessagingClientBuilderExtensions
 {
     /// <summary>
+    ///     Configures the messaging client to use a WEB single provider implementation.
+    /// </summary>
+    public static MessagingClientBuilder UseWebSingleProvider(this MessagingClientBuilder builder, Action<IHttpClientBuilder> configureBuilder)
+    {
+        builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.UseWebSingleProvider());
+        return builder.UseWeb(configureBuilder);
+    }
+
+    /// <summary>
     ///     Configures the messaging client to connect the remote web handler.
     /// </summary>
     public static MessagingClientBuilder UseWeb(this MessagingClientBuilder builder, Action<IHttpClientBuilder> configureBuilder)
