@@ -20,6 +20,9 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Registers diagnostic context customized by the function <paramref name="getCorrelationId" />.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="getCorrelationId">The correlation ID generation factory.</param>
+    /// <param name="getUser">The user ID generation factory</param>
     public static IServiceCollection AddDiagnosticContext(this IServiceCollection services, Func<IServiceProvider, string> getCorrelationId, Func<IServiceProvider, string>? getUser = null) => services
         .AddDiagnosticContext((p, ctx) =>
         {
@@ -30,6 +33,8 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Registers diagnostic context customized by the <paramref name="configureContext" />.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="configureContext">The action used to configure the context.</param>
     public static IServiceCollection AddDiagnosticContext(this IServiceCollection services, Action<IServiceProvider, DiagnosticContext> configureContext) => services
         .ReplaceScoped<IDiagnosticContext>(p => p.GetRequiredService<DiagnosticContext>())
         .ReplaceScoped(p =>
