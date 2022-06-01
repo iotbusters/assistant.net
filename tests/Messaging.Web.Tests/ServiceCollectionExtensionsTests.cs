@@ -12,7 +12,7 @@ public class ServiceCollectionExtensionsTests
     public void GetServiceOfMessageExceptionJsonConverter_resolvesObject()
     {
         var provider = new ServiceCollection()
-            .AddExceptionJsonSerialization()
+            .ConfigureJsonSerialization()
             .BuildServiceProvider();
 
         provider.GetService<MessageExceptionJsonConverter>()
@@ -23,7 +23,7 @@ public class ServiceCollectionExtensionsTests
     public void GetServiceOfSerializer_resolvesObject()
     {
         var provider = new ServiceCollection()
-            .AddExceptionJsonSerialization()
+            .ConfigureJsonSerialization()
             .BuildServiceProvider();
 
         provider.GetService<ISerializer<object>>()

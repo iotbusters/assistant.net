@@ -1,6 +1,8 @@
+using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Serialization;
+using Assistant.Net.Messaging.Tests.Mocks;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -124,10 +126,9 @@ public class MessageExceptionJsonConverterTests
             new ServiceCollection()
                 .AddTypeEncoder()
                 .AddTransient<MessageExceptionJsonConverter>()
-                .Configure<MessagingClientOptions>(o =>
+                .AddSingleton<INamedOptions<MessagingClientOptions>>(new TestNamedOptions
                 {
-                    if (exceptionType != null)
-                        o.ExposedExceptions.Add(exceptionType);
+                    Value = new MessagingClientOptions {ExposedExceptions = {exceptionType ?? typeof(NullReferenceException)}}
                 })
                 .BuildServiceProvider()
                 .GetRequiredService<MessageExceptionJsonConverter>()

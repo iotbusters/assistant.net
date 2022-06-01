@@ -1,6 +1,8 @@
+using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
+using Assistant.Net.Storage.Options;
 using Assistant.Net.Storage.Sqlite.Tests.Mocks;
 using Assistant.Net.Unions;
 using FluentAssertions;
@@ -160,10 +162,12 @@ public class SqliteStorageProviderTestsIntegrationTests
     }
 
     private const string ConnectionString = "Data Source=test;Mode=Memory;Cache=Shared";
+
     /// <summary>
     ///     Shared SQLite in-memory database connection keeping the data shared between other connections.
     /// </summary>
     private SqliteConnection MasterConnection { get; } = new(ConnectionString);
+
     private static CancellationToken CancellationToken => new CancellationTokenSource(500).Token;
     private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version = 1) => new(TestCorrelationId, TestUser, TestDate, version);
@@ -172,6 +176,7 @@ public class SqliteStorageProviderTestsIntegrationTests
     private string TestUser { get; set; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;
     private ServiceProvider? Provider { get; set; }
-    private StorageDbContext? DbContext { get; set; }
-    private IStorageProvider<TestValue> Storage => Provider!.CreateScope().ServiceProvider.GetRequiredService<IStorageProvider<TestValue>>();
+
+    private IStorageProvider<TestValue> Storage => (IStorageProvider<TestValue>)
+        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value.Providers[typeof(TestValue)].Create(Provider!);
 }

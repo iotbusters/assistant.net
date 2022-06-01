@@ -55,6 +55,17 @@ public class MessagingClientFixtureBuilder
         return this;
     }
 
+    public MessagingClientFixtureBuilder UseMongoSingleProvider(string connectionString, string database)
+    {
+        Services.ConfigureMessagingClient(b => b
+            .UseMongoSingleProvider(o => o.Connection(connectionString).Database(database))
+            .TimeoutIn(TimeSpan.FromSeconds(0.5)));
+        RemoteHostBuilder.ConfigureServices(s => s.ConfigureMongoMessageHandling(b => b
+            .UseMongo(o => o.Connection(connectionString).Database(database))
+            .TimeoutIn(TimeSpan.FromSeconds(0.5))));
+        return this;
+    }
+
     public MessagingClientFixtureBuilder AddHandler<THandler>(THandler? handler = null) where THandler : class
     {
         var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
@@ -68,6 +79,22 @@ public class MessagingClientFixtureBuilder
                 o.AddHandler(typeof(THandler));
         });
         clientSource.Configurations.Add(o => o.AddMongo(messageType));
+        return this;
+    }
+
+    public MessagingClientFixtureBuilder AddSingleProviderHandler<THandler>(THandler? handler = null) where THandler : class
+    {
+        var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
+                          ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
+
+        remoteSource.Configurations.Add(o =>
+        {
+            if (handler != null)
+                o.AddHandler(handler);
+            else
+                o.AddHandler(typeof(THandler));
+        });
+        clientSource.Configurations.Add(o => o.Add(messageType));
         return this;
     }
 

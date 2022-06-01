@@ -62,7 +62,7 @@ public class ErrorHandlingInterceptorTests
     public void Setup()
     {
         Options = new MessagingClientOptions();
-        Interceptor = new ErrorHandlingInterceptor(Options);
+        Interceptor = new ErrorHandlingInterceptor(new TestNamedOptions {Value = Options});
     }
 
     private MessagingClientOptions Options { get; set; } = null!;

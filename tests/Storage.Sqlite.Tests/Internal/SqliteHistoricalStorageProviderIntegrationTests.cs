@@ -1,6 +1,8 @@
+using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
+using Assistant.Net.Storage.Options;
 using Assistant.Net.Storage.Sqlite.Tests.Mocks;
 using Assistant.Net.Unions;
 using FluentAssertions;
@@ -250,7 +252,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
             .AddSystemClock(_ => TestDate)
             .BuildServiceProvider();
         var dbContext = await Provider.GetRequiredService<IDbContextFactory<StorageDbContext>>().CreateDbContextAsync(CancellationToken);
-        await dbContext.Database.EnsureCreatedAsync(CancellationToken);
+        await dbContext.Database.EnsureCreatedAsync(LongCancellationToken);
     }
 
     [OneTimeTearDown]
@@ -269,7 +271,8 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     ///     Shared SQLite in-memory database connection keeping the data shared between other connections.
     /// </summary>
     private SqliteConnection MasterConnection { get; } = new(ConnectionString);
-    private static CancellationToken CancellationToken => new CancellationTokenSource(500).Token;
+    private static CancellationToken CancellationToken => new CancellationTokenSource(100).Token;
+    private static CancellationToken LongCancellationToken => new CancellationTokenSource(1000).Token;
     private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version = 1) => new(TestCorrelationId, TestUser, TestDate, version);
     private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>());
@@ -277,5 +280,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     private string TestUser { get; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;
     private ServiceProvider? Provider { get; set; }
-    private IHistoricalStorageProvider<TestValue> Storage => Provider!.CreateScope().ServiceProvider.GetRequiredService<IHistoricalStorageProvider<TestValue>>();
+
+    private IHistoricalStorageProvider<TestValue> Storage => (IHistoricalStorageProvider<TestValue>)
+        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value.HistoricalProviders[typeof(TestValue)].Create(Provider!);
 }

@@ -112,4 +112,54 @@ public class MessagingClientTests
 
         handler.Message.Should().BeEquivalentTo(new TestMessage(0));
     }
+
+    [Test]
+    public async Task RequestObject_returnsResponse_namedClient()
+    {
+        var handler1 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(1));
+        var handler2 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(2));
+        var handler3 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(3));
+        var mainProvider = new ServiceCollection()
+            .AddMessagingClient(b => b.AddHandler(handler1))
+            .ConfigureMessagingClient("1", b => b.AddHandler(handler2))
+            .ConfigureMessagingClient("2", b => b.AddHandler(handler3))
+            .BuildServiceProvider();
+        
+        var provider1 = mainProvider.CreateScope().ServiceProvider;
+        var response1 = await provider1.GetRequiredService<IMessagingClient>().RequestObject(new TestMessage2(0));
+        response1.Should().Be(new TestResponse2(1));
+
+        var provider2 = mainProvider.CreateScopeWithNamedOptionContext("1").ServiceProvider;
+        var response2 = await provider2.GetRequiredService<IMessagingClient>().RequestObject(new TestMessage2(0));
+        response2.Should().Be(new TestResponse2(2));
+
+        var provider3 = mainProvider.CreateScopeWithNamedOptionContext("2").ServiceProvider;
+        var response3 = await provider3.GetRequiredService<IMessagingClient>().RequestObject(new TestMessage2(0));
+        response3.Should().Be(new TestResponse2(3));
+    }
+
+    [Test]
+    public async Task PublishObject_returnsResponse_namedClient()
+    {
+        var handler1 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(1));
+        var handler2 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(2));
+        var handler3 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(3));
+        var mainProvider = new ServiceCollection()
+            .AddMessagingClient(b => b.AddHandler(handler1))
+            .ConfigureMessagingClient("1", b => b.AddHandler(handler2))
+            .ConfigureMessagingClient("2", b => b.AddHandler(handler3))
+            .BuildServiceProvider();
+
+        var provider1 = mainProvider.CreateScope().ServiceProvider;
+        await provider1.GetRequiredService<IMessagingClient>().PublishObject(new TestMessage2(1));
+        handler1.Message.Should().Be(new TestMessage2(1));
+
+        var provider2 = mainProvider.CreateScopeWithNamedOptionContext("1").ServiceProvider;
+        await provider2.GetRequiredService<IMessagingClient>().PublishObject(new TestMessage2(2));
+        handler2.Message.Should().Be(new TestMessage2(2));
+
+        var provider3 = mainProvider.CreateScopeWithNamedOptionContext("2").ServiceProvider;
+        await provider3.GetRequiredService<IMessagingClient>().PublishObject(new TestMessage2(3));
+        handler3.Message.Should().Be(new TestMessage2(3));
+    }
 }
