@@ -1,13 +1,16 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Options;
 using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal;
@@ -61,6 +64,9 @@ internal static class HttpContextExtensions
     /// <exception cref="MessageContractException" />
     public static async Task<object> ReadMessageObject(this HttpContext httpContext)
     {
+        var monitor = httpContext.GetService<IOptionsMonitor<JsonSerializerOptions>>();
+        var o1 = monitor.Get("");
+        var o2 = monitor.Get(WebOptionsNames.DefaultName);
         var messageType = httpContext.GetMessageType();
         var factory = httpContext.GetService<ISerializerFactory>();
         var serializer = factory.Create(messageType);
@@ -94,6 +100,9 @@ internal static class HttpContextExtensions
         if(content == null)
             return Task.CompletedTask;
 
+        var monitor = httpContext.GetService<IOptionsMonitor<JsonSerializerOptions>>();
+        var o1 = monitor.Get("");
+        var o2 = monitor.Get(WebOptionsNames.DefaultName);
         var factory = httpContext.GetService<ISerializerFactory>();
         var serializer = factory.Create(content.GetType());
         return serializer.SerializeObject(httpContext.Response.Body, content);

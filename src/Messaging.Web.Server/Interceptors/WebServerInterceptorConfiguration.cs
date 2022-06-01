@@ -16,7 +16,7 @@ public class WebServerInterceptorConfiguration : IMessageConfiguration<WebHandli
     /// <inheritdoc/>
     public void Configure(WebHandlingBuilder builder)
     {
-        builder.Services.AddStorage(b => b.AddLocal<string, CachingResult>());
+        builder.Services.ConfigureStorage(builder.Name, b => b.AddLocal<string, CachingResult>());
         builder
             .ClearInterceptors()
             .AddInterceptor<DiagnosticsInterceptor>()

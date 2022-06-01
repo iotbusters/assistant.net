@@ -11,5 +11,5 @@ public interface IWebMessageHandlerClient
     /// <summary>
     ///     Delegates <paramref name="message"/> handling to remote handler.
     /// </summary>
-    Task<TResponse> DelegateHandling<TResponse>(IMessage<TResponse> message, CancellationToken token = default);
+    Task<object> DelegateHandling(object message, CancellationToken token = default);
 }
