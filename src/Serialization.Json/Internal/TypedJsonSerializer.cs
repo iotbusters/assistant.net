@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Serialization.Internal;
 
+/// <summary>
+///     Typed JSON serializer implementation.
+/// </summary>
 internal class TypedJsonSerializer<TValue> : ISerializer<TValue>
 {
     private readonly IJsonSerializer serializer;

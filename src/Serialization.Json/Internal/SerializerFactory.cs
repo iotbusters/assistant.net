@@ -1,5 +1,7 @@
-﻿using Assistant.Net.Serialization.Abstractions;
+﻿using Assistant.Net.Abstractions;
+using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Exceptions;
+using Assistant.Net.Serialization.Options;
 using System;
 
 namespace Assistant.Net.Serialization.Internal;
@@ -10,19 +12,29 @@ namespace Assistant.Net.Serialization.Internal;
 public class SerializerFactory : ISerializerFactory
 {
     private readonly IServiceProvider provider;
+    private readonly SerializerOptions options;
 
     /// <summary/>
-    public SerializerFactory(IServiceProvider provider) =>
+    public SerializerFactory(IServiceProvider provider, INamedOptions<SerializerOptions> options)
+    {
         this.provider = provider;
+        this.options = options.Value;
+    }
 
-    /// <summary>
-    ///     Resolves an instance of serializer for <paramref name="serializingType"/>.
-    /// </summary>
+    /// <inheritdoc/>
     /// <exception cref="SerializerTypeNotRegisteredException"/>
     public IAbstractSerializer Create(Type serializingType)
     {
-        var serviceType = typeof(ISerializer<>).MakeGenericType(serializingType);
-        return (IAbstractSerializer?) provider.GetService(serviceType)
-               ?? throw new SerializerTypeNotRegisteredException(serializingType);
+        if (options.Registrations.TryGetValue(serializingType, out var factory))
+            return factory.Create(provider);
+
+        if (options.AnyTypeRegistration != null)
+            return options.AnyTypeRegistration.Create(provider, serializingType);
+
+        throw new SerializerTypeNotRegisteredException(serializingType);
     }
+
+    /// <inheritdoc/>
+    /// <exception cref="SerializerTypeNotRegisteredException"/>
+    public ISerializer<T> Create<T>() => (ISerializer<T>)Create(typeof(T));
 }

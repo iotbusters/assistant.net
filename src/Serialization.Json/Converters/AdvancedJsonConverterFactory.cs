@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -22,15 +23,29 @@ public class AdvancedJsonConverterFactory : JsonConverterFactory
         if (EnumerableJsonConverter.CanConvert(typeToConvert, out var itemType))
             return CanConvert(itemType!);
 
+        if (ExceptionJsonConverter.CanConvert(typeToConvert))
+            return true;
+
         return AdvancedJsonConverter.CanConvert(typeToConvert);
     }
 
     /// <inheritdoc/>
     public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
     {
+        var converters = options.Converters.SkipWhile(x => x != this).Skip(1).ToArray();
+        var converter = converters.FirstOrDefault(converter => converter.CanConvert(typeToConvert));
+        if (converter != null)
+            return converter;
+
         if (EnumerableJsonConverter.CanConvert(typeToConvert, out var itemType))
         {
             var converterType = typeof(EnumerableJsonConverter<>).MakeGenericType(itemType!);
+            return (JsonConverter?)provider.GetRequiredService(converterType);
+        }
+
+        if (ExceptionJsonConverter.CanConvert(typeToConvert))
+        {
+            var converterType = typeof(ExceptionJsonConverter<>).MakeGenericType(typeToConvert);
             return (JsonConverter?)provider.GetRequiredService(converterType);
         }
 
