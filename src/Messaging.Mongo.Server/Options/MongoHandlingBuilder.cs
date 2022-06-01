@@ -25,7 +25,7 @@ public class MongoHandlingBuilder : MessagingClientBuilder<MongoHandlingBuilder>
     /// </summary>
     public MongoHandlingBuilder UseMongo(Action<MongoOptions> configureOptions)
     {
-        Services.ConfigureStorage(b => b.UseMongo(configureOptions));
+        Services.ConfigureStorage(Name, b => b.UseMongo(configureOptions));
         return this;
     }
 
@@ -34,7 +34,7 @@ public class MongoHandlingBuilder : MessagingClientBuilder<MongoHandlingBuilder>
     /// </summary>
     public MongoHandlingBuilder UseMongo(IConfigurationSection configuration)
     {
-        Services.ConfigureStorage(b => b.UseMongo(configuration));
+        Services.ConfigureStorage(Name, b => b.UseMongo(configuration));
         return this;
     }
 }
