@@ -29,7 +29,8 @@ public static class ServiceCollectionExtensions
         .AddHostedService<MongoMessageHandlingService>()
         .AddSystemServicesHosted()
         .AddMessagingClient()
-        .AddStorage(b => b
+        .AddStorage()
+        .ConfigureStorage(MongoOptionsNames.DefaultName, b => b
             .AddMongoPartitioned<int, IAbstractMessage>()
             .AddMongo<int, long>())
         .ConfigureMongoMessageHandling(b => b.AddConfiguration<MongoServerInterceptorConfiguration>())
