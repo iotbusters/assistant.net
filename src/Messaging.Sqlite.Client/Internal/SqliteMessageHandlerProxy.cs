@@ -17,8 +17,7 @@ namespace Assistant.Net.Messaging.Internal;
 /// <summary>
 ///     SQLite remote message handling proxy.
 /// </summary>
-internal class SqliteMessageHandlerProxy<TMessage, TResponse> : IAbstractHandler
-    where TMessage : IMessage<TResponse>
+internal class SqliteMessageHandlerProxy : IAbstractHandler
 {
     private readonly ILogger logger;
     private readonly IOptionsMonitor<SqliteHandlingClientOptions> options;
@@ -27,7 +26,7 @@ internal class SqliteMessageHandlerProxy<TMessage, TResponse> : IAbstractHandler
     private readonly ITypeEncoder typeEncoder;
 
     public SqliteMessageHandlerProxy(
-        ILogger<SqliteMessageHandlerProxy<TMessage, TResponse>> logger,
+        ILogger<SqliteMessageHandlerProxy> logger,
         IOptionsMonitor<SqliteHandlingClientOptions> options,
         IPartitionedStorage<int, IAbstractMessage> requestStorage,
         IAdminStorage<IAbstractMessage, CachingResult> responseStorage,
@@ -50,7 +49,7 @@ internal class SqliteMessageHandlerProxy<TMessage, TResponse> : IAbstractHandler
                           ?? throw new NotSupportedException($"Not supported  message type '{message.GetType()}'.");
         var messageId = message.GetSha1();
 
-        await Publish((TMessage)message, token);
+        await Publish(message, token);
         await Task.Delay(strategy.DelayTime(attempt), token);
 
         logger.LogDebug("Message({MessageName}/{MessageId}) polling: {Attempt} begins.", messageName, messageId, attempt);

@@ -29,7 +29,8 @@ public static class ServiceCollectionExtensions
         .AddHostedService<SqliteMessageHandlingService>()
         .AddSystemServicesHosted()
         .AddMessagingClient()
-        .AddStorage(b => b
+        .AddStorage()
+        .ConfigureStorage(SqliteOptionsNames.DefaultName, b => b
             .AddSqlitePartitioned<int, IAbstractMessage>()
             .AddSqlite<int, long>())
         .ConfigureSqliteMessageHandling(b => b.AddConfiguration<SqliteServerInterceptorConfiguration>())

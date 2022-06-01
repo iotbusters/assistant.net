@@ -17,5 +17,5 @@ public class SqliteServerInterceptorConfiguration : IMessageConfiguration<Sqlite
                 .AddConfiguration<DefaultInterceptorConfiguration>()
                 .Retry(new ExponentialBackoff {MaxAttemptNumber = 5, Interval = TimeSpan.FromSeconds(1), Rate = 1.2})
                 .TimeoutIn(TimeSpan.FromSeconds(3)))
-            .AddStorage(b => b.AddSqlite<string, CachingResult>());
+            .ConfigureStorage(builder.Name, b => b.AddSqlite<string, CachingResult>());
 }

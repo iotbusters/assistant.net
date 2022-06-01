@@ -23,32 +23,29 @@ internal class SqliteMessageHandlingService : BackgroundService
 {
     private readonly ILogger<SqliteMessageHandlingService> logger;
     private readonly IOptionsMonitor<SqliteHandlingServerOptions> options;
-    private readonly IPartitionedAdminStorage<int, IAbstractMessage> requestStorage;
-    private readonly IStorage<int, long> processedIndexStorage;
-    private readonly IStorage<IAbstractMessage, CachingResult> responseStorage;
     private readonly ITypeEncoder typeEncoder;
-    private readonly IServiceProvider provider;
+    private readonly IServiceScopeFactory scopeFactory;
 
     public SqliteMessageHandlingService(
         ILogger<SqliteMessageHandlingService> logger,
         IOptionsMonitor<SqliteHandlingServerOptions> options,
-        IPartitionedAdminStorage<int, IAbstractMessage> requestStorage,
-        IStorage<int, long> processedIndexStorage,
-        IStorage<IAbstractMessage, CachingResult> responseStorage,
         ITypeEncoder typeEncoder,
-        IServiceProvider provider)
+        IServiceScopeFactory scopeFactory)
     {
         this.logger = logger;
         this.options = options;
-        this.requestStorage = requestStorage;
-        this.processedIndexStorage = processedIndexStorage;
-        this.responseStorage = responseStorage;
         this.typeEncoder = typeEncoder;
-        this.provider = provider;
+        this.scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
+        await using var mainScope = scopeFactory.CreateAsyncScopeWithNamedOptionContext(SqliteOptionsNames.DefaultName);
+        var provider = mainScope.ServiceProvider;
+        var requestStorage = provider.GetRequiredService<IPartitionedAdminStorage<int, IAbstractMessage>>();
+        var processedIndexStorage = provider.GetRequiredService<IStorage<int, long>>();
+        var responseStorage = provider.GetRequiredService<IStorage<IAbstractMessage, CachingResult>>();
+
         var index = 1L;
         while (!token.IsCancellationRequested)
         {
@@ -69,14 +66,13 @@ internal class SqliteMessageHandlingService : BackgroundService
 
             logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) found.", index, messageName, messageId);
 
-            await using var scope = provider.CreateAsyncScope();
+            await using var scope = scopeFactory.CreateAsyncScopeWithNamedOptionContext(SqliteOptionsNames.DefaultName);
             var scopedProvider = scope.ServiceProvider;
 
             var diagnosticContext = scopedProvider.GetRequiredService<DiagnosticContext>();
             diagnosticContext.CorrelationId = audit.CorrelationId;
 
-            var clientFactory = scopedProvider.GetRequiredService<IMessagingClientFactory>();
-            var client = clientFactory.Create(SqliteOptionsNames.DefaultName);
+            var client = scopedProvider.GetRequiredService<IMessagingClient>();
 
             logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) publishing: begins.", index, messageName, messageId);
 
