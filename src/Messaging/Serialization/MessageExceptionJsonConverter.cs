@@ -3,7 +3,6 @@ using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Serialization.Converters;
 using Assistant.Net.Serialization.Exceptions;
-using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 using System.Text.Json;
@@ -15,20 +14,19 @@ namespace Assistant.Net.Messaging.Serialization;
 /// </summary>
 public class MessageExceptionJsonConverter : ExceptionJsonConverter<Exception>
 {
-    private readonly IOptions<MessagingClientOptions> clientOptions;
+    private readonly MessagingClientOptions clientOptions;
 
     /// <inheritdoc/>
     public MessageExceptionJsonConverter(
         ITypeEncoder typeEncoder,
-        IOptions<MessagingClientOptions> clientOptions)
-        : base(typeEncoder) =>
-        this.clientOptions = clientOptions;
+        INamedOptions<MessagingClientOptions> clientOptions) : base(typeEncoder) =>
+        this.clientOptions = clientOptions.Value;
 
     /// <inheritdoc/>
     public override bool CanConvert(Type typeToConvert) =>
         base.CanConvert(typeToConvert)
         && typeToConvert.IsAssignableTo(typeof(MessageException))
-        || clientOptions.Value.ExposedExceptions.Any(x => x.IsAssignableFrom(typeToConvert));
+        || clientOptions.ExposedExceptions.Any(x => x.IsAssignableFrom(typeToConvert));
 
     /// <inheritdoc/>
     public override Exception Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

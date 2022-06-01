@@ -24,11 +24,12 @@ public static class ServiceCollectionExtensions
     /// </remarks>
     public static IServiceCollection AddMessagingClient(this IServiceCollection services) => services
         .AddDiagnostics()
+        .AddNamedOptionsContext()
         .AddSystemServicesDefaulted()
-        .AddExceptionJsonSerialization()
-        .TryAddScoped<IMessagingClientFactory, MessagingClientFactory>()
-        .TryAddScoped(p => p.GetRequiredService<IMessagingClientFactory>().Create())
-        .ConfigureMessagingClient(b => b.AddConfiguration<DefaultInterceptorConfiguration>());
+        .TryAddScoped<IMessagingClient, MessagingClient>()
+        // todo: fix that DefaultInterceptorConfiguration is defined only for default configuration.
+        .ConfigureMessagingClient(b => b.AddConfiguration<DefaultInterceptorConfiguration>())
+        .ConfigureJsonSerialization();
 
     /// <summary>
     ///     Adds <see cref="IMessagingClient"/> implementation, required services and options.
@@ -65,7 +66,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
     /// <param name="configureOptions">The action used to configure the options.</param>
     public static IServiceCollection ConfigureMessagingClientOptions(this IServiceCollection services, Action<MessagingClientOptions> configureOptions) => services
-        .Configure(configureOptions);
+        .ConfigureMessagingClientOptions(Microsoft.Extensions.Options.Options.DefaultName, configureOptions);
 
     /// <summary>
     ///     Register an action used to configure the same named <see cref="MessagingClientOptions"/> options.
@@ -77,13 +78,23 @@ public static class ServiceCollectionExtensions
         .Configure(name, configureOptions);
 
     /// <summary>
-    ///     Registers exception <see cref="ISerializer{TValue}" /> configuration.
+    ///     Registers default <see cref="ISerializer{TValue}" /> configuration.
     /// </summary>
     /// <remarks>
     ///     Only <see cref="MessagingClientOptions.ExposedExceptions"/> are being serialized.
     /// </remarks>
-    public static IServiceCollection AddExceptionJsonSerialization(this IServiceCollection services) => services
-        .AddSerializer(b => b
+    public static IServiceCollection ConfigureJsonSerialization(this IServiceCollection services) => services
+        .ConfigureJsonSerialization(Microsoft.Extensions.Options.Options.DefaultName);
+
+    /// <summary>
+    ///     Registers named <see cref="ISerializer{TValue}" /> configuration.
+    /// </summary>
+    /// <remarks>
+    ///     Only <see cref="MessagingClientOptions.ExposedExceptions"/> are being serialized.
+    /// </remarks>
+    public static IServiceCollection ConfigureJsonSerialization(this IServiceCollection services, string name) => services
+        .AddSerializer()
+        .ConfigureSerializer(name, b => b
             .AddJsonConverter<MessageExceptionJsonConverter>()
             .AddJsonTypeAny());
 }

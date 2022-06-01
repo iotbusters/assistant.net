@@ -1,3 +1,4 @@
+using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Options;
 using System;
@@ -10,7 +11,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 public class TimeoutInterceptor : TimeoutInterceptor<IMessage<object>, object>, IMessageInterceptor
 {
     /// <summary/>
-    public TimeoutInterceptor(MessagingClientOptions options) : base(options) { }
+    public TimeoutInterceptor(INamedOptions<MessagingClientOptions> options) : base(options) { }
 }
 
 /// <summary>
@@ -25,8 +26,8 @@ public class TimeoutInterceptor<TMessage, TResponse> : IMessageInterceptor<TMess
     private readonly MessagingClientOptions options;
 
     /// <summary/>
-    public TimeoutInterceptor(MessagingClientOptions options) =>
-        this.options = options;
+    public TimeoutInterceptor(INamedOptions<MessagingClientOptions> options) =>
+        this.options = options.Value;
 
     /// <inheritdoc/>
     public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
