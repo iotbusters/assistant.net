@@ -1,4 +1,5 @@
 ﻿using Assistant.Net.Options;
+using Microsoft.Data.Sqlite;
 
 namespace Assistant.Net;
 
@@ -13,6 +14,15 @@ public static class SqliteOptionsExtensions
     public static SqliteOptions Connection(this SqliteOptions options, string connectionString)
     {
         options.ConnectionString = connectionString;
+        return options;
+    }
+    /// <summary>
+    ///     Configures SQLite database connection instance.
+    /// </summary>
+    public static SqliteOptions Connection(this SqliteOptions options, SqliteConnection connection)
+    {
+        options.Connection = connection;
+        options.ConnectionString = connection.ConnectionString;
         return options;
     }
 }

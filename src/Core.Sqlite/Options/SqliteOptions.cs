@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.Data.Sqlite;
+using System.ComponentModel.DataAnnotations;
 
 namespace Assistant.Net.Options;
 
@@ -12,4 +13,12 @@ public class SqliteOptions
     /// </summary>
     [Required, MinLength(11)]//12:  Data Source=
     public string ConnectionString { get; set; } = null!;
+
+    /// <summary>
+    ///     Single SQLite connection instance.
+    /// </summary>
+    /// <remarks>
+    ///     if defined the <see cref="ConnectionString"/> will be ignored.
+    /// </remarks>
+    public SqliteConnection? Connection { get; set; } = null!;
 }
