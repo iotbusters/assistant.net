@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.Json;
 
 namespace Assistant.Net.Serialization.Configuration;
 
@@ -8,8 +9,17 @@ namespace Assistant.Net.Serialization.Configuration;
 public class SerializerBuilder
 {
     /// <summary/>
-    public SerializerBuilder(IServiceCollection services) =>
+    public SerializerBuilder(IServiceCollection services, string name)
+    {
         Services = services;
+        Name = name;
+    }
 
-    internal IServiceCollection Services{get;}
+    /// <summary/>
+    public IServiceCollection Services { get; }
+
+    /// <summary>
+    ///     The name of the <see cref="JsonSerializerOptions"/> instance.
+    /// </summary>
+    public string Name { get; }
 }

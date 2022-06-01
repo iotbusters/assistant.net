@@ -7,6 +7,11 @@ using System.Text.Json.Serialization;
 
 namespace Assistant.Net.Serialization.Converters;
 
+internal static class ExceptionJsonConverter
+{
+    public static bool CanConvert(Type typeToConvert) => typeToConvert.IsAssignableTo(typeof(Exception));
+}
+
 /// <summary>
 ///     Json converter responsible for exception serialization.
 /// </summary>
