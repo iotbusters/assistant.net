@@ -49,8 +49,20 @@ public class MessagingClientFixtureBuilder
         Services.ConfigureMessagingClient(b => b
             .UseSqlite(connectionString)
             .TimeoutIn(TimeSpan.FromSeconds(0.5)));
-        RemoteHostBuilder.ConfigureServices(s => s.ConfigureSqliteMessageHandling(b => b
+        RemoteHostBuilder.ConfigureServices(s => s
+            .ConfigureSqliteMessageHandling(b => b
             .UseSqlite(connectionString)
+            .TimeoutIn(TimeSpan.FromSeconds(0.5))));
+        return this;
+    }
+
+    public MessagingClientFixtureBuilder UseSqliteSingleProvider(string connectionString)
+    {
+        Services.ConfigureMessagingClient(b => b
+            .UseSqliteSingleProvider(o => o.Connection(connectionString))
+            .TimeoutIn(TimeSpan.FromSeconds(0.5)));
+        RemoteHostBuilder.ConfigureServices(s => s.ConfigureSqliteMessageHandling(b => b
+            .UseSqlite(o => o.Connection(connectionString))
             .TimeoutIn(TimeSpan.FromSeconds(0.5))));
         return this;
     }
@@ -68,6 +80,22 @@ public class MessagingClientFixtureBuilder
                 o.AddHandler(typeof(THandler));
         });
         clientSource.Configurations.Add(o => o.AddSqlite(messageType));
+        return this;
+    }
+
+    public MessagingClientFixtureBuilder AddSingleProviderHandler<THandler>(THandler? handler = null) where THandler : class
+    {
+        var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
+                          ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
+
+        remoteSource.Configurations.Add(o =>
+        {
+            if (handler != null)
+                o.AddHandler(handler);
+            else
+                o.AddHandler(typeof(THandler));
+        });
+        clientSource.Configurations.Add(o => o.Add(messageType));
         return this;
     }
 

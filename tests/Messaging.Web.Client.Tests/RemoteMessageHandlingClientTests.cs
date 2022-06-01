@@ -21,7 +21,7 @@ public class RemoteMessageHandlingClientTests
     private static readonly MessageFailedException FailedResponse = new("test");
 
     private static Task<byte[]> Binary<T>(T value) => Provider.GetRequiredService<ISerializer<T>>().Serialize(value);
-    private static readonly IServiceProvider Provider = new ServiceCollection().AddExceptionJsonSerialization().BuildServiceProvider();
+    private static readonly IServiceProvider Provider = new ServiceCollection().ConfigureJsonSerialization().BuildServiceProvider();
 
     [Test]
     public async Task DelegateHandling_sendsHttpRequestMessage()

@@ -1,4 +1,5 @@
-﻿using Assistant.Net.Messaging.Abstractions;
+﻿using Assistant.Net.Abstractions;
+using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Models;
@@ -85,7 +86,7 @@ public class CachingInterceptorTests
     {
         var services = new ServiceCollection()
             .AddTransient<CachingInterceptor>()
-            .AddSingleton<MessagingClientOptions>()
+            .AddSingleton<INamedOptions<MessagingClientOptions>>(new TestNamedOptions {Value = new MessagingClientOptions()})
             .AddSystemClock()
             .AddStorage(b => b.AddLocal<string, CachingResult>());
         Provider = services.BuildServiceProvider();
@@ -93,7 +94,7 @@ public class CachingInterceptorTests
 
     private IServiceProvider Provider { get; set; } = default!;
     private IMessageInterceptor Interceptor => Provider.GetRequiredService<CachingInterceptor>();
-    private MessagingClientOptions Options => Provider.GetRequiredService<MessagingClientOptions>();
+    private MessagingClientOptions Options => Provider.GetRequiredService<INamedOptions<MessagingClientOptions>>().Value;
     private IStorage<string, CachingResult> Cache => Provider.GetRequiredService<IStorage<string, CachingResult>>();
     private static TestMessage Message => new(0);
 

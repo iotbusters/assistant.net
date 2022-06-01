@@ -154,10 +154,8 @@ public class MongoStorageProviderTests
     [SetUp]
     public void Setup()
     {
-        var mongoClientFactoryMock = new Mock<IMongoClientFactory> {DefaultValue = DefaultValue.Mock};
-
+        var mongoClientMock = new Mock<IMongoClient> {DefaultValue = DefaultValue.Mock};
         var mongoDatabaseMock = new Mock<IMongoDatabase> {DefaultValue = DefaultValue.Mock};
-        mongoClientFactoryMock.Setup(x => x.GetDatabase(MongoOptionsNames.DefaultName)).Returns(mongoDatabaseMock.Object);
 
         MongoCollectionMock = MockCollection<MongoRecord>(mongoDatabaseMock);
 
@@ -167,7 +165,8 @@ public class MongoStorageProviderTests
             .AddStorage(b => b
                 .UseMongo(o => o.ConnectionString = "mongodb://127.0.0.1:27017")
                 .AddMongo<TestKey, TestValue>())
-            .ReplaceSingleton(_ => mongoClientFactoryMock.Object)
+            .ReplaceSingleton(_ => mongoClientMock.Object)
+            .ReplaceSingleton(_ => mongoDatabaseMock.Object)
             .BuildServiceProvider();
     }
 
@@ -193,5 +192,7 @@ public class MongoStorageProviderTests
     private string TestUser { get; set; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; set; } = DateTimeOffset.UtcNow;
     private ServiceProvider? Provider { get; set; }
-    private IStorageProvider<TestValue> Storage => Provider!.CreateScope().ServiceProvider.GetRequiredService<IStorageProvider<TestValue>>();
+
+    private IStorageProvider<TestValue> Storage => (IStorageProvider<TestValue>)
+        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value.Providers[typeof(TestValue)].Create(Provider!);
 }

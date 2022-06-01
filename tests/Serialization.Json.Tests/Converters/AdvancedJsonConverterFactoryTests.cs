@@ -33,6 +33,7 @@ public class AdvancedJsonConverterFactoryTests
 
     [TestCase(typeof(ServiceDescriptor), TestName = "CanConvert_true(some.microsoft.type)")]
     [TestCase(typeof(TestClass), TestName = "CanConvert_true(some.custom.type)")]
+    [TestCase(typeof(Exception), TestName = "CanConvert_true(Exception)")]
     public void CanConvert_true_otherType(Type otherType) =>
         new AdvancedJsonConverterFactory(null!).CanConvert(otherType).Should().BeTrue();
 
@@ -42,7 +43,6 @@ public class AdvancedJsonConverterFactoryTests
     [TestCase(typeof(DateTime), TestName = "CanConvert_false(DateTime)")]
     [TestCase(typeof(object), TestName = "CanConvert_false(Object)")]
     [TestCase(typeof(List<string>), TestName = "CanConvert_false(List)")]
-    [TestCase(typeof(Exception), TestName = "CanConvert_false(Exception)")]
     [TestCase(typeof(Type), TestName = "CanConvert_false(Type)")]
     [TestCase(typeof(IEnumerable<string>), TestName = "CanConvert_false(Enumerable)")]
     public void CanConvert_false_systemType(Type systemType) =>

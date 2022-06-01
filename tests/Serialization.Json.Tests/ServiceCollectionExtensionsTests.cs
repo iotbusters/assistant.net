@@ -1,51 +1,16 @@
-using System;
-using System.Text.Json;
+using Assistant.Net.Abstractions;
+using Assistant.Net.Serialization.Abstractions;
+using Assistant.Net.Serialization.Exceptions;
+using Assistant.Net.Serialization.Options;
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using NUnit.Framework;
-using FluentAssertions;
-using Assistant.Net.Abstractions;
-using Assistant.Net.Serialization.Abstractions;
-using Assistant.Net.Serialization.Converters;
-using Assistant.Net.Serialization.Json.Tests.Mocks;
 
 namespace Assistant.Net.Serialization.Json.Tests;
 
 public class ServiceCollectionExtensionsTests
 {
-    [Test]
-    public void GetServiceOfExceptionJsonConverter_resolvesObject()
-    {
-        var provider = new ServiceCollection()
-            .AddSerializer(_ => {})
-            .BuildServiceProvider();
-
-        provider.GetService<ExceptionJsonConverter<Exception>>()
-            .Should().NotBeNull();
-    }
-
-    [Test]
-    public void GetServiceOfAdvancedJsonConverter_resolvesObject()
-    {
-        var provider = new ServiceCollection()
-            .AddSerializer(_ => {})
-            .BuildServiceProvider();
-
-        provider.GetService<AdvancedJsonConverter<TestClass>>()
-            .Should().NotBeNull();
-    }
-
-    [Test]
-    public void GetServiceOfEnumerableJsonConverter_resolvesObject()
-    {
-        var provider = new ServiceCollection()
-            .AddSerializer(_ => {})
-            .BuildServiceProvider();
-
-        provider.GetService<EnumerableJsonConverter<TestClass>>()
-            .Should().NotBeNull();
-    }
-
     [Test]
     public void GetServiceOfTypeEncoder_resolvesObject()
     {
@@ -69,7 +34,7 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Test]
-    public void GetServiceOfSerializer_resolvesObject_configured()
+    public void GetServiceOfSerializer_resolvesObject_configuredWithAddJsonType()
     {
         var provider = new ServiceCollection()
             .AddSerializer(b => b.AddJsonType<object>())
@@ -80,10 +45,10 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Test]
-    public void GetServiceOfSerializer_resolvesObject_notConfigured()
+    public void GetServiceOfSerializer_resolvesObject_configuredWithAddJsonTypeAny()
     {
         var provider = new ServiceCollection()
-            .AddSerializer(_ => { })
+            .AddSerializer(b => b.AddJsonTypeAny())
             .BuildServiceProvider();
 
         provider.GetService<ISerializer<object>>()
@@ -91,13 +56,24 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Test]
-    public void GetServiceOfJsonSerializerOptions_resolvesObject()
+    public void GetServiceOfSerializer_throwsException_notConfigured()
     {
         var provider = new ServiceCollection()
-            .AddSerializer(_ => { })
+            .AddSerializer(delegate { })
             .BuildServiceProvider();
 
-        provider.GetService<IOptions<JsonSerializerOptions>>()
+        provider.Invoking(x => x.GetService<ISerializer<object>>())
+            .Should().Throw<SerializerTypeNotRegisteredException>();
+    }
+
+    [Test]
+    public void GetServiceOfSerializerOptions_resolvesObject()
+    {
+        var provider = new ServiceCollection()
+            .AddSerializer(delegate { })
+            .BuildServiceProvider();
+
+        provider.GetService<IOptions<SerializerOptions>>()
             .Should().NotBeNull();
     }
 }

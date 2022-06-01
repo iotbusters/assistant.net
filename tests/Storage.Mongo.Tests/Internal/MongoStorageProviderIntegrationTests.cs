@@ -171,6 +171,8 @@ public class MongoStorageProviderTestsIntegrationTests
     private string TestUser { get; set; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;
     private ServiceProvider? Provider { get; set; }
-    private IMongoClient MongoClient => Provider!.CreateScope().ServiceProvider.GetRequiredService<IMongoClientFactory>().CreateClient(MongoOptionsNames.DefaultName);
-    private IStorageProvider<TestValue> Storage => Provider!.CreateScope().ServiceProvider.GetRequiredService<IStorageProvider<TestValue>>();
+    private IMongoClient MongoClient => Provider!.CreateScope().ServiceProvider.GetRequiredService<IMongoClient>();
+
+    private IStorageProvider<TestValue> Storage => (IStorageProvider<TestValue>)
+        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value.Providers[typeof(TestValue)].Create(Provider!);
 }

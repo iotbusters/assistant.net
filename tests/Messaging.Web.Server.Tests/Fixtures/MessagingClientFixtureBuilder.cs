@@ -33,8 +33,7 @@ public class MessagingClientFixtureBuilder
     public MessagingClientFixtureBuilder AddWebHandler<THandler>() where THandler : class
     {
         RemoteHostBuilder.ConfigureServices(s => s
-            .ConfigureWebMessageHandling(b => b.AddHandler<THandler>())
-            .ConfigureMessagingClient(WebOptionsNames.DefaultName, b => b.AddHandler(typeof(THandler))));
+            .ConfigureWebMessageHandling(b => b.AddHandler<THandler>()));
         return this;
     }
 

@@ -20,7 +20,7 @@ namespace Assistant.Net.Messaging.Sqlite.Tests;
 public class ClientServerIntegrationTests
 {
     [TestCase(5)]
-    public async Task Send_onceCallsHandler_concurrently(int concurrencyCount)
+    public async Task RequestObject_onceCallsHandler_concurrently(int concurrencyCount)
     {
         var handler = new TestScenarioMessageHandler();
         using var fixture = new MessagingClientFixtureBuilder()
@@ -36,7 +36,7 @@ public class ClientServerIntegrationTests
     }
 
     [TestCase(5)]
-    public async Task Send_neverCallsHandler_concurrently(int concurrencyCount)
+    public async Task RequestObject_neverCallsHandler_concurrently(int concurrencyCount)
     {
         var handler = new TestScenarioMessageHandler();
         using var fixture = new MessagingClientFixtureBuilder()
@@ -54,7 +54,20 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public async Task Send_returnsResponse()
+    public async Task RequestObject_returnsResponse_singleProvider()
+    {
+        using var fixture = new MessagingClientFixtureBuilder()
+            .UseSqliteSingleProvider(ConnectionString)
+            .AddSingleProviderHandler<TestScenarioMessageHandler>()
+            .Create();
+
+        var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
+
+        response.Should().Be(new TestResponse(false));
+    }
+
+    [Test]
+    public async Task RequestObject_returnsResponse()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseSqlite(ConnectionString)
@@ -67,7 +80,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public async Task Send_returnsAnotherResponse_serverSideHandlerChanged()
+    public async Task RequestObject_returnsAnotherResponse_serverSideHandlerChanged()
     {
         // global arrange
         using var fixture = new MessagingClientFixtureBuilder()
@@ -95,7 +108,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void Send_throwsMessageNotRegisteredException_NoLocalHandler()
+    public void RequestObject_throwsMessageNotRegisteredException_NoLocalHandler()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseSqlite(ConnectionString)
@@ -109,7 +122,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test, Ignore("No way to check remote handlers.")]
-    public void Send_throwsMessageNotRegisteredException_NoRemoteHandler()
+    public void RequestObject_throwsMessageNotRegisteredException_NoRemoteHandler()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseSqlite(ConnectionString)
@@ -124,7 +137,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void Send_throwsTimeoutException_thrownTimeoutException()
+    public void RequestObject_throwsTimeoutException_thrownTimeoutException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseSqlite(ConnectionString)
@@ -137,7 +150,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void Send_throwsMessageDeferredException_thrownMessageDeferredException()
+    public void RequestObject_throwsMessageDeferredException_thrownMessageDeferredException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseSqlite(ConnectionString)
@@ -150,7 +163,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void Send_throwsMessageFailedException_thrownInvalidOperationException()
+    public void RequestObject_throwsMessageFailedException_thrownInvalidOperationException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseSqlite(ConnectionString)
@@ -164,7 +177,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void Send_throwsMessageFailedException_thrownMessageFailedException()
+    public void RequestObject_throwsMessageFailedException_thrownMessageFailedException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseSqlite(ConnectionString)
@@ -178,7 +191,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void Send_throwsMessageFailedException_thrownMessageFailedExceptionWithInnerException()
+    public void RequestObject_throwsMessageFailedException_thrownMessageFailedExceptionWithInnerException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseSqlite(ConnectionString)
@@ -224,7 +237,7 @@ public class ClientServerIntegrationTests
     ///     Shared SQLite in-memory database connection keeping the data shared between other connections.
     /// </summary>
     private SqliteConnection MasterConnection { get; } = new(ConnectionString);
-    private static CancellationToken CancellationToken => new CancellationTokenSource(500).Token;
+    private static CancellationToken CancellationToken => new CancellationTokenSource(5000).Token;
     private ServiceProvider? Provider { get; set; }
 
 }

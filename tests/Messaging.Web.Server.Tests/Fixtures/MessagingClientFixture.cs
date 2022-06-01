@@ -26,7 +26,7 @@ public class MessagingClientFixture : IDisposable
     {
         this.provider = new ServiceCollection()
             .AddSingleton(new HttpClient(host.GetTestServer().CreateHandler()))
-            .AddExceptionJsonSerialization()
+            .ConfigureJsonSerialization()
             .BuildServiceProvider();
         this.host = host;
     }

@@ -1,4 +1,3 @@
-using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Mongo.Tests.Fixtures;
@@ -19,7 +18,7 @@ namespace Assistant.Net.Messaging.Mongo.Tests;
 public class ClientServerIntegrationTests
 {
     [TestCase(5)]
-    public async Task Send_onceCallsHandler_concurrently(int concurrencyCount)
+    public async Task RequestObject_onceCallsHandler_concurrently(int concurrencyCount)
     {
         var handler = new TestScenarioMessageHandler();
         using var fixture = new MessagingClientFixtureBuilder()
@@ -35,7 +34,7 @@ public class ClientServerIntegrationTests
     }
 
     [TestCase(5)]
-    public async Task Send_neverCallsHandler_concurrently(int concurrencyCount)
+    public async Task RequestObject_neverCallsHandler_concurrently(int concurrencyCount)
     {
         var handler = new TestScenarioMessageHandler();
         using var fixture = new MessagingClientFixtureBuilder()
@@ -53,7 +52,20 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public async Task Send_returnsResponse()
+    public async Task RequestObject_returnsResponse_singleProvider()
+    {
+        using var fixture = new MessagingClientFixtureBuilder()
+            .UseMongoSingleProvider(ConnectionString, Database)
+            .AddSingleProviderHandler<TestScenarioMessageHandler>()
+            .Create();
+
+        var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
+
+        response.Should().Be(new TestResponse(false));
+    }
+
+    [Test]
+    public async Task RequestObject_returnsResponse()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
@@ -66,7 +78,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public async Task Send_returnsAnotherResponse_serverSideHandlerChanged()
+    public async Task RequestObject_returnsAnotherResponse_serverSideHandlerChanged()
     {
         // global arrange
         using var fixture = new MessagingClientFixtureBuilder()
@@ -94,7 +106,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void Send_throwsMessageNotRegisteredException_NoLocalHandler()
+    public void RequestObject_throwsMessageNotRegisteredException_NoLocalHandler()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
@@ -108,7 +120,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test, Ignore("No way to check remote handlers.")]
-    public void Send_throwsMessageNotRegisteredException_NoRemoteHandler()
+    public void RequestObject_throwsMessageNotRegisteredException_NoRemoteHandler()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
@@ -123,7 +135,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void Send_throwsTimeoutException_thrownTimeoutException()
+    public void RequestObject_throwsTimeoutException_thrownTimeoutException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
@@ -136,7 +148,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void Send_throwsMessageDeferredException_thrownMessageDeferredException()
+    public void RequestObject_throwsMessageDeferredException_thrownMessageDeferredException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
@@ -149,7 +161,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void Send_throwsMessageFailedException_thrownInvalidOperationException()
+    public void RequestObject_throwsMessageFailedException_thrownInvalidOperationException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
@@ -163,7 +175,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void Send_throwsMessageFailedException_thrownMessageFailedException()
+    public void RequestObject_throwsMessageFailedException_thrownMessageFailedException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
@@ -177,7 +189,7 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void Send_throwsMessageFailedException_thrownMessageFailedExceptionWithInnerException()
+    public void RequestObject_throwsMessageFailedException_thrownMessageFailedExceptionWithInnerException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
@@ -195,12 +207,13 @@ public class ClientServerIntegrationTests
     public async Task OneTimeSetup()
     {
         Provider = new ServiceCollection()
-            .ConfigureMongoOptions("", o => o.Connection(ConnectionString).Database("test"))
-            .AddMongoClientFactory()
+            .ConfigureMongoOptions(o => o.Connection(ConnectionString).Database("test"))
+            .AddNamedOptionsContext()
+            .AddMongoClient()
             .BuildServiceProvider();
 
         string pingContent;
-        var mongoClient = Provider.GetRequiredService<IMongoClientFactory>().CreateClient("");
+        var mongoClient = Provider.GetRequiredService<IMongoClient>();
         try
         {
             var ping = await mongoClient.GetDatabase("db").RunCommandAsync(
@@ -223,7 +236,7 @@ public class ClientServerIntegrationTests
     [SetUp, TearDown]
     public async Task Cleanup()
     {
-        var mongoClient = Provider!.GetRequiredService<IMongoClientFactory>().CreateClient("");
+        var mongoClient = Provider!.GetRequiredService<IMongoClient>();
         await mongoClient.DropDatabaseAsync(Database);
     }
 

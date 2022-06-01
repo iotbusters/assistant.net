@@ -14,7 +14,7 @@ public class ServiceCollectionExtensionsTests
     public void GetServiceOfIMessagingClient_resolvesObject()
     {
         var provider = new ServiceCollection()
-            .AddWebMessageHandling(_ => { })
+            .AddWebMessageHandling(delegate { })
             .ConfigureMessagingClient(b => b
                 .AddHandler<TestFailMessageHandler>()) // to have at least one handler configured
             .BuildServiceProvider();
@@ -27,7 +27,7 @@ public class ServiceCollectionExtensionsTests
     public void GetServiceOfMiddleware_resolvesObjects()
     {
         var services = new ServiceCollection()
-            .AddWebMessageHandling(_ => { })
+            .AddWebMessageHandling(delegate { })
             .ConfigureMessagingClient(b => b.AddHandler<TestFailMessageHandler>()); // to have at least one handler configured
         var provider = services.BuildServiceProvider();
         provider.GetRequiredService<IHttpContextAccessor>().HttpContext = new DefaultHttpContext

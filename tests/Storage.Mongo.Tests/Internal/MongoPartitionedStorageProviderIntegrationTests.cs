@@ -22,7 +22,7 @@ public class MongoPartitionedStorageProviderIntegrationTests
     [Test]
     public async Task Add_returnsAddedValue_noKey()
     {
-        var value = await PartitionedStorage.Add(
+        var value = await Storage.Add(
             TestKey,
             addFactory: _ => Task.FromResult(TestValue("added")),
             updateFactory: (_, _) => throw new NotImplementedException());
@@ -33,12 +33,12 @@ public class MongoPartitionedStorageProviderIntegrationTests
     [Test]
     public async Task Add_returnsExistingValue_keyExists()
     {
-        await PartitionedStorage.Add(
+        await Storage.Add(
             TestKey,
             addFactory: _ => Task.FromResult(TestValue("added")),
             updateFactory: (_, _) => throw new NotImplementedException());
 
-        var value = await PartitionedStorage.Add(
+        var value = await Storage.Add(
             TestKey,
             addFactory: _ => throw new NotImplementedException(),
             updateFactory: (_, _) => Task.FromResult(TestValue("added-2", version: 20)));
@@ -49,7 +49,7 @@ public class MongoPartitionedStorageProviderIntegrationTests
     [Test]
     public async Task TryGet_returnsNone_noKey()
     {
-        var value = await PartitionedStorage.TryGet(TestKey, index: 1);
+        var value = await Storage.TryGet(TestKey, index: 1);
 
         value.Should().Be((Option<ValueRecord>)Option.None);
     }
@@ -57,12 +57,12 @@ public class MongoPartitionedStorageProviderIntegrationTests
     [Test]
     public async Task TryGet_returnsExistingValue_keyExits()
     {
-        await PartitionedStorage.Add(
+        await Storage.Add(
             TestKey,
             addFactory: _ => Task.FromResult(TestValue("added")),
             updateFactory: (_, _) => throw new NotImplementedException());
 
-        var value = await PartitionedStorage.TryGet(TestKey, index: 1);
+        var value = await Storage.TryGet(TestKey, index: 1);
 
         value.Should().BeEquivalentTo(new {Value = TestValue("added")}, o => o.ComparingByMembers<ValueRecord>());
     }
@@ -70,12 +70,12 @@ public class MongoPartitionedStorageProviderIntegrationTests
     [Test]
     public async Task GetKeys_returnsKeys()
     {
-        await PartitionedStorage.Add(
+        await Storage.Add(
             TestKey,
             addFactory: _ => Task.FromResult(TestValue("added")),
             updateFactory: (_, _) => throw new NotImplementedException());
 
-        var value = PartitionedStorage.GetKeys().ToArray();
+        var value = Storage.GetKeys().ToArray();
 
         value.Should().BeEquivalentTo(new[] {TestKey});
     }
@@ -83,7 +83,7 @@ public class MongoPartitionedStorageProviderIntegrationTests
     [Test]
     public async Task TryRemove_returnsZero_noKey()
     {
-        var count = await PartitionedStorage.TryRemove(TestKey, upToIndex: 10);
+        var count = await Storage.TryRemove(TestKey, upToIndex: 10);
 
         count.Should().Be(0);
     }
@@ -91,12 +91,12 @@ public class MongoPartitionedStorageProviderIntegrationTests
     [Test]
     public async Task TryRemove_returnsOne_keyExists()
     {
-        await PartitionedStorage.Add(
+        await Storage.Add(
             TestKey,
             addFactory: _ => Task.FromResult(TestValue("added")),
             updateFactory: (_, _) => throw new NotImplementedException());
 
-        var count = await PartitionedStorage.TryRemove(TestKey, upToIndex: 10);
+        var count = await Storage.TryRemove(TestKey, upToIndex: 10);
 
         count.Should().Be(1);
     }
@@ -104,25 +104,25 @@ public class MongoPartitionedStorageProviderIntegrationTests
     [Test]
     public async Task TryRemove_returnsOne_twoKeysExist()
     {
-        await PartitionedStorage.Add(
+        await Storage.Add(
             TestKey,
             addFactory: _ => Task.FromResult(TestValue("value-1", version: 1)),
             updateFactory: (_, _) => throw new NotImplementedException());
-        await PartitionedStorage.Add(
+        await Storage.Add(
             TestKey,
             addFactory: _ => throw new NotImplementedException(),
             updateFactory: (_, _) => Task.FromResult(TestValue("value-2", version: 2)));
 
-        var count1 = await PartitionedStorage.TryRemove(TestKey, upToIndex: 1);
+        var count1 = await Storage.TryRemove(TestKey, upToIndex: 1);
         count1.Should().Be(1);
 
-        var value1 = await PartitionedStorage.TryGet(TestKey, index: 1);
+        var value1 = await Storage.TryGet(TestKey, index: 1);
         value1.Should().Be((Option<ValueRecord>)Option.None);
 
-        var value2 = await PartitionedStorage.TryGet(TestKey, index: 2);
+        var value2 = await Storage.TryGet(TestKey, index: 2);
         value2.Should().BeEquivalentTo(new {Value = new {Type = "value-2"}});
 
-        var count2 = await PartitionedStorage.TryRemove(TestKey, upToIndex: 2);
+        var count2 = await Storage.TryRemove(TestKey, upToIndex: 2);
         count2.Should().Be(1);
     }
 
@@ -131,7 +131,9 @@ public class MongoPartitionedStorageProviderIntegrationTests
     {
         const string connectionString = "mongodb://127.0.0.1:27017";
         Provider = new ServiceCollection()
-            .AddStorage(b => b.AddMongoPartitioned<TestKey, TestValue>().UseMongo(o => o.ConnectionString = connectionString))
+            .AddStorage(b => b
+                .UseMongo(o => o.ConnectionString = connectionString)
+                .AddMongoPartitioned<TestKey, TestValue>())
             .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
             .AddSystemClock(_ => TestDate)
             .BuildServiceProvider();
@@ -167,6 +169,8 @@ public class MongoPartitionedStorageProviderIntegrationTests
     private string TestUser { get; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;
     private ServiceProvider? Provider { get; set; }
-    private IMongoClient MongoClient => Provider!.CreateScope().ServiceProvider.GetRequiredService<IMongoClientFactory>().CreateClient(MongoOptionsNames.DefaultName);
-    private IPartitionedStorageProvider<TestValue> PartitionedStorage => Provider!.CreateScope().ServiceProvider.GetRequiredService<IPartitionedStorageProvider<TestValue>>();
+    private IMongoClient MongoClient => Provider!.CreateScope().ServiceProvider.GetRequiredService<IMongoClient>();
+
+    private IPartitionedStorageProvider<TestValue> Storage => (IPartitionedStorageProvider<TestValue>)
+        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value.PartitionedProviders[typeof(TestValue)].Create(Provider!);
 }
