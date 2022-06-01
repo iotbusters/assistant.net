@@ -5,7 +5,6 @@ using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Options;
 using Assistant.Net.Unions;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using System;
@@ -16,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Internal;
 
-internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvider<TValue>, IPartitionedStorageProvider<TValue>
+internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvider<TValue>
 {
     private readonly ILogger logger;
     private readonly MongoStoringOptions options;
@@ -26,13 +25,11 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
     public MongoHistoricalStorageProvider(
         ILogger<MongoHistoricalStorageProvider<TValue>> logger,
-        IOptions<MongoStoringOptions> options,
-        IMongoClientFactory clientFactory)
+        INamedOptions<MongoStoringOptions> options,
+        IMongoDatabase database)
     {
         this.logger = logger;
         this.options = options.Value;
-
-        var database = clientFactory.GetDatabase(MongoOptionsNames.DefaultName);
         this.keyCollection = database.GetCollection<MongoKeyRecord>(MongoNames.HistoricalStorageKeyCollectionName);
         this.keyValueCollection = database.GetCollection<MongoKeyValueRecord>(MongoNames.HistoricalStorageKeyValueCollectionName);
         this.valueCollection = database.GetCollection<MongoValueRecord>(MongoNames.HistoricalStorageValueCollectionName);
@@ -125,13 +122,6 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
         throw new StorageConcurrencyException();
     }
-
-    public async Task<long> Add(
-        KeyRecord key,
-        Func<KeyRecord, Task<ValueRecord>> addFactory,
-        Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
-        CancellationToken token = default) =>
-        await AddOrUpdate(key, addFactory, updateFactory, token).MapCompleted(x => x.Audit.Version);
 
     public async Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token)
     {

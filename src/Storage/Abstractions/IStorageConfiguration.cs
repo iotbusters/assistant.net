@@ -1,4 +1,4 @@
-﻿using Assistant.Net.Storage.Configuration;
+﻿using Assistant.Net.Storage.Options;
 
 namespace Assistant.Net.Storage.Abstractions;
 

@@ -1,10 +1,9 @@
 ﻿using Assistant.Net.Options;
 using Assistant.Net.Serialization;
-using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Storage.Configuration;
 using Assistant.Net.Storage.Internal;
 using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Storage;
@@ -14,6 +13,44 @@ namespace Assistant.Net.Storage;
 /// </summary>
 public static class StorageBuilderExtensions
 {
+    private static readonly Type mongoProviderType = typeof(MongoStorageProvider<>);
+    private static readonly Type mongoHistoricalProviderType = typeof(MongoHistoricalStorageProvider<>);
+    private static readonly Type mongoPartitionedProviderType = typeof(MongoPartitionedStorageProvider<>);
+
+    /// <summary>
+    ///     Configures storage to use a MongoDB single provider implementation.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, you need to call explicitly one of overloaded <see cref="UseMongo(StorageBuilder,string)"/> to configure.
+    /// </remarks>
+    public static StorageBuilder UseMongoSingleProvider(this StorageBuilder builder)
+    {
+        builder.Services
+            .AddMongoClient()
+            .TryAddScoped(mongoProviderType, mongoProviderType)
+            .TryAddScoped(mongoHistoricalProviderType, mongoHistoricalProviderType)
+            .TryAddScoped(mongoPartitionedProviderType, mongoPartitionedProviderType)
+            .ConfigureStorageOptions(builder.Name, o =>
+            {
+                o.SingleProvider = new((p, valueType) =>
+                {
+                    var implementationType = mongoProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                });
+                o.SingleHistoricalProvider = new((p, valueType) =>
+                {
+                    var implementationType = mongoHistoricalProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                });
+                o.SinglePartitionedProvider = new((p, valueType) =>
+                {
+                    var implementationType = mongoPartitionedProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                });
+            });
+        return builder;
+    }
+
     /// <summary>
     ///     Configures the storage to connect a MongoDB database by <paramref name="connectionString"/>.
     /// </summary>
@@ -26,10 +63,10 @@ public static class StorageBuilderExtensions
     public static StorageBuilder UseMongo(this StorageBuilder builder, Action<MongoOptions> configureOptions)
     {
         builder.Services
-            .AddMongoClientFactory()
-            .ConfigureMongoOptions(MongoOptionsNames.DefaultName, o => o.Database(MongoNames.DatabaseName))
-            .ConfigureMongoOptions(MongoOptionsNames.DefaultName, configureOptions)
-            .ConfigureMongoStoringOptions(_ => { });
+            .AddMongoClient()
+            .ConfigureMongoOptions(builder.Name, o => o.Database(MongoNames.DatabaseName))
+            .ConfigureMongoOptions(builder.Name, configureOptions)
+            .ConfigureMongoStoringOptions(builder.Name, delegate { });
         return builder;
     }
 
@@ -39,28 +76,10 @@ public static class StorageBuilderExtensions
     public static StorageBuilder UseMongo(this StorageBuilder builder, IConfigurationSection configuration)
     {
         builder.Services
-            .AddMongoClientFactory()
-            .ConfigureMongoOptions(MongoOptionsNames.DefaultName, o => o.Database(MongoNames.DatabaseName))
-            .ConfigureMongoOptions(MongoOptionsNames.DefaultName, configuration)
-            .ConfigureMongoStoringOptions(_ => { });
-        return builder;
-    }
-
-    /// <summary>
-    ///     Configures storing mechanism to connect a MongoDB database.
-    /// </summary>
-    public static StorageBuilder ConfigureMongoStoringOptions(this StorageBuilder builder, Action<MongoStoringOptions> configureOptions)
-    {
-        builder.Services.ConfigureMongoStoringOptions(configureOptions);
-        return builder;
-    }
-
-    /// <summary>
-    ///     Configures storing mechanism to connect a MongoDB database.
-    /// </summary>
-    public static StorageBuilder ConfigureMongoStoringOptions(this StorageBuilder builder, IConfigurationSection configuration)
-    {
-        builder.Services.ConfigureMongoStoringOptions(configuration);
+            .AddMongoClient()
+            .ConfigureMongoOptions(builder.Name, o => o.Database(MongoNames.DatabaseName))
+            .ConfigureMongoOptions(builder.Name, configuration)
+            .ConfigureMongoStoringOptions(builder.Name, delegate { });
         return builder;
     }
 
@@ -75,12 +94,16 @@ public static class StorageBuilderExtensions
     /// </summary>
     public static StorageBuilder AddMongo(this StorageBuilder builder, Type keyType, Type valueType)
     {
-        var serviceType = typeof(IStorageProvider<>).MakeGenericType(valueType);
-        var implementationType = typeof(MongoStorageProvider<>).MakeGenericType(valueType);
-
         builder.Services
-            .ReplaceScoped(serviceType, implementationType)
-            .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
+            .AddMongoClient()
+            .TryAddScoped(mongoProviderType, mongoProviderType)
+            .ConfigureStorageOptions(builder.Name, o =>
+                o.Providers[valueType] = new(p =>
+                {
+                    var implementationType = mongoProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                }))
+            .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
     }
 
@@ -90,8 +113,15 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddMongoAny(this StorageBuilder builder)
     {
         builder.Services
-            .ReplaceScoped(typeof(IStorageProvider<>), typeof(MongoStorageProvider<>))
-            .ConfigureSerializer(b => b.AddJsonTypeAny());
+            .AddMongoClient()
+            .TryAddScoped(mongoProviderType, mongoProviderType)
+            .ConfigureStorageOptions(builder.Name, o =>
+                o.ProviderAny = new((p, valueType) =>
+                {
+                    var implementationType = mongoProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                }))
+            .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder;
     }
 
@@ -108,12 +138,16 @@ public static class StorageBuilderExtensions
     /// </summary>
     public static StorageBuilder AddMongoHistorical(this StorageBuilder builder, Type keyType, Type valueType)
     {
-        var serviceType = typeof(IHistoricalStorageProvider<>).MakeGenericType(valueType);
-        var implementationType = typeof(MongoHistoricalStorageProvider<>).MakeGenericType(valueType);
-
         builder.Services
-            .ReplaceScoped(serviceType, implementationType)
-            .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
+            .AddMongoClient()
+            .TryAddScoped(mongoHistoricalProviderType, mongoHistoricalProviderType)
+            .ConfigureStorageOptions(builder.Name, o =>
+                o.HistoricalProviders[valueType] = new(p =>
+                {
+                    var implementationType = mongoHistoricalProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                }))
+            .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
     }
 
@@ -124,8 +158,15 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddMongoHistoricalAny(this StorageBuilder builder)
     {
         builder.Services
-            .ReplaceScoped(typeof(IHistoricalStorageProvider<>), typeof(MongoHistoricalStorageProvider<>))
-            .ConfigureSerializer(b => b.AddJsonTypeAny());
+            .AddMongoClient()
+            .TryAddScoped(mongoHistoricalProviderType, mongoHistoricalProviderType)
+            .ConfigureStorageOptions(builder.Name, o =>
+                o.HistoricalProviderAny = new((p, valueType) =>
+                {
+                    var implementationType = mongoHistoricalProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                }))
+            .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder.AddMongoAny();
     }
 
@@ -140,12 +181,17 @@ public static class StorageBuilderExtensions
     /// </summary>
     public static StorageBuilder AddMongoPartitioned(this StorageBuilder builder, Type keyType, Type valueType)
     {
-        var serviceType = typeof(IPartitionedStorageProvider<>).MakeGenericType(valueType);
-        var implementationType = typeof(MongoHistoricalStorageProvider<>).MakeGenericType(valueType);
-
         builder.Services
-            .ReplaceScoped(serviceType, implementationType)
-            .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
+            .AddMongoClient()
+            .TryAddScoped(mongoHistoricalProviderType, mongoHistoricalProviderType)
+            .TryAddScoped(mongoPartitionedProviderType, mongoPartitionedProviderType)
+            .ConfigureStorageOptions(builder.Name, o =>
+                o.PartitionedProviders[valueType] = new(p =>
+                {
+                    var implementationType = mongoPartitionedProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                }))
+            .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
     }
 
@@ -155,8 +201,15 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddMongoPartitionedAny(this StorageBuilder builder)
     {
         builder.Services
-            .ReplaceScoped(typeof(IPartitionedStorageProvider<>), typeof(MongoHistoricalStorageProvider<>))
-            .ConfigureSerializer(b => b.AddJsonTypeAny());
+            .AddMongoClient()
+            .TryAddScoped(mongoPartitionedProviderType, mongoPartitionedProviderType)
+            .ConfigureStorageOptions(builder.Name, o =>
+                o.PartitionedProviderAny = new((p, valueType) =>
+                {
+                    var implementationType = mongoPartitionedProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                }))
+            .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder;
     }
 }

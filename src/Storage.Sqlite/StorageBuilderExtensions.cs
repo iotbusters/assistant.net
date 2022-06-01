@@ -1,7 +1,6 @@
-﻿using Assistant.Net.Options;
+﻿using Assistant.Net.Abstractions;
+using Assistant.Net.Options;
 using Assistant.Net.Serialization;
-using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Storage.Configuration;
 using Assistant.Net.Storage.Internal;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Options;
@@ -9,7 +8,6 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using System;
 
 namespace Assistant.Net.Storage;
@@ -19,15 +17,50 @@ namespace Assistant.Net.Storage;
 /// </summary>
 public static class StorageBuilderExtensions
 {
+    private static readonly Type sqliteProviderType = typeof(SqliteStorageProvider<>);
+    private static readonly Type sqliteHistoricalProviderType = typeof(SqliteHistoricalStorageProvider<>);
+    private static readonly Type sqlitePartitionedProviderType = typeof(SqlitePartitionedStorageProvider<>);
+
+    /// <summary>
+    ///     Configures storage to use an SQLite single provider implementation.
+    /// </summary>
+    public static StorageBuilder UseSqliteSingleProvider(this StorageBuilder builder)
+    {
+        builder.Services
+            .AddDbContext()
+            .TryAddScoped(sqliteProviderType, sqliteProviderType)
+            .TryAddScoped(sqliteHistoricalProviderType, sqliteHistoricalProviderType)
+            .TryAddScoped(sqlitePartitionedProviderType, sqlitePartitionedProviderType)
+            .ConfigureStorageOptions(builder.Name, o =>
+            {
+                o.SingleProvider = new((p, valueType) =>
+                {
+                    var implementationType = sqliteProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                });
+                o.SingleHistoricalProvider = new((p, valueType) =>
+                {
+                    var implementationType = sqliteHistoricalProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                });
+                o.SinglePartitionedProvider = new((p, valueType) =>
+                {
+                    var implementationType = sqlitePartitionedProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                });
+            });
+        return builder;
+    }
+
     /// <summary>
     ///     Configures the storage to connect a SQLite database using <paramref name="connection"/>.
     /// </summary>
     public static StorageBuilder UseSqlite(this StorageBuilder builder, SqliteConnection connection)
     {
         builder.Services
-            .AddDbContext(connection)
-            .ConfigureSqliteOptions(SqliteOptionsNames.DefaultName, o => o.Connection(connection.ConnectionString))
-            .ConfigureSqliteStoringOptions(_ => { });
+            .AddDbContext()
+            .ConfigureSqliteOptions(builder.Name, o => o.Connection(connection))
+            .ConfigureSqliteStoringOptions(builder.Name, delegate { });
         return builder;
     }
 
@@ -44,8 +77,8 @@ public static class StorageBuilderExtensions
     {
         builder.Services
             .AddDbContext()
-            .ConfigureSqliteOptions(SqliteOptionsNames.DefaultName, configureOptions)
-            .ConfigureSqliteStoringOptions(_ => { });
+            .ConfigureSqliteOptions(builder.Name, configureOptions)
+            .ConfigureSqliteStoringOptions(builder.Name, delegate { });
         return builder;
     }
 
@@ -56,8 +89,8 @@ public static class StorageBuilderExtensions
     {
         builder.Services
             .AddDbContext()
-            .ConfigureSqliteOptions(SqliteOptionsNames.DefaultName, configuration)
-            .ConfigureSqliteStoringOptions(_ => { });
+            .ConfigureSqliteOptions(builder.Name, configuration)
+            .ConfigureSqliteStoringOptions(builder.Name, delegate { });
         return builder;
     }
 
@@ -72,12 +105,16 @@ public static class StorageBuilderExtensions
     /// </summary>
     public static StorageBuilder AddSqlite(this StorageBuilder builder, Type keyType, Type valueType)
     {
-        var serviceType = typeof(IStorageProvider<>).MakeGenericType(valueType);
-        var implementationType = typeof(SqliteStorageProvider<>).MakeGenericType(valueType);
-
         builder.Services
-            .ReplaceScoped(serviceType, implementationType)
-            .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
+            .AddDbContext()
+            .TryAddScoped(sqliteProviderType, sqliteProviderType)
+            .ConfigureStorageOptions(builder.Name, o =>
+                o.Providers[valueType] = new(p =>
+                {
+                    var implementationType = sqliteProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                }))
+            .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
     }
 
@@ -87,8 +124,15 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddSqliteAny(this StorageBuilder builder)
     {
         builder.Services
-            .ReplaceScoped(typeof(IStorageProvider<>), typeof(SqliteStorageProvider<>))
-            .ConfigureSerializer(b => b.AddJsonTypeAny());
+            .AddDbContext()
+            .TryAddScoped(sqliteProviderType, sqliteProviderType)
+            .ConfigureStorageOptions(builder.Name, o =>
+                o.ProviderAny = new((p, valueType) =>
+                {
+                    var implementationType = sqliteProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                }))
+            .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder;
     }
 
@@ -105,12 +149,16 @@ public static class StorageBuilderExtensions
     /// </summary>
     public static StorageBuilder AddSqliteHistorical(this StorageBuilder builder, Type keyType, Type valueType)
     {
-        var serviceType = typeof(IHistoricalStorageProvider<>).MakeGenericType(valueType);
-        var implementationType = typeof(SqliteHistoricalStorageProvider<>).MakeGenericType(valueType);
-
         builder.Services
-            .ReplaceScoped(serviceType, implementationType)
-            .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
+            .AddDbContext()
+            .TryAddScoped(sqliteHistoricalProviderType, sqliteHistoricalProviderType)
+            .ConfigureStorageOptions(builder.Name, o =>
+                o.HistoricalProviders[valueType] = new(p =>
+                {
+                    var implementationType = sqliteHistoricalProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                }))
+            .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
     }
 
@@ -120,8 +168,15 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddSqliteHistoricalAny(this StorageBuilder builder)
     {
         builder.Services
-            .ReplaceScoped(typeof(IHistoricalStorageProvider<>), typeof(SqliteHistoricalStorageProvider<>))
-            .ConfigureSerializer(b => b.AddJsonTypeAny());
+            .AddDbContext()
+            .TryAddScoped(sqliteHistoricalProviderType, sqliteHistoricalProviderType)
+            .ConfigureStorageOptions(builder.Name, o =>
+                o.HistoricalProviderAny = new((p, valueType) =>
+                {
+                    var implementationType = sqliteHistoricalProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                }))
+            .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder;
     }
 
@@ -136,12 +191,17 @@ public static class StorageBuilderExtensions
     /// </summary>
     public static StorageBuilder AddSqlitePartitioned(this StorageBuilder builder, Type keyType, Type valueType)
     {
-        var serviceType = typeof(IPartitionedStorageProvider<>).MakeGenericType(valueType);
-        var implementationType = typeof(SqliteHistoricalStorageProvider<>).MakeGenericType(valueType);
-
         builder.Services
-            .ReplaceScoped(serviceType, implementationType)
-            .ConfigureSerializer(b => b.AddJsonType(keyType).AddJsonType(valueType));
+            .AddDbContext()
+            .TryAddScoped(sqliteHistoricalProviderType, sqliteHistoricalProviderType)
+            .TryAddScoped(sqlitePartitionedProviderType, sqlitePartitionedProviderType)
+            .ConfigureStorageOptions(builder.Name, o =>
+                o.PartitionedProviders[valueType] = new(p =>
+                {
+                    var implementationType = sqlitePartitionedProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                }))
+            .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
     }
 
@@ -151,15 +211,25 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddSqlitePartitionedAny(this StorageBuilder builder)
     {
         builder.Services
-            .ReplaceScoped(typeof(IPartitionedStorageProvider<>), typeof(SqliteHistoricalStorageProvider<>))
-            .ConfigureSerializer(b => b.AddJsonTypeAny());
+            .AddDbContext()
+            .TryAddScoped(sqlitePartitionedProviderType, sqlitePartitionedProviderType)
+            .ConfigureStorageOptions(builder.Name, o =>
+                o.PartitionedProviderAny = new((p, valueType) =>
+                {
+                    var implementationType = sqlitePartitionedProviderType.MakeGenericType(valueType);
+                    return p.GetRequiredService(implementationType);
+                }))
+            .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder;
     }
 
-    private static IServiceCollection AddDbContext(this IServiceCollection services, SqliteConnection connection) => services
-        .AddPooledDbContextFactory<StorageDbContext>(b => b.UseSqlite(connection));
-
     private static IServiceCollection AddDbContext(this IServiceCollection services) => services
-        .AddPooledDbContextFactory<StorageDbContext>((p, b) => b
-            .UseSqlite(p.GetRequiredService<IOptionsMonitor<SqliteOptions>>().Get(SqliteOptionsNames.DefaultName).ConnectionString));
+        .AddDbContextFactory<StorageDbContext>((p, b) =>
+        {
+            var options = p.GetRequiredService<INamedOptions<SqliteOptions>>().Value;
+            if (options.Connection != null)
+                b.UseSqlite(options.Connection);
+            else
+                b.UseSqlite(options.ConnectionString);
+        }, lifetime: ServiceLifetime.Scoped);
 }

@@ -11,14 +11,36 @@ namespace Assistant.Net.Storage;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    ///     Registers a configuration instance which <see cref="SqliteStoringOptions"/> will bind against.
+    ///     Registers a configuration instance which default <see cref="SqliteStoringOptions"/> will bind against.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="configuration">The application configuration values.</param>
     public static IServiceCollection ConfigureSqliteStoringOptions(this IServiceCollection services, IConfigurationSection configuration) => services
-        .Configure<SqliteStoringOptions>(configuration);
+        .ConfigureSqliteStoringOptions(Microsoft.Extensions.Options.Options.DefaultName, configuration);
 
     /// <summary>
-    ///    Register an action used to configure <see cref="SqliteStoringOptions"/> options.
+    ///    Register an action used to configure default <see cref="SqliteStoringOptions"/> options.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="configureOptions">The action used to configure the options.</param>
     public static IServiceCollection ConfigureSqliteStoringOptions(this IServiceCollection services, Action<SqliteStoringOptions> configureOptions) => services
-        .Configure(configureOptions);
+        .ConfigureSqliteStoringOptions(Microsoft.Extensions.Options.Options.DefaultName, configureOptions);
+
+    /// <summary>
+    ///     Registers a configuration instance which the same named <see cref="SqliteStoringOptions"/> will bind against.
+    /// </summary>
+    /// <param name="services"/>
+    /// <param name="name">The name of the options instance.</param>
+    /// <param name="configuration">The application configuration values.</param>
+    public static IServiceCollection ConfigureSqliteStoringOptions(this IServiceCollection services, string name, IConfigurationSection configuration) => services
+        .Configure<SqliteStoringOptions>(name, configuration);
+
+    /// <summary>
+    ///    Register an action used to configure the same named <see cref="SqliteStoringOptions"/> options.
+    /// </summary>
+    /// <param name="services"/>
+    /// <param name="name">The name of the options instance.</param>
+    /// <param name="configureOptions">The action used to configure the options.</param>
+    public static IServiceCollection ConfigureSqliteStoringOptions(this IServiceCollection services, string name, Action<SqliteStoringOptions> configureOptions) => services
+        .Configure(name, configureOptions);
 }

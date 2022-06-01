@@ -3,6 +3,7 @@ using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Exceptions;
 using Assistant.Net.Storage.Models;
+using Assistant.Net.Storage.Options;
 using Assistant.Net.Unions;
 using Assistant.Net.Utils;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,26 +19,26 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
 {
     private readonly string keyType;
     private readonly string valueType;
-    private readonly IValueConverter<TKey> keyConverter;
-    private readonly IValueConverter<TValue> valueConverter;
-    private readonly IPartitionedStorageProvider<TValue> backedStorage;
     private readonly IDiagnosticContext diagnosticContext;
     private readonly ISystemClock clock;
+    private readonly IPartitionedStorageProvider<TValue> backedStorage;
+    private readonly IValueConverter<TKey> keyConverter;
+    private readonly IValueConverter<TValue> valueConverter;
 
     /// <exception cref="ArgumentException"/>
     public PartitionedStorage(
         IServiceProvider provider,
-        ITypeEncoder typeEncoder,
         IDiagnosticContext diagnosticContext,
-        ISystemClock clock)
+        ISystemClock clock,
+        ITypeEncoder typeEncoder)
     {
-        this.keyType = typeEncoder.Encode(typeof(TKey)) ?? throw NotSupportedTypeException(typeof(TKey));
-        this.valueType = typeEncoder.Encode(typeof(TValue)) ?? throw NotSupportedTypeException(typeof(TValue));
-        this.backedStorage = provider.GetService<IPartitionedStorageProvider<TValue>>() ?? throw ImproperlyConfiguredException();
-        this.keyConverter = provider.GetService<IValueConverter<TKey>>() ?? throw ImproperlyConfiguredException();
-        this.valueConverter = provider.GetService<IValueConverter<TValue>>() ?? throw ImproperlyConfiguredException();
         this.diagnosticContext = diagnosticContext;
         this.clock = clock;
+        this.keyType = GetTypeName<TKey>(typeEncoder);
+        this.valueType = GetTypeName<TValue>(typeEncoder);
+        this.backedStorage = GetProvider(provider);
+        this.keyConverter = GetConverter<TKey>(provider);
+        this.valueConverter = GetConverter<TValue>(provider);
     }
 
     public async Task<long> Add(TKey key, TValue value, CancellationToken token)
@@ -150,9 +151,24 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
         }
     }
 
-    private static ArgumentException ImproperlyConfiguredException() =>
-        new($"Partitioned storage of '{typeof(TValue).Name}' wasn't properly configured.");
+    private static string GetTypeName<T>(ITypeEncoder typeEncoder) =>
+        typeEncoder.Encode(typeof(T)) ?? throw new ArgumentException($"Type({typeof(T).Name}) isn't supported.");
 
-    private static NotSupportedException NotSupportedTypeException(Type type) =>
-        new($"Type '{type.Name}' isn't supported.");
+    private static IPartitionedStorageProvider<TValue> GetProvider(IServiceProvider provider)
+    {
+        var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
+        return options.PartitionedProviders.TryGetValue(typeof(TValue), out var factory)
+            ? (IPartitionedStorageProvider<TValue>)factory.Create(provider)
+            : throw new ArgumentException($"PartitionedStorage({typeof(TValue).Name}) wasn't properly configured.");
+    }
+
+    private static IValueConverter<T> GetConverter<T>(IServiceProvider provider)
+    {
+        // todo: replace  provider.GetService<IValueConverter<T>>() with static DefaultConverters
+        var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
+        return options.Converters.TryGetValue(typeof(T), out var factory)
+            ? (IValueConverter<T>)factory.Create(provider)
+            : provider.GetService<IValueConverter<T>>()
+              ?? throw new ArgumentException($"ValueConverter({typeof(T).Name}) wasn't properly configured.");
+    }
 }

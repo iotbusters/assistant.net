@@ -3,6 +3,7 @@ using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Exceptions;
 using Assistant.Net.Storage.Models;
+using Assistant.Net.Storage.Options;
 using Assistant.Net.Unions;
 using Assistant.Net.Utils;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,46 +17,42 @@ namespace Assistant.Net.Storage.Internal;
 
 internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
 {
-    protected readonly string KeyType;
-    protected readonly string ValueType;
-    protected readonly IValueConverter<TKey> KeyConverter;
-    protected readonly IValueConverter<TValue> ValueConverter;
-    private readonly IStorageProvider<TValue> backedStorage;
     private readonly IDiagnosticContext diagnosticContext;
     private readonly ISystemClock clock;
+    protected readonly string KeyType;
+    protected readonly string ValueType;
+    protected readonly IStorageProvider<TValue> BackedStorage;
+    protected readonly IValueConverter<TKey> KeyConverter;
+    protected readonly IValueConverter<TValue> ValueConverter;
 
-    /// <exception cref="NotSupportedException"/>
+    /// <exception cref="ArgumentException"/>
     protected Storage(
-        IValueConverter<TKey> keyConverter,
-        IValueConverter<TValue> valueConverter,
-        IStorageProvider<TValue> backedStorage,
-        ITypeEncoder typeEncoder,
+        IServiceProvider provider,
         IDiagnosticContext diagnosticContext,
-        ISystemClock clock)
+        ISystemClock clock,
+        ITypeEncoder typeEncoder,
+        IStorageProvider<TValue> backedStorage)
     {
-        this.KeyType = typeEncoder.Encode(typeof(TKey)) ?? throw NotSupportedTypeException(typeof(TKey));
-        this.ValueType = typeEncoder.Encode(typeof(TValue)) ?? throw NotSupportedTypeException(typeof(TValue));
-        this.KeyConverter = keyConverter;
-        this.ValueConverter = valueConverter;
-        this.backedStorage = backedStorage;
         this.diagnosticContext = diagnosticContext;
         this.clock = clock;
+        this.KeyType = GetTypeName<TKey>(typeEncoder);
+        this.ValueType = GetTypeName<TValue>(typeEncoder);
+        this.BackedStorage = backedStorage;
+        this.KeyConverter = GetConverter<TKey>(provider);
+        this.ValueConverter = GetConverter<TValue>(provider);
     }
 
     /// <exception cref="ArgumentException"/>
-    /// <exception cref="NotSupportedException"/>
     public Storage(
         IServiceProvider provider,
-        ITypeEncoder typeEncoder,
         IDiagnosticContext diagnosticContext,
-        ISystemClock clock)
-        : this(
-            provider.GetService<IValueConverter<TKey>>() ?? throw ImproperlyConfiguredException(typeof(TKey)),
-            provider.GetService<IValueConverter<TValue>>() ?? throw ImproperlyConfiguredException(typeof(TValue)),
-            provider.GetService<IStorageProvider<TValue>>() ?? throw ImproperlyConfiguredException(typeof(TValue)),
-            typeEncoder,
-            diagnosticContext,
-            clock)
+        ISystemClock clock,
+        ITypeEncoder typeEncoder) : this(
+        provider,
+        diagnosticContext,
+        clock,
+        typeEncoder,
+        GetProvider(provider))
     {
     }
 
@@ -68,7 +65,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                 id: keyContent.GetSha1(),
                 type: KeyType,
                 content: keyContent);
-            var valueRecord = await backedStorage.AddOrGet(
+            var valueRecord = await BackedStorage.AddOrGet(
                 keyRecord,
                 addFactory: async _ =>
                 {
@@ -98,7 +95,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                 id: keyContent.GetSha1(),
                 type: KeyType,
                 content: keyContent);
-            var valueRecord = await backedStorage.AddOrUpdate(
+            var valueRecord = await BackedStorage.AddOrUpdate(
                 keyRecord,
                 addFactory: async _ =>
                 {
@@ -133,7 +130,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                 id: keyContent.GetSha1(),
                 type: KeyType,
                 content: keyContent);
-            return await backedStorage.TryGet(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
+            return await BackedStorage.TryGet(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
         }
         catch (Exception ex) when (ex is not StorageException)
         {
@@ -150,7 +147,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                 id: keyContent.GetSha1(),
                 type: KeyType,
                 content: keyContent);
-            return await backedStorage.TryGet(keyRecord, token).MapOption(x => x.Audit);
+            return await BackedStorage.TryGet(keyRecord, token).MapOption(x => x.Audit);
         }
         catch (Exception ex) when (ex is not StorageException)
         {
@@ -167,7 +164,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                 id: keyContent.GetSha1(),
                 type: KeyType,
                 content: keyContent);
-            return await backedStorage.TryRemove(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
+            return await BackedStorage.TryRemove(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
         }
         catch (Exception ex) when (ex is not StorageException)
         {
@@ -176,14 +173,28 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     }
 
     public IAsyncEnumerable<TKey> GetKeys(CancellationToken token) =>
-        backedStorage.GetKeys()
+        BackedStorage.GetKeys()
             .Where(x => x.Type == KeyType)
             .AsAsync()
             .Select(x => KeyConverter.Convert(x.Content, token));
 
-    protected static ArgumentException ImproperlyConfiguredException(Type type) =>
-        new($"Storage of '{type.Name}' wasn't properly configured.");
+    private static string GetTypeName<T>(ITypeEncoder typeEncoder) =>
+        typeEncoder.Encode(typeof(T)) ?? throw new ArgumentException($"Type({typeof(T).Name}) isn't supported.");
 
-    protected static NotSupportedException NotSupportedTypeException(Type type) =>
-        new($"Type '{type.Name}' isn't supported.");
+    private static IStorageProvider<TValue> GetProvider(IServiceProvider provider)
+    {
+        var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
+        return options.Providers.TryGetValue(typeof(TValue), out var factory)
+            ? (IStorageProvider<TValue>)factory.Create(provider)
+            : throw new ArgumentException($"Storage({typeof(TValue).Name}) wasn't properly configured.");
+    }
+
+    private static IValueConverter<T> GetConverter<T>(IServiceProvider provider)
+    {
+        var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
+        return options.Converters.TryGetValue(typeof(T), out var factory)
+            ? (IValueConverter<T>)factory.Create(provider)
+            : provider.GetService<IValueConverter<T>>()
+              ?? throw new ArgumentException($"ValueConverter({typeof(T).Name}) wasn't properly configured.");
+    }
 }

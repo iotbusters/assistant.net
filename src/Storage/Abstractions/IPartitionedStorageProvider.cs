@@ -1,7 +1,6 @@
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,13 +10,8 @@ namespace Assistant.Net.Storage.Abstractions;
 ///    A specific data provider abstraction over internal key based value-centric binary partitioned storage.
 /// </summary>
 /// <typeparam name="TValue">A value object type which specific partitioned storage implementation is assigned to.</typeparam>
-public interface IPartitionedStorageProvider<TValue> : IStorage<KeyRecord, ValueRecord>, IDisposable
+public interface IPartitionedStorageProvider<TValue> : IStorageProvider<ValueRecord>, IDisposable
 {
-    /// <summary>
-    ///     Gets all keys in the storage.
-    /// </summary>
-    IQueryable<KeyRecord> GetKeys();
-
     /// <summary>
     ///    Adds next indexed value associated to the <paramref name="key"/>.
     /// </summary>
@@ -46,14 +40,6 @@ public interface IPartitionedStorageProvider<TValue> : IStorage<KeyRecord, Value
     /// <param name="token"/>
     /// <returns>An existed value if it was found.</returns>
     Task<Option<ValueRecord>> TryGet(KeyRecord key, long index, CancellationToken token = default);
-
-    /// <summary>
-    ///     Tries to remove all values associated to the <paramref name="key"/>.
-    /// </summary>
-    /// <param name="key">A partition key object.</param>
-    /// <param name="token"/>
-    /// <returns>A removed value if it was found.</returns>
-    Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken token = default);
 
     /// <summary>
     ///     Tries to remove values below the <paramref name="upToIndex"/> inclusive associated to the <paramref name="key"/>.

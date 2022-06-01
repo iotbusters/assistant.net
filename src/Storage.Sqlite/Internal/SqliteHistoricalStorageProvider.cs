@@ -1,4 +1,5 @@
-﻿using Assistant.Net.Storage.Abstractions;
+﻿using Assistant.Net.Abstractions;
+using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Exceptions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Options;
@@ -6,7 +7,6 @@ using Assistant.Net.Unions;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 using System.Threading;
@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Internal;
 
-internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvider<TValue>, IPartitionedStorageProvider<TValue>
+internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvider<TValue>
 {
     private readonly ILogger logger;
     private readonly SqliteStoringOptions options;
@@ -22,7 +22,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
 
     public SqliteHistoricalStorageProvider(
         ILogger<SqliteStorageProvider<TValue>> logger,
-        IOptions<SqliteStoringOptions> options,
+        INamedOptions<SqliteStoringOptions> options,
         IDbContextFactory<StorageDbContext> dbContextFactory)
     {
         this.logger = logger;
@@ -110,13 +110,6 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
 
         throw new StorageConcurrencyException();
     }
-
-    public async Task<long> Add(
-        KeyRecord key,
-        Func<KeyRecord, Task<ValueRecord>> addFactory,
-        Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
-        CancellationToken token = default) =>
-        await AddOrUpdate(key, addFactory, updateFactory, token).MapCompleted(x => x.Audit.Version);
 
     public async Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token)
     {

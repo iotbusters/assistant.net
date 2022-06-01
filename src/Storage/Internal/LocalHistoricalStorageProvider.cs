@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Internal;
 
-internal sealed class LocalHistoricalStorageProvider<TValue> : IHistoricalStorageProvider<TValue>, IPartitionedStorageProvider<TValue>
+internal sealed class LocalHistoricalStorageProvider<TValue> : IHistoricalStorageProvider<TValue>
 {
     private readonly ConcurrentDictionary<KeyRecord, ConcurrentDictionary<long, ValueRecord>> backedStorage = new();
 
@@ -49,13 +49,6 @@ internal sealed class LocalHistoricalStorageProvider<TValue> : IHistoricalStorag
                     return Task.FromResult(added);
             }
     }
-
-    public async Task<long> Add(
-        KeyRecord key,
-        Func<KeyRecord, Task<ValueRecord>> addFactory,
-        Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
-        CancellationToken token = default) =>
-        await AddOrUpdate(key, addFactory, updateFactory, token).MapCompleted(x => x.Audit.Version);
 
     public Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken _) =>
         Task.FromResult(
