@@ -3,6 +3,7 @@ using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Exceptions;
 using Assistant.Net.Storage.Models;
+using Assistant.Net.Storage.Options;
 using Assistant.Net.Unions;
 using Assistant.Net.Utils;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,17 +20,15 @@ internal class HistoricalStorage<TKey, TValue> : Storage<TKey, TValue>, IHistori
     /// <exception cref="ArgumentException"/>
     public HistoricalStorage(
         IServiceProvider provider,
-        ITypeEncoder typeEncoder,
         IDiagnosticContext diagnosticContext,
-        ISystemClock clock)
-        : base(
-            provider.GetService<IValueConverter<TKey>>() ?? throw ImproperlyConfiguredException(typeof(TKey)),
-            provider.GetService<IValueConverter<TValue>>() ?? throw ImproperlyConfiguredException(typeof(TValue)),
-            provider.GetService<IHistoricalStorageProvider<TValue>>() ?? throw ImproperlyConfiguredException(typeof(TValue)),
-            typeEncoder,
-            diagnosticContext,
-            clock) =>
-        backedStorage = provider.GetService<IHistoricalStorageProvider<TValue>>()!;
+        ISystemClock clock,
+        ITypeEncoder typeEncoder) : base(
+        provider,
+        diagnosticContext,
+        clock,
+        typeEncoder,
+        GetProvider(provider)) =>
+        backedStorage = (IHistoricalStorageProvider<TValue>)base.BackedStorage;
 
     public async Task<Option<TValue>> TryGet(TKey key, long version, CancellationToken token)
     {
@@ -67,5 +66,13 @@ internal class HistoricalStorage<TKey, TValue> : Storage<TKey, TValue>, IHistori
         {
             throw new StorageException(ex);
         }
+    }
+
+    private static IHistoricalStorageProvider<TValue> GetProvider(IServiceProvider provider)
+    {
+        var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
+        return options.HistoricalProviders.TryGetValue(typeof(TValue), out var factory)
+            ? (IHistoricalStorageProvider<TValue>)factory.Create(provider)
+            : throw new ArgumentException($"HistoricalStorage({typeof(TValue).Name}) wasn't properly configured.");
     }
 }

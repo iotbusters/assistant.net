@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Abstractions;
-using Assistant.Net.Storage.Abstractions;
+﻿using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Exceptions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Options;
@@ -23,11 +22,10 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
     public MongoStorageProvider(
         ILogger<MongoStorageProvider<TValue>> logger,
         IOptions<MongoStoringOptions> options,
-        IMongoClientFactory clientFactory)
+        IMongoDatabase database)
     {
         this.logger = logger;
         this.options = options.Value;
-        var database = clientFactory.GetDatabase(MongoOptionsNames.DefaultName);
         this.collection = database.GetCollection<MongoRecord>(MongoNames.StorageCollectionName);
     }
 

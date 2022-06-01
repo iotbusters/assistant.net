@@ -1,9 +1,9 @@
 using Assistant.Net.Diagnostics;
 using Assistant.Net.Serialization;
 using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Storage.Configuration;
 using Assistant.Net.Storage.Converters;
 using Assistant.Net.Storage.Internal;
+using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
@@ -26,7 +26,6 @@ public static class ServiceCollectionExtensions
         .AddDiagnostics()
         .AddTypeEncoder()
         .AddSerializer()
-        // todo: resolve single instance per storage type
         .TryAddScoped(typeof(IStorage<,>), typeof(Storage<,>))
         .TryAddScoped(typeof(IAdminStorage<,>), typeof(Storage<,>))
         .TryAddScoped(typeof(IHistoricalStorage<,>), typeof(HistoricalStorage<,>))
@@ -64,7 +63,37 @@ public static class ServiceCollectionExtensions
     /// <param name="configure">The action used to configure the default option instances.</param>
     public static IServiceCollection ConfigureStorage(this IServiceCollection services, Action<StorageBuilder> configure)
     {
-        configure(new StorageBuilder(services));
+        configure(new StorageBuilder(services, Microsoft.Extensions.Options.Options.DefaultName));
         return services;
     }
+
+    /// <summary>
+    ///     Configures storage implementations, required services and options.
+    /// </summary>
+    /// <param name="services"/>
+    /// <param name="name">The name of the options instance.</param>
+    /// <param name="configure">The action used to configure the default option instances.</param>
+    public static IServiceCollection ConfigureStorage(this IServiceCollection services, string name, Action<StorageBuilder> configure)
+    {
+        configure(new StorageBuilder(services, name));
+        return services;
+    }
+
+    /// <summary>
+    ///     Register an action used to configure the same named <see cref="StorageOptions"/> options.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+    /// <param name="configureOptions">The action used to configure the options.</param>
+    public static IServiceCollection ConfigureStorageOptions(this IServiceCollection services, Action<StorageOptions> configureOptions) => services
+        .Configure(configureOptions);
+
+    /// <summary>
+    ///     Register an action used to configure the same named <see cref="StorageOptions"/> options.
+    /// </summary>
+    /// <param name="services"/>
+    /// <param name="name">The name of the options instance.</param>
+    /// <param name="configureOptions">The action used to configure the options.</param>
+    public static IServiceCollection ConfigureStorageOptions(this IServiceCollection services, string name, Action<StorageOptions> configureOptions) => services
+        .Configure(name, configureOptions);
+
 }
