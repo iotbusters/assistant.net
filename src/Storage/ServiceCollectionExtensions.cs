@@ -18,33 +18,20 @@ namespace Assistant.Net.Storage;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    ///     Adds common services required by storage implementations.
+    ///     Adds storage implementation, required services and defaults.
     /// </summary>
     public static IServiceCollection AddStorage(this IServiceCollection services) => services
         .AddLogging()
         .AddSystemClock()
         .AddDiagnostics()
         .AddTypeEncoder()
-        .AddSerializer()
         .TryAddScoped(typeof(IStorage<,>), typeof(Storage<,>))
         .TryAddScoped(typeof(IAdminStorage<,>), typeof(Storage<,>))
         .TryAddScoped(typeof(IHistoricalStorage<,>), typeof(HistoricalStorage<,>))
         .TryAddScoped(typeof(IHistoricalAdminStorage<,>), typeof(HistoricalStorage<,>))
         .TryAddScoped(typeof(IPartitionedStorage<,>), typeof(PartitionedStorage<,>))
         .TryAddScoped(typeof(IPartitionedAdminStorage<,>), typeof(PartitionedStorage<,>))
-        .TryAddSingleton(typeof(IValueConverter<>), typeof(TypedValueConverter<>))
-        // todo: optimize converters. e.g. converter.CanConvert(type)
-        .TryAddSingleton<PrimitiveValueConverter>()
-        .TryAddSingleton<IValueConverter<string>>(p => p.GetRequiredService<PrimitiveValueConverter>())
-        .TryAddSingleton<IValueConverter<Guid>>(p => p.GetRequiredService<PrimitiveValueConverter>())
-        .TryAddSingleton<IValueConverter<bool>>(p => p.GetRequiredService<PrimitiveValueConverter>())
-        .TryAddSingleton<IValueConverter<int>>(p => p.GetRequiredService<PrimitiveValueConverter>())
-        .TryAddSingleton<IValueConverter<float>>(p => p.GetRequiredService<PrimitiveValueConverter>())
-        .TryAddSingleton<IValueConverter<double>>(p => p.GetRequiredService<PrimitiveValueConverter>())
-        .TryAddSingleton<IValueConverter<decimal>>(p => p.GetRequiredService<PrimitiveValueConverter>())
-        .TryAddSingleton<IValueConverter<TimeSpan>>(p => p.GetRequiredService<PrimitiveValueConverter>())
-        .TryAddSingleton<IValueConverter<DateTime>>(p => p.GetRequiredService<PrimitiveValueConverter>())
-        .TryAddSingleton<IValueConverter<DateTimeOffset>>(p => p.GetRequiredService<PrimitiveValueConverter>());
+        .TryAddScoped(typeof(IValueConverter<>), typeof(TypedValueConverter<>));
 
     /// <summary>
     ///     Adds common services required by storage implementation.
@@ -52,27 +39,43 @@ public static class ServiceCollectionExtensions
     /// <remarks>
     ///     Pay attention, all storing types should be previously registered.
     /// </remarks>
+    /// <param name="services"/>
+    /// <param name="configure">The action used to configure default option instances.</param>
     public static IServiceCollection AddStorage(this IServiceCollection services, Action<StorageBuilder> configure) => services
         .AddStorage()
+        .AddSerializer(delegate { })
+        .ConfigureStorage(b => b.AddConfiguration<DefaultConverterConfiguration>())
         .ConfigureStorage(configure);
+
+    /// <summary>
+    ///     Adds common services required by storage implementation.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, all storing types should be previously registered.
+    /// </remarks>
+    /// <param name="services"/>
+    /// <param name="name">The name of the options instance.</param>
+    /// <param name="configure">The action used to configure option instances.</param>
+    public static IServiceCollection AddStorage(this IServiceCollection services, string name, Action<StorageBuilder> configure) => services
+        .AddStorage()
+        .AddSerializer(name, delegate { })
+        .ConfigureStorage(name, b => b.AddConfiguration<DefaultConverterConfiguration>())
+        .ConfigureStorage(name, configure);
 
     /// <summary>
     ///     Configures storage implementations, required services and options.
     /// </summary>
     /// <param name="services"/>
-    /// <param name="configure">The action used to configure the default option instances.</param>
-    public static IServiceCollection ConfigureStorage(this IServiceCollection services, Action<StorageBuilder> configure)
-    {
-        configure(new StorageBuilder(services, Microsoft.Extensions.Options.Options.DefaultName));
-        return services;
-    }
+    /// <param name="configure">The action used to configure option instances.</param>
+    public static IServiceCollection ConfigureStorage(this IServiceCollection services, Action<StorageBuilder> configure) => services
+        .ConfigureStorage(Microsoft.Extensions.Options.Options.DefaultName, configure);
 
     /// <summary>
     ///     Configures storage implementations, required services and options.
     /// </summary>
     /// <param name="services"/>
     /// <param name="name">The name of the options instance.</param>
-    /// <param name="configure">The action used to configure the default option instances.</param>
+    /// <param name="configure">The action used to configure option instances.</param>
     public static IServiceCollection ConfigureStorage(this IServiceCollection services, string name, Action<StorageBuilder> configure)
     {
         configure(new StorageBuilder(services, name));

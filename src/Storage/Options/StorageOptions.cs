@@ -10,9 +10,9 @@ namespace Assistant.Net.Storage.Options;
 public class StorageOptions
 {
     /// <summary>
-    ///     Specific type value converter factories.
+    ///     Default type value converter factories.
     /// </summary>
-    public Dictionary<Type, InstanceFactory<object>> Converters { get; } = new();
+    public Dictionary<Type, InstanceFactory<object>> DefaultConverters { get; } = new();
 
     /// <summary>
     ///     Specific type regular storage provider factories.
