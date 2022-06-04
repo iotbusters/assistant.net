@@ -25,12 +25,11 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Registers remote message handling server configuration.
     /// </summary>
-    public static IServiceCollection AddMongoMessageHandling(this IServiceCollection services, Action<MongoHandlingBuilder> configureBuilder) => services
+    public static IServiceCollection AddMongoMessageHandling(this IServiceCollection services, Action<MessagingClientBuilder> configureBuilder) => services
         .AddHostedService<MongoMessageHandlingService>()
         .AddSystemServicesHosted()
         .AddMessagingClient()
-        .AddStorage()
-        .ConfigureStorage(MongoOptionsNames.DefaultName, b => b
+        .AddStorage(MongoOptionsNames.DefaultName, b => b
             .AddMongoPartitioned<int, IAbstractMessage>()
             .AddMongo<int, long>())
         .ConfigureMongoMessageHandling(b => b.AddConfiguration<MongoServerInterceptorConfiguration>())
@@ -46,9 +45,9 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Configures remote message handling, required services and <see cref="MongoHandlingServerOptions"/>.
     /// </summary>
-    public static IServiceCollection ConfigureMongoMessageHandling(this IServiceCollection services, Action<MongoHandlingBuilder> configureBuilder)
+    public static IServiceCollection ConfigureMongoMessageHandling(this IServiceCollection services, Action<MessagingClientBuilder> configureBuilder)
     {
-        var builder = new MongoHandlingBuilder(services);
+        var builder = new MessagingClientBuilder(services, MongoOptionsNames.DefaultName);
         configureBuilder(builder);
         return services;
     }

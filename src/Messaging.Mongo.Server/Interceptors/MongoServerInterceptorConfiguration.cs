@@ -8,10 +8,10 @@ using System;
 namespace Assistant.Net.Messaging.Interceptors;
 
 /// <inheritdoc cref="DefaultInterceptorConfiguration"/>
-public class MongoServerInterceptorConfiguration : IMessageConfiguration<MongoHandlingBuilder>
+public class MongoServerInterceptorConfiguration : IMessageConfiguration
 {
     /// <inheritdoc/>
-    public void Configure(MongoHandlingBuilder builder) =>
+    public void Configure(MessagingClientBuilder builder) =>
         builder.Services
             .ConfigureMessagingClient(builder.Name, b => b
                 .AddConfiguration<DefaultInterceptorConfiguration>()

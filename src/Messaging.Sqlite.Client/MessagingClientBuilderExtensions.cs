@@ -1,13 +1,8 @@
-﻿using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Internal;
+﻿using Assistant.Net.Abstractions;
+using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Options;
 using Assistant.Net.Storage;
-using Assistant.Net.Storage.Options;
-using Microsoft.Data.Sqlite;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Messaging;
@@ -18,42 +13,39 @@ namespace Assistant.Net.Messaging;
 public static class MessagingClientBuilderExtensions
 {
     /// <summary>
-    ///     Configures the messaging client to use a SQLite single provider implementation.
+    ///     Configures SQLite single provider dependencies for messaging client.
     /// </summary>
     /// <remarks>
-    ///     Pay attention, you need to call explicitly one of overloaded <see cref="UseSqlite(MessagingClientBuilder,string)"/> to configure.
+    ///     Pay attention, you need to call explicitly one of overloaded <see cref="BuilderExtensions.UseSqlite{TBuilder}(IBuilder{TBuilder},string)"/> to configure.
     /// </remarks>
-    public static MessagingClientBuilder UseSqliteSingleProvider(this MessagingClientBuilder builder, Action<SqliteOptions> configureOptions)
+    public static MessagingClientBuilder UseSqliteSingleProvider(this MessagingClientBuilder builder)
     {
         builder.Services
-            .ConfigureMessagingClientOptions(builder.Name, o => o.UseSqliteSingleProvider())
-            .ConfigureStorage(builder.Name, b => b.UseSqliteSingleProvider());
-        return builder.AddSqliteSingleProvider(b => b.UseSqlite(configureOptions));
+            .AddStorage(builder.Name, b => b
+                .UseSqliteSingleProvider()
+                .AddSinglePartitioned<int, IAbstractMessage>()
+                .AddSingle<int, CachingResult>())
+            .ConfigureMessagingClientOptions(builder.Name, o => o.UseSqliteSingleProvider());
+        return builder;
     }
 
     /// <summary>
-    ///     Configures the messaging client to connect a SQLite database from a client.
+    ///     Configures SQLite provider dependencies for messaging client.
     /// </summary>
-    public static MessagingClientBuilder UseSqlite(this MessagingClientBuilder builder, string connectionString) =>
-        builder.UseSqlite(o => o.Connection(connectionString));
-
-    /// <summary>
-    ///     Configures the messaging client to connect a SQLite database from a client.
-    /// </summary>
-    public static MessagingClientBuilder UseSqlite(this MessagingClientBuilder builder, SqliteConnection connection) => builder
-        .AddSqliteProvider(b => b.UseSqlite(connection));
-
-    /// <summary>
-    ///     Configures the messaging client to connect a SQLite database from a client.
-    /// </summary>
-    public static MessagingClientBuilder UseSqlite(this MessagingClientBuilder builder, Action<SqliteOptions> configureOptions) => builder
-        .AddSqliteProvider(b => b.UseSqlite(configureOptions));
-
-    /// <summary>
-    ///     Configures the messaging client to connect a MongoDB database from a client.
-    /// </summary>
-    public static MessagingClientBuilder UseSqlite(this MessagingClientBuilder builder, IConfigurationSection configuration) => builder
-        .AddSqliteProvider(b => b.UseSqlite(configuration));
+    /// <remarks>
+    ///     Pay attention, you need to call explicitly one of overloaded <see cref="BuilderExtensions.UseSqlite{TBuilder}(IBuilder{TBuilder},string)"/> to configure;
+    ///     It should be added if <see cref="AddSqlite"/> wasn't configured on the start.
+    /// </remarks>
+    public static MessagingClientBuilder UseSqliteProvider(this MessagingClientBuilder builder)
+    {
+        builder.Services
+            .AddStorage(builder.Name, b => b
+                .UseSqliteSingleProvider()
+                .AddSinglePartitioned<int, IAbstractMessage>()
+                .AddSingle<int, CachingResult>())
+            .ConfigureMessagingClientOptions(builder.Name, o => o.UseSqliteSingleProvider());
+        return builder;
+    }
 
     /// <summary>
     ///     Registers remote SQLite based handler of <typeparamref name="TMessage" /> from a client.
@@ -79,44 +71,10 @@ public static class MessagingClientBuilderExtensions
             throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
 
         builder.Services
-            .AddSqliteProvider(builder.Name)
+            .AddStorage(builder.Name, b => b
+                .AddSqlitePartitioned<int, IAbstractMessage>()
+                .AddSqlite<int, CachingResult>())
             .ConfigureMessagingClientOptions(builder.Name, o => o.AddSqlite(messageType));
         return builder;
     }
-
-    /// <summary>
-    ///     Registers SQLite single provider and its dependencies.
-    /// </summary>
-    public static MessagingClientBuilder AddSqliteSingleProvider(this MessagingClientBuilder builder, Action<StorageBuilder> configureBuilder)
-    {
-        builder.Services
-            .TryAddScoped<SqliteMessageHandlerProxy>()
-            .AddStorage()
-            .ConfigureStorage(builder.Name, b => b
-                .AddPartitioned<int, IAbstractMessage>()
-                .Add<int, CachingResult>())
-            .ConfigureStorage(builder.Name, configureBuilder);
-        return builder;
-    }
-
-    /// <summary>
-    ///     Registers SQLite provider and its dependencies.
-    /// </summary>
-    public static MessagingClientBuilder AddSqliteProvider(this MessagingClientBuilder builder, Action<StorageBuilder> configureBuilder)
-    {
-        builder.Services
-            .AddSqliteProvider(builder.Name)
-            .ConfigureStorage(builder.Name, configureBuilder);
-        return builder;
-    }
-
-    /// <summary>
-    ///     Registers SQLite provider and its dependencies.
-    /// </summary>
-    public static IServiceCollection AddSqliteProvider(this IServiceCollection services, string name) => services
-        .TryAddScoped<SqliteMessageHandlerProxy>()
-        .AddStorage()
-        .ConfigureStorage(name, b => b
-            .AddSqlitePartitioned<int, IAbstractMessage>()
-            .AddSqlite<int, CachingResult>());
 }

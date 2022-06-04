@@ -8,10 +8,10 @@ using System;
 namespace Assistant.Net.Messaging.Interceptors;
 
 /// <inheritdoc cref="DefaultInterceptorConfiguration"/>
-public class SqliteServerInterceptorConfiguration : IMessageConfiguration<SqliteHandlingBuilder>
+public class SqliteServerInterceptorConfiguration : IMessageConfiguration
 {
     /// <inheritdoc/>
-    public void Configure(SqliteHandlingBuilder builder) =>
+    public void Configure(MessagingClientBuilder builder) =>
         builder.Services
             .ConfigureMessagingClient(builder.Name, b => b
                 .AddConfiguration<DefaultInterceptorConfiguration>()

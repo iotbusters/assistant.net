@@ -33,7 +33,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Registers WEB message handling server configuration.
     /// </summary>
-    public static IServiceCollection AddWebMessageHandling(this IServiceCollection services, Action<WebHandlingBuilder> configureBuilder) => services
+    public static IServiceCollection AddWebMessageHandling(this IServiceCollection services, Action<MessagingClientBuilder> configureBuilder) => services
         .AddWebMessageHandlingMiddlewares()
         .AddSystemServicesHosted()
         .AddDiagnosticsWebHosted()
@@ -61,9 +61,9 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Configures remote message handling, required services and <see cref="WebHandlingServerOptions"/>.
     /// </summary>
-    public static IServiceCollection ConfigureWebMessageHandling(this IServiceCollection services, Action<WebHandlingBuilder> configureBuilder)
+    public static IServiceCollection ConfigureWebMessageHandling(this IServiceCollection services, Action<MessagingClientBuilder> configureBuilder)
     {
-        var builder = new WebHandlingBuilder(services);
+        var builder = new MessagingClientBuilder(services, WebOptionsNames.DefaultName);
         configureBuilder(builder);
         return services;
     }

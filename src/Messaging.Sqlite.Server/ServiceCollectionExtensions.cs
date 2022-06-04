@@ -25,12 +25,11 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Registers remote message handling server configuration.
     /// </summary>
-    public static IServiceCollection AddSqliteMessageHandling(this IServiceCollection services, Action<SqliteHandlingBuilder> configureBuilder) => services
+    public static IServiceCollection AddSqliteMessageHandling(this IServiceCollection services, Action<MessagingClientBuilder> configureBuilder) => services
         .AddHostedService<SqliteMessageHandlingService>()
         .AddSystemServicesHosted()
         .AddMessagingClient()
-        .AddStorage()
-        .ConfigureStorage(SqliteOptionsNames.DefaultName, b => b
+        .AddStorage(SqliteOptionsNames.DefaultName, b => b
             .AddSqlitePartitioned<int, IAbstractMessage>()
             .AddSqlite<int, long>())
         .ConfigureSqliteMessageHandling(b => b.AddConfiguration<SqliteServerInterceptorConfiguration>())
@@ -46,9 +45,9 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Configures remote message handling, required services and <see cref="SqliteHandlingServerOptions"/>.
     /// </summary>
-    public static IServiceCollection ConfigureSqliteMessageHandling(this IServiceCollection services, Action<SqliteHandlingBuilder> configureBuilder)
+    public static IServiceCollection ConfigureSqliteMessageHandling(this IServiceCollection services, Action<MessagingClientBuilder> configureBuilder)
     {
-        var builder = new SqliteHandlingBuilder(services);
+        var builder = new MessagingClientBuilder(services, SqliteOptionsNames.DefaultName);
         configureBuilder(builder);
         return services;
     }
