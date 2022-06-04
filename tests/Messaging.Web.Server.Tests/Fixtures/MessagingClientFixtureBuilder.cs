@@ -1,5 +1,4 @@
 using Assistant.Net.Messaging.Interceptors;
-using Assistant.Net.Messaging.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Hosting;

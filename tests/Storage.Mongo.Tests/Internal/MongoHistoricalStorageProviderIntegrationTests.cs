@@ -244,7 +244,7 @@ public class MongoHistoricalStorageProviderIntegrationTests
         var connectionString = "mongodb://127.0.0.1:27017";
         Provider = new ServiceCollection()
             .AddStorage(b => b
-                .UseMongo(o => o.ConnectionString = connectionString)
+                .UseMongo(o => o.Connection(connectionString).Database(MongoNames.DatabaseName))
                 .AddMongoHistorical<TestKey, TestValue>())
             .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
             .AddSystemClock(_ => TestDate)

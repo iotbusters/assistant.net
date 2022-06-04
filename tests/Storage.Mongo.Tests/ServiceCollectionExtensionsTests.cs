@@ -25,9 +25,9 @@ public class ServiceCollectionExtensionsTests
         .AddStorage(b => b
             .UseMongo("mongodb://localhost")
             .UseMongoSingleProvider()
-            .Add<TestKey, object>()
-            .AddPartitioned<TestKey, object>()
-            .AddHistorical<TestKey, object>())
+            .AddSingle<TestKey, object>()
+            .AddSinglePartitioned<TestKey, object>()
+            .AddSingleHistorical<TestKey, object>())
         .BuildServiceProvider();
 
     private static IServiceProvider NamedProvider => new ServiceCollection()

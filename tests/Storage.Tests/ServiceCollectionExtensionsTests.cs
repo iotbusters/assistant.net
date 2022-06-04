@@ -22,16 +22,16 @@ public class ServiceCollectionExtensionsTests
         .AddSystemClock()
         .AddStorage(b => b
             .UseLocalSingleProvider()
-            .Add<TestKey, object>()
-            .AddPartitioned<TestKey, object>()
-            .AddHistorical<TestKey, object>())
+            .AddSingle<TestKey, object>()
+            .AddSinglePartitioned<TestKey, object>()
+            .AddSingleHistorical<TestKey, object>())
         .BuildServiceProvider();
     private static IServiceProvider UnknownSingleProvider => new ServiceCollection()
         .AddSystemClock()
         .AddStorage(b => b
-            .Add<TestKey, object>()
-            .AddPartitioned<TestKey, object>()
-            .AddHistorical<TestKey, object>())
+            .AddSingle<TestKey, object>()
+            .AddSinglePartitioned<TestKey, object>()
+            .AddSingleHistorical<TestKey, object>())
         .BuildServiceProvider();
     private static IServiceProvider NamedProvider => new ServiceCollection()
         .AddSystemClock()
