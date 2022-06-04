@@ -13,28 +13,24 @@ namespace Assistant.Net.Messaging.Interceptors;
 ///     <see cref="CachingInterceptor" />, <see cref="RetryingInterceptor" />,
 ///     <see cref="TimeoutInterceptor" />
 /// </summary>
-public class DefaultInterceptorConfiguration : IMessageConfiguration<MessagingClientBuilder>
+public class DefaultInterceptorConfiguration : IMessageConfiguration
 {
     /// <inheritdoc/>
     public void Configure(MessagingClientBuilder builder)
     {
         builder.Services
-            .AddStorage()
-            .ConfigureStorage(builder.Name, b => b.AddLocal<string, CachingResult>())
+            .AddStorage(builder.Name, b => b.AddLocal<string, CachingResult>())
             .ConfigureMessagingClient(builder.Name, o => o
                 .Retry(new ExponentialBackoff {MaxAttemptNumber = 5, Interval = TimeSpan.FromSeconds(1), Rate = 1.2})
                 .TimeoutIn(TimeSpan.FromSeconds(1)));
         builder
-            .ClearInterceptors()
             .AddInterceptor<DiagnosticsInterceptor>()
             .AddInterceptor<CachingInterceptor>()
             .AddInterceptor<ErrorHandlingInterceptor>()
             .AddInterceptor<RetryingInterceptor>()
             .AddInterceptor<TimeoutInterceptor>()
-            .ClearExposedExceptions()
             .ExposeException<TimeoutException>()
             .ExposeException<OperationCanceledException>()
-            .ClearTransientExceptions()
             .AddTransientException<TimeoutException>();
     }
 }

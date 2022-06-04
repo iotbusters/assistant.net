@@ -1,12 +1,8 @@
-﻿using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Internal;
+﻿using Assistant.Net.Abstractions;
+using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Options;
 using Assistant.Net.Storage;
-using Assistant.Net.Storage.Options;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Messaging;
@@ -17,36 +13,37 @@ namespace Assistant.Net.Messaging;
 public static class MessagingClientBuilderExtensions
 {
     /// <summary>
-    ///     Configures the messaging client to use a MongoDB single provider implementation.
+    ///     Configures MongoDB single provider dependencies for messaging client.
     /// </summary>
     /// <remarks>
-    ///     Pay attention, you need to call explicitly one of overloaded <see cref="UseMongo(MessagingClientBuilder,string)"/> to configure.
+    ///     Pay attention, you need to call explicitly one of overloaded <see cref="BuilderExtensions.UseMongo{TBuilder}(IBuilder{TBuilder},string)"/> to configure.
     /// </remarks>
-    public static MessagingClientBuilder UseMongoSingleProvider(this MessagingClientBuilder builder, Action<MongoOptions> configureOptions)
+    public static MessagingClientBuilder UseMongoSingleProvider(this MessagingClientBuilder builder)
     {
         builder.Services
-            .ConfigureMessagingClientOptions(builder.Name, o => o.UseMongoSingleProvider())
-            .ConfigureStorage(builder.Name, b => b.UseMongoSingleProvider());
-        return builder.AddMongoSingleProvider(b => b.UseMongo(configureOptions));
+            .AddStorage(builder.Name, b => b
+                .UseMongoSingleProvider()
+                .AddSinglePartitioned<int, IAbstractMessage>()
+                .AddSingle<int, CachingResult>())
+            .ConfigureMessagingClientOptions(builder.Name, o => o.UseMongoSingleProvider());
+        return builder;
     }
 
     /// <summary>
-    ///     Configures the messaging client to connect a MongoDB database from a client.
+    ///     Configures MongoDB provider dependencies for messaging client.
     /// </summary>
-    public static MessagingClientBuilder UseMongo(this MessagingClientBuilder builder, string connectionString) =>
-        builder.UseMongo(o => o.ConnectionString = connectionString);
-
-    /// <summary>
-    ///     Configures the messaging client to connect a MongoDB database from a client.
-    /// </summary>
-    public static MessagingClientBuilder UseMongo(this MessagingClientBuilder builder, Action<MongoOptions> configureOptions) => builder
-        .AddMongoProvider(b => b.UseMongo(configureOptions));
-
-    /// <summary>
-    ///     Configures the messaging client to connect a MongoDB database from a client.
-    /// </summary>
-    public static MessagingClientBuilder UseMongo(this MessagingClientBuilder builder, IConfigurationSection configuration) => builder
-        .AddMongoProvider(b => b.UseMongo(configuration));
+    /// <remarks>
+    ///     Pay attention, you need to call explicitly one of overloaded <see cref="BuilderExtensions.UseMongo{TBuilder}(IBuilder{TBuilder},string)"/> to configure;
+    ///     It should be added if <see cref="AddMongo"/> wasn't configured on the start.
+    /// </remarks>
+    public static MessagingClientBuilder UseMongoProvider(this MessagingClientBuilder builder)
+    {
+        builder.Services
+            .AddStorage(builder.Name, b => b
+                .AddMongoPartitioned<int, IAbstractMessage>()
+                .AddMongo<int, CachingResult>());
+        return builder;
+    }
 
     /// <summary>
     ///     Registers remote MongoDB based handler of <typeparamref name="TMessage" /> from a client.
@@ -71,51 +68,7 @@ public static class MessagingClientBuilderExtensions
         if (!messageType.IsMessage())
             throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
 
-        builder.Services
-            .AddMongoProvider(builder.Name)
-            .ConfigureMessagingClientOptions(builder.Name, o => o.AddMongo(messageType));
-        return builder;
-    }
-
-    /// <summary>
-    ///     Registers MongoDB single provider and its dependencies.
-    /// </summary>
-    private static MessagingClientBuilder AddMongoSingleProvider(this MessagingClientBuilder builder, Action<StorageBuilder> configureBuilder)
-    {
-        builder.Services
-            .TryAddScoped<MongoMessageHandlerProxy>()
-            .AddStorage()
-            .ConfigureStorage(builder.Name, b => b
-                .UseMongo(o => o.Database(MongoNames.DatabaseName))
-                .UseMongoSingleProvider()
-                .AddPartitioned<int, IAbstractMessage>()
-                .Add<int, CachingResult>())
-            .ConfigureStorage(builder.Name, configureBuilder);
-        return builder;
-    }
-
-    /// <summary>
-    ///     Registers MongoDB provider and its dependencies.
-    /// </summary>
-    private static MessagingClientBuilder AddMongoProvider(this MessagingClientBuilder builder, Action<StorageBuilder> configureBuilder)
-    {
-        builder.Services
-            .AddMongoProvider(builder.Name)
-            .ConfigureStorage(builder.Name, configureBuilder);
-        return builder;
-    }
-
-    /// <summary>
-    ///     Registers MongoDB provider and its dependencies.
-    /// </summary>
-    private static IServiceCollection AddMongoProvider(this IServiceCollection services, string name)
-    {
-        return services
-            .TryAddScoped<MongoMessageHandlerProxy>()
-            .AddStorage()
-            .ConfigureStorage(name, b => b
-                .UseMongo(o => o.Database(MongoNames.DatabaseName))
-                .AddMongoPartitioned<int, IAbstractMessage>()
-                .AddMongo<int, CachingResult>());
+        builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddMongo(messageType));
+        return builder.UseMongoProvider();
     }
 }

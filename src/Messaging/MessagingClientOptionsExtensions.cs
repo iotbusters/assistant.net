@@ -2,7 +2,6 @@
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Options;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
 
@@ -18,7 +17,7 @@ public static class MessagingClientOptionsExtensions
     /// </summary>
     public static MessagingClientOptions UseSingleProvider(this MessagingClientOptions options, Func<IServiceProvider, IAbstractHandler> factory)
     {
-        options.SingleProvider = new(factory);
+        options.SingleProvider = new InstanceCachingFactory<IAbstractHandler>(factory);
         return options;
     }
 
@@ -46,7 +45,7 @@ public static class MessagingClientOptionsExtensions
         if (!messageType.IsMessage())
             throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
 
-        options.Handlers[messageType] = new(p =>
+        options.Handlers[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
         {
             var definition = options.SingleProvider ?? throw new ArgumentException("Single provider wasn't properly configured.");
             return definition.Create(p);
@@ -71,9 +70,9 @@ public static class MessagingClientOptionsExtensions
         foreach (var messageType in messageTypes)
             options.Handlers[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
             {
-                var handlerInstance = ActivatorUtilities.CreateInstance(p, handlerType);
+                var handlerInstance = p.Create(handlerType);
                 var providerType = typeof(LocalMessageHandlingProxy<,>).MakeGenericTypeBoundToMessage(messageType);
-                var provider = ActivatorUtilities.CreateInstance(p, providerType, handlerInstance);
+                var provider = p.Create(providerType, handlerInstance);
                 return (IAbstractHandler)provider;
             });
 
@@ -98,7 +97,7 @@ public static class MessagingClientOptionsExtensions
             options.Handlers[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
             {
                 var providerType = typeof(LocalMessageHandlingProxy<,>).MakeGenericTypeBoundToMessage(messageType);
-                var handler = ActivatorUtilities.CreateInstance(p, providerType, handlerInstance);
+                var handler = p.Create(providerType, handlerInstance);
                 return (IAbstractHandler)handler;
             });
 
@@ -135,10 +134,10 @@ public static class MessagingClientOptionsExtensions
         {
             var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
             {
-                var interceptor = ActivatorUtilities.CreateInstance(p, interceptorType);
+                var interceptor = p.Create(interceptorType);
                 var responseType = messageType.GetResponseType();
                 var abstractInterceptorType = typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, responseType!);
-                var abstractInterceptor = ActivatorUtilities.CreateInstance(p, abstractInterceptorType, interceptor);
+                var abstractInterceptor = p.Create(abstractInterceptorType, interceptor);
                 return (IAbstractInterceptor)abstractInterceptor;
             });
             options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, factory));
@@ -188,7 +187,7 @@ public static class MessagingClientOptionsExtensions
             options.Interceptors.RemoveAt(index);
             var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
             {
-                var interceptor = p.GetService(replacementType) ?? ActivatorUtilities.CreateInstance(p, replacementType);
+                var interceptor = p.Create(replacementType);
                 return (IAbstractInterceptor)interceptor;
             });
             options.Interceptors.Insert(index, new InterceptorDefinition(definition.MessageType, replacementType, factory));

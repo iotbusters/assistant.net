@@ -2,7 +2,6 @@
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Options;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Messaging;
@@ -19,7 +18,7 @@ public static class MessagingClientOptionsExtensions
     ///     Pay attention, it has dependencies configured by <see cref="MessagingClientBuilder"/>.
     /// </remarks>
     public static MessagingClientOptions UseSqliteSingleProvider(this MessagingClientOptions options) => options
-        .UseSingleProvider(p => p.GetRequiredService<SqliteMessageHandlerProxy>());
+        .UseSingleProvider(p => p.Create<SqliteMessageHandlerProxy>());
 
     /// <summary>
     ///     Registers remote SQLite based handler of <paramref name="messageType" /> from a client.
@@ -35,7 +34,7 @@ public static class MessagingClientOptionsExtensions
             throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
 
         options.Handlers[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
-            p.GetRequiredService<SqliteMessageHandlerProxy>());
+            p.Create<SqliteMessageHandlerProxy>());
 
         return options;
     }
