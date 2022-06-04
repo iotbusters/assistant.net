@@ -164,11 +164,12 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
 
     private static IValueConverter<T> GetConverter<T>(IServiceProvider provider)
     {
-        // todo: replace  provider.GetService<IValueConverter<T>>() with static DefaultConverters
         var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
-        return options.Converters.TryGetValue(typeof(T), out var factory)
-            ? (IValueConverter<T>)factory.Create(provider)
-            : provider.GetService<IValueConverter<T>>()
-              ?? throw new ArgumentException($"ValueConverter({typeof(T).Name}) wasn't properly configured.");
+
+        if (options.DefaultConverters.TryGetValue(typeof(T), out var defaultFactory))
+            return (IValueConverter<T>)defaultFactory.Create(provider);
+
+        return provider.GetService<IValueConverter<T>>()
+               ?? throw new ArgumentException($"ValueConverter({typeof(T).Name}) wasn't properly configured.");
     }
 }

@@ -1,8 +1,6 @@
 using Assistant.Net.Serialization;
 using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Storage.Internal;
 using Assistant.Net.Storage.Options;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Storage;
@@ -12,10 +10,6 @@ namespace Assistant.Net.Storage;
 /// </summary>
 public static class StorageBuilderExtensions
 {
-    private static readonly Type localProviderType = typeof(LocalStorageProvider<>);
-    private static readonly Type localHistoricalProviderType = typeof(LocalHistoricalStorageProvider<>);
-    private static readonly Type localPartitionedProviderType = typeof(LocalPartitionedStorageProvider<>);
-
     /// <summary>
     ///     Configures storage to use a local single provider implementation.
     /// </summary>
@@ -24,28 +18,7 @@ public static class StorageBuilderExtensions
     /// </remarks>
     public static StorageBuilder UseLocalSingleProvider(this StorageBuilder builder)
     {
-        builder.Services
-            .TryAddSingleton(localProviderType, localProviderType)
-            .TryAddSingleton(localHistoricalProviderType, localHistoricalProviderType)
-            .TryAddSingleton(localPartitionedProviderType, localPartitionedProviderType)
-            .ConfigureStorageOptions(builder.Name, o =>
-            {
-                o.SingleProvider = new((p, valueType) =>
-                {
-                    var implementationType = localProviderType.MakeGenericType(valueType);
-                    return p.GetRequiredService(implementationType);
-                });
-                o.SingleHistoricalProvider = new((p, valueType) =>
-                {
-                    var implementationType = localHistoricalProviderType.MakeGenericType(valueType);
-                    return p.GetRequiredService(implementationType);
-                });
-                o.SinglePartitionedProvider = new((p, valueType) =>
-                {
-                    var implementationType = localPartitionedProviderType.MakeGenericType(valueType);
-                    return p.GetRequiredService(implementationType);
-                });
-            });
+        builder.Services.ConfigureStorageOptions(builder.Name, o => o.UseLocalSingleProvider());
         return builder;
     }
 
@@ -55,8 +28,8 @@ public static class StorageBuilderExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
-    public static StorageBuilder Add<TKey, TValue>(this StorageBuilder builder) => builder
-        .Add(typeof(TKey), typeof(TValue));
+    public static StorageBuilder AddSingle<TKey, TValue>(this StorageBuilder builder) => builder
+        .AddSingle(typeof(TKey), typeof(TValue));
 
     /// <summary>
     ///     Adds single provider based storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
@@ -64,16 +37,10 @@ public static class StorageBuilderExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
-    public static StorageBuilder Add(this StorageBuilder builder, Type keyType, Type valueType)
+    public static StorageBuilder AddSingle(this StorageBuilder builder, Type keyType, Type valueType)
     {
         builder.Services
-            .ConfigureStorageOptions(builder.Name, o =>
-                o.Providers[valueType] = new(p =>
-                {
-                    var factory = o.SingleProvider
-                                  ?? throw new ArgumentException("Single storage provider wasn't properly configured.");
-                    return factory.Create(p, valueType);
-                }))
+            .ConfigureStorageOptions(builder.Name, o => o.AddSingle(valueType))
             .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
     }
@@ -84,16 +51,10 @@ public static class StorageBuilderExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
-    public static StorageBuilder AddAny(this StorageBuilder builder)
+    public static StorageBuilder AddSingleAny(this StorageBuilder builder)
     {
         builder.Services
-            .ConfigureStorageOptions(builder.Name, o =>
-                o.ProviderAny = new((p, valueType) =>
-                {
-                    var factory = o.SingleProvider
-                                  ?? throw new ArgumentException("Single storage provider wasn't properly configured.");
-                    return factory.Create(p, valueType);
-                }))
+            .ConfigureStorageOptions(builder.Name, o => o.AddSingleAny())
             .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder;
     }
@@ -104,8 +65,8 @@ public static class StorageBuilderExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
-    public static StorageBuilder AddHistorical<TKey, TValue>(this StorageBuilder builder) => builder
-        .AddHistorical(typeof(TKey), typeof(TValue));
+    public static StorageBuilder AddSingleHistorical<TKey, TValue>(this StorageBuilder builder) => builder
+        .AddSingleHistorical(typeof(TKey), typeof(TValue));
 
     /// <summary>
     ///     Adds local storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
@@ -113,16 +74,10 @@ public static class StorageBuilderExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
-    public static StorageBuilder AddHistorical(this StorageBuilder builder, Type keyType, Type valueType)
+    public static StorageBuilder AddSingleHistorical(this StorageBuilder builder, Type keyType, Type valueType)
     {
         builder.Services
-            .ConfigureStorageOptions(builder.Name, o =>
-                o.HistoricalProviders[valueType] = new(p =>
-                {
-                    var factory = o.SingleHistoricalProvider
-                                  ?? throw new ArgumentException("Single historical storage provider wasn't properly configured.");
-                    return factory.Create(p, valueType);
-                }))
+            .ConfigureStorageOptions(builder.Name, o => o.AddSingleHistorical(valueType))
             .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
     }
@@ -133,16 +88,10 @@ public static class StorageBuilderExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
-    public static StorageBuilder AddHistoricalAny(this StorageBuilder builder)
+    public static StorageBuilder AddSingleHistoricalAny(this StorageBuilder builder)
     {
         builder.Services
-            .ConfigureStorageOptions(builder.Name, o =>
-                o.HistoricalProviderAny = new((p, valueType) =>
-                {
-                    var factory = o.SingleHistoricalProvider
-                                  ?? throw new ArgumentException("Single historical storage provider wasn't properly configured.");
-                    return factory.Create(p, valueType);
-                }))
+            .ConfigureStorageOptions(builder.Name, o => o.AddSingleHistoricalAny())
             .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder;
     }
@@ -153,8 +102,8 @@ public static class StorageBuilderExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
-    public static StorageBuilder AddPartitioned<TKey, TValue>(this StorageBuilder builder) => builder
-        .AddPartitioned(typeof(TKey), typeof(TValue));
+    public static StorageBuilder AddSinglePartitioned<TKey, TValue>(this StorageBuilder builder) => builder
+        .AddSinglePartitioned(typeof(TKey), typeof(TValue));
 
     /// <summary>
     ///     Adds local partitioned storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
@@ -162,16 +111,10 @@ public static class StorageBuilderExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered providers.
     /// </remarks>
-    public static StorageBuilder AddPartitioned(this StorageBuilder builder, Type keyType, Type valueType)
+    public static StorageBuilder AddSinglePartitioned(this StorageBuilder builder, Type keyType, Type valueType)
     {
         builder.Services
-            .ConfigureStorageOptions(builder.Name, o =>
-                o.PartitionedProviders[valueType] = new(p =>
-                {
-                    var factory = o.SinglePartitionedProvider
-                                  ?? throw new ArgumentException("Single partitioned storage provider wasn't properly configured.");
-                    return factory.Create(p, valueType);
-                }))
+            .ConfigureStorageOptions(builder.Name, o => o.AddSinglePartitioned(valueType))
             .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
     }
@@ -182,16 +125,10 @@ public static class StorageBuilderExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
-    public static StorageBuilder AddPartitionedAny(this StorageBuilder builder)
+    public static StorageBuilder AddSinglePartitionedAny(this StorageBuilder builder)
     {
         builder.Services
-            .ConfigureStorageOptions(builder.Name, o =>
-                o.PartitionedProviderAny = new((p, valueType) =>
-                {
-                    var factory = o.SinglePartitionedProvider
-                                  ?? throw new ArgumentException("Single partitioned storage provider wasn't properly configured.");
-                    return factory.Create(p, valueType);
-                }))
+            .ConfigureStorageOptions(builder.Name, o => o.AddSinglePartitionedAny())
             .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder;
     }
@@ -214,13 +151,7 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddLocal(this StorageBuilder builder, Type keyType, Type valueType)
     {
         builder.Services
-            .TryAddSingleton(localProviderType, localProviderType)
-            .ConfigureStorageOptions(builder.Name, o =>
-                o.Providers[valueType] = new(p =>
-                {
-                    var implementationType = localProviderType.MakeGenericType(valueType);
-                    return p.GetRequiredService(implementationType);
-                }))
+            .ConfigureStorageOptions(builder.Name, o => o.AddLocal(valueType))
             .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
     }
@@ -234,13 +165,7 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddLocalAny(this StorageBuilder builder)
     {
         builder.Services
-            .TryAddSingleton(localProviderType, localProviderType)
-            .ConfigureStorageOptions(builder.Name, o =>
-                o.ProviderAny = new((p, valueType) =>
-                {
-                    var implementationType = localProviderType.MakeGenericType(valueType);
-                    return p.GetRequiredService(implementationType);
-                }))
+            .ConfigureStorageOptions(builder.Name, o => o.AddLocalAny())
             .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder;
     }
@@ -263,13 +188,7 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddLocalHistorical(this StorageBuilder builder, Type keyType, Type valueType)
     {
         builder.Services
-            .TryAddSingleton(localHistoricalProviderType, localHistoricalProviderType)
-            .ConfigureStorageOptions(builder.Name, o =>
-                o.HistoricalProviders[valueType] = new(p =>
-                {
-                    var implementationType = localHistoricalProviderType.MakeGenericType(valueType);
-                    return p.GetRequiredService(implementationType);
-                }))
+            .ConfigureStorageOptions(builder.Name, o => o.AddLocalHistorical(valueType))
             .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
     }
@@ -283,13 +202,7 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddLocalHistoricalAny(this StorageBuilder builder)
     {
         builder.Services
-            .TryAddSingleton(localHistoricalProviderType, localHistoricalProviderType)
-            .ConfigureStorageOptions(builder.Name, o =>
-                o.HistoricalProviderAny = new((p, valueType) =>
-                {
-                    var implementationType = localHistoricalProviderType.MakeGenericType(valueType);
-                    return p.GetRequiredService(implementationType);
-                }))
+            .ConfigureStorageOptions(builder.Name, o => o.AddLocalHistoricalAny())
             .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder;
     }
@@ -312,13 +225,7 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddLocalPartitioned(this StorageBuilder builder, Type keyType, Type valueType)
     {
         builder.Services
-            .TryAddSingleton(localPartitionedProviderType, localPartitionedProviderType)
-            .ConfigureStorageOptions(builder.Name, o =>
-                o.PartitionedProviders[valueType] = new(p =>
-                {
-                    var implementationType = localPartitionedProviderType.MakeGenericType(valueType);
-                    return p.GetRequiredService(implementationType);
-                }))
+            .ConfigureStorageOptions(builder.Name, o => o.AddLocalPartitioned(valueType))
             .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
     }
@@ -332,13 +239,7 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddLocalPartitionedAny(this StorageBuilder builder)
     {
         builder.Services
-            .TryAddSingleton(localPartitionedProviderType, localPartitionedProviderType)
-            .ConfigureStorageOptions(builder.Name, o =>
-                o.PartitionedProviderAny = new((p, valueType) =>
-                {
-                    var implementationType = localPartitionedProviderType.MakeGenericType(valueType);
-                    return p.GetRequiredService(implementationType);
-                }))
+            .ConfigureStorageOptions(builder.Name, o => o.AddLocalPartitionedAny())
             .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder;
     }
