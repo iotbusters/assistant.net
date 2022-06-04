@@ -48,6 +48,7 @@ public class MessagingClientFixtureBuilder
     {
         Services.ConfigureMessagingClient(b => b
             .UseSqlite(connectionString)
+            .UseSqliteProvider()
             .TimeoutIn(TimeSpan.FromSeconds(0.5)));
         RemoteHostBuilder.ConfigureServices(s => s
             .ConfigureSqliteMessageHandling(b => b
@@ -59,7 +60,8 @@ public class MessagingClientFixtureBuilder
     public MessagingClientFixtureBuilder UseSqliteSingleProvider(string connectionString)
     {
         Services.ConfigureMessagingClient(b => b
-            .UseSqliteSingleProvider(o => o.Connection(connectionString))
+            .UseSqlite(o => o.Connection(connectionString))
+            .UseSqliteSingleProvider()
             .TimeoutIn(TimeSpan.FromSeconds(0.5)));
         RemoteHostBuilder.ConfigureServices(s => s.ConfigureSqliteMessageHandling(b => b
             .UseSqlite(o => o.Connection(connectionString))

@@ -25,9 +25,9 @@ public class ServiceCollectionExtensionsTests
         .AddStorage(b => b
             .UseSqlite("Data Source=:memory:")
             .UseSqliteSingleProvider()
-            .Add<TestKey, object>()
-            .AddPartitioned<TestKey, object>()
-            .AddHistorical<TestKey, object>())
+            .AddSingle<TestKey, object>()
+            .AddSinglePartitioned<TestKey, object>()
+            .AddSingleHistorical<TestKey, object>())
         .BuildServiceProvider();
 
 

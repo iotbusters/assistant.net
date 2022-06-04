@@ -208,7 +208,6 @@ public class ClientServerIntegrationTests
     {
         Provider = new ServiceCollection()
             .ConfigureMongoOptions(o => o.Connection(ConnectionString).Database("test"))
-            .AddNamedOptionsContext()
             .AddMongoClient()
             .BuildServiceProvider();
 
@@ -219,7 +218,7 @@ public class ClientServerIntegrationTests
             var ping = await mongoClient.GetDatabase("db").RunCommandAsync(
                 (Command<BsonDocument>)"{ping:1}",
                 ReadPreference.Nearest,
-                new CancellationTokenSource(200).Token);
+                new CancellationTokenSource(500).Token);
             pingContent = ping.ToString();
         }
         catch

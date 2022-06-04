@@ -48,6 +48,7 @@ public class MessagingClientFixtureBuilder
     {
         Services.ConfigureMessagingClient(b => b
             .UseMongo(o => o.Connection(connectionString).Database(database))
+            .UseMongoSingleProvider()
             .TimeoutIn(TimeSpan.FromSeconds(0.5)));
         RemoteHostBuilder.ConfigureServices(s => s.ConfigureMongoMessageHandling(b => b
             .UseMongo(o => o.Connection(connectionString).Database(database))
@@ -58,7 +59,8 @@ public class MessagingClientFixtureBuilder
     public MessagingClientFixtureBuilder UseMongoSingleProvider(string connectionString, string database)
     {
         Services.ConfigureMessagingClient(b => b
-            .UseMongoSingleProvider(o => o.Connection(connectionString).Database(database))
+            .UseMongo(o => o.Connection(connectionString).Database(database))
+            .UseMongoSingleProvider()
             .TimeoutIn(TimeSpan.FromSeconds(0.5)));
         RemoteHostBuilder.ConfigureServices(s => s.ConfigureMongoMessageHandling(b => b
             .UseMongo(o => o.Connection(connectionString).Database(database))
