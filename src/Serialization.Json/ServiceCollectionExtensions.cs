@@ -17,26 +17,37 @@ namespace Assistant.Net.Serialization;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    ///     Registers default serializer services only.
+    ///     Adds <see cref="ISerializer{TValue}"/> implementation, required services and defaults.
     /// </summary>
     /// <remarks>
     ///     Pay attention, all serializing types should be separately registered.
     /// </remarks>
     public static IServiceCollection AddSerializer(this IServiceCollection services) => services
-        .AddSerializer(delegate { });
+        .AddTypeEncoder()
+        .AddNamedOptionsContext()
+        .TryAddScoped<ISerializerFactory, SerializerFactory>()
+        .TryAddScoped(typeof(ISerializer<>), typeof(DefaultSerializer<>));
 
     /// <summary>
-    ///     Registers configuration for default <see cref="ISerializer{TValue}" /> implementation for specific values.
+    ///     Adds default <see cref="ISerializer{TValue}"/> implementation configured for specific values.
     /// </summary>
     /// <param name="services"/>
     /// <param name="configure">The action used to configure the builder.</param>
     public static IServiceCollection AddSerializer(this IServiceCollection services, Action<SerializerBuilder> configure) => services
-        .AddTypeEncoder()
-        .AddNamedOptionsContext()
-        .TryAddScoped<ISerializerFactory, SerializerFactory>()
-        .TryAddScoped(typeof(ISerializer<>), typeof(DefaultSerializer<>))
+        .AddSerializer()
         .ConfigureSerializer(configure)
         .ConfigureSerializerOptions(delegate { });
+
+    /// <summary>
+    ///     Adds the same named <see cref="ISerializer{TValue}"/> implementation configured for specific values.
+    /// </summary>
+    /// <param name="services"/>
+    /// <param name="name">The name of the builder instance.</param>
+    /// <param name="configure">The action used to configure the builder.</param>
+    public static IServiceCollection AddSerializer(this IServiceCollection services, string name, Action<SerializerBuilder> configure) => services
+        .AddSerializer()
+        .ConfigureSerializer(name, configure)
+        .ConfigureSerializerOptions(name, delegate { });
 
     /// <summary>
     ///     Configures default <see cref="ISerializer{TValue}" /> implementation for specific values.
