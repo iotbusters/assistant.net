@@ -17,5 +17,5 @@ public class MongoOptions
     ///     Database name.
     /// </summary>
     [Required, MinLength(1)]
-    public string DatabaseName { get; set; } = "Data";
+    public string DatabaseName { get; set; } = null!;
 }

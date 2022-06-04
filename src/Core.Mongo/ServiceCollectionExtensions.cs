@@ -70,6 +70,7 @@ public static class ServiceCollectionExtensions
     ///     Pay attention, you need to call explicitly one of overloaded <see cref="ConfigureMongoOptions(IServiceCollection, string, string)"/> to configure.
     /// </remarks>
     public static IServiceCollection AddMongoClient(this IServiceCollection services) => services
+        .AddNamedOptionsContext()
         .TryAddScoped<IMongoClient>(p =>
         {
             var options = p.GetRequiredService<INamedOptions<MongoOptions>>().Value;
