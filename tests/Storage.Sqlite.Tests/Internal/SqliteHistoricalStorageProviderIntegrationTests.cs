@@ -272,7 +272,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     /// </summary>
     private SqliteConnection MasterConnection { get; } = new(ConnectionString);
     private static CancellationToken CancellationToken => new CancellationTokenSource(100).Token;
-    private static CancellationToken LongCancellationToken => new CancellationTokenSource(1000).Token;
+    private static CancellationToken LongCancellationToken => new CancellationTokenSource(2000).Token;
     private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version = 1) => new(TestCorrelationId, TestUser, TestDate, version);
     private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>());
