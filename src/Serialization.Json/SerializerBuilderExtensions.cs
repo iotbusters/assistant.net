@@ -28,7 +28,6 @@ public static class SerializerBuilderExtensions
     public static SerializerBuilder AddJsonType(this SerializerBuilder builder, Type serializingType)
     {
         builder.Services
-            .TryAddScoped(typeof(TypedJsonSerializer<>), typeof(TypedJsonSerializer<>))
             .AddJsonSerializer(builder.Name)
             .ConfigureSerializerOptions(builder.Name, o =>
             {
@@ -44,7 +43,6 @@ public static class SerializerBuilderExtensions
     public static SerializerBuilder AddJsonTypeAny(this SerializerBuilder builder)
     {
         builder.Services
-            .TryAddScoped(typeof(TypedJsonSerializer<>), typeof(TypedJsonSerializer<>))
             .AddJsonSerializer(builder.Name)
             .ConfigureSerializerOptions(builder.Name, o =>
                 o.AnyTypeRegistration = new((p, serializingType) =>
@@ -75,6 +73,7 @@ public static class SerializerBuilderExtensions
     /// <param name="name">The name of the options instance.</param>
     private static IServiceCollection AddJsonSerializer(this IServiceCollection services, string name) => services
         .AddTypeEncoder()
+        .TryAddScoped(typeof(TypedJsonSerializer<>), typeof(TypedJsonSerializer<>))
         .TryAddScoped<IJsonSerializer, DefaultJsonSerializer>()
         .TryAddScoped<AdvancedJsonConverterFactory>()
         .TryAddSingleton(typeof(ExceptionJsonConverter<>), typeof(ExceptionJsonConverter<>))

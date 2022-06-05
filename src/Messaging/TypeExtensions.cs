@@ -10,8 +10,8 @@ namespace Assistant.Net.Messaging;
 public static class TypeExtensions
 {
     /// <summary>
-    ///     Makes a generic type from the definition <paramref name="genericTypeDefinition" />
-    ///     and its type parameters resolved from <paramref name="messageType" />
+    ///     Makes a generic type from the definition <paramref name="genericTypeDefinition"/>
+    ///     and its type parameters resolved from <paramref name="messageType"/>
     /// </summary>
     /// <param name="genericTypeDefinition">Generic type definition that requires two parameters: message type and message response type.</param>
     /// <param name="messageType">Specific message type.</param>
@@ -57,25 +57,25 @@ public static class TypeExtensions
     }
 
     /// <summary>
-    ///     Verifies if provided <paramref name="messageType" /> implements a message interface.
+    ///     Verifies if provided <paramref name="messageType"/> implements a message interface.
     /// </summary>
     public static bool IsMessage(this Type messageType) =>
         messageType.GetInterfaces().Any(x => x.IsMessageInterface());
 
     /// <summary>
-    ///     Verifies if provided <paramref name="handlerType" /> implements a message handler interface.
+    ///     Verifies if provided <paramref name="handlerType"/> implements a message handler interface.
     /// </summary>
     public static bool IsMessageHandler(this Type handlerType) =>
         handlerType.GetInterfaces().Any(x => x.IsMessageHandlerInterface());
 
     /// <summary>
-    ///     Verifies if provided <paramref name="messageType" /> is a message interface.
+    ///     Verifies if provided <paramref name="messageType"/> is a message interface.
     /// </summary>
     private static bool IsMessageInterface(this Type messageType) =>
         messageType.IsInterface && messageType.IsGenericType && messageType.GetGenericTypeDefinition() == typeof(IMessage<>);
 
     /// <summary>
-    ///     Verifies if provided <paramref name="handlerType" /> is a message handler interface.
+    ///     Verifies if provided <paramref name="handlerType"/> is a message handler interface.
     /// </summary>
     private static bool IsMessageHandlerInterface(this Type handlerType) =>
         handlerType.IsInterface && handlerType.IsGenericType && handlerType.GetGenericTypeDefinition() == typeof(IMessageHandler<,>);
@@ -96,13 +96,13 @@ public static class TypeExtensions
     }
 
     /// <summary>
-    ///     Verifies if provided <paramref name="interceptorType" /> implements a message handler interface.
+    ///     Verifies if provided <paramref name="interceptorType"/> implements a message handler interface.
     /// </summary>
     public static bool IsMessageInterceptor(this Type interceptorType) =>
         interceptorType.GetInterfaces().Any(x => x.IsMessageInterceptorInterface());
         
     /// <summary>
-    ///     Verifies if provided <paramref name="interceptorType" /> is a message handler interface.
+    ///     Verifies if provided <paramref name="interceptorType"/> is a message handler interface.
     /// </summary>
     private static bool IsMessageInterceptorInterface(this Type interceptorType) =>
         interceptorType.IsInterface && interceptorType.IsGenericType && interceptorType.GetGenericTypeDefinition() == typeof(IMessageInterceptor<,>);

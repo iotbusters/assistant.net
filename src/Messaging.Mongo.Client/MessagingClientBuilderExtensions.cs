@@ -46,7 +46,7 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Registers remote MongoDB based handler of <typeparamref name="TMessage" /> from a client.
+    ///     Registers remote MongoDB based handler of <typeparamref name="TMessage"/> from a client.
     /// </summary>
     /// <remarks>
     ///     Pay attention, it requires calling one of UseMongo method.
@@ -57,7 +57,7 @@ public static class MessagingClientBuilderExtensions
         where TMessage : class, IAbstractMessage => builder.AddMongo(typeof(TMessage));
 
     /// <summary>
-    ///     Registers remote MongoDB based handler of <paramref name="messageType" /> from a client.
+    ///     Registers remote MongoDB based handler of <paramref name="messageType"/> from a client.
     /// </summary>
     /// <remarks>
     ///     Pay attention, it requires calling one of UseMongo method.

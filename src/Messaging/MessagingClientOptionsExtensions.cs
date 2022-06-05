@@ -34,7 +34,7 @@ public static class MessagingClientOptionsExtensions
         .Add(typeof(TMessage));
 
     /// <summary>
-    ///     Registers single provider based handler of <paramref name="messageType" />.
+    ///     Registers single provider based handler of <paramref name="messageType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, it requires calling one of Use***SingleProvider method.
@@ -165,7 +165,7 @@ public static class MessagingClientOptionsExtensions
     }
 
     /// <summary>
-    ///     Replaces matching messages of the interceptor type <paramref name="targetType" /> in the list with <paramref name="replacementType"/>.
+    ///     Replaces matching messages of the interceptor type <paramref name="targetType"/> in the list with <paramref name="replacementType"/>.
     /// </summary>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions ReplaceInterceptor(this MessagingClientOptions options, Type targetType, Type replacementType)
@@ -197,7 +197,7 @@ public static class MessagingClientOptionsExtensions
     }
 
     /// <summary>
-    ///     Removes the interceptor type <paramref name="interceptorType" /> from the list.
+    ///     Removes the interceptor type <paramref name="interceptorType"/> from the list.
     /// </summary>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions RemoveInterceptor(this MessagingClientOptions options, Type interceptorType)

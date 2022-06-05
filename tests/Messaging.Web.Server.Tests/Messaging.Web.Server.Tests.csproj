@@ -16,17 +16,17 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="JUnitTestLogger" Version="1.1.0" />
-    <PackageReference Include="NUnit" Version="3.13.3" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
-    <PackageReference Include="FluentAssertions" Version="6.7.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.5" />
+    <PackageReference Include="JUnitTestLogger" Version="1.1.0"/>
+    <PackageReference Include="NUnit" Version="3.13.3"/>
+    <PackageReference Include="NUnit3TestAdapter" Version="4.2.1"/>
+    <PackageReference Include="FluentAssertions" Version="6.7.0"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0"/>
+    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0"/>
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.5"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Messaging.Web.Server\Messaging.Web.Server.csproj" />
+    <ProjectReference Include="..\..\src\Messaging.Web.Server\Messaging.Web.Server.csproj"/>
   </ItemGroup>
 
 </Project>

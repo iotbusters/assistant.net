@@ -48,7 +48,7 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Registers remote SQLite based handler of <typeparamref name="TMessage" /> from a client.
+    ///     Registers remote SQLite based handler of <typeparamref name="TMessage"/> from a client.
     /// </summary>
     /// <remarks>
     ///     Pay attention, it requires calling one of UseMongo method.
@@ -59,7 +59,7 @@ public static class MessagingClientBuilderExtensions
         where TMessage : class, IAbstractMessage => builder.AddSqlite(typeof(TMessage));
 
     /// <summary>
-    ///     Registers remote SQLite based handler of <paramref name="messageType" /> from a client.
+    ///     Registers remote SQLite based handler of <paramref name="messageType"/> from a client.
     /// </summary>
     /// <remarks>
     ///     Pay attention, it requires calling one of UseMongo method.

@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Storage.Mongo\Storage.Mongo.csproj" />
-    <ProjectReference Include="..\Messaging\Messaging.csproj" />
+    <ProjectReference Include="..\Storage.Mongo\Storage.Mongo.csproj"/>
+    <ProjectReference Include="..\Messaging\Messaging.csproj"/>
   </ItemGroup>
 
   <PropertyGroup>
@@ -31,7 +31,7 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath=""/>
   </ItemGroup>
 
 </Project>

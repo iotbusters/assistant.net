@@ -16,7 +16,7 @@ public class KeyRecord
     }
 
     /// <summary>
-    ///     Unique identifier across specific <see cref="Type" /> keys.
+    ///     Unique identifier across specific <see cref="Type"/> keys.
     /// </summary>
     public string Id { get; }
 

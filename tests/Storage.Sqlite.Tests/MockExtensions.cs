@@ -11,7 +11,7 @@ public static class MockExtensions
     /// <summary>
     ///   Verifies that a specific invocation matching the given expression was performed on the mock.
     /// </summary>
-    /// <exception cref="ArgumentException" />
+    /// <exception cref="ArgumentException"/>
     public static void SimpleVerify<T>(this Mock<T> mock, Expression<Func<T, object>> expression, Func<Times> times) where T : class
     {
         if (expression.Body is not MethodCallExpression {Method: var method})

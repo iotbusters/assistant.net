@@ -10,7 +10,7 @@ namespace Assistant.Net.Messaging.Abstractions;
 public interface IAbstractHandler
 {
     /// <summary>
-    ///     Requests the <paramref name="message" /> object handling to receive a response.
+    ///     Requests the <paramref name="message"/> object handling to receive a response.
     /// </summary>
     /// <remarks>
     ///     Request-response behavior.
@@ -18,7 +18,7 @@ public interface IAbstractHandler
     Task<object> Request(object message, CancellationToken token = default);
 
     /// <summary>
-    ///     Publishes the <paramref name="message" /> object handling without waiting for a response.
+    ///     Publishes the <paramref name="message"/> object handling without waiting for a response.
     /// </summary>
     /// <remarks>
     ///     Fire-and-forget behavior.

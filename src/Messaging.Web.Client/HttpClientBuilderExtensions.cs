@@ -11,7 +11,7 @@ namespace Assistant.Net.Messaging;
 public static class HttpClientBuilderExtensions
 {
     /// <summary>
-    ///     Adds an additional <typeparamref name="THandler" /> to http message handling pipeline.
+    ///     Adds an additional <typeparamref name="THandler"/> to http message handling pipeline.
     /// </summary>
     public static IHttpClientBuilder AddHttpMessageHandler<THandler>(this IHttpClientBuilder builder)
         where THandler : DelegatingHandler
@@ -21,7 +21,7 @@ public static class HttpClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Removes <typeparamref name="THandler" /> from http message handling pipeline.
+    ///     Removes <typeparamref name="THandler"/> from http message handling pipeline.
     /// </summary>
     public static IHttpClientBuilder RemoveHttpMessageHandler<THandler>(this IHttpClientBuilder builder)
         where THandler : DelegatingHandler
@@ -39,7 +39,7 @@ public static class HttpClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Removes all <see cref="DelegatingHandler" />s from http message handling pipeline.
+    ///     Removes all <see cref="DelegatingHandler"/>s from http message handling pipeline.
     /// </summary>
     public static IHttpClientBuilder ClearAllHttpMessageHandlers(this IHttpClientBuilder builder)
     {

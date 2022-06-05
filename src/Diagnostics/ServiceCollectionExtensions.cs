@@ -18,7 +18,7 @@ public static class ServiceCollectionExtensions
         .AddDiagnosticContext((_, ctx) => ctx.CorrelationId = Guid.NewGuid().ToString());
 
     /// <summary>
-    ///     Registers diagnostic context customized by the function <paramref name="getCorrelationId" />.
+    ///     Registers diagnostic context customized by the function <paramref name="getCorrelationId"/>.
     /// </summary>
     /// <param name="services"/>
     /// <param name="getCorrelationId">The correlation ID generation factory.</param>
@@ -31,7 +31,7 @@ public static class ServiceCollectionExtensions
         });
 
     /// <summary>
-    ///     Registers diagnostic context customized by the <paramref name="configureContext" />.
+    ///     Registers diagnostic context customized by the <paramref name="configureContext"/>.
     /// </summary>
     /// <param name="services"/>
     /// <param name="configureContext">The action used to configure the context.</param>
@@ -45,7 +45,7 @@ public static class ServiceCollectionExtensions
         });
 
     /// <summary>
-    ///     Registers custom diagnostic context <typeparamref name="TContext" />.
+    ///     Registers custom diagnostic context <typeparamref name="TContext"/>.
     /// </summary>
     public static IServiceCollection AddDiagnosticContext<TContext>(this IServiceCollection services)
         where TContext : class, IDiagnosticContext => services

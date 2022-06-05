@@ -1,5 +1,6 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Serialization;
+using Assistant.Net.Storage.Internal;
 using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -134,6 +135,9 @@ public static class StorageBuilderExtensions
     }
 
     private static IServiceCollection AddMongoProvider(this IServiceCollection services, string name) => services
+        .TryAddScoped(typeof(MongoStorageProvider<>), typeof(MongoStorageProvider<>))
+        .TryAddScoped(typeof(MongoHistoricalStorageProvider<>), typeof(MongoHistoricalStorageProvider<>))
+        .TryAddScoped(typeof(MongoPartitionedStorageProvider<>), typeof(MongoPartitionedStorageProvider<>))
         .ConfigureMongoOptions(name, o => o.DatabaseName ??= MongoNames.DatabaseName)
         .AddMongoClient();
 }

@@ -80,7 +80,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection ConfigureWebHandlingServerOptions(this IServiceCollection services, IConfigurationSection configuration) => services
         .Configure<WebHandlingServerOptions>(configuration);
 
-    /// <exception cref="InvalidOperationException" />
+    /// <exception cref="InvalidOperationException"/>
     private static void InitializeFromHttpContext(IServiceProvider provider, DiagnosticContext diagnosticContext)
     {
         var accessor = provider.GetRequiredService<IHttpContextAccessor>();

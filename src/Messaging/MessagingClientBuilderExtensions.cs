@@ -14,7 +14,7 @@ namespace Assistant.Net.Messaging;
 public static class MessagingClientBuilderExtensions
 {
     /// <summary>
-    ///     Registers single provider based handler of <typeparamref name="TMessage" />.
+    ///     Registers single provider based handler of <typeparamref name="TMessage"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, it requires calling one of Use***SingleProvider method.
@@ -25,7 +25,7 @@ public static class MessagingClientBuilderExtensions
         .Add(typeof(TMessage));
 
     /// <summary>
-    ///     Registers single provider based handler of <paramref name="messageType" />.
+    ///     Registers single provider based handler of <paramref name="messageType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, it requires calling one of Use***SingleProvider method.
@@ -43,14 +43,14 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Registers a local in-memory handler type <typeparamref name="THandler" />.
+    ///     Registers a local in-memory handler type <typeparamref name="THandler"/>.
     /// </summary>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientBuilder AddHandler<THandler>(this MessagingClientBuilder builder)
         where THandler : class => builder.AddHandler(typeof(THandler));
 
     /// <summary>
-    ///     Registers a local in-memory <paramref name="handlerType" />.
+    ///     Registers a local in-memory <paramref name="handlerType"/>.
     /// </summary>
     /// <param name="builder"/>
     /// <param name="handlerType">The message handler implementation type.</param>
@@ -65,7 +65,7 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Registers a local in-memory <paramref name="handlerInstance" />.
+    ///     Registers a local in-memory <paramref name="handlerInstance"/>.
     /// </summary>
     /// <param name="builder"/>
     /// <param name="handlerInstance">The message handler implementation instance.</param>
@@ -90,14 +90,14 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Removes an handler of <typeparamref name="TMessage" />.
+    ///     Removes an handler of <typeparamref name="TMessage"/>.
     /// </summary>
     /// <typeparam name="TMessage">The message type to find associated handler.</typeparam>
     public static MessagingClientBuilder Remove<TMessage>(this MessagingClientBuilder builder)
         where TMessage : class => builder.Remove(typeof(TMessage));
 
     /// <summary>
-    ///     Removes an handler of <paramref name="messageType" />.
+    ///     Removes an handler of <paramref name="messageType"/>.
     /// </summary>
     /// <param name="builder"/>
     /// <param name="messageType">The message type to find associated handler.</param>
@@ -118,7 +118,7 @@ public static class MessagingClientBuilderExtensions
         where THandler : class => builder.RemoveHandler(typeof(THandler));
 
     /// <summary>
-    ///     Removes the handler <paramref name="handlerType" />.
+    ///     Removes the handler <paramref name="handlerType"/>.
     /// </summary>
     /// <param name="builder"/>
     /// <param name="handlerType">The message handler implementation type.</param>
@@ -132,13 +132,13 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Apply a configuration type <typeparamref name="TConfiguration" />.
+    ///     Apply a configuration type <typeparamref name="TConfiguration"/>.
     /// </summary>
     public static MessagingClientBuilder AddConfiguration<TConfiguration>(this MessagingClientBuilder builder)
         where TConfiguration : IMessageConfiguration, new() => builder.AddConfiguration(new TConfiguration());
 
     /// <summary>
-    ///     Apply a list of configuration instances <paramref name="messageConfigurations" />.
+    ///     Apply a list of configuration instances <paramref name="messageConfigurations"/>.
     /// </summary>
     public static MessagingClientBuilder AddConfiguration(this MessagingClientBuilder builder, params IMessageConfiguration[] messageConfigurations)
     {
@@ -148,13 +148,13 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Adds an interceptor type <typeparamref name="TInterceptor" /> .
+    ///     Adds an interceptor type <typeparamref name="TInterceptor"/> .
     /// </summary>
     public static MessagingClientBuilder AddInterceptor<TInterceptor>(this MessagingClientBuilder builder)
         where TInterceptor : class => builder.AddInterceptor(typeof(TInterceptor));
 
     /// <summary>
-    ///     Adds the interceptor <paramref name="interceptorType" />.
+    ///     Adds the interceptor <paramref name="interceptorType"/>.
     /// </summary>
     public static MessagingClientBuilder AddInterceptor(this MessagingClientBuilder builder, Type interceptorType)
     {
@@ -166,7 +166,7 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Adds the interceptor <paramref name="interceptorInstance" />.
+    ///     Adds the interceptor <paramref name="interceptorInstance"/>.
     /// </summary>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientBuilder AddInterceptor(this MessagingClientBuilder builder, object interceptorInstance)
@@ -189,7 +189,7 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Replaces an interceptor type <typeparamref name="TTargetInterceptor" />
+    ///     Replaces an interceptor type <typeparamref name="TTargetInterceptor"/>
     ///     with <typeparamref name="TReplacementInterceptor"/>.
     /// </summary>
     public static MessagingClientBuilder ReplaceInterceptor<TTargetInterceptor, TReplacementInterceptor>(this MessagingClientBuilder builder)
@@ -198,7 +198,7 @@ public static class MessagingClientBuilderExtensions
         .ReplaceInterceptor(typeof(TTargetInterceptor), typeof(TReplacementInterceptor));
 
     /// <summary>
-    ///     Replace an interceptor type <paramref name="targetType" />
+    ///     Replace an interceptor type <paramref name="targetType"/>
     ///     with <paramref name="replacementType"/>.
     /// </summary>
     public static MessagingClientBuilder ReplaceInterceptor(this MessagingClientBuilder builder, Type targetType, Type replacementType)
@@ -211,13 +211,13 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Removes an interceptor type <typeparamref name="TInterceptor" />.
+    ///     Removes an interceptor type <typeparamref name="TInterceptor"/>.
     /// </summary>
     public static MessagingClientBuilder RemoveInterceptor<TInterceptor>(this MessagingClientBuilder builder)
         where TInterceptor : class => builder.RemoveInterceptor(typeof(TInterceptor));
 
     /// <summary>
-    ///     Removes an interceptor <paramref name="type" />.
+    ///     Removes an interceptor <paramref name="type"/>.
     /// </summary>
     public static MessagingClientBuilder RemoveInterceptor(this MessagingClientBuilder builder, Type type)
     {
@@ -229,7 +229,7 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Allows exposing the external exception type <typeparamref name="TException" />.
+    ///     Allows exposing the external exception type <typeparamref name="TException"/>.
     /// </summary>
     /// <remarks>
     ///     It impacts <see cref="ErrorHandlingInterceptor"/>.
@@ -253,7 +253,7 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Removes the exposed exception type <typeparamref name="TException" />.
+    ///     Removes the exposed exception type <typeparamref name="TException"/>.
     /// </summary>
     /// <remarks>
     ///     It impacts <see cref="ErrorHandlingInterceptor"/>.
@@ -278,7 +278,7 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Allows retrying the transient exception type <typeparamref name="TException" />.
+    ///     Allows retrying the transient exception type <typeparamref name="TException"/>.
     /// </summary>
     /// <remarks>
     ///     It impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
@@ -287,7 +287,7 @@ public static class MessagingClientBuilderExtensions
         where TException : Exception => builder.AddTransientException(typeof(TException));
 
     /// <summary>
-    ///     Allows retrying the transient exception <paramref name="type" />.
+    ///     Allows retrying the transient exception <paramref name="type"/>.
     /// </summary>
     /// <remarks>
     ///     It impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
@@ -302,7 +302,7 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
-    ///     Removes the transient exception type <typeparamref name="TException" />.
+    ///     Removes the transient exception type <typeparamref name="TException"/>.
     /// </summary>
     /// <remarks>
     ///     It impacts <see cref="CachingInterceptor"/> and <see cref="RetryingInterceptor"/>.

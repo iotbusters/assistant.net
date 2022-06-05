@@ -7,7 +7,7 @@ using System.Linq;
 namespace Assistant.Net.Diagnostics.Internal;
 
 /// <summary>
-///     Common operation over <see cref="Activity" /> object.
+///     Common operation over <see cref="Activity"/> object.
 /// </summary>
 internal static class ActivityExtensions
 {

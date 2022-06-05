@@ -16,7 +16,7 @@ public interface IJsonSerializer
     Task Serialize(Stream stream, object value, CancellationToken token = default);
 
     /// <summary>
-    ///     Deserializes JSON from <paramref name="stream"/> to <paramref name="type" /> object.
+    ///     Deserializes JSON from <paramref name="stream"/> to <paramref name="type"/> object.
     /// </summary>
     Task<object> Deserialize(Stream stream, Type type, CancellationToken token = default);
 }

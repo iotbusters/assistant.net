@@ -21,8 +21,6 @@ public static class ServiceCollectionExtensions
         .AddSystemLifetime()
         .AddDiagnostics()
         .AddTypeEncoder()
-        .ConfigureJsonSerialization()
-        .TryAddScoped<WebMessageHandlerProxy>()
         .AddHttpClient<IWebMessageHandlerClient, WebMessageHandlerClient>(c => c.Timeout = DefaultTimeout)
         .AddHttpMessageHandler<CorrelationHandler>()
         .AddHttpMessageHandler<OperationHandler>()

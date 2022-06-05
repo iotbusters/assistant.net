@@ -16,46 +16,46 @@ namespace Assistant.Net.Messaging.Web.Client.Tests;
 public class RemoteMessageHandlingClientTests
 {
     private const string RequestUri = "http://localhost";
-    private static readonly TestScenarioMessage ValidMessage = new(0);
-    private static readonly TestResponse SuccessResponse = new(true);
-    private static readonly MessageFailedException FailedResponse = new("test");
+    private static readonly TestScenarioMessage validMessage = new(0);
+    private static readonly TestResponse successResponse = new(true);
+    private static readonly MessageFailedException failedResponse = new("test");
 
-    private static Task<byte[]> Binary<T>(T value) => Provider.GetRequiredService<ISerializer<T>>().Serialize(value);
-    private static readonly IServiceProvider Provider = new ServiceCollection().ConfigureJsonSerialization().BuildServiceProvider();
+    private static Task<byte[]> Binary<T>(T value) => provider.GetRequiredService<ISerializer<T>>().Serialize(value);
+    private static readonly IServiceProvider provider = new ServiceCollection().ConfigureJsonSerialization().BuildServiceProvider();
 
     [Test]
     public async Task DelegateHandling_sendsHttpRequestMessage()
     {
-        var handler = new TestDelegatingHandler(await Binary(SuccessResponse), HttpStatusCode.OK);
+        var handler = new TestDelegatingHandler(await Binary(successResponse), HttpStatusCode.OK);
         var client = Client(handler);
 
-        await client.DelegateHandling(ValidMessage);
+        await client.DelegateHandling(validMessage);
 
         handler.Request.Should().BeEquivalentTo(new HttpRequestMessage(HttpMethod.Post, RequestUri)
         {
             Headers = { { ClientHeaderNames.MessageName, nameof(TestScenarioMessage) } },
-            Content = new ByteArrayContent(await Binary(SuccessResponse))
+            Content = new ByteArrayContent(await Binary(successResponse))
         });
     }
 
     [Test]
     public async Task DelegateHandling_returnsTestResponse()
     {
-        var handler = new TestDelegatingHandler(await Binary(SuccessResponse), HttpStatusCode.OK);
+        var handler = new TestDelegatingHandler(await Binary(successResponse), HttpStatusCode.OK);
         var client = Client(handler);
 
-        var response = await client.DelegateHandling(ValidMessage);
+        var response = await client.DelegateHandling(validMessage);
 
-        response.Should().Be(SuccessResponse);
+        response.Should().Be(successResponse);
     }
 
     [Test]
     public async Task DelegateHandling_throwMessageFailedException()
     {
-        var handler = new TestDelegatingHandler(await Binary(FailedResponse), HttpStatusCode.InternalServerError);
+        var handler = new TestDelegatingHandler(await Binary(failedResponse), HttpStatusCode.InternalServerError);
         var client = Client(handler);
 
-        await client.Awaiting(x => x.DelegateHandling(ValidMessage))
+        await client.Awaiting(x => x.DelegateHandling(validMessage))
             .Should().ThrowAsync<MessageFailedException>()
             .WithMessage("test");
     }
@@ -64,6 +64,7 @@ public class RemoteMessageHandlingClientTests
     {
         var services = new ServiceCollection();
         services
+            .ConfigureJsonSerialization()
             .AddRemoteWebMessagingClient()
             .ConfigureHttpClient(c => c.BaseAddress = new Uri(RequestUri))
             .ClearAllHttpMessageHandlers()

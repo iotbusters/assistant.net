@@ -89,7 +89,7 @@ public static class ServiceCollectionExtensions
         .Configure(name, configureOptions);
 
     /// <summary>
-    ///     Registers default <see cref="ISerializer{TValue}" /> configuration.
+    ///     Registers default <see cref="ISerializer{TValue}"/> configuration.
     /// </summary>
     /// <remarks>
     ///     Only <see cref="MessagingClientOptions.ExposedExceptions"/> are being serialized.
@@ -98,7 +98,7 @@ public static class ServiceCollectionExtensions
         .ConfigureJsonSerialization(Microsoft.Extensions.Options.Options.DefaultName);
 
     /// <summary>
-    ///     Registers named <see cref="ISerializer{TValue}" /> configuration.
+    ///     Registers named <see cref="ISerializer{TValue}"/> configuration.
     /// </summary>
     /// <remarks>
     ///     Only <see cref="MessagingClientOptions.ExposedExceptions"/> are being serialized.
