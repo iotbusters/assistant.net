@@ -4,6 +4,33 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.2.111] - 2022-06-05
+
+[Assistant.NET Release 0.2.111](https://github.com/iotbusters/assistant.net/releases/tag/0.2.111)
+
+### 0.2.111 Added
+
+- builder abstraction for provider specific configuration methods
+- common mongo/sqlite configuration extension methods
+- options and builder configuration extension methods
+- named options based on scoped context and registration extensions
+- named serialization, storage configuration
+- signle provider feature for storage and messaging
+
+### 0.2.111 Changed
+
+- serializer, storage, messaging configuration
+- moved primitive storage valu converters to configuration
+
+### 0.2.111 Fixed
+
+- named serializer, storage, messaging configuration
+
+### 0.2.111 Removed
+
+- messaging client builder derived classes
+- default MongoDB database name
+
 ## [0.2.109] - 2022-05-22
 
 [Assistant.NET Release 0.2.109](https://github.com/iotbusters/assistant.net/releases/tag/0.2.109)
