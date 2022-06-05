@@ -210,8 +210,7 @@ public class ClientServerIntegrationTests
     {
         await MasterConnection.OpenAsync(CancellationToken);
         Provider = new ServiceCollection()
-            .ConfigureSqliteOptions(o => o.Connection(ConnectionString))
-            .AddStorageDbContext()
+            .AddStorage(b => b.UseSqlite(o => o.Connection(ConnectionString)).UseSqliteProvider())
             .BuildServiceProvider();
         var dbContext = await Provider.GetRequiredService<IDbContextFactory<StorageDbContext>>().CreateDbContextAsync(CancellationToken);
         await dbContext.Database.EnsureCreatedAsync(CancellationToken);

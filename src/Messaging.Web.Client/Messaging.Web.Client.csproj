@@ -10,16 +10,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0"/>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Messaging\Messaging.csproj" />
+    <ProjectReference Include="..\Messaging\Messaging.csproj"/>
   </ItemGroup>
 
   <PropertyGroup>
@@ -32,7 +32,7 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath=""/>
   </ItemGroup>
 
 </Project>

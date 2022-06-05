@@ -131,7 +131,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
             new ValueRecord(x.ValueType, x.ValueContent, new Audit(x.Details.FromDetailArray(), x.Version)));
     }
 
-    /// <exception cref="ArgumentOutOfRangeException" />
+    /// <exception cref="ArgumentOutOfRangeException"/>
     public async Task<Option<ValueRecord>> TryGet(KeyRecord key, long version, CancellationToken token)
     {
         logger.LogDebug("SQLite({KeyId}:{Version}) querying: begins.", key.Id, version);

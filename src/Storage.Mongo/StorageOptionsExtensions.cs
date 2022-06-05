@@ -1,6 +1,6 @@
-﻿using Assistant.Net.Options;
-using Assistant.Net.Storage.Internal;
+﻿using Assistant.Net.Storage.Internal;
 using Assistant.Net.Storage.Options;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Storage;
@@ -22,38 +22,36 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions UseMongoSingleProvider(this StorageOptions options)
     {
-        options.SingleProvider = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.SingleProvider = new((p, valueType) =>
         {
             var implementationType = mongoProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType);
+            return p.GetRequiredService(implementationType);
         });
-        options.SingleHistoricalProvider = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.SingleHistoricalProvider = new((p, valueType) =>
         {
             var implementationType = mongoHistoricalProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType);
+            return p.GetRequiredService(implementationType);
         });
-        options.SinglePartitionedProvider = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.SinglePartitionedProvider = new((p, valueType) =>
         {
-            var dependencyType = mongoHistoricalProviderType.MakeGenericType(valueType);
-            var dependencyInstance = p.Create(dependencyType);
             var implementationType = mongoPartitionedProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType, dependencyInstance);
+            return p.GetRequiredService(implementationType);
         });
         return options;
     }
 
     /// <summary>
-    ///     Registers MongoDB storage provider of <paramref name="valueType" />.
+    ///     Registers MongoDB storage provider of <paramref name="valueType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
     public static StorageOptions AddMongo(this StorageOptions options, Type valueType)
     {
-        options.Providers[valueType] = new InstanceCachingFactory<object>(p =>
+        options.Providers[valueType] = new(p =>
         {
             var implementationType = mongoProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType);
+            return p.GetRequiredService(implementationType);
         });
         return options;
     }
@@ -66,26 +64,26 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddMongoAny(this StorageOptions options)
     {
-        options.ProviderAny = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.ProviderAny = new((p, valueType) =>
         {
             var implementationType = mongoProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType);
+            return p.GetRequiredService(implementationType);
         });
         return options;
     }
 
     /// <summary>
-    ///     Registers MongoDB historical storage provider of <paramref name="valueType" />.
+    ///     Registers MongoDB historical storage provider of <paramref name="valueType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
     public static StorageOptions AddMongoHistorical(this StorageOptions options, Type valueType)
     {
-        options.HistoricalProviders[valueType] = new InstanceCachingFactory<object>(p =>
+        options.HistoricalProviders[valueType] = new(p =>
         {
             var implementationType = mongoHistoricalProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType);
+            return p.GetRequiredService(implementationType);
         });
         return options;
     }
@@ -98,28 +96,26 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddMongoHistoricalAny(this StorageOptions options)
     {
-        options.HistoricalProviderAny = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.HistoricalProviderAny = new((p, valueType) =>
         {
             var implementationType = mongoHistoricalProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType);
+            return p.GetRequiredService(implementationType);
         });
         return options;
     }
 
     /// <summary>
-    ///     Registers MongoDB partitioned storage provider of <paramref name="valueType" />.
+    ///     Registers MongoDB partitioned storage provider of <paramref name="valueType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
     public static StorageOptions AddMongoPartitioned(this StorageOptions options, Type valueType)
     {
-        options.PartitionedProviders[valueType] = new InstanceCachingFactory<object>(p =>
+        options.PartitionedProviders[valueType] = new(p =>
         {
-            var dependencyType = mongoHistoricalProviderType.MakeGenericType(valueType);
-            var dependencyInstance = p.Create(dependencyType);
             var implementationType = mongoPartitionedProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType, dependencyInstance);
+            return p.GetRequiredService(implementationType);
         });
         return options;
     }
@@ -132,12 +128,10 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddMongoPartitionedAny(this StorageOptions options)
     {
-        options.PartitionedProviderAny = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.PartitionedProviderAny = new((p, valueType) =>
         {
-            var dependencyType = mongoHistoricalProviderType.MakeGenericType(valueType);
-            var dependencyInstance = p.Create(dependencyType);
             var implementationType = mongoPartitionedProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType, dependencyInstance);
+            return p.GetRequiredService(implementationType);
         });
         return options;
     }

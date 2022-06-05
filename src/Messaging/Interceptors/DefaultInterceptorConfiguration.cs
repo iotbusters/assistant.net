@@ -9,9 +9,9 @@ namespace Assistant.Net.Messaging.Interceptors;
 
 /// <summary>
 ///     Configuration with default set of interceptors:
-///     <see cref="DiagnosticsInterceptor" />, <see cref="ErrorHandlingInterceptor" />,
-///     <see cref="CachingInterceptor" />, <see cref="RetryingInterceptor" />,
-///     <see cref="TimeoutInterceptor" />
+///     <see cref="DiagnosticsInterceptor"/>, <see cref="ErrorHandlingInterceptor"/>,
+///     <see cref="CachingInterceptor"/>, <see cref="RetryingInterceptor"/>,
+///     <see cref="TimeoutInterceptor"/>
 /// </summary>
 public class DefaultInterceptorConfiguration : IMessageConfiguration
 {

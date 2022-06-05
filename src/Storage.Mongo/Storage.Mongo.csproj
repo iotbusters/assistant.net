@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Storage\Storage.csproj" />
-    <ProjectReference Include="..\Core.Mongo\Core.Mongo.csproj" />
+    <ProjectReference Include="..\Storage\Storage.csproj"/>
+    <ProjectReference Include="..\Core.Mongo\Core.Mongo.csproj"/>
   </ItemGroup>
 
   <PropertyGroup>
@@ -31,7 +31,7 @@
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
+    <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath=""/>
   </ItemGroup>
 
 </Project>

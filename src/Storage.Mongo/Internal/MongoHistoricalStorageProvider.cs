@@ -145,7 +145,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
         return Option.Some(currentValue);
     }
 
-    /// <exception cref="ArgumentOutOfRangeException" />
+    /// <exception cref="ArgumentOutOfRangeException"/>
     public async Task<Option<ValueRecord>> TryGet(KeyRecord key, long version, CancellationToken token)
     {
         logger.LogDebug("Storage.TryGet({KeyId}:{Version}): begins.", key.Id, version);

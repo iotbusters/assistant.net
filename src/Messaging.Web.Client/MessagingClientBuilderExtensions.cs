@@ -15,7 +15,9 @@ public static class MessagingClientBuilderExtensions
     /// </summary>
     public static MessagingClientBuilder UseWebSingleProvider(this MessagingClientBuilder builder, Action<IHttpClientBuilder> configureBuilder)
     {
-        builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.UseWebSingleProvider());
+        builder.Services
+            .ConfigureJsonSerialization(builder.Name)
+            .ConfigureMessagingClientOptions(builder.Name, o => o.UseWebSingleProvider());
         return builder.UseWeb(configureBuilder);
     }
 
@@ -24,13 +26,15 @@ public static class MessagingClientBuilderExtensions
     /// </summary>
     public static MessagingClientBuilder UseWeb(this MessagingClientBuilder builder, Action<IHttpClientBuilder> configureBuilder)
     {
-        var clientBuilder = builder.Services.AddRemoteWebMessagingClient();
+        var clientBuilder = builder.Services
+            .ConfigureJsonSerialization(builder.Name)
+            .AddRemoteWebMessagingClient();
         configureBuilder.Invoke(clientBuilder);
         return builder;
     }
 
     /// <summary>
-    ///     Registers remote WEB handler of <typeparamref name="TMessage" />.
+    ///     Registers remote WEB handler of <typeparamref name="TMessage"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, it requires calling <see cref="UseWeb"/>.
@@ -41,7 +45,7 @@ public static class MessagingClientBuilderExtensions
         where TMessage : class, IAbstractMessage => builder.AddWeb(typeof(TMessage));
 
     /// <summary>
-    ///     Registers remote WEB handler of <paramref name="messageType" />.
+    ///     Registers remote WEB handler of <paramref name="messageType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, it requires calling <see cref="UseWeb"/>.
@@ -52,7 +56,9 @@ public static class MessagingClientBuilderExtensions
         if (!messageType.IsMessage())
             throw new ArgumentException("Invalid message type.", nameof(messageType));
 
-        builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddWeb(messageType));
+        builder.Services
+            .ConfigureJsonSerialization(builder.Name)
+            .ConfigureMessagingClientOptions(builder.Name, o => o.AddWeb(messageType));
         return builder;
     }
 }

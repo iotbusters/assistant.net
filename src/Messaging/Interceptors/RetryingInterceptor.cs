@@ -44,7 +44,7 @@ public class RetryingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMes
     }
 
     /// <inheritdoc/>
-    /// <exception cref="MessageRetryLimitExceededException" />
+    /// <exception cref="MessageRetryLimitExceededException"/>
     public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();

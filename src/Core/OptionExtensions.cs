@@ -76,7 +76,7 @@ public static class OptionExtensions
     /// <summary>
     ///     Gets a wrapped value from <see cref="Some{T}"/> or throws an exception if <see cref="None"/>.
     /// </summary>
-    /// <exception cref="ArgumentException" />
+    /// <exception cref="ArgumentException"/>
     public static TSource GetValueOrFail<TSource>(this Option<TSource> option) => option switch
     {
         Some<TSource>(var value)    => value,

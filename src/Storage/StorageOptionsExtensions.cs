@@ -1,6 +1,7 @@
 ﻿using Assistant.Net.Options;
 using Assistant.Net.Storage.Internal;
 using Assistant.Net.Storage.Options;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Storage;
@@ -22,28 +23,26 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions UseLocalSingleProvider(this StorageOptions options)
     {
-        options.SingleProvider = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.SingleProvider = new((p, valueType) =>
         {
             var implementationType = localProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType);
+            return p.GetRequiredService(implementationType);
         });
-        options.SingleHistoricalProvider = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.SingleHistoricalProvider = new((p, valueType) =>
         {
             var implementationType = localHistoricalProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType);
+            return p.GetRequiredService(implementationType);
         });
-        options.SinglePartitionedProvider = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.SinglePartitionedProvider = new((p, valueType) =>
         {
-            var dependencyType = localHistoricalProviderType.MakeGenericType(valueType);
-            var dependencyInstance = p.Create(dependencyType);
             var implementationType = localPartitionedProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType, dependencyInstance);
+            return p.GetRequiredService(implementationType);
         });
         return options;
     }
 
     /// <summary>
-    ///     Registers single storage provider of <paramref name="valueType" />.
+    ///     Registers single storage provider of <paramref name="valueType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -79,7 +78,7 @@ public static class StorageOptionsExtensions
     }
 
     /// <summary>
-    ///     Registers single historical storage provider of <paramref name="valueType" />.
+    ///     Registers single historical storage provider of <paramref name="valueType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -115,7 +114,7 @@ public static class StorageOptionsExtensions
     }
 
     /// <summary>
-    ///     Registers single partitioned storage provider of <paramref name="valueType" />.
+    ///     Registers single partitioned storage provider of <paramref name="valueType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -151,17 +150,17 @@ public static class StorageOptionsExtensions
     }
 
     /// <summary>
-    ///     Registers local storage provider of <paramref name="valueType" />.
+    ///     Registers local storage provider of <paramref name="valueType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
     public static StorageOptions AddLocal(this StorageOptions options, Type valueType)
     {
-        options.Providers[valueType] = new InstanceCachingFactory<object>(p =>
+        options.Providers[valueType] = new(p =>
         {
             var implementationType = localProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType);
+            return p.GetRequiredService(implementationType);
         });
         return options;
     }
@@ -174,26 +173,26 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddLocalAny(this StorageOptions options)
     {
-        options.ProviderAny = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.ProviderAny = new((p, valueType) =>
         {
             var implementationType = localProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType);
+            return p.GetRequiredService(implementationType);
         });
         return options;
     }
 
     /// <summary>
-    ///     Registers local historical storage provider of <paramref name="valueType" />.
+    ///     Registers local historical storage provider of <paramref name="valueType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
     public static StorageOptions AddLocalHistorical(this StorageOptions options, Type valueType)
     {
-        options.HistoricalProviders[valueType] = new InstanceCachingFactory<object>(p =>
+        options.HistoricalProviders[valueType] = new(p =>
         {
             var implementationType = localHistoricalProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType);
+            return p.GetRequiredService(implementationType);
         });
         return options;
     }
@@ -206,28 +205,26 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddLocalHistoricalAny(this StorageOptions options)
     {
-        options.HistoricalProviderAny = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.HistoricalProviderAny = new((p, valueType) =>
         {
             var implementationType = localHistoricalProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType);
+            return p.GetRequiredService(implementationType);
         });
         return options;
     }
 
     /// <summary>
-    ///     Registers local partitioned storage provider of <paramref name="valueType" />.
+    ///     Registers local partitioned storage provider of <paramref name="valueType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
     public static StorageOptions AddLocalPartitioned(this StorageOptions options, Type valueType)
     {
-        options.PartitionedProviders[valueType] = new InstanceCachingFactory<object>(p =>
+        options.PartitionedProviders[valueType] = new(p =>
         {
-            var dependencyType = localHistoricalProviderType.MakeGenericType(valueType);
-            var dependencyInstance = p.Create(dependencyType);
             var implementationType = localPartitionedProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType, dependencyInstance);
+            return p.GetRequiredService(implementationType);
         });
         return options;
     }
@@ -240,12 +237,10 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddLocalPartitionedAny(this StorageOptions options)
     {
-        options.PartitionedProviderAny = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.PartitionedProviderAny = new((p, valueType) =>
         {
-            var dependencyType = localHistoricalProviderType.MakeGenericType(valueType);
-            var dependencyInstance = p.Create(dependencyType);
             var implementationType = localPartitionedProviderType.MakeGenericType(valueType);
-            return p.Create(implementationType, dependencyInstance);
+            return p.GetRequiredService(implementationType);
         });
         return options;
     }

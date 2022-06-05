@@ -3,12 +3,12 @@ using System;
 namespace Assistant.Net.Abstractions;
 
 /// <summary>
-///     Abstract type encoder responsible for encoding and decoding <see cref="Type" />.
+///     Abstract type encoder responsible for encoding and decoding <see cref="Type"/>.
 /// </summary>
 public interface ITypeEncoder
 {
     /// <summary>
-    ///     Decode <paramref name="encodedType"/> value to <see cref="Type" />.
+    ///     Decode <paramref name="encodedType"/> value to <see cref="Type"/>.
     /// </summary>
     Type? Decode(string encodedType);
 

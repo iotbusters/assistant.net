@@ -25,7 +25,7 @@ public static class ApplicationBuilderExtensions
     ///     It should be registered before routing middlewares.
     /// </summary>
     /// <remarks>
-    ///     Pay attention, it duplicates <see cref="UseRemoteWebMessageHandler" /> behavior.
+    ///     Pay attention, it duplicates <see cref="UseRemoteWebMessageHandler"/> behavior.
     /// </remarks>
     public static IApplicationBuilder UseRemoteExceptionHandling(this IApplicationBuilder builder) => builder
         .UseMiddleware<ExceptionHandlingMiddleware>();

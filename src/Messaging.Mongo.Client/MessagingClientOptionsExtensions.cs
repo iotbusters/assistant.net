@@ -21,7 +21,7 @@ public static class MessagingClientOptionsExtensions
         .UseSingleProvider(p => p.Create<MongoMessageHandlerProxy>());
 
     /// <summary>
-    ///     Registers remote MongoDB based handler of <paramref name="messageType" /> from a client.
+    ///     Registers remote MongoDB based handler of <paramref name="messageType"/> from a client.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered handlers;

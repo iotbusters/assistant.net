@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Serialization.Abstractions;
 
 /// <summary>
-///     An abstraction over binary serializer of <typeparamref name="TValue" />.
+///     An abstraction over binary serializer of <typeparamref name="TValue"/>.
 /// </summary>
 /// <typeparam name="TValue">Specific type to serialize.</typeparam>
 public interface ISerializer<TValue> : IAbstractSerializer
@@ -16,7 +16,7 @@ public interface ISerializer<TValue> : IAbstractSerializer
     Task Serialize(Stream stream, TValue value, CancellationToken token = default);
 
     /// <summary>
-    ///     Deserializes <paramref name="stream"/> to <typeparamref name="TValue" /> object.
+    ///     Deserializes <paramref name="stream"/> to <typeparamref name="TValue"/> object.
     /// </summary>
     Task<TValue> Deserialize(Stream stream, CancellationToken token = default);
 

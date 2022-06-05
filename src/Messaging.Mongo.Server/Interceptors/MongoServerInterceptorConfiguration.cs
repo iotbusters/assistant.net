@@ -17,5 +17,5 @@ public class MongoServerInterceptorConfiguration : IMessageConfiguration
                 .AddConfiguration<DefaultInterceptorConfiguration>()
                 .Retry(new ExponentialBackoff {MaxAttemptNumber = 5, Interval = TimeSpan.FromSeconds(1), Rate = 1.2})
                 .TimeoutIn(TimeSpan.FromSeconds(3)))
-            .ConfigureStorage(builder.Name, b => b.AddMongo<string, CachingResult>());
+            .AddStorage(builder.Name, b => b.AddMongo<string, CachingResult>());
 }

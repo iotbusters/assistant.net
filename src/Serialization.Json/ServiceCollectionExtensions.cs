@@ -50,7 +50,7 @@ public static class ServiceCollectionExtensions
         .ConfigureSerializerOptions(name, delegate { });
 
     /// <summary>
-    ///     Configures default <see cref="ISerializer{TValue}" /> implementation for specific values.
+    ///     Configures default <see cref="ISerializer{TValue}"/> implementation for specific values.
     /// </summary>
     /// <param name="services"/>
     /// <param name="configure">The action used to configure the builder.</param>
@@ -58,7 +58,7 @@ public static class ServiceCollectionExtensions
         .ConfigureSerializer(Microsoft.Extensions.Options.Options.DefaultName, configure);
 
     /// <summary>
-    ///     Configures the same named <see cref="ISerializer{TValue}" /> implementation for specific values.
+    ///     Configures the same named <see cref="ISerializer{TValue}"/> implementation for specific values.
     /// </summary>
     /// <param name="services"/>
     /// <param name="name">The name of the builder instance.</param>

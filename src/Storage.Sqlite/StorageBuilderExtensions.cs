@@ -1,6 +1,7 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Options;
 using Assistant.Net.Serialization;
+using Assistant.Net.Storage.Internal;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Options;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +25,7 @@ public static class StorageBuilderExtensions
     public static StorageBuilder UseSqliteProvider(this StorageBuilder builder)
     {
         builder.Services
-            .AddStorageDbContext()
+            .AddSqliteProvider()
             .ConfigureSqliteStoringOptions(builder.Name, delegate { });
         return builder;
     }
@@ -34,7 +35,7 @@ public static class StorageBuilderExtensions
     public static StorageBuilder UseSqliteSingleProvider(this StorageBuilder builder)
     {
         builder.Services
-            .AddStorageDbContext()
+            .AddSqliteProvider()
             .ConfigureStorageOptions(builder.Name, o => o.UseSqliteSingleProvider());
         return builder;
     }
@@ -51,7 +52,7 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddSqlite(this StorageBuilder builder, Type keyType, Type valueType)
     {
         builder.Services
-            .AddStorageDbContext()
+            .AddSqliteProvider()
             .ConfigureStorageOptions(builder.Name, o => o.AddSqlite(valueType))
             .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
@@ -63,7 +64,7 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddSqliteAny(this StorageBuilder builder)
     {
         builder.Services
-            .AddStorageDbContext()
+            .AddSqliteProvider()
             .ConfigureStorageOptions(builder.Name, o => o.AddSqliteAny())
             .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder;
@@ -83,7 +84,7 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddSqliteHistorical(this StorageBuilder builder, Type keyType, Type valueType)
     {
         builder.Services
-            .AddStorageDbContext()
+            .AddSqliteProvider()
             .ConfigureStorageOptions(builder.Name, o => o.AddSqliteHistorical(valueType))
             .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
@@ -95,7 +96,7 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddSqliteHistoricalAny(this StorageBuilder builder)
     {
         builder.Services
-            .AddStorageDbContext()
+            .AddSqliteProvider()
             .ConfigureStorageOptions(builder.Name, o => o.AddSqliteHistoricalAny())
             .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder;
@@ -113,7 +114,7 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddSqlitePartitioned(this StorageBuilder builder, Type keyType, Type valueType)
     {
         builder.Services
-            .AddStorageDbContext()
+            .AddSqliteProvider()
             .ConfigureStorageOptions(builder.Name, o => o.AddSqlitePartitioned(valueType))
             .ConfigureSerializer(builder.Name, b => b.AddJsonType(keyType).AddJsonType(valueType));
         return builder;
@@ -125,16 +126,16 @@ public static class StorageBuilderExtensions
     public static StorageBuilder AddSqlitePartitionedAny(this StorageBuilder builder)
     {
         builder.Services
-            .AddStorageDbContext()
+            .AddSqliteProvider()
             .ConfigureStorageOptions(builder.Name, o => o.AddSqlitePartitionedAny())
             .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
         return builder;
     }
 
-    /// <summary>
-    ///     
-    /// </summary>
-    public static IServiceCollection AddStorageDbContext(this IServiceCollection services) => services
+    private static IServiceCollection AddSqliteProvider(this IServiceCollection services) => services
+        .TryAddScoped(typeof(SqliteStorageProvider<>), typeof(SqliteStorageProvider<>))
+        .TryAddScoped(typeof(SqliteHistoricalStorageProvider<>), typeof(SqliteHistoricalStorageProvider<>))
+        .TryAddScoped(typeof(SqlitePartitionedStorageProvider<>), typeof(SqlitePartitionedStorageProvider<>))
         .AddNamedOptionsContext()
         .AddDbContextFactory<StorageDbContext>((p, b) =>
         {
