@@ -25,13 +25,15 @@
     <Product>Assistant.NET</Product>
     <RepositoryType>github</RepositoryType>
     <PackageTags>sqlite sql</PackageTags>
-    <Description>An SQLite basics implementation.</Description>
+    <Description>An SQLite basics and configuration.</Description>
     <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
     <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetmongo</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath=""/>
+    <None Include="README.md" Pack="true" PackagePath=""/>
   </ItemGroup>
 
 </Project>
