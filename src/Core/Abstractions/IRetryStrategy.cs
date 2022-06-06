@@ -12,7 +12,7 @@ public interface IRetryStrategy
     ///     Max allowed handling attempts before failure.
     /// </summary>
     [Required, Range(minimum: 1, maximum: 500)]
-    public int? MaxAttemptNumber { get; set; }
+    public int MaxAttemptNumber { get; set; }
 
     /// <summary>
     ///     Determines if the attempt <paramref name="attemptNumber"/> can be retried.

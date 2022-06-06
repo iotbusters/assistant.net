@@ -10,7 +10,7 @@ namespace Assistant.Net.RetryStrategies;
 public class LinearBackoff : IRetryStrategy
 {
     /// <inheritdoc/>
-    public int? MaxAttemptNumber { get; set; }
+    public int MaxAttemptNumber { get; set; }
 
     /// <summary>
     ///     Max allowed time to delay before next handling attempt. Ignored if null.
@@ -21,18 +21,18 @@ public class LinearBackoff : IRetryStrategy
     ///     Base interval time.
     /// </summary>
     [Required]
-    public TimeSpan? Interval { get; set; }
+    public TimeSpan Interval { get; set; }
 
     /// <summary>
     ///     Linear rate describing how <see cref="Interval"/> changes per attempt.
     /// </summary>
     [Required]
-    public double? Rate { get; set; }
+    public double Rate { get; set; }
 
     /// <inheritdoc/>
     public TimeSpan DelayTime(int attemptNumber)
     {
-        var backoff = Interval!.Value * Rate!.Value * attemptNumber;
+        var backoff = Interval * Rate * attemptNumber;
 
         if (MaxDelayTime == null || MaxDelayTime.Value >= backoff)
             return backoff;

@@ -1,4 +1,4 @@
-# Assistant.NET Common
+# Assistant.NET
 
 The list of common packages responsible for solving specific aspects of the Assistant.NET solution.
 
