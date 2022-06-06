@@ -30,9 +30,11 @@
     <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
     <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetstoragesqlite</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
     <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath=""/>
+    <None Include="README.md" Pack="true" PackagePath=""/>
   </ItemGroup>
 
 </Project>

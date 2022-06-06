@@ -10,13 +10,21 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.dynamics.proxy.runtime" Version="0.0.11"/>
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0"/>
-    <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0"/>
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0"/>
-    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="6.0.0"/>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1"/>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0"/>
+    <None Remove="README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="assistant.net.dynamics.proxy.runtime" Version="0.0.11" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -31,9 +39,11 @@
     <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
     <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetcore</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath=""/>
+    <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
+    <None Include="README.md" Pack="true" PackagePath=""/>
   </ItemGroup>
 
 </Project>

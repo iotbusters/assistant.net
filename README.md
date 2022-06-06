@@ -27,221 +27,112 @@ at [nuget.org](https://nuget.org). Each of them has own responsibility and solve
 
 ### assistant.net.core
 
-Basic abstractions and implementations which are commonly used across the solution.
-E.g. a system clock, an system lifetime management and improved overrides of .net extensions.
+Abstractions, basic implementations, useful tools and extensions which are commonly used across the solution.
 
-```csharp
-services
-    .AddSystemClock()
-    .AddSystemLifetime();
+See [assistant.net.core](src/Core/README.md) for details.
+See also provider configuration extensions
 
-var now = provider.GetRequiredService<ISystemClock>().UtcNow;
-
-var stoppingCancellationToken = provider.GetRequiredService<ISystemLifetime>().Stopping;
-```
-
-### assistant.net.storage
-
-Common storage abstraction and related basic implementations and tools.
-
-Pay attention, using base types as storage value won't work as expected because of serialization.
-It will be improved as part of advanced serialization further.
-
-See also available extensions in `assistant.net.storage.*` packages for more information.
-
-```csharp
-services.AddStorage(b => b
-    .AddLocal<Model1>()
-    .AddLocalAny()
-    .AddLocalHistorical<Model2>()
-    .AddLocalHistoricalAny()
-    .AddLocalPartitioned<Model2>()
-    .AddLocalPartitionedAny()
-    );
-
-var storage = provider.GetRequiredService<IStorage<Key, Model>>();
-var partitionedStorage = provider.GetRequiredService<IPartitionedStorage<Key, Model>>();
-```
-
-### assistant.net.storage.mongo
-
-MongoDB based storage extension of [Storage](#assistantnetstorage).
-
-```csharp
-services
-    .AddStorage(b => b
-        .UseMongo(o => o.Connection("mongodb://127.0.0.1:27017").Database("Storage"))
-        .AddMongo<Model1>()
-        .AddMongoAny()
-        .AddMongoHistorical<Model2>()
-        .AddMongoHistoricalAny()
-        .AddMongoPartitioned<Model3>()
-        .AddMongoPartitionedAny()
-        );
-
-var storage = provider.GetRequiredService<IStorage<Key, Model>>();
-var partitionedStorage = provider.GetRequiredService<IPartitionedStorage<Key, Model>>();
-```
-
-### assistant.net.storage.sqlite
-
-SQLite based storage extension of [Storage](#assistantnetstorage).
-
-```csharp
-services
-    .AddStorage(b => b
-        .UseSqlite(o => o.Connection("Data Source=:memory:"))
-        .AddSqlite<Model1>()
-        .AddSqliteAny()
-        .AddSqliteHistorical<Model2>()
-        .AddSqliteHistoricalAny()
-        .AddSqlitePartitioned<Model3>()
-        .AddSqlitePartitionedAny()
-        );
-
-var storage = provider.GetRequiredService<IStorage<Key, Model>>();
-var partitionedStorage = provider.GetRequiredService<IPartitionedStorage<Key, Model>>();
-```
-
-### assistant.net.serialization.json
-
-Simple serialization abstraction with json implementation for now. Further it can be extended with other formats, e.g. protobuf.
-The main idea is to be able flexibly choose serialization format for each type.
-
-```csharp
-services.AddSerializer(b => b
-    .AddJsonConverter<ModelJsonConverter>()
-    .AddJsonType<Model>()
-    .AddJsonTypeAny()
-    );
-
-var typedSerializer = provider.GetRequiredService<ISerializer<Model>>();
-
-var factory = provider.GetRequiredService<ISerializerFactory>();
-var objectSerializer = factory.Create(typeof(Model));
-```
+- [assistant.net.mongo](src/Core.Mongo/README.md)
+- [assistant.net.sqlite](src/Core.Sqlite/README.md).
 
 ### assistant.net.diagnostics
 
 Diagnostics management tools including tracking operations, correlations, event tracing etc.
 
-```csharp
-services.AddDiagnostics();
+See [assistant.net.diagnostics](src/Diagnostics/README.md) for details.
 
-var operation = provider.GetRequiredService<IDiagnosticFactory>().Start("operation");
-// do something
-operation.Complete("the operation is complete");
+### assistant.net.serialization.json
 
-var currentScopeCorrelationId = provider.GetRequiredService<IDiagnosticContext>().CorrelationId;
-```
+Generic serialization mechanism with flexible type/format configuration.
+The only implementation for JSON for now. Further it will be extended with other formats, e.g. protobuf.
+
+See [assistant.net.serialization.json](src/Serialization.Json/README.md) for details.
+
+### assistant.net.storage
+
+Basic storage implementation which is based on abstract storage providers including
+local (in-memory) provider implementations out of box.
+
+See [assistant.net.storage](src/Storage/README.md) for details.
+See also available providers
+
+- [assistant.net.storage.mongo](../Storage.Mongo/README.md)
+- [assistant.net.storage.sqlite](../Storage.Sqlite/README.md)
+
+### assistant.net.storage.mongo
+
+MongoDB based storage provider implementation of [Storage](#assistantnetstorage).
+
+See [assistant.net.storage.mongo](src/Storage.Mongo/README.md) for details.
+
+### assistant.net.storage.sqlite
+
+SQLite based storage provider implementation of [Storage](#assistantnetstorage).
+
+See [assistant.net.storage.sqlite](src/Storage.Sqlite/README.md) for details.
 
 ### assistant.net.messaging
 
-Local (in-memory) message handling implementation which support simple extending mechanism
-and basic message intercepting out of box.
+Basic message requesting/handling implementation which is based on abstract handling provider
+with local (in-memory) provider implementation, message intercepting mechanism out of box.
 
-See also available extensions in `assistant.net.messaging.*` packages for more information.
+See [assistant.net.messaging](src/Messaging/README.md) for details.
 
-```csharp
-services.AddMessagingClient(b => b
-    .AddHandler<SomeMessageHandler>()
-    .AddInterceptor<SomeMessageInterceptor>()
-    );
+See also available providers
 
-var client = provider.GetRequiredService<IMessagingClient>();
-var response = await client.Send(new SomeMessage())
-```
+- [assistant.net.messaging.mongo.client](../Messaging.Mongo.Client/README.md)
+- [assistant.net.messaging.mongo.server](../Messaging.Mongo.Server/README.md)
+- [assistant.net.messaging.sqlite.client](../Messaging.Sqlite.Client/README.md)
+- [assistant.net.messaging.sqlite.server](../Messaging.Sqlite.Server/README.md)
+- [assistant.net.messaging.web.client](../Messaging.Web.Client/README.md)
+- [assistant.net.messaging.web.server](../Messaging.Web.Server/README.md).
 
 #### assistant.net.messaging.web.client
 
-Remote WEB oriented message handling client implementation for [server](#assistantnetmessagingwebserver) API.
+Remote WEB oriented message handling provider implementation for messaging client which delegates actual handling
+to an API hosted by [server](#assistantnetmessagingwebserver).
 
-```csharp
-services.AddMessagingClient(b => b
-    .UseWeb(b => b
-        .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://localhost/messages"))
-        .AddHttpMessageHandler<CustomDelegatingHandler>())
-    .AddWeb<SomeMessage>()
-    );
-
-var client = provider.GetRequiredService<IMessagingClient>();
-var response = await client.Send(new SomeMessage())
-```
-
-See [server](#assistantnetmessagingwebserver) configuration for remote handling.
+See [assistant.net.messaging.web.client](src/Messaging.Web.Client/README.md) for details.
+See also [assistant.net.messaging.web.server](src/Messaging.Web.Server/README.md).
 
 #### assistant.net.messaging.web.server
 
-Remote WEB oriented message handling server implementation. The server exposes API and accepts remote requests for further processing.
+Remote WEB oriented message handling server implementation which exposes API and accepts remote requests for further processing.
+A [client](#assistantnetmessagingwebclient) can request message handling remotely by calling respective API.
 
-```csharp
-services
-    .AddWebMessageHandling(b => b.AddHandler<SomeMessageHandler>()) // accepting remote messages and delegating to local message client
-    .ConfigureMessagingClient(b => b.AddInterceptor<SomeMessageInterceptor>() // local messaging client on a server
-    );
-```
-
-See [client](#assistantnetmessagingwebclient) configuration and remote message handling request.
+See [assistant.net.messaging.web.server](src/Messaging.Web.Server/README.md) for details.
+See also [assistant.net.messaging.web.client](src/Messaging.Web.Client/README.md).
 
 #### assistant.net.messaging.mongo.client
 
-Remote MongoDB based message handling client implementation. The client stores message requests into configured database.
+Remote MongoDB based message handling provider implementation for messaging client which delegates actual handling
+to a hosted [server](#assistantnetmessagingmongoserver).
 
-```csharp
-services.AddMessagingClient(b => b
-    .UseMongo(o => o.Connection("mongodb://127.0.0.1:27017").Database("Messaging"))
-    .AddMongo<SomeMessage>()
-    );
-
-var client = provider.GetRequiredService<IMessagingClient>();
-var response = await client.Send(new SomeMessage())
-```
-
-See [server](#assistantnetmessagingmongoserver) configuration for remote handling stored requests.
+See [assistant.net.messaging.mongo.client](src/Messaging.Mongo.Client/README.md) for details.
+See also [assistant.net.messaging.mongo.server](src/Messaging.Mongo.Server/README.md).
 
 #### assistant.net.messaging.mongo.server
 
-Remote MongoDB based message handling server implementation. The server actively polls configured database for new requested messages to handle.
+Remote MongoDB based message handling server implementation which listen to the database and accepts remote messages
+for further processing. [Client](#assistantnetmessagingmongoclient) can request message handling remotely
+by storing requested message to the database.
 
-```csharp
-services
-    .AddMongoMessageHandling(b => b
-        .UseSqlite(o => o.Connection("mongodb://127.0.0.1:27017").Database("Messaging"))
-        .AddHandler<SomeMessageHandler>()) // accepting remote messages and delegating to local message client
-    .ConfigureMessagingClient(b => b
-        .AddInterceptor<SomeMessageInterceptor>() // local messaging client on a server
-    );
-```
-
-See [client](#assistantnetmessagingmongoclient) configuration and remote message handling request.
+See [assistant.net.messaging.mongo.server](src/Messaging.Mongo.Server/README.md) for details.
+See also [assistant.net.messaging.mongo.client](src/Messaging.Mongo.Client/README.md).
 
 #### assistant.net.messaging.sqlite.client
 
-Remote SQLite based message handling client implementation. The client stores message requests into configured database.
+Remote SQLite based message handling provider implementation for messaging client which delegates actual handling
+to a hosted [server](#assistantnetmessagingsqliteserver).
 
-```csharp
-services.AddMessagingClient(b => b
-    .UseSqlite(o => o.Connection("Data Source=:memory:"))
-    .AddMongo<SomeMessage>()
-    );
-
-var client = provider.GetRequiredService<IMessagingClient>();
-var response = await client.Send(new SomeMessage())
-```
-
-See [server](#assistantnetmessagingsqliteserver) configuration for remote handling stored requests.
+See [assistant.net.messaging.sqlite.client](src/Messaging.Sqlite.Client/README.md) for details.
+See also [assistant.net.messaging.sqlite.server](src/Messaging.Sqlite.Server/README.md).
 
 #### assistant.net.messaging.sqlite.server
 
-Remote SQLite based message handling server implementation. The server actively polls configured database for new requested messages to handle.
+Remote SQLite based message handling server implementation which listen to the database and accepts remote messages
+for further processing. [Client](#assistantnetmessagingsqliteclient) can request message handling remotely
+by storing requested message to the database.
 
-```csharp
-services
-    .AddSqliteMessageHandling(b => b
-        .UseSqlite(o => o.Connection("Data Source=:memory:"))
-        .AddHandler<SomeMessageHandler>()) // accepting remote messages and delegating to local message client
-    .ConfigureMessagingClient(b => b.AddInterceptor<SomeMessageInterceptor>() // local messaging client on a server
-    );
-```
-
-See [client](#assistantnetmessagingsqliteclient) configuration and remote message handling request.
+See [assistant.net.messaging.sqlite.server](src/Messaging.Sqlite.Server/README.md) for details.
+See also [assistant.net.messaging.sqlite.client](src/Messaging.Sqlite.Client/README.md).
