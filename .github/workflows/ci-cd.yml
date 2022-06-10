@@ -39,6 +39,8 @@ jobs:
           echo ::set-output name=mongo-server::$(echo "$CHANGES" | grep -c src/Messaging.Mongo.Server/)
           echo ::set-output name=sqlite-client::$(echo "$CHANGES" | grep -c src/Messaging.Sqlite.Client/)
           echo ::set-output name=sqlite-server::$(echo "$CHANGES" | grep -c src/Messaging.Sqlite.Server/)
+          echo ::set-output name=generic-client::$(echo "$CHANGES" | grep -c src/Messaging.Generic.Client/)
+          echo ::set-output name=generic-server::$(echo "$CHANGES" | grep -c src/Messaging.Generic.Server/)
           echo ::set-output name=total::$(echo "$CHANGES" | wc -l)
     outputs:
       ci-changes: ${{ steps.change-detected.outputs.ci-changes }}
@@ -57,6 +59,8 @@ jobs:
       mongo-server: ${{ steps.change-detected.outputs.mongo-server }}
       sqlite-client: ${{ steps.change-detected.outputs.sqlite-client }}
       sqlite-server: ${{ steps.change-detected.outputs.sqlite-server }}
+      sgeneric-client: ${{ steps.change-detected.outputs.generic-client }}
+      sgeneric-server: ${{ steps.change-detected.outputs.generic-server }}
       total: ${{ steps.change-detected.outputs.total }}
 
   build:
@@ -180,6 +184,8 @@ jobs:
                 <li>Messaging.Mongo.Server: ${{ needs.change-detect.outputs.mongo-server }}</li>
                 <li>Messaging.Sqlite.Client: ${{ needs.change-detect.outputs.sqlite-client }}</li>
                 <li>Messaging.Sqlite.Server: ${{ needs.change-detect.outputs.sqlite-server }}</li>
+                <li>Messaging.Generic.Client: ${{ needs.change-detect.outputs.generic-client }}</li>
+                <li>Messaging.Generic.Server: ${{ needs.change-detect.outputs.generic-server }}</li>
               </ul>
             </details>
             <details>

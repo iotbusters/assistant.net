@@ -4,6 +4,23 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.2.114] - 2022-06-01
+
+[Assistant.NET Release 0.2.114](https://github.com/iotbusters/assistant.net/releases/tag/0.2.114)
+
+### 0.2.114 Added
+
+- added new provider use* extensions for storage, client and server providers
+- standalone generic (storage based) messaging client/server templates
+
+### 0.2.114 Changed
+
+- mongo and sqlite client/server implementations to be based on generic templates
+
+### 0.2.114 Removed
+
+- generic builder abstraction and extensions
+
 ## [0.2.113] - 2022-06-06
 
 [Assistant.NET Release 0.2.113](https://github.com/iotbusters/assistant.net/releases/tag/0.2.113)
