@@ -1,8 +1,12 @@
-﻿# assistant.net.messaging.mongo.client
+﻿# assistant.net.messaging.generic.client
 
-The package defines [generic client](https://www.nuget.org/packages/assistant.net.messaging.generic.client/) extensions
-to configure MongoDB providers required to connect a [server](https://www.nuget.org/packages/assistant.net.messaging.mongo.server/)
-from a client.
+Message handling client implementation which stores requested message to a storage delegating actual handling to
+a hosted [server](https://www.nuget.org/packages/assistant.net.messaging.generic.server/) and it starts polling
+a storage for a response.
+
+> **Note**
+> Storage based messaging is called `generic` as cross-provider implementation. Also it helps to avoid
+> confusion between more clear `storage` and the same named package.
 
 ## Usage
 

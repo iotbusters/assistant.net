@@ -12,8 +12,8 @@ namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures;
 
 public class MessagingClientFixtureBuilder
 {
-    private readonly TestConfigureOptionsSource remoteSource = new();
     private readonly TestConfigureOptionsSource clientSource = new();
+    private readonly TestConfigureOptionsSource remoteSource = new();
 
     public MessagingClientFixtureBuilder()
     {
@@ -21,50 +21,47 @@ public class MessagingClientFixtureBuilder
             .AddMessagingClient(b => b
                 .RemoveInterceptor<CachingInterceptor>()
                 .RemoveInterceptor<RetryingInterceptor>()
-                .RemoveInterceptor<TimeoutInterceptor>())
-            .ConfigureMongoHandlingClientOptions(o => o.ResponsePoll = new ConstantBackoff
+                .RemoveInterceptor<TimeoutInterceptor>()
+                .TimeoutIn(TimeSpan.FromSeconds(0.5)))
+            .ConfigureGenericHandlerProxyOptions(o => o.ResponsePoll = new ConstantBackoff
             {
                 Interval = TimeSpan.FromSeconds(0.01), MaxAttemptNumber = 5
             })
             .BindOptions(clientSource);
         RemoteHostBuilder = Host.CreateDefaultBuilder()
             .ConfigureServices(s => s
-                .AddMongoMessageHandling(b => b
+                .AddGenericMessageHandling()
+                .ConfigureGenericMessageClient(o => o
                     .RemoveInterceptor<CachingInterceptor>()
                     .RemoveInterceptor<RetryingInterceptor>()
-                    .RemoveInterceptor<TimeoutInterceptor>())
-                .ConfigureMongoHandlingServerOptions(o =>
+                    .RemoveInterceptor<TimeoutInterceptor>()
+                    .TimeoutIn(TimeSpan.FromSeconds(0.5)))
+                .ConfigureGenericHandlingServerOptions(o =>
                 {
                     o.InactivityDelayTime = TimeSpan.FromSeconds(0.005);
                     o.NextMessageDelayTime = TimeSpan.FromSeconds(0.001);
                 })
-                .BindOptions(MongoOptionsNames.DefaultName, remoteSource));
+                .BindOptions(GenericOptionsNames.DefaultName, remoteSource));
     }
 
     public IServiceCollection Services { get; init; }
     public IHostBuilder RemoteHostBuilder { get; init; }
 
-    public MessagingClientFixtureBuilder UseMongo(string connectionString, string database)
+    public MessagingClientFixtureBuilder UseMongoProvider(string connectionString, string database)
     {
         Services.ConfigureMessagingClient(b => b
-            .UseMongo(o => o.Connection(connectionString).Database(database))
-            .UseMongoSingleProvider()
-            .TimeoutIn(TimeSpan.FromSeconds(0.5)));
-        RemoteHostBuilder.ConfigureServices(s => s.ConfigureMongoMessageHandling(b => b
-            .UseMongo(o => o.Connection(connectionString).Database(database))
-            .TimeoutIn(TimeSpan.FromSeconds(0.5))));
+            .UseMongo(o => o.Connection(connectionString).Database(database)).UseMongoProvider());
+        RemoteHostBuilder.ConfigureServices(s => s.ConfigureGenericMessageHandling(b => b
+            .UseMongo(o => o.Connection(connectionString).Database(database))));
         return this;
     }
 
     public MessagingClientFixtureBuilder UseMongoSingleProvider(string connectionString, string database)
     {
         Services.ConfigureMessagingClient(b => b
-            .UseMongo(o => o.Connection(connectionString).Database(database))
-            .UseMongoSingleProvider()
-            .TimeoutIn(TimeSpan.FromSeconds(0.5)));
-        RemoteHostBuilder.ConfigureServices(s => s.ConfigureMongoMessageHandling(b => b
-            .UseMongo(o => o.Connection(connectionString).Database(database))
-            .TimeoutIn(TimeSpan.FromSeconds(0.5))));
+            .UseMongo(o => o.Connection(connectionString).Database(database)).UseMongoSingleProvider());
+        RemoteHostBuilder.ConfigureServices(s => s.ConfigureGenericMessageHandling(b => b
+            .UseMongo(o => o.Connection(connectionString).Database(database))));
         return this;
     }
 
@@ -73,6 +70,7 @@ public class MessagingClientFixtureBuilder
         var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
                           ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
 
+        clientSource.Configurations.Add(o => o.AddGeneric(messageType));
         remoteSource.Configurations.Add(o =>
         {
             if (handler != null)
@@ -80,7 +78,6 @@ public class MessagingClientFixtureBuilder
             else
                 o.AddHandler(typeof(THandler));
         });
-        clientSource.Configurations.Add(o => o.AddMongo(messageType));
         return this;
     }
 
@@ -89,6 +86,7 @@ public class MessagingClientFixtureBuilder
         var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
                           ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
 
+        clientSource.Configurations.Add(o => o.AddSingle(messageType));
         remoteSource.Configurations.Add(o =>
         {
             if (handler != null)
@@ -96,14 +94,13 @@ public class MessagingClientFixtureBuilder
             else
                 o.AddHandler(typeof(THandler));
         });
-        clientSource.Configurations.Add(o => o.Add(messageType));
         return this;
     }
 
     public MessagingClientFixtureBuilder AddMessageRegistrationOnly<TMessage>()
         where TMessage : IAbstractMessage
     {
-        clientSource.Configurations.Add(o => o.AddMongo(typeof(TMessage)));
+        clientSource.Configurations.Add(o => o.AddGeneric(typeof(TMessage)));
         return this;
     }
 

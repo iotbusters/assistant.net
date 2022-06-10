@@ -6,7 +6,7 @@ namespace Assistant.Net.Storage.Options;
 /// <summary>
 ///     Type marker designed to be hooked by specific storage provider's extensions methods.
 /// </summary>
-public class StorageBuilder : IBuilder<StorageBuilder>
+public class StorageBuilder
 {
     /// <summary/>
     public StorageBuilder(IServiceCollection services, string name)
@@ -17,9 +17,6 @@ public class StorageBuilder : IBuilder<StorageBuilder>
 
     /// <summary/>
     public IServiceCollection Services { get; }
-
-    /// <inheritdoc/>
-    public StorageBuilder Instance => this;
 
     /// <summary>
     ///     The name of the <see cref="StorageOptions"/> instance.

@@ -17,22 +17,21 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Internal;
 
 /// <summary>
-///     MongoDB message handling orchestrating service.
+///     Storage based message handling service.
 /// </summary>
-internal class MongoMessageHandlingService : BackgroundService
+internal class GenericMessageHandlingService : BackgroundService
 {
-    private readonly ILogger<MongoMessageHandlingService> logger;
-    private readonly IOptionsMonitor<MongoHandlingServerOptions> options;
+    private readonly ILogger<GenericMessageHandlingService> logger;
+    private readonly IOptionsMonitor<GenericHandlingServerOptions> options;
     private readonly ITypeEncoder typeEncoder;
     private readonly IServiceScopeFactory scopeFactory;
 
-    public MongoMessageHandlingService(
-        ILogger<MongoMessageHandlingService> logger,
-        IOptionsMonitor<MongoHandlingServerOptions> options,
+    public GenericMessageHandlingService(
+        ILogger<GenericMessageHandlingService> logger,
+        IOptionsMonitor<GenericHandlingServerOptions> options,
         ITypeEncoder typeEncoder,
         IServiceScopeFactory scopeFactory)
     {
-        // todo: resolve as scoped with MongoOptionsNames.DefaultName
         this.logger = logger;
         this.options = options;
         this.typeEncoder = typeEncoder;
@@ -41,7 +40,7 @@ internal class MongoMessageHandlingService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        await using var mainScope = scopeFactory.CreateAsyncScopeWithNamedOptionContext(MongoOptionsNames.DefaultName);
+        await using var mainScope = scopeFactory.CreateAsyncScopeWithNamedOptionContext(GenericOptionsNames.DefaultName);
         var provider = mainScope.ServiceProvider;
         var requestStorage = provider.GetRequiredService<IPartitionedAdminStorage<int, IAbstractMessage>>();
         var processedIndexStorage = provider.GetRequiredService<IStorage<int, long>>();
@@ -67,7 +66,7 @@ internal class MongoMessageHandlingService : BackgroundService
 
             logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) found.", index, messageName, messageId);
 
-            await using var scope = scopeFactory.CreateAsyncScopeWithNamedOptionContext(MongoOptionsNames.DefaultName);
+            await using var scope = scopeFactory.CreateAsyncScopeWithNamedOptionContext(GenericOptionsNames.DefaultName);
             var scopedProvider = scope.ServiceProvider;
 
             var diagnosticContext = scopedProvider.GetRequiredService<DiagnosticContext>();

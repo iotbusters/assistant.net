@@ -25,6 +25,8 @@ public static class ServiceCollectionExtensions
         .AddSystemClock()
         .AddDiagnostics()
         .AddTypeEncoder()
+        .AddNamedOptionsContext()
+        .ConfigureStorage(b => b.AddConfiguration<DefaultConverterConfiguration>())
         .TryAddScoped(typeof(IStorage<,>), typeof(Storage<,>))
         .TryAddScoped(typeof(IAdminStorage<,>), typeof(Storage<,>))
         .TryAddScoped(typeof(IHistoricalStorage<,>), typeof(HistoricalStorage<,>))
@@ -43,8 +45,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configure">The action used to configure default option instances.</param>
     public static IServiceCollection AddStorage(this IServiceCollection services, Action<StorageBuilder> configure) => services
         .AddStorage()
-        .AddSerializer(delegate { })
-        .ConfigureStorage(b => b.AddConfiguration<DefaultConverterConfiguration>())
+        .AddSerializer()
         .ConfigureStorage(configure);
 
     /// <summary>

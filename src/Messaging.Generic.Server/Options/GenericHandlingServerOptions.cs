@@ -5,9 +5,9 @@ using System.ComponentModel.DataAnnotations;
 namespace Assistant.Net.Messaging.Options;
 
 /// <summary>
-///     SQLite server configuration used for remote message handling coordination.
+///     Storage based server message handling configuration.
 /// </summary>
-public class SqliteHandlingServerOptions
+public class GenericHandlingServerOptions
 {
     /// <summary>
     ///     Server instance ID.

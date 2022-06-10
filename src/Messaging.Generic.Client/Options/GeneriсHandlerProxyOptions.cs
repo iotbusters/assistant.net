@@ -5,14 +5,15 @@ using System;
 namespace Assistant.Net.Messaging.Options;
 
 /// <summary>
-///     SQLite client configuration used for remote message handling coordination.
+///     Storage based message handling client configuration.
 /// </summary>
-public class SqliteHandlingClientOptions
+public class GenericHandlerProxyOptions
 {
     /// <summary>
     ///     Server instance ID.
     /// </summary>
     public int InstanceId { get; set; } = 1;
+
     /// <summary>
     ///     Message handling response polling strategy.
     /// </summary>
