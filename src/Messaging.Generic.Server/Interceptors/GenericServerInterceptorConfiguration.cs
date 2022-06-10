@@ -7,8 +7,10 @@ using System;
 
 namespace Assistant.Net.Messaging.Interceptors;
 
-/// <inheritdoc cref="DefaultInterceptorConfiguration"/>
-public class SqliteServerInterceptorConfiguration : IMessageConfiguration
+/// <summary>
+///     Storage single provider configured server message handling.
+/// </summary>
+public class GenericServerInterceptorConfiguration : IMessageConfiguration
 {
     /// <inheritdoc/>
     public void Configure(MessagingClientBuilder builder) =>
@@ -17,5 +19,9 @@ public class SqliteServerInterceptorConfiguration : IMessageConfiguration
                 .AddConfiguration<DefaultInterceptorConfiguration>()
                 .Retry(new ExponentialBackoff {MaxAttemptNumber = 5, Interval = TimeSpan.FromSeconds(1), Rate = 1.2})
                 .TimeoutIn(TimeSpan.FromSeconds(3)))
-            .AddStorage(builder.Name, b => b.AddSqlite<string, CachingResult>());
+            // order matters: it overrides one from DefaultInterceptorConfiguration implementation.
+            .AddStorage(builder.Name, b => b
+                .AddSingle<string, CachingResult>()
+                .AddSinglePartitioned<int, IAbstractMessage>()
+                .AddSingle<int, long>());
 }

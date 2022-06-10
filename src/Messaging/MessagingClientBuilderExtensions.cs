@@ -21,8 +21,8 @@ public static class MessagingClientBuilderExtensions
     /// </remarks>
     /// <typeparam name="TMessage">Specific message type to be handled by a single provider.</typeparam>
     /// <exception cref="ArgumentException"/>
-    public static MessagingClientBuilder Add<TMessage>(this MessagingClientBuilder builder) where TMessage : IAbstractMessage => builder
-        .Add(typeof(TMessage));
+    public static MessagingClientBuilder AddSingle<TMessage>(this MessagingClientBuilder builder) where TMessage : IAbstractMessage => builder
+        .AddSingle(typeof(TMessage));
 
     /// <summary>
     ///     Registers single provider based handler of <paramref name="messageType"/>.
@@ -33,12 +33,12 @@ public static class MessagingClientBuilderExtensions
     /// <param name="builder"/>
     /// <param name="messageType">The message type to find associated handler.</param>
     /// <exception cref="ArgumentException"/>
-    public static MessagingClientBuilder Add(this MessagingClientBuilder builder, Type messageType)
+    public static MessagingClientBuilder AddSingle(this MessagingClientBuilder builder, Type messageType)
     {
         if (!messageType.IsMessage())
             throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
 
-        builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.Add(messageType));
+        builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddSingle(messageType));
         return builder;
     }
 

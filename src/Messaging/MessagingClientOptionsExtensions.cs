@@ -15,6 +15,8 @@ public static class MessagingClientOptionsExtensions
     /// <summary>
     ///     Configures the messaging client to use a single provider feature.
     /// </summary>
+    /// <param name="options"/>
+    /// <param name="factory">Single provider factory.</param>
     public static MessagingClientOptions UseSingleProvider(this MessagingClientOptions options, Func<IServiceProvider, IAbstractHandler> factory)
     {
         options.SingleProvider = new InstanceCachingFactory<IAbstractHandler>(factory);
@@ -29,9 +31,9 @@ public static class MessagingClientOptionsExtensions
     /// </remarks>
     /// <typeparam name="TMessage">Specific message type to be handled by a single provider.</typeparam>
     /// <exception cref="ArgumentException"/>
-    public static MessagingClientOptions Add<TMessage>(this MessagingClientOptions options)
+    public static MessagingClientOptions AddSingle<TMessage>(this MessagingClientOptions options)
         where TMessage : IAbstractMessage => options
-        .Add(typeof(TMessage));
+        .AddSingle(typeof(TMessage));
 
     /// <summary>
     ///     Registers single provider based handler of <paramref name="messageType"/>.
@@ -39,8 +41,10 @@ public static class MessagingClientOptionsExtensions
     /// <remarks>
     ///     Pay attention, it requires calling one of Use***SingleProvider method.
     /// </remarks>
+    /// <param name="options"/>
+    /// <param name="messageType">Accepting message type.</param>
     /// <exception cref="ArgumentException"/>
-    public static MessagingClientOptions Add(this MessagingClientOptions options, Type messageType)
+    public static MessagingClientOptions AddSingle(this MessagingClientOptions options, Type messageType)
     {
         if (!messageType.IsMessage())
             throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
@@ -60,6 +64,8 @@ public static class MessagingClientOptionsExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered handlers.
     /// </remarks>
+    /// <param name="options"/>
+    /// <param name="handlerType">Message handler type.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddHandler(this MessagingClientOptions options, Type handlerType)
     {
@@ -85,6 +91,8 @@ public static class MessagingClientOptionsExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered handlers.
     /// </remarks>
+    /// <param name="options"/>
+    /// <param name="handlerInstance">Message handler instance.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddHandler(this MessagingClientOptions options, object handlerInstance)
     {
@@ -107,6 +115,8 @@ public static class MessagingClientOptionsExtensions
     /// <summary>
     ///     Removes the <paramref name="handlerType"/> from the list.
     /// </summary>
+    /// <param name="options"/>
+    /// <param name="handlerType">Message handler type.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions RemoveHandler(this MessagingClientOptions options, Type handlerType)
     {
@@ -123,6 +133,8 @@ public static class MessagingClientOptionsExtensions
     /// <summary>
     ///     Adds the <paramref name="interceptorType"/> to the end of the list.
     /// </summary>
+    /// <param name="options"/>
+    /// <param name="interceptorType">Message interceptor type.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddInterceptor(this MessagingClientOptions options, Type interceptorType)
     {
@@ -149,6 +161,8 @@ public static class MessagingClientOptionsExtensions
     /// <summary>
     ///     Adds the <paramref name="interceptorInstance"/> to the end of the list.
     /// </summary>
+    /// <param name="options"/>
+    /// <param name="interceptorInstance">Message interceptor instance.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddInterceptor(this MessagingClientOptions options, object interceptorInstance)
     {
@@ -167,6 +181,9 @@ public static class MessagingClientOptionsExtensions
     /// <summary>
     ///     Replaces matching messages of the interceptor type <paramref name="targetType"/> in the list with <paramref name="replacementType"/>.
     /// </summary>
+    /// <param name="options"/>
+    /// <param name="targetType">Message interceptor type to be replaced.</param>
+    /// <param name="replacementType">Message interceptor type to be used instead.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions ReplaceInterceptor(this MessagingClientOptions options, Type targetType, Type replacementType)
     {
@@ -199,6 +216,8 @@ public static class MessagingClientOptionsExtensions
     /// <summary>
     ///     Removes the interceptor type <paramref name="interceptorType"/> from the list.
     /// </summary>
+    /// <param name="options"/>
+    /// <param name="interceptorType">Message interceptor type.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions RemoveInterceptor(this MessagingClientOptions options, Type interceptorType)
     {

@@ -1,7 +1,8 @@
 ﻿# assistant.net.messaging.sqlite.client
 
-Remote MongoDB based message handling provider implementation for messaging client which delegates actual handling
-to a hosted [server](../Messaging.Sqlite.Server/README.md).
+The package defines [generic client](https://www.nuget.org/packages/assistant.net.messaging.generic.client/) extensions
+to configure SQLite providers required to connect a [server](https://www.nuget.org/packages/assistant.net.messaging.sqlite.server/)
+from a client.
 
 ## Usage
 
@@ -16,5 +17,4 @@ var response = await client.Request(new SomeMessage());
 
 internal class SomeMessage : IMessage<SomeResponse> { ... }
 internal class SomeResponse { ... }
-internal class CustomHttpHandler : DelegatingHandler { ... }
 ```

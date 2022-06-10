@@ -15,19 +15,19 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Internal;
 
 /// <summary>
-///     SQLite remote message handling proxy.
+///     Storage based message handling coordination proxy.
 /// </summary>
-internal class SqliteMessageHandlerProxy : IAbstractHandler
+internal class GenericMessagingHandlerProxy : IAbstractHandler
 {
     private readonly ILogger logger;
-    private readonly IOptionsMonitor<SqliteHandlingClientOptions> options;
+    private readonly IOptionsMonitor<GenericHandlerProxyOptions> options;
     private readonly IPartitionedStorage<int, IAbstractMessage> requestStorage;
     private readonly IAdminStorage<IAbstractMessage, CachingResult> responseStorage;
     private readonly ITypeEncoder typeEncoder;
 
-    public SqliteMessageHandlerProxy(
-        ILogger<SqliteMessageHandlerProxy> logger,
-        IOptionsMonitor<SqliteHandlingClientOptions> options,
+    public GenericMessagingHandlerProxy(
+        ILogger<GenericMessagingHandlerProxy> logger,
+        IOptionsMonitor<GenericHandlerProxyOptions> options,
         IPartitionedStorage<int, IAbstractMessage> requestStorage,
         IAdminStorage<IAbstractMessage, CachingResult> responseStorage,
         ITypeEncoder typeEncoder)

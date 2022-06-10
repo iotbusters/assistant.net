@@ -1,4 +1,3 @@
-using Assistant.Net.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Assistant.Net.Messaging.Options;
@@ -6,7 +5,7 @@ namespace Assistant.Net.Messaging.Options;
 /// <summary>
 ///     Messaging client builder implementation.
 /// </summary>
-public class MessagingClientBuilder : IBuilder<MessagingClientBuilder>
+public class MessagingClientBuilder
 {
     /// <summary/>
     public MessagingClientBuilder(IServiceCollection services, string name)
@@ -22,6 +21,4 @@ public class MessagingClientBuilder : IBuilder<MessagingClientBuilder>
 
     /// <summary/>
     public IServiceCollection Services { get; }
-
-    MessagingClientBuilder IBuilder<MessagingClientBuilder>.Instance => this;
 }

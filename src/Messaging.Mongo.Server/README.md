@@ -1,10 +1,9 @@
 ﻿# assistant.net.messaging.mongo.server
 
-Remote MongoDB based message handling server implementation which listen to the database and accepts remote requests
-for further processing. [Client](../Messaging.Mongo.Client/README.md) can request message handling remotely
-by storing requested message to the database.
+The package defines [generic server](https://www.nuget.org/packages/assistant.net.messaging.generic.client/) extensions
+to configure MongoDB providers for accepting requests from a [client](https://www.nuget.org/packages/assistant.net.messaging.mongo.client/).
 
-## Hosting
+## Usage
 
 ```csharp
 // Startup.cs: void ConfigureServices(IServiceCollection services)
@@ -15,5 +14,4 @@ services.AddWebMessageHandling(b => b
 
 internal class SomeMessage : IMessage<SomeResponse> { ... }
 internal class SomeResponse { ... }
-internal class SomeMessageHandler : IMessageHandler<SomeMessage> { ... }
 ```

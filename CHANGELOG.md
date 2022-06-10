@@ -30,6 +30,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - messaging client builder derived classes
 - default MongoDB database name
+- mongo client factory
 
 ## [0.2.109] - 2022-05-22
 

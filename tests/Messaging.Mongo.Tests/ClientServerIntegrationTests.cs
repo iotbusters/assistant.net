@@ -22,7 +22,7 @@ public class ClientServerIntegrationTests
     {
         var handler = new TestScenarioMessageHandler();
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseMongo(ConnectionString, Database)
+            .UseMongoProvider(ConnectionString, Database)
             .AddHandler(handler)
             .Create();
 
@@ -38,7 +38,7 @@ public class ClientServerIntegrationTests
     {
         var handler = new TestScenarioMessageHandler();
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseMongo(ConnectionString, Database)
+            .UseMongoProvider(ConnectionString, Database)
             .AddHandler(handler)
             .Create();
         await fixture.Client.RequestObject(new TestScenarioMessage(0));
@@ -68,7 +68,7 @@ public class ClientServerIntegrationTests
     public async Task RequestObject_returnsResponse()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseMongo(ConnectionString, Database)
+            .UseMongoProvider(ConnectionString, Database)
             .AddHandler<TestScenarioMessageHandler>()
             .Create();
 
@@ -82,7 +82,7 @@ public class ClientServerIntegrationTests
     {
         // global arrange
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseMongo(ConnectionString, Database)
+            .UseMongoProvider(ConnectionString, Database)
             .AddHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
             .Create();
 
@@ -109,7 +109,7 @@ public class ClientServerIntegrationTests
     public void RequestObject_throwsMessageNotRegisteredException_NoLocalHandler()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseMongo(ConnectionString, Database)
+            .UseMongoProvider(ConnectionString, Database)
             .AddHandler<TestSuccessFailureMessageHandler>()
             .Create();
 
@@ -123,7 +123,7 @@ public class ClientServerIntegrationTests
     public void RequestObject_throwsMessageNotRegisteredException_NoRemoteHandler()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseMongo(ConnectionString, Database)
+            .UseMongoProvider(ConnectionString, Database)
             .AddMessageRegistrationOnly<TestScenarioMessage>()
             .AddHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
             .Create();
@@ -138,7 +138,7 @@ public class ClientServerIntegrationTests
     public void RequestObject_throwsTimeoutException_thrownTimeoutException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseMongo(ConnectionString, Database)
+            .UseMongoProvider(ConnectionString, Database)
             .AddHandler<TestSuccessFailureMessageHandler>()
             .Create();
 
@@ -151,7 +151,7 @@ public class ClientServerIntegrationTests
     public void RequestObject_throwsMessageDeferredException_thrownMessageDeferredException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseMongo(ConnectionString, Database)
+            .UseMongoProvider(ConnectionString, Database)
             .AddHandler<TestSuccessFailureMessageHandler>()
             .Create();
 
@@ -164,7 +164,7 @@ public class ClientServerIntegrationTests
     public void RequestObject_throwsMessageFailedException_thrownInvalidOperationException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseMongo(ConnectionString, Database)
+            .UseMongoProvider(ConnectionString, Database)
             .AddHandler<TestScenarioMessageHandler>()
             .Create();
 
@@ -178,7 +178,7 @@ public class ClientServerIntegrationTests
     public void RequestObject_throwsMessageFailedException_thrownMessageFailedException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseMongo(ConnectionString, Database)
+            .UseMongoProvider(ConnectionString, Database)
             .AddHandler<TestScenarioMessageHandler>()
             .Create();
 
@@ -192,7 +192,7 @@ public class ClientServerIntegrationTests
     public void RequestObject_throwsMessageFailedException_thrownMessageFailedExceptionWithInnerException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseMongo(ConnectionString, Database)
+            .UseMongoProvider(ConnectionString, Database)
             .AddHandler<TestScenarioMessageHandler>()
             .Create();
 

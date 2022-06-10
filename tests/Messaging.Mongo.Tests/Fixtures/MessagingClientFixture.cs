@@ -44,7 +44,7 @@ public class MessagingClientFixture : IDisposable
                 var handlerType = handlerInstance.GetType();
                 var messageType = handlerType.GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
                                   ?? throw new ArgumentException("Invalid message handler type.", nameof(handlerInstances));
-                o.AddMongo(messageType);
+                o.AddGeneric(messageType);
             }
         });
         remoteSource.Reload();
