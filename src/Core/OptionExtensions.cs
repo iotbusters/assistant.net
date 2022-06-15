@@ -93,7 +93,8 @@ public static class OptionExtensions
         {
             result = value;
             return true;
-        };
+        }
+
         result = default;
         return false;
     }

@@ -68,4 +68,26 @@ public static class AsyncEnumerableExtensions
 
         return list.ToImmutableArray();
     }
+
+    /// <summary>
+    ///     Returns <paramref name="source" /> asynchronously broken into batches of <see cref="IEnumerable{T}"/>
+    ///     by <paramref name="size"/>.
+    /// </summary>
+    /// <param name="source"/>
+    /// <param name="size">Batch size.</param>
+    /// <exception cref="IndexOutOfRangeException"/>
+    public static async IAsyncEnumerable<IEnumerable<TSource>> Batch<TSource>(this IAsyncEnumerable<TSource> source, int size)
+    {
+        if (size < 1)
+            throw new IndexOutOfRangeException("Invalid batch size.");
+
+        await using var enumerator = source.GetAsyncEnumerator();
+        while (await enumerator.MoveNextAsync())
+        {
+            var list = new List<TSource>(size) {enumerator.Current};
+            for (var i = 1; i < size && await enumerator.MoveNextAsync(); i++)
+                list.Add(enumerator.Current);
+            yield return list;
+        }
+    }
 }

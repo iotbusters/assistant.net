@@ -6,6 +6,7 @@ using Assistant.Net.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 using System.Threading;
@@ -71,7 +72,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <typeparam name="TOptions">The options type to be configured.</typeparam>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
-    public static OptionsBuilder<TOptions> AddOptions<TOptions>(this IServiceCollection services)
+    public static Options.OptionsBuilder<TOptions> AddOptions<TOptions>(this IServiceCollection services)
         where TOptions : class
     {
         if (services == null)
@@ -80,7 +81,7 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddOptions();
-        return new OptionsBuilder<TOptions>(services, Microsoft.Extensions.Options.Options.DefaultName);
+        return new Options.OptionsBuilder<TOptions>(services, Microsoft.Extensions.Options.Options.DefaultName);
     }
 
     /// <summary>
@@ -90,7 +91,7 @@ public static class ServiceCollectionExtensions
     /// <typeparam name="TOptions">The options type to be configured.</typeparam>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
     /// <param name="name">The name of the options instance.</param>
-    public static OptionsBuilder<TOptions> AddOptions<TOptions>(this IServiceCollection services, string name)
+    public static Options.OptionsBuilder<TOptions> AddOptions<TOptions>(this IServiceCollection services, string name)
         where TOptions : class
     {
         if (services == null)
@@ -99,7 +100,7 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddOptions();
-        return new OptionsBuilder<TOptions>(services, name);
+        return new Options.OptionsBuilder<TOptions>(services, name);
     }
 
     /// <summary>
@@ -624,4 +625,36 @@ public static class ServiceCollectionExtensions
         configureProxy(p, proxy);
         return proxy.Object;
     };
+
+    /// <summary>
+    ///     Register this options instance for validation of its DataAnnotations.
+    /// </summary>
+    /// <typeparam name="TOptions">The options type to be configured.</typeparam>
+    /// <param name="optionsBuilder">The options builder to add the services to.</param>
+    private static Options.OptionsBuilder<TOptions> ValidateDataAnnotations<TOptions>(this Options.OptionsBuilder<TOptions> optionsBuilder) where TOptions : class
+    {
+        if (optionsBuilder.Services.Any(x =>
+                x.ImplementationInstance is DataAnnotationValidateOptions<TOptions> builder
+                && builder.Name == optionsBuilder.Name))
+            return optionsBuilder;
+
+        optionsBuilder.Services.AddSingleton<IValidateOptions<TOptions>>(new DataAnnotationValidateOptions<TOptions>(optionsBuilder.Name));
+        return optionsBuilder;
+    }
+
+    /// <summary>
+    ///     Register this options instance for validation of its DataAnnotations.
+    /// </summary>
+    /// <typeparam name="TOptions">The options type to be configured.</typeparam>
+    /// <param name="optionsBuilder">The options builder to add the services to.</param>
+    private static Microsoft.Extensions.Options.OptionsBuilder<TOptions> ValidateDataAnnotations<TOptions>(this Microsoft.Extensions.Options.OptionsBuilder<TOptions> optionsBuilder) where TOptions : class
+    {
+        if (optionsBuilder.Services.Any(x =>
+                x.ImplementationInstance is DataAnnotationValidateOptions<TOptions> builder
+                && builder.Name == optionsBuilder.Name))
+            return optionsBuilder;
+
+        optionsBuilder.Services.AddSingleton<IValidateOptions<TOptions>>(new DataAnnotationValidateOptions<TOptions>(optionsBuilder.Name));
+        return optionsBuilder;
+    }
 }
