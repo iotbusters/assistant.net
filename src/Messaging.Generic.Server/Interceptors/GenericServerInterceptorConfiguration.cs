@@ -21,7 +21,7 @@ public class GenericServerInterceptorConfiguration : IMessageConfiguration
                 .TimeoutIn(TimeSpan.FromSeconds(3)))
             // order matters: it overrides one from DefaultInterceptorConfiguration implementation.
             .AddStorage(builder.Name, b => b
-                .AddSingle<string, CachingResult>()
+                .AddSingle<IAbstractMessage, CachingResult>()
                 .AddSinglePartitioned<int, IAbstractMessage>()
                 .AddSingle<int, long>());
 }

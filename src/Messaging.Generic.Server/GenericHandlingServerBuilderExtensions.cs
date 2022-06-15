@@ -25,4 +25,15 @@ public static class GenericHandlingServerBuilderExtensions
         builder.Services.ConfigureMessagingClient(GenericOptionsNames.DefaultName, o => o.AddHandler(handlerType));
         return builder;
     }
+
+    /// <summary>
+    ///     Registers a server message handler with <paramref name="handlerInstance"/>.
+    /// </summary>
+    /// <param name="builder"/>
+    /// <param name="handlerInstance">The message handler instance.</param>
+    public static GenericHandlingServerBuilder AddHandler(this GenericHandlingServerBuilder builder, object handlerInstance)
+    {
+        builder.Services.ConfigureMessagingClient(GenericOptionsNames.DefaultName, o => o.AddHandler(handlerInstance));
+        return builder;
+    }
 }
