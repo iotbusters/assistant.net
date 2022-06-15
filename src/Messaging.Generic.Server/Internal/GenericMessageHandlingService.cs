@@ -4,6 +4,7 @@ using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
 using Assistant.Net.Utils;
 using Microsoft.Extensions.DependencyInjection;
@@ -46,14 +47,15 @@ internal class GenericMessageHandlingService : BackgroundService
         var processedIndexStorage = provider.GetRequiredService<IStorage<int, long>>();
         var responseStorage = provider.GetRequiredService<IStorage<IAbstractMessage, CachingResult>>();
 
-        var index = 1L;
+        var serverOptions = options.CurrentValue;
+        var index = await processedIndexStorage.GetOrDefault(serverOptions.InstanceId, token) + 1;
+
         while (!token.IsCancellationRequested)
         {
             logger.LogDebug("#{Index:D5}: Find next message.", index);
 
-            var serverOptions = options.CurrentValue;
             if (await requestStorage.TryGet(serverOptions.InstanceId, index, token) is not Some<IAbstractMessage>(var message)
-                || await requestStorage.TryGetAudit(serverOptions.InstanceId, index, token) is not Some<Storage.Models.Audit>(var audit))
+                || await requestStorage.TryGetAudit(serverOptions.InstanceId, index, token) is not Some<Audit>(var audit))
             {
                 logger.LogDebug("#{Index:D5}: No message has found yet.", index);
                 await Task.WhenAny(Task.Delay(serverOptions.InactivityDelayTime, token));
@@ -74,7 +76,9 @@ internal class GenericMessageHandlingService : BackgroundService
 
             var client = scopedProvider.GetRequiredService<IMessagingClient>();
 
-            logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) publishing: begins.", index, messageName, messageId);
+            logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) handling: begins.",
+                index, messageName, messageId);
+
 
             try
             {
@@ -88,35 +92,39 @@ internal class GenericMessageHandlingService : BackgroundService
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "Message({MessageName}/{MessageId}) handling has failed.", messageName, messageId);
+                        logger.LogError(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) handling: request failed.",
+                            index, messageName, messageId);
                         result = CachingResult.OfException(ex);
                     }
 
-                    logger.LogDebug("Message({MessageName}/{MessageId}) handling has succeeded.", messageName, messageId);
+                    logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) handling: request responded.",
+                        index, messageName, messageId);
                     return result;
                 }, token);
             }
             catch (OperationCanceledException ex) when (token.IsCancellationRequested)
             {
-                logger.LogInformation(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) handling: cancelled.", index, messageName, messageId);
+                logger.LogInformation(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) handling: response storing cancelled.",
+                    index, messageName, messageId);
                 break;
             }
-            catch (Exception ex)
+
+            logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) handling: succeeded.",
+                index, messageName, messageId);
+
+            try
             {
-                logger.LogCritical(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) handling: failed.", index, messageName, messageId);
+                await processedIndexStorage.AddOrUpdate(serverOptions.InstanceId, index, token);
             }
-            finally
+            catch (OperationCanceledException ex) when (token.IsCancellationRequested)
             {
-                logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) handling: succeeded.", index, messageName, messageId);
+                logger.LogInformation(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) handling: index persisting cancelled.",
+                    index, messageName, messageId);
+                break;
             }
 
-            if (index % 100 == 0)
-            {
-                logger.LogDebug("#{Index:D5}: Old message cleanup: begins.", index);
-                await processedIndexStorage.AddOrUpdate(serverOptions.InstanceId, index, token);
-                await requestStorage.TryRemove(serverOptions.InstanceId, index, token);
-                logger.LogDebug("#{Index:D5}: Old message Cleanup: ends.", index);
-            }
+            logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) handling: index persisted.",
+                index, messageName, messageId);
 
             index++;
             await Task.WhenAny(Task.Delay(serverOptions.NextMessageDelayTime, token));

@@ -52,7 +52,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="services"/>
     /// <param name="configureBuilder">The action used to configure the builder.</param>
-    public static IServiceCollection ConfigureGenericMessageClient(this IServiceCollection services, Action<MessagingClientBuilder> configureBuilder) => services
+    public static IServiceCollection ConfigureGenericMessagingClient(this IServiceCollection services, Action<MessagingClientBuilder> configureBuilder) => services
         .ConfigureMessagingClient(GenericOptionsNames.DefaultName, configureBuilder);
 
     /// <summary>
