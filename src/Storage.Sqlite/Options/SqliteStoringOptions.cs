@@ -14,7 +14,7 @@ public class SqliteStoringOptions
     ///     Optimistic concurrent insert operation retrying strategy.
     /// </summary>
     [Required]
-    public IRetryStrategy InsertRetry { get; set; } = new ConstantBackoff {Interval = TimeSpan.FromSeconds(0.01), MaxAttemptNumber = 2};
+    public IRetryStrategy InsertRetry { get; set; } = new ConstantBackoff {Interval = TimeSpan.FromSeconds(0.01), MaxAttemptNumber = 5};
 
     /// <summary>
     ///     Optimistic concurrent insert/replace operation retrying strategy.

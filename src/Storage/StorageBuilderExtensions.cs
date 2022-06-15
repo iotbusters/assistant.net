@@ -13,17 +13,6 @@ namespace Assistant.Net.Storage;
 public static class StorageBuilderExtensions
 {
     /// <summary>
-    ///     Configures local provider dependencies for storages.
-    /// </summary>
-    public static StorageBuilder UseMongoProvider(this StorageBuilder builder)
-    {
-        builder.Services
-            .AddLocalProvider()
-            .ConfigureStorageOptions(builder.Name, delegate { });
-        return builder;
-    }
-
-    /// <summary>
     ///     Configures storage to use a local single provider implementation.
     /// </summary>
     /// <remarks>
