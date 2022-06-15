@@ -160,6 +160,7 @@ public static class StorageBuilderExtensions
     /// <summary>
     ///     Configures MongoDB provider dependencies for storages.
     /// </summary>
+    /// <param name="services"/>
     /// <param name="name">The name of the options instance.</param>
     private static void AddMongoProvider(this IServiceCollection services, string name) => services
         .TryAddScoped(typeof(MongoStorageProvider<>), typeof(MongoStorageProvider<>))
@@ -171,6 +172,7 @@ public static class StorageBuilderExtensions
     /// <summary>
     ///     Configures MongoDB provider dependencies for storages.
     /// </summary>
+    /// <param name="services"/>
     /// <param name="name">The name of the options instance.</param>
     private static void AddMongoSingleProvider(this IServiceCollection services, string name) => services
         .ConfigureStorageOptions(name, o => o.UseMongoSingleProvider())
