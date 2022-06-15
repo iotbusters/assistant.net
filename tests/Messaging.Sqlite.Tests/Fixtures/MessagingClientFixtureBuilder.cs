@@ -25,13 +25,13 @@ public class MessagingClientFixtureBuilder
                 .TimeoutIn(TimeSpan.FromSeconds(0.5)))
             .ConfigureGenericHandlerProxyOptions(o => o.ResponsePoll = new ConstantBackoff
             {
-                Interval = TimeSpan.FromSeconds(0.05), MaxAttemptNumber = 5
+                Interval = TimeSpan.FromSeconds(0.02), MaxAttemptNumber = 10
             })
             .BindOptions(clientSource);
         RemoteHostBuilder = Host.CreateDefaultBuilder()
             .ConfigureServices(s => s
                 .AddGenericMessageHandling()
-                .ConfigureGenericMessageClient(o => o
+                .ConfigureGenericMessagingClient(o => o
                     .RemoveInterceptor<CachingInterceptor>()
                     .RemoveInterceptor<RetryingInterceptor>()
                     .RemoveInterceptor<TimeoutInterceptor>()
@@ -67,10 +67,15 @@ public class MessagingClientFixtureBuilder
 
     public MessagingClientFixtureBuilder AddHandler<THandler>(THandler? handler = null) where THandler : class
     {
-        var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
-                          ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
+        var messageTypes = typeof(THandler).GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
+        if (!messageTypes.Any())
+            throw new ArgumentException($"Expected message handler but provided {typeof(THandler)}.", nameof(THandler));
 
-        clientSource.Configurations.Add(o => o.AddGeneric(messageType));
+        clientSource.Configurations.Add(o =>
+        {
+            foreach (var messageType in messageTypes)
+                o.AddGeneric(messageType);
+        });
         remoteSource.Configurations.Add(o =>
         {
             if (handler != null)

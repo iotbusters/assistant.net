@@ -80,6 +80,32 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
+    public async Task RequestObject_returnsResponse_nestedRequestCall()
+    {
+        using var fixture = new MessagingClientFixtureBuilder()
+            .UseSqliteProvider(ConnectionString)
+            .AddHandler<TestNestedMessageHandler>()
+            .AddHandler(new TestMessageHandler<TestRequest, TestResponse>(new TestResponse(false)))
+            .Create();
+
+        var response = await fixture.Client.RequestObject(new TestNestedRequest());
+
+        response.Should().Be(new TestResponse(false));
+    }
+
+    [Test]
+    public async Task RequestObject_returnsNothing_nestedPublishCall()
+    {
+        using var fixture = new MessagingClientFixtureBuilder()
+            .UseSqliteProvider(ConnectionString)
+            .AddHandler<TestNestedMessageHandler>()
+            .AddHandler(new TestMessageHandler<TestEvent, None>(new None()))
+            .Create();
+
+        await fixture.Client.RequestObject(new TestNestedEvent());
+    }
+
+    [Test]
     public async Task RequestObject_returnsAnotherResponse_serverSideHandlerChanged()
     {
         // global arrange
