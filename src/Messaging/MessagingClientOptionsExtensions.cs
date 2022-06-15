@@ -143,17 +143,19 @@ public static class MessagingClientOptionsExtensions
             throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
 
         foreach (var messageType in messageTypes)
-        {
-            var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
+            if (!options.Interceptors.Any(x => x.MessageType == messageType && x.InterceptorType == interceptorType))
             {
-                var interceptor = p.Create(interceptorType);
-                var responseType = messageType.GetResponseType();
-                var abstractInterceptorType = typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, responseType!);
-                var abstractInterceptor = p.Create(abstractInterceptorType, interceptor);
-                return (IAbstractInterceptor)abstractInterceptor;
-            });
-            options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, factory));
-        }
+                var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
+                {
+                    var interceptor = p.Create(interceptorType);
+                    var responseType = messageType.GetResponseType();
+                    var abstractInterceptorType =
+                        typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, responseType!);
+                    var abstractInterceptor = p.Create(abstractInterceptorType, interceptor);
+                    return (IAbstractInterceptor)abstractInterceptor;
+                });
+                options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, factory));
+            }
 
         return options;
     }

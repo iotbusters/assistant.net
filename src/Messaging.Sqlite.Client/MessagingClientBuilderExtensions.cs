@@ -98,7 +98,7 @@ public static class MessagingClientBuilderExtensions
     /// </remarks>
     private static void AddSqliteProvider(this IServiceCollection services, string name) => services
         .AddStorage(name, b => b
-            .AddSqlite<string, CachingResult>()
+            .AddSqlite<IAbstractMessage, CachingResult>()
             .AddSqlitePartitioned<int, IAbstractMessage>()
             .AddSqlite<int, long>());
 
@@ -112,7 +112,7 @@ public static class MessagingClientBuilderExtensions
     private static void AddSqliteSingleProvider(this IServiceCollection services, string name) => services
         .AddStorage(name, b => b
             .UseSqliteSingleProvider()
-            .AddSingle<string, CachingResult>()
+            .AddSingle<IAbstractMessage, CachingResult>()
             .AddSinglePartitioned<int, IAbstractMessage>()
             .AddSingle<int, long>())
         .ConfigureMessagingClientOptions(name, o => o.UseGenericSingleProvider());

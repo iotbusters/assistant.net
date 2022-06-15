@@ -4,7 +4,6 @@ using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Utils;
 using System;
 using System.Linq;
 using System.Threading;
@@ -16,7 +15,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 public class CachingInterceptor : CachingInterceptor<IMessage<object>, object>, IMessageInterceptor
 {
     /// <summary/>
-    public CachingInterceptor(IStorage<string, CachingResult> cache, INamedOptions<MessagingClientOptions> options) : base(cache, options) { }
+    public CachingInterceptor(IStorage<IAbstractMessage, CachingResult> cache, INamedOptions<MessagingClientOptions> options) : base(cache, options) { }
 }
 
 /// <summary>
@@ -24,16 +23,16 @@ public class CachingInterceptor : CachingInterceptor<IMessage<object>, object>, 
 /// </summary>
 /// <remarks>
 ///     The interceptor depends on <see cref="MessagingClientOptions.TransientExceptions"/>,
-///     <see cref="IMessageCacheIgnored"/> and <see cref="IMessageCacheConfigured"/>.
+///     <see cref="IMessageCacheIgnored"/>.
 /// </remarks>
 public class CachingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
     where TMessage : IMessage<TResponse>
 {
-    private readonly IStorage<string, CachingResult> cache;
+    private readonly IStorage<IAbstractMessage, CachingResult> cache;
     private readonly MessagingClientOptions options;
 
     /// <summary/>
-    public CachingInterceptor(IStorage<string, CachingResult> cache, INamedOptions<MessagingClientOptions> options)
+    public CachingInterceptor(IStorage<IAbstractMessage, CachingResult> cache, INamedOptions<MessagingClientOptions> options)
     {
         this.cache = cache;
         this.options = options.Value;
@@ -45,11 +44,7 @@ public class CachingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMess
         if(message is IMessageCacheIgnored)
             return await next(message, token);
 
-        var key = message is IMessageCacheConfigured configured
-            ? configured.GetCacheId().GetSha1()
-            : message.GetSha1();
-
-        var result = await cache.AddOrGet(key, async _ =>
+        var result = await cache.AddOrGet(message, async _ =>
         {
             try
             {

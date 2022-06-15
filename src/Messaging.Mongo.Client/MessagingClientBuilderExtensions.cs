@@ -108,7 +108,7 @@ public static class MessagingClientBuilderExtensions
     /// <param name="name">The name of the options instance.</param>
     private static void AddMongoProvider(this IServiceCollection services, string name) => services
         .AddStorage(name, b => b
-            .AddMongo<string, CachingResult>()
+            .AddMongo<IAbstractMessage, CachingResult>()
             .AddMongoPartitioned<int, IAbstractMessage>()
             .AddMongo<int, long>());
 
@@ -124,7 +124,7 @@ public static class MessagingClientBuilderExtensions
     private static void AddMongoSingleProvider(this IServiceCollection services, string name) => services
         .AddStorage(name, b => b
             .UseMongoSingleProvider()
-            .AddSingle<string, CachingResult>()
+            .AddSingle<IAbstractMessage, CachingResult>()
             .AddSinglePartitioned<int, IAbstractMessage>()
             .AddSingle<int, long>())
         .ConfigureMessagingClientOptions(name, o => o.UseGenericSingleProvider());

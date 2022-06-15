@@ -16,7 +16,7 @@ public class WebServerInterceptorConfiguration : IMessageConfiguration
     /// <inheritdoc/>
     public void Configure(MessagingClientBuilder builder)
     {
-        builder.Services.AddStorage(builder.Name, b => b.AddLocal<string, CachingResult>());
+        builder.Services.AddStorage(builder.Name, b => b.AddLocal<IAbstractMessage, CachingResult>());
         builder
             .ClearInterceptors()
             .AddInterceptor<DiagnosticsInterceptor>()

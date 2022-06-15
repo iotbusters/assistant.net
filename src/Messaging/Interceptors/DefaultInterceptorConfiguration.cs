@@ -19,7 +19,7 @@ public class DefaultInterceptorConfiguration : IMessageConfiguration
     public void Configure(MessagingClientBuilder builder)
     {
         builder.Services
-            .AddStorage(builder.Name, b => b.AddLocal<string, CachingResult>())
+            .AddStorage(builder.Name, b => b.AddLocal<IAbstractMessage, CachingResult>())
             .ConfigureMessagingClient(builder.Name, o => o
                 .Retry(new ExponentialBackoff {MaxAttemptNumber = 5, Interval = TimeSpan.FromSeconds(1), Rate = 1.2})
                 .TimeoutIn(TimeSpan.FromSeconds(1)));
