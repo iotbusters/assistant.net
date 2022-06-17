@@ -20,14 +20,14 @@ namespace Assistant.Net.Messaging.Internal;
 internal class GenericMessagingHandlerProxy : IAbstractHandler
 {
     private readonly ILogger logger;
-    private readonly IOptionsMonitor<GenericHandlerProxyOptions> options;
+    private readonly IOptionsSnapshot<GenericHandlerProxyOptions> options;
     private readonly IPartitionedStorage<int, IAbstractMessage> requestStorage;
     private readonly IAdminStorage<IAbstractMessage, CachingResult> responseStorage;
     private readonly ITypeEncoder typeEncoder;
 
     public GenericMessagingHandlerProxy(
         ILogger<GenericMessagingHandlerProxy> logger,
-        IOptionsMonitor<GenericHandlerProxyOptions> options,
+        IOptionsSnapshot<GenericHandlerProxyOptions> options,
         IPartitionedStorage<int, IAbstractMessage> requestStorage,
         IAdminStorage<IAbstractMessage, CachingResult> responseStorage,
         ITypeEncoder typeEncoder)
@@ -41,7 +41,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
 
     public async Task<object> Request(object message, CancellationToken token)
     {
-        var clientOptions = options.CurrentValue;
+        var clientOptions = options.Value;
         var strategy = clientOptions.ResponsePoll;
         var attempt = 1;
 
@@ -79,7 +79,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
 
     public async Task Publish(object message, CancellationToken token)
     {
-        var clientOptions = options.CurrentValue;
+        var clientOptions = options.Value;
 
         await requestStorage.Add(clientOptions.InstanceId, (IAbstractMessage)message, token);
 
