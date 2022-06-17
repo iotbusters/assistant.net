@@ -21,7 +21,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
     private readonly IDbContextFactory<StorageDbContext> dbContextFactory;
 
     public SqliteHistoricalStorageProvider(
-        ILogger<SqliteStorageProvider<TValue>> logger,
+        ILogger<SqliteHistoricalStorageProvider<TValue>> logger,
         INamedOptions<SqliteStoringOptions> options,
         IDbContextFactory<StorageDbContext> dbContextFactory)
     {
@@ -77,7 +77,6 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
         Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
         CancellationToken token)
     {
-        await using var dbContext = CreateDbContext();
         var strategy = options.UpsertRetry;
 
         var attempt = 1;
@@ -115,7 +114,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
     {
         logger.LogDebug("SQLite({KeyId}:latest) querying: begins.", key.Id);
 
-        await using var storageDbContext = CreateDbContext();
+        var storageDbContext = CreateDbContext();
 
         var found = await storageDbContext.HistoricalValues
             .AsNoTracking()
@@ -136,7 +135,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
     {
         logger.LogDebug("SQLite({KeyId}:{Version}) querying: begins.", key.Id, version);
 
-        await using var storageDbContext = CreateDbContext();
+        var storageDbContext = CreateDbContext();
 
         var found = await storageDbContext.HistoricalValues
             .AsNoTracking()
@@ -219,7 +218,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
     {
         logger.LogDebug("SQLite({KeyId}) inserting: begins.", key.Id);
 
-        await using var dbContext = CreateDbContext();
+        var dbContext = CreateDbContext();
 
         if (await dbContext.HistoricalKeys.AnyAsync(x => x.Id == key.Id, token))
             logger.LogDebug("SQLite({KeyId}) key: found.", key.Id);
@@ -261,7 +260,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
         if (await TryGet(key, token) is not Some<ValueRecord>(var found))
             return Option.None;
 
-        await using var dbContext = CreateDbContext();
+        var dbContext = CreateDbContext();
         var valueQuery = dbContext.HistoricalValues.Where(x => x.KeyId == key.Id && x.Version <= found.Audit.Version);
 
         var count = await valueQuery.LongCountAsync(token);
@@ -278,7 +277,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
     {
         logger.LogDebug("SQLite({KeyId}) deleting: begins.", key.Id);
 
-        await using var dbContext = CreateDbContext();
+        var dbContext = CreateDbContext();
         var valueQuery = dbContext.HistoricalValues.Where(x => x.KeyId == key.Id && x.Version <= upToVersion);
 
         var count = await valueQuery.LongCountAsync(token);
@@ -295,7 +294,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
     {
         logger.LogDebug("SQLite(*) deleting: key cleanup begins.");
 
-        await using var dbContext = CreateDbContext();
+        var dbContext = CreateDbContext();
         var keys = dbContext.HistoricalKeys;
         var values = dbContext.HistoricalValues;
         var keyQuery = keys.Where(key => !values.Any(x => x.KeyId == key.Id));
