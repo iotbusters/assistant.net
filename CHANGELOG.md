@@ -4,6 +4,23 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.2.116] - 2022-06-17
+
+[Assistant.NET Release 0.2.116](https://github.com/iotbusters/assistant.net/releases/tag/0.2.116)
+
+### 0.2.116 Changed
+
+- configure options source registration as scoped
+- change-on-options registration as scoped
+
+### 0.2.116 Fixed
+
+- change-on-options feature issues
+
+### 0.2.116 Removed
+
+- disposing db context in sqlite storage provider which missed
+
 ## [0.2.115] - 2022-06-15
 
 [Assistant.NET Release 0.2.115](https://github.com/iotbusters/assistant.net/releases/tag/0.2.115)

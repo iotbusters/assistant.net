@@ -11,7 +11,7 @@ public class ConfigureOptionsSourceTests
     [Test]
     public void ChangeOn_notSynchronizesOptionsMonitor_boundToAnotherNamedOptions()
     {
-        var source = new TestConfigureOptionsSource<TestOptions2> { ConfigureAction = o => o.Value = "1" };
+        var source = new TestConfigureOptionsSource<TestOptions2> {ConfigureAction = o => o.Value = "1"};
         var provider = new ServiceCollection()
             .AddOptions<TestOptions1>("name-1")
             .ChangeOn<TestOptions2>("name-2")
@@ -33,7 +33,7 @@ public class ConfigureOptionsSourceTests
     [Test]
     public void ChangeOn_synchronizesOptionsMonitor_onInit()
     {
-        var source = new TestConfigureOptionsSource<TestOptions2> { ConfigureAction = o => o.Value = "1" };
+        var source = new TestConfigureOptionsSource<TestOptions2> {ConfigureAction = o => o.Value = "1"};
         var provider = new ServiceCollection()
             .AddOptions<TestOptions1>("name-1")
             .ChangeOn<TestOptions2>("name-2")
@@ -54,7 +54,7 @@ public class ConfigureOptionsSourceTests
     [Test]
     public void ChangeOn_synchronizesOptionsMonitor_onReload()
     {
-        var source = new TestConfigureOptionsSource<TestOptions2> { ConfigureAction = o => o.Value = "1" };
+        var source = new TestConfigureOptionsSource<TestOptions2> {ConfigureAction = o => o.Value = "1"};
         var provider = new ServiceCollection()
             .AddOptions<TestOptions1>("name-1")
             .ChangeOn<TestOptions2>("name-2")
