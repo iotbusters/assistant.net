@@ -1,4 +1,3 @@
-using Assistant.Net.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Assistant.Net.Storage.Options;
