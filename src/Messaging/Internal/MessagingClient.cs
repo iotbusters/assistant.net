@@ -40,10 +40,10 @@ internal class MessagingClient : IMessagingClient
     /// <exception cref="MessageNotRegisteredException"/>
     private InterceptingMessageHandler CreateInterceptingHandler(Type messageType)
     {
-        if(!options.Handlers.TryGetValue(messageType, out var definition))
+        if(!options.Handlers.TryGetValue(messageType, out var factory))
             throw new MessageNotRegisteredException(messageType);
 
-        var handler = definition.Create(provider);
+        var handler = factory.Create(provider);
 
         var interceptors = options.Interceptors
             .Where(x => x.MessageType.IsAssignableFrom(messageType))
