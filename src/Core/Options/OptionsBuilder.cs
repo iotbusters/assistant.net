@@ -6,10 +6,10 @@ using System;
 namespace Assistant.Net.Options;
 
 /// <summary>
-///     Custom <see cref="Microsoft.Extensions.Options.OptionsBuilder{TOptions}"/> extension.
+///     Custom <see cref="Microsoft.Extensions.Options.OptionsBuilder{TOptions}"/> decorating extension.
 /// </summary>
 /// <typeparam name="TOptions">The options type being configured.</typeparam>
-public class OptionsBuilder<TOptions> : Microsoft.Extensions.Options.OptionsBuilder<TOptions> where TOptions : class
+public sealed class OptionsBuilder<TOptions> : Microsoft.Extensions.Options.OptionsBuilder<TOptions> where TOptions : class
 {
     /// <summary/>
     public OptionsBuilder(IServiceCollection services, string name) : base(services, name)
@@ -43,11 +43,11 @@ public class OptionsBuilder<TOptions> : Microsoft.Extensions.Options.OptionsBuil
             throw new ArgumentException($"Expected {configureOptionsSourceType.Name} implementation but received {implementationType}.");
 
         Services
-            .TryAddSingleton(implementationType, implementationType)
-            .AddSingleton<IOptionsChangeTokenSource<TOptions>>(p => new LambdaOptionsChangeTokenSource<TOptions>(
+            .TryAddScoped(implementationType, implementationType)
+            .AddScoped<IOptionsChangeTokenSource<TOptions>>(p => new LambdaOptionsChangeTokenSource<TOptions>(
                 Name,
                 ((IConfigureOptionsSource<TOptions>)p.GetRequiredService(implementationType)).GetChangeToken))
-            .AddSingleton<IConfigureOptions<TOptions>>(p => new ConfigureNamedOptions<TOptions>(
+            .AddScoped<IConfigureOptions<TOptions>>(p => new ConfigureNamedOptions<TOptions>(
                 Name,
                 ((IConfigureOptionsSource<TOptions>)p.GetRequiredService(implementationType)).Configure));
         return this;
@@ -63,12 +63,13 @@ public class OptionsBuilder<TOptions> : Microsoft.Extensions.Options.OptionsBuil
             throw new ArgumentException("Dependent options cannot be equal to principal options.");
 
         var configureOptionsType = typeof(ChangeOnConfigureNamedOptions<,>).MakeGenericType(typeof(TOptions), typeof(TDependentOptions));
-
-        Services.AddSingleton(p => (IConfigureOptions<TDependentOptions>)ActivatorUtilities.CreateInstance(
+        var optionsName = Name;
+        var dependentOptionsName = name;
+        Services.AddScoped(p => (IConfigureOptions<TDependentOptions>)ActivatorUtilities.CreateInstance(
             p,
             configureOptionsType,
-            Name,
-            name));
+            optionsName,
+            dependentOptionsName));
 
         return this;
     }
@@ -82,15 +83,8 @@ public class OptionsBuilder<TOptions> : Microsoft.Extensions.Options.OptionsBuil
         if (typeof(TOptions) == typeof(TDependentOptions))
             throw new ArgumentException("Dependent options cannot be equal to principal options.");
 
-        var configureOptionsType = typeof(ChangeOnConfigureNamedOptions<,>).MakeGenericType(typeof(TOptions), typeof(TDependentOptions));
-
-        Services.AddSingleton(p => (IConfigureOptions<TDependentOptions>)ActivatorUtilities.CreateInstance(
-            p,
-            configureOptionsType,
-            Name,
-            name));
-
-        Configure<IOptionsMonitor<TDependentOptions>>((o, m) => configureOptions(o, m.Get(name)));
+        ChangeOn<TDependentOptions>(name);
+        Configure<IOptionsSnapshot<TDependentOptions>>((o, m) => configureOptions(o, m.Get(name)));
 
         return this;
     }
