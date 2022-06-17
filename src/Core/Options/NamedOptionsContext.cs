@@ -6,7 +6,7 @@
 /// <remarks>
 ///     It can be used by related scoped features as shared context.
 /// </remarks>
-internal sealed class NamedOptionsContext
+public sealed class NamedOptionsContext
 {
     /// <summary>
     ///     The name of options instance.

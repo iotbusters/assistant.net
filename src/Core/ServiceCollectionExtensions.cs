@@ -94,12 +94,10 @@ public static class ServiceCollectionExtensions
     public static Options.OptionsBuilder<TOptions> AddOptions<TOptions>(this IServiceCollection services, string name)
         where TOptions : class
     {
-        if (services == null)
-        {
-            throw new ArgumentNullException(nameof(services));
-        }
-
-        services.AddOptions();
+        services
+            .AddOptions()
+            .TryAddScoped(typeof(IOptionsSnapshotCache<>), typeof(OptionsSnapshotCache<>))
+            .ReplaceScoped(typeof(IOptionsSnapshot<>), typeof(Options.OptionsManager<>));
         return new Options.OptionsBuilder<TOptions>(services, name);
     }
 

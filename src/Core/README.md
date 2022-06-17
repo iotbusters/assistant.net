@@ -92,7 +92,7 @@ using var provider = new ServiceCollection()
     .BindOptions("name", source)
     .BuildServiceProvider();
 
-var monitor = provider.GetRequiredService<IOptionsMonitor<SomeOptions>>();
+var monitor = provider.GetRequiredService<IOptionsSnapshot<SomeOptions>>();
 var source2 = provider.GetRequiredService<CustomConfigureOptionsSource>();
 
 source2.Reload(o => o.Value = 321);

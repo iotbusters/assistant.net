@@ -5,20 +5,26 @@ using System;
 
 namespace Assistant.Net.Options;
 
-internal class NamedOptions<TOptions> : INamedOptions<TOptions> where TOptions : class
+/// <summary>
+///     Default implementation of <see cref="INamedOptions{TOptions}"/>.
+/// </summary>
+public sealed class NamedOptions<TOptions> : INamedOptions<TOptions> where TOptions : class
 {
-    private readonly IOptionsMonitor<TOptions> monitor;
+    private readonly IOptionsSnapshot<TOptions> monitor;
     private readonly NamedOptionsContext context;
 
+    /// <summary/>
     public NamedOptions(IServiceProvider provider)
     {
-        this.monitor = provider.GetService<IOptionsMonitor<TOptions>>()
+        this.monitor = provider.GetService<IOptionsSnapshot<TOptions>>()
                        ?? throw new ArgumentException($"{typeof(TOptions)} wasn't configured.", nameof(provider));
         this.context = provider.GetService<NamedOptionsContext>()
                        ?? throw new ArgumentException($"{typeof(NamedOptionsContext)} wasn't registered.", nameof(provider));
     }
 
+    /// <inheritdoc cref="NamedOptionsContext.Name"/>
     public string Name => context.Name;
 
+    /// <inheritdoc cref="IOptions{TOptions}.Value"/>
     public TOptions Value => monitor.Get(Name);
 }
