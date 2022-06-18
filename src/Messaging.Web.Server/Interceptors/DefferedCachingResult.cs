@@ -5,7 +5,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 /// <summary>
 ///     Deferred execution result for caching mechanism.
 /// </summary>
-public class DeferredCachingResult<T>
+public sealed class DeferredCachingResult<T>
 {
     private readonly Task<T> task;
 

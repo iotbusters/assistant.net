@@ -13,7 +13,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 ///     <see cref="CachingInterceptor"/>, <see cref="RetryingInterceptor"/>,
 ///     <see cref="TimeoutInterceptor"/>
 /// </summary>
-public class DefaultInterceptorConfiguration : IMessageConfiguration
+public sealed class DefaultInterceptorConfiguration : IMessageConfiguration
 {
     /// <inheritdoc/>
     public void Configure(MessagingClientBuilder builder)
@@ -30,7 +30,6 @@ public class DefaultInterceptorConfiguration : IMessageConfiguration
             .AddInterceptor<RetryingInterceptor>()
             .AddInterceptor<TimeoutInterceptor>()
             .ExposeException<TimeoutException>()
-            .ExposeException<OperationCanceledException>()
             .AddTransientException<TimeoutException>();
     }
 }

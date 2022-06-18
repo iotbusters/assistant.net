@@ -12,7 +12,7 @@ namespace Assistant.Net.Messaging.Serialization;
 /// <summary>
 ///     Json converter responsible for message exceptions serialization.
 /// </summary>
-public class MessageExceptionJsonConverter : ExceptionJsonConverter<Exception>
+public sealed class MessageExceptionJsonConverter : ExceptionJsonConverter<Exception>
 {
     private readonly MessagingClientOptions clientOptions;
 

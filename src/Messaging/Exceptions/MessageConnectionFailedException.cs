@@ -5,7 +5,7 @@ namespace Assistant.Net.Messaging.Exceptions;
 /// <summary>
 ///     Any connection related issues occurred during remote message handling.
 /// </summary>
-public class MessageConnectionFailedException : MessageException
+public sealed class MessageConnectionFailedException : MessageException
 {
     /// <summary/>
     public MessageConnectionFailedException() : this("Connection to remote message handler has failed.") { }

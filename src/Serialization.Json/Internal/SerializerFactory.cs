@@ -9,7 +9,7 @@ namespace Assistant.Net.Serialization.Internal;
 /// <summary>
 ///     Serializer factory responsible for resolving serializers due to a configuration.
 /// </summary>
-public class SerializerFactory : ISerializerFactory
+public sealed class SerializerFactory : ISerializerFactory
 {
     private readonly IServiceProvider provider;
     private readonly SerializerOptions options;

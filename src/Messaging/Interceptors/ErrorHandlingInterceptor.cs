@@ -3,13 +3,14 @@ using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Options;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors;
 
 /// <inheritdoc cref="DiagnosticsInterceptor{TMessage,TResponse}"/>
-public class ErrorHandlingInterceptor : ErrorHandlingInterceptor<IMessage<object>, object>, IMessageInterceptor
+public sealed class ErrorHandlingInterceptor : ErrorHandlingInterceptor<IMessage<object>, object>, IMessageInterceptor
 {
     /// <summary/>
     public ErrorHandlingInterceptor(INamedOptions<MessagingClientOptions> options) : base(options) { }
@@ -39,7 +40,7 @@ public class ErrorHandlingInterceptor<TMessage, TResponse> : IMessageInterceptor
         }
         catch (Exception ex)
         {
-            if (ex is MessageException || options.ExposedExceptions.Contains(ex.GetType()))
+            if (options.ExposedExceptions.Any(x => x.IsInstanceOfType(ex)))
                 throw;
             throw new MessageFailedException(ex);
         }

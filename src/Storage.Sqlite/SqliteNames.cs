@@ -3,7 +3,7 @@
 /// <summary>
 ///     SQLite related resource names for data storing.
 /// </summary>
-public class SqliteNames
+public sealed class SqliteNames
 {
     /// <summary>
     ///     Storage keys table name.

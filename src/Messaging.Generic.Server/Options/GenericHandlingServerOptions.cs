@@ -7,7 +7,7 @@ namespace Assistant.Net.Messaging.Options;
 /// <summary>
 ///     Storage based server message handling configuration.
 /// </summary>
-public class GenericHandlingServerOptions
+public sealed class GenericHandlingServerOptions
 {
     /// <summary>
     ///     Server instance ID.

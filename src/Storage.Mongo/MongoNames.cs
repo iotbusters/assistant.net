@@ -3,7 +3,7 @@
 /// <summary>
 ///     MongoDB related resource names for data storing.
 /// </summary>
-public class MongoNames
+public sealed class MongoNames
 {
     /// <summary>
     ///     Database name.

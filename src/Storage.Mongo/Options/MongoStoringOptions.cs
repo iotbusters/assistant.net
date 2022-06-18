@@ -8,7 +8,7 @@ namespace Assistant.Net.Storage.Options;
 /// <summary>
 ///     MongoDB based storage configuration.
 /// </summary>
-public class MongoStoringOptions
+public sealed class MongoStoringOptions
 {
     /// <summary>
     ///     Optimistic concurrent insert operation retrying strategy.

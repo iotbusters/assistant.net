@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Interceptors;
 
 /// <inheritdoc cref="TimeoutInterceptor{TMessage,TResponse}"/>
-public class TimeoutInterceptor : TimeoutInterceptor<IMessage<object>, object>, IMessageInterceptor
+public sealed class TimeoutInterceptor : TimeoutInterceptor<IMessage<object>, object>, IMessageInterceptor
 {
     /// <summary/>
     public TimeoutInterceptor(INamedOptions<MessagingClientOptions> options) : base(options) { }

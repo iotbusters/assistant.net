@@ -7,7 +7,7 @@ namespace Assistant.Net.Messaging.Options;
 /// <summary>
 ///     Storage based message handling client configuration.
 /// </summary>
-public class GenericHandlerProxyOptions
+public sealed class GenericHandlerProxyOptions
 {
     /// <summary>
     ///     Server instance ID.

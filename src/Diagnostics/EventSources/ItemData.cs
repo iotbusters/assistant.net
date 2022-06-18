@@ -6,7 +6,7 @@ namespace Assistant.Net.Diagnostics.EventSources;
 ///     Event source metadata item.
 /// </summary>
 [EventData]
-public class ItemData
+public sealed class ItemData
 {
     /// <summary>
     ///     Metadata value.

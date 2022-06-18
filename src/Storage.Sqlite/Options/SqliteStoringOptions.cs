@@ -8,7 +8,7 @@ namespace Assistant.Net.Storage.Options;
 /// <summary>
 ///     SQLite client configuration for specific storage usage.
 /// </summary>
-public class SqliteStoringOptions
+public sealed class SqliteStoringOptions
 {
     /// <summary>
     ///     Optimistic concurrent insert operation retrying strategy.

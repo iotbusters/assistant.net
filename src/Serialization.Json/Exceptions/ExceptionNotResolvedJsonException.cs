@@ -5,7 +5,7 @@ namespace Assistant.Net.Serialization.Exceptions;
 /// <summary>
 ///     Exception resolving issue during deserialization.
 /// </summary>
-public class ExceptionNotResolvedJsonException : NotResolvedJsonException
+public sealed class ExceptionNotResolvedJsonException : NotResolvedJsonException
 {
     /// <summary/>
     public ExceptionNotResolvedJsonException(

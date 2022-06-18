@@ -5,7 +5,7 @@ namespace Assistant.Net.Storage.Options;
 /// <summary>
 ///     Type marker designed to be hooked by specific storage provider's extensions methods.
 /// </summary>
-public class StorageBuilder
+public sealed class StorageBuilder
 {
     /// <summary/>
     public StorageBuilder(IServiceCollection services, string name)

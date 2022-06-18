@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Interceptors;
 
 /// <inheritdoc cref="CachingInterceptor{TMessage,TResponse}"/>
-public class CachingInterceptor : CachingInterceptor<IMessage<object>, object>, IMessageInterceptor
+public sealed class CachingInterceptor : CachingInterceptor<IMessage<object>, object>, IMessageInterceptor
 {
     /// <summary/>
     public CachingInterceptor(IStorage<IAbstractMessage, CachingResult> cache, INamedOptions<MessagingClientOptions> options) : base(cache, options) { }

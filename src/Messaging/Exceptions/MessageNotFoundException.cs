@@ -3,7 +3,7 @@ namespace Assistant.Net.Messaging.Exceptions;
 /// <summary>
 ///     Remote handler cannot resolve a received message type exception.
 /// </summary>
-public class MessageNotFoundException : MessageException
+public sealed class MessageNotFoundException : MessageException
 {
     /// <summary/>
     public MessageNotFoundException() : base("Message wasn't found.") { }
