@@ -23,8 +23,6 @@ public sealed class WebServerInterceptorConfiguration : IMessageConfiguration
             .AddInterceptor<CachingInterceptor>()
             .AddInterceptor<ErrorHandlingInterceptor>()
             .AddInterceptor<DeferredCachingInterceptor>()
-            .AddInterceptor<TimeoutInterceptor>()
-            .ClearExposedExceptions()
-            .ClearTransientExceptions();
+            .AddInterceptor<TimeoutInterceptor>();
     }
 }
