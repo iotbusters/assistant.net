@@ -18,6 +18,7 @@ public class MessagingClientFixtureBuilder
     public MessagingClientFixtureBuilder()
     {
         Services = new ServiceCollection()
+            .AddTypeEncoder(o => o.Exclude("Microsoft.VisualStudio").Exclude("NUnit"))
             .AddMessagingClient(b => b
                 .RemoveInterceptor<CachingInterceptor>()
                 .RemoveInterceptor<RetryingInterceptor>()
@@ -29,6 +30,7 @@ public class MessagingClientFixtureBuilder
             .BindOptions(clientSource);
         RemoteHostBuilder = Host.CreateDefaultBuilder()
             .ConfigureServices(s => s
+                .AddTypeEncoder(o => o.Exclude("Microsoft.VisualStudio").Exclude("NUnit"))
                 .AddGenericMessageHandling()
                 .ConfigureGenericMessagingClient(o => o
                     .RemoveInterceptor<CachingInterceptor>()
