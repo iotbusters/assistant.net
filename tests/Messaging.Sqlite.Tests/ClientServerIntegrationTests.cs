@@ -99,7 +99,7 @@ public class ClientServerIntegrationTests
         using var fixture = new MessagingClientFixtureBuilder()
             .UseSqliteProvider(ConnectionString)
             .AddHandler<TestNestedMessageHandler>()
-            .AddHandler(new TestMessageHandler<TestEvent, None>(new None()))
+            .AddHandler(new TestMessageHandler<TestEvent, None>(None.Instance))
             .Create();
 
         await fixture.Client.RequestObject(new TestNestedEvent());

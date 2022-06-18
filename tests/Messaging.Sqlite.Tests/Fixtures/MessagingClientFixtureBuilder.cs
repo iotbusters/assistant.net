@@ -21,8 +21,7 @@ public class MessagingClientFixtureBuilder
             .AddMessagingClient(b => b
                 .RemoveInterceptor<CachingInterceptor>()
                 .RemoveInterceptor<RetryingInterceptor>()
-                .RemoveInterceptor<TimeoutInterceptor>()
-                .TimeoutIn(TimeSpan.FromSeconds(0.5)))
+                .RemoveInterceptor<TimeoutInterceptor>())
             .ConfigureGenericHandlerProxyOptions(o => o.ResponsePoll = new ConstantBackoff
             {
                 Interval = TimeSpan.FromSeconds(0.02), MaxAttemptNumber = 10
@@ -34,8 +33,7 @@ public class MessagingClientFixtureBuilder
                 .ConfigureGenericMessagingClient(o => o
                     .RemoveInterceptor<CachingInterceptor>()
                     .RemoveInterceptor<RetryingInterceptor>()
-                    .RemoveInterceptor<TimeoutInterceptor>()
-                    .TimeoutIn(TimeSpan.FromSeconds(0.5)))
+                    .RemoveInterceptor<TimeoutInterceptor>())
                 .ConfigureGenericHandlingServerOptions(o =>
                 {
                     o.InactivityDelayTime = TimeSpan.FromSeconds(0.005);

@@ -28,7 +28,6 @@ public class MessagingClientFixtureBuilder
                     if (Debugger.IsAttached)
                         hc.Timeout = TimeSpan.FromSeconds(300);
                 }))
-                .TimeoutIn(TimeSpan.FromSeconds(0.5))
                 .RemoveInterceptor<CachingInterceptor>()
                 .RemoveInterceptor<RetryingInterceptor>()
                 .RemoveInterceptor<TimeoutInterceptor>())
