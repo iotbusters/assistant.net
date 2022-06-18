@@ -12,38 +12,20 @@ namespace Assistant.Net.Core.Tests.Internal;
 public class TypeEncoderTests
 {
     [TestCaseSource(nameof(ValidCases))]
-    public void Encode_returnsName(string name, Type type)
-    {
-        var encoder = new ServiceCollection()
-            .AddTypeEncoder()
-            .BuildServiceProvider()
-            .GetRequiredService<ITypeEncoder>();
-
-        encoder.Encode(type).Should().Be(name);
-    }
+    public void Encode_returnsName(string name, Type type) =>
+        TypeEncoder.Encode(type).Should().Be(name);
 
     [TestCaseSource(nameof(ValidCases))]
-    public void Decode_returnsType(string name, Type type)
-    {
-        var encoder = new ServiceCollection()
-            .AddTypeEncoder()
-            .BuildServiceProvider()
-            .GetRequiredService<ITypeEncoder>();
-
-        encoder.Decode(name).Should().Be(type);
-    }
+    public void Decode_returnsType(string name, Type type) =>
+        TypeEncoder.Decode(name).Should().Be(type);
 
     [TestCaseSource(nameof(InvalidCases))]
-    public void Encode_returnsNull(Type type)
-    {
-        var encoder = new ServiceCollection()
-            .AddTypeEncoder()
-            .BuildServiceProvider()
-            .GetRequiredService<ITypeEncoder>();
+    public void Encode_returnsNull(Type type) =>
+        TypeEncoder.Encode(type).Should().BeNull();
 
-        encoder.Encode(type).Should().BeNull();
-    }
-        
+    private static ITypeEncoder TypeEncoder =>
+        new ServiceCollection().AddTypeEncoder().BuildServiceProvider().GetRequiredService<ITypeEncoder>();
+
     public static IEnumerable<TestCaseData> ValidCases() => validTypes.Select(x => new TestCaseData(x.Key, x.Value));
     private static Type[] InvalidCases() => new[] {new {X = 1}.GetType()};
 
