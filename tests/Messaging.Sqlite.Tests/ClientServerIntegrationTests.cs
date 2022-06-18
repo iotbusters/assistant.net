@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Sqlite.Tests;
 
-[Timeout(2000)]
+[Timeout(3000)]
 public class ClientServerIntegrationTests
 {
     [TestCase(5)]
