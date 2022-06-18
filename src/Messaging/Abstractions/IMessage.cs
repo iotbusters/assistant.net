@@ -27,5 +27,10 @@ public interface IAbstractMessage
 /// </summary>
 public sealed class None
 {
-    internal static None Instance { get; } = new();
+    private None() { }
+
+    /// <summary>
+    ///     Instance of none.
+    /// </summary>
+    public static None Instance { get; } = new();
 }
