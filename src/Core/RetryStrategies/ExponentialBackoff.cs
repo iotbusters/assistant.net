@@ -7,7 +7,7 @@ namespace Assistant.Net.RetryStrategies;
 /// <summary>
 ///     Exponential backoff implementation of retrying strategy.
 /// </summary>
-public class ExponentialBackoff : IRetryStrategy
+public sealed class ExponentialBackoff : IRetryStrategy
 {
     /// <inheritdoc/>
     public int MaxAttemptNumber { get; set; }

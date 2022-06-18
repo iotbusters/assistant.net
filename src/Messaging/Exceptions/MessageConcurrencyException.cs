@@ -5,7 +5,7 @@ namespace Assistant.Net.Messaging.Exceptions;
 /// <summary>
 ///     Race condition issues occurred to remote message handler in concurrent environment.
 /// </summary>
-public class MessageConcurrencyException : MessageException
+public sealed class MessageConcurrencyException : MessageException
 {
     /// <summary/>
     public MessageConcurrencyException() : this("Message handling failed in concurrent environment.") { }

@@ -11,7 +11,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 ///     <see cref="CachingInterceptor"/>, <see cref="DeferredCachingInterceptor"/>,
 ///     <see cref="TimeoutInterceptor"/>
 /// </summary>
-public class WebServerInterceptorConfiguration : IMessageConfiguration
+public sealed class WebServerInterceptorConfiguration : IMessageConfiguration
 {
     /// <inheritdoc/>
     public void Configure(MessagingClientBuilder builder)

@@ -8,7 +8,7 @@ namespace Assistant.Net.Options;
 ///     Lambda based <see cref="IOptionsChangeTokenSource{TOptions}"/> implementation.
 /// </summary>
 /// <typeparam name="TOptions">The options type being tracked.</typeparam>
-public class LambdaOptionsChangeTokenSource<TOptions> : IOptionsChangeTokenSource<TOptions>
+public sealed class LambdaOptionsChangeTokenSource<TOptions> : IOptionsChangeTokenSource<TOptions>
 {
     private readonly Func<IChangeToken> getter;
 

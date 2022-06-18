@@ -9,7 +9,7 @@ namespace Assistant.Net.Serialization.Converters;
 /// <summary>
 ///     JSON converter factory for advanced serialization.
 /// </summary>
-public class AdvancedJsonConverterFactory : JsonConverterFactory
+public sealed class AdvancedJsonConverterFactory : JsonConverterFactory
 {
     private readonly IServiceProvider provider;
 

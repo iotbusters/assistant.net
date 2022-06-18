@@ -10,7 +10,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 /// <summary>
 ///     Storage single provider configured server message handling.
 /// </summary>
-public class GenericServerInterceptorConfiguration : IMessageConfiguration
+public sealed class GenericServerInterceptorConfiguration : IMessageConfiguration
 {
     /// <inheritdoc/>
     public void Configure(MessagingClientBuilder builder) =>

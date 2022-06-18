@@ -5,7 +5,7 @@ namespace Assistant.Net.Messaging.Options;
 /// <summary>
 ///     Messaging client builder implementation.
 /// </summary>
-public class MessagingClientBuilder
+public sealed class MessagingClientBuilder
 {
     /// <summary/>
     public MessagingClientBuilder(IServiceCollection services, string name)

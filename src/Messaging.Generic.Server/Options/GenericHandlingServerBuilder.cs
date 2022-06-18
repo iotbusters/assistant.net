@@ -5,7 +5,7 @@ namespace Assistant.Net.Messaging.Options;
 /// <summary>
 ///     Storage based server message handling builder.
 /// </summary>
-public class GenericHandlingServerBuilder
+public sealed class GenericHandlingServerBuilder
 {
     /// <summary/>
     public GenericHandlingServerBuilder(IServiceCollection services) =>

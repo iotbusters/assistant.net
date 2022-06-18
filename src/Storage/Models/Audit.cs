@@ -6,7 +6,7 @@ namespace Assistant.Net.Storage.Models;
 /// <summary>
 ///     Associated value auditing details.
 /// </summary>
-public class Audit
+public sealed class Audit
 {
     /// <summary/>
     public Audit(IDictionary<string, string> details, long version)

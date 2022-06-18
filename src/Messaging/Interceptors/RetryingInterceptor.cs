@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Interceptors;
 
 /// <inheritdoc cref="RetryingInterceptor{TMessage,TResponse}"/>
-public class RetryingInterceptor : RetryingInterceptor<IMessage<object>, object>, IMessageInterceptor
+public sealed class RetryingInterceptor : RetryingInterceptor<IMessage<object>, object>, IMessageInterceptor
 {
     /// <summary/>
     public RetryingInterceptor(ILogger<RetryingInterceptor> logger, IDiagnosticFactory diagnosticFactory, INamedOptions<MessagingClientOptions> options) : base(logger, diagnosticFactory, options) { }

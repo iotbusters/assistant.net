@@ -1,5 +1,6 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Options;
 using Assistant.Net.RetryStrategies;
@@ -34,7 +35,7 @@ public sealed class MessagingClientOptions
     /// <remarks>
     ///     It impacts <see cref="ErrorHandlingInterceptor{TMessage,TResponse}"/>.
     /// </remarks>
-    public List<Type> ExposedExceptions { get; } = new();
+    public List<Type> ExposedExceptions { get; } = new() {typeof(MessageException)};
 
     /// <summary>
     ///     List of allowed for retrying transient exceptions.

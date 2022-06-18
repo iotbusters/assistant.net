@@ -52,6 +52,28 @@ public static class ServiceProviderExtensions
     /// <summary>
     ///     Configures <see cref="NamedOptionsContext"/> of current scope.
     /// </summary>
+    /// <param name="scope"/>
+    /// <param name="name">The name of options instance.</param>
+    public static IServiceScope ConfigureNamedOptionContext(this IServiceScope scope, string name)
+    {
+        scope.ServiceProvider.ConfigureNamedOptionContext(name);
+        return scope;
+    }
+
+    /// <summary>
+    ///     Configures <see cref="NamedOptionsContext"/> of current scope.
+    /// </summary>
+    /// <param name="scope"/>
+    /// <param name="name">The name of options instance.</param>
+    public static AsyncServiceScope ConfigureNamedOptionContext(this AsyncServiceScope scope, string name)
+    {
+        scope.ServiceProvider.ConfigureNamedOptionContext(name);
+        return scope;
+    }
+
+    /// <summary>
+    ///     Configures <see cref="NamedOptionsContext"/> of current scope.
+    /// </summary>
     /// <param name="provider"/>
     /// <param name="name">The name of options instance.</param>
     public static IServiceProvider ConfigureNamedOptionContext(this IServiceProvider provider, string name)

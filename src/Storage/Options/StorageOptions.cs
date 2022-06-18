@@ -7,7 +7,7 @@ namespace Assistant.Net.Storage.Options;
 /// <summary>
 ///     Storage configuration for specific provider usage.
 /// </summary>
-public class StorageOptions
+public sealed class StorageOptions
 {
     /// <summary>
     ///     Default type value converter factories.

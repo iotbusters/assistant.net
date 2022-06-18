@@ -9,7 +9,7 @@ namespace Assistant.Net.Messaging.Extensions;
 /// <summary>
 ///     Spreads current correlation context on remote message handling.
 /// </summary>
-public class CorrelationHandler : DelegatingHandler
+public sealed class CorrelationHandler : DelegatingHandler
 {
     private readonly IDiagnosticContext context;
 

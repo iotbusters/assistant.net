@@ -5,7 +5,7 @@ namespace Assistant.Net.Storage.Models;
 /// <summary>
 ///     SQLite storage persisting value record.
 /// </summary>
-public class StorageValueRecord
+public sealed class StorageValueRecord
 {
     /// <summary>
     ///     EF only.

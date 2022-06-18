@@ -11,7 +11,7 @@ namespace Assistant.Net.Messaging.Extensions;
 /// <summary>
 ///     Remote message handling failure propagation.
 /// </summary>
-public class ErrorPropagationHandler : DelegatingHandler
+public sealed class ErrorPropagationHandler : DelegatingHandler
 {
     private readonly ISerializer<MessageException> serializer;
 

@@ -8,7 +8,7 @@ namespace Assistant.Net.Serialization.Options;
 /// <summary>
 ///     Serializer configuration.
 /// </summary>
-public class SerializerOptions
+public sealed class SerializerOptions
 {
     /// <summary>
     ///     Specific type serializer factories.

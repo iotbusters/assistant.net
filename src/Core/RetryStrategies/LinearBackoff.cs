@@ -7,7 +7,7 @@ namespace Assistant.Net.RetryStrategies;
 /// <summary>
 ///     Linear backoff implementation of retrying strategy.
 /// </summary>
-public class LinearBackoff : IRetryStrategy
+public sealed class LinearBackoff : IRetryStrategy
 {
     /// <inheritdoc/>
     public int MaxAttemptNumber { get; set; }

@@ -3,7 +3,7 @@ namespace Assistant.Net.Messaging.Exceptions;
 /// <summary>
 ///     Remote message handler cannot return response temporary.
 /// </summary>
-public class MessageDeferredException : MessageException
+public sealed class MessageDeferredException : MessageException
 {
     /// <summary/>
     public MessageDeferredException() : base("Remote message handler deferred a message.") { }

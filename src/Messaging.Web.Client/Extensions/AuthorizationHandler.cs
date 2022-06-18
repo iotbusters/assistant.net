@@ -6,7 +6,7 @@ namespace Assistant.Net.Messaging.Extensions;
 ///     [NOT IMPLEMENTED]
 ///     Default web authorizing implementation for remote message handling.
 /// </summary>
-public class AuthorizationHandler : DelegatingHandler
+public sealed class AuthorizationHandler : DelegatingHandler
 {
     //protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     //{

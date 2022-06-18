@@ -7,7 +7,7 @@ namespace Assistant.Net.Messaging.Options;
 /// <summary>
 ///     Message interceptor definition.
 /// </summary>
-public class InterceptorDefinition
+public sealed class InterceptorDefinition
 {
     /// <summary/>
     public InterceptorDefinition(

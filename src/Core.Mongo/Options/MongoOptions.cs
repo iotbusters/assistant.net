@@ -5,7 +5,7 @@ namespace Assistant.Net.Options;
 /// <summary>
 ///     MongoDB client configuration for specific provider usage.
 /// </summary>
-public class MongoOptions
+public sealed class MongoOptions
 {
     /// <summary>
     ///     MongoDB server connection string.

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Interceptors;
 
 /// <inheritdoc cref="DiagnosticsInterceptor{TMessage,TResponse}"/>
-public class DiagnosticsInterceptor : DiagnosticsInterceptor<IMessage<object>, object>, IMessageInterceptor
+public sealed class DiagnosticsInterceptor : DiagnosticsInterceptor<IMessage<object>, object>, IMessageInterceptor
 {
     /// <summary/>
     public DiagnosticsInterceptor(ILogger<DiagnosticsInterceptor<IMessage<object>, object>> logger, IDiagnosticFactory diagnosticFactory) : base(logger, diagnosticFactory) { }

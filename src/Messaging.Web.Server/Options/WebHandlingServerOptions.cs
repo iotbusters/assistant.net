@@ -7,7 +7,7 @@ namespace Assistant.Net.Messaging.Options;
 /// <summary>
 ///     WEB server configuration used for remote message handling coordination.
 /// </summary>
-public class WebHandlingServerOptions
+public sealed class WebHandlingServerOptions
 {
     /// <summary>
     ///     List of accepting message types.

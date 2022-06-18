@@ -6,7 +6,7 @@ namespace Assistant.Net.Storage.Models;
 /// <summary>
 ///     MongoDB storage persisting record.
 /// </summary>
-public class MongoRecord
+public sealed class MongoRecord
 {
     /// <summary>
     ///     Bson serialization only.

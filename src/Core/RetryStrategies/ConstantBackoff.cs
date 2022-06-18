@@ -7,7 +7,7 @@ namespace Assistant.Net.RetryStrategies;
 /// <summary>
 ///     Constant backoff implementation of retrying strategy.
 /// </summary>
-public class ConstantBackoff : IRetryStrategy
+public sealed class ConstantBackoff : IRetryStrategy
 {
     /// <inheritdoc/>
     public int MaxAttemptNumber { get; set; }

@@ -5,7 +5,7 @@ namespace Assistant.Net.Storage.Exceptions;
 /// <summary>
 ///     Storage concurrency error occurred when optimistic concurrency write retries reached max number.
 /// </summary>
-public class StorageConcurrencyException : StorageException
+public sealed class StorageConcurrencyException : StorageException
 {
     /// <summary/>
     public StorageConcurrencyException() : this("Storage failed to write database concurrently.") { }

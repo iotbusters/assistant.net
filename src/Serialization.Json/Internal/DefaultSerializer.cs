@@ -8,7 +8,7 @@ namespace Assistant.Net.Serialization.Internal;
 /// <summary>
 ///     Default typed serializer implementation.
 /// </summary>
-public class DefaultSerializer<T> : ISerializer<T>
+public sealed class DefaultSerializer<T> : ISerializer<T>
 {
     private readonly ISerializer<T> serializer;
 

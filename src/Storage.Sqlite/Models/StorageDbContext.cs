@@ -8,7 +8,7 @@ namespace Assistant.Net.Storage.Models;
 /// <summary>
 ///     SQLite storage database context.
 /// </summary>
-public class StorageDbContext : DbContext
+public sealed class StorageDbContext : DbContext
 {
     /// <summary/>
     public StorageDbContext(DbContextOptions<StorageDbContext> options) : base(options) { }

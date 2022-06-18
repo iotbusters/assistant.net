@@ -6,7 +6,7 @@ namespace Assistant.Net.Options;
 /// <summary>
 ///     SQLite client configuration for specific provider usage.
 /// </summary>
-public class SqliteOptions
+public sealed class SqliteOptions
 {
     /// <summary>
     ///     Sqlite server connection string.

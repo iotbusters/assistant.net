@@ -5,7 +5,7 @@ namespace Assistant.Net.Storage.Models;
 /// <summary>
 ///     Internal key representation object.
 /// </summary>
-public class KeyRecord
+public sealed class KeyRecord
 {
     /// <summary/>
     public KeyRecord(string id, string type, byte[] content)

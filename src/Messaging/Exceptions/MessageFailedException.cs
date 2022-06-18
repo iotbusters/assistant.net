@@ -5,7 +5,7 @@ namespace Assistant.Net.Messaging.Exceptions;
 /// <summary>
 ///     Message failure exception.
 /// </summary>
-public class MessageFailedException : MessageException
+public sealed class MessageFailedException : MessageException
 {
     private const string DefaultMessage = "Message handling has failed.";
 

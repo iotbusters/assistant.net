@@ -6,7 +6,7 @@ namespace Assistant.Net.Options;
 ///     Lazily initializing <typeparamref name="TInstance"/> instance factory with caching behavior.
 /// </summary>
 /// <typeparam name="TInstance">Lazily creating type.</typeparam>
-public class InstanceCachingFactory<TInstance> : InstanceFactory<TInstance> where TInstance : class?
+public sealed class InstanceCachingFactory<TInstance> : InstanceFactory<TInstance> where TInstance : class?
 {
     private TInstance? instance;
 
@@ -22,7 +22,7 @@ public class InstanceCachingFactory<TInstance> : InstanceFactory<TInstance> wher
 /// </summary>
 /// <typeparam name="TInstance">Lazily creating type.</typeparam>
 /// <typeparam name="TParameter">Parameter type required for creating <typeparamref name="TInstance"/> type.</typeparam>
-public class InstanceCachingFactory<TInstance, TParameter> : InstanceFactory<TInstance, TParameter> where TInstance : class?
+public sealed class InstanceCachingFactory<TInstance, TParameter> : InstanceFactory<TInstance, TParameter> where TInstance : class?
 {
     private TInstance? instance;
 
