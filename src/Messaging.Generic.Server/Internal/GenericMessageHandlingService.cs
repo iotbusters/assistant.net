@@ -1,7 +1,5 @@
 ﻿using Assistant.Net.Abstractions;
-using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
@@ -20,12 +18,15 @@ namespace Assistant.Net.Messaging.Internal;
 /// <summary>
 ///     Storage based message handling service.
 /// </summary>
-internal class GenericMessageHandlingService : BackgroundService
+internal sealed class GenericMessageHandlingService : BackgroundService
 {
     private readonly ILogger<GenericMessageHandlingService> logger;
     private readonly IOptionsMonitor<GenericHandlingServerOptions> options;
     private readonly ITypeEncoder typeEncoder;
-    private readonly IServiceScopeFactory scopeFactory;
+    private readonly IDisposable disposable;
+    private readonly IPartitionedAdminStorage<int, IAbstractMessage> requestStorage;
+    private readonly IStorage<int, long> processedIndexStorage;
+    private readonly MessageHandler messageHandler;
 
     public GenericMessageHandlingService(
         ILogger<GenericMessageHandlingService> logger,
@@ -36,23 +37,24 @@ internal class GenericMessageHandlingService : BackgroundService
         this.logger = logger;
         this.options = options;
         this.typeEncoder = typeEncoder;
-        this.scopeFactory = scopeFactory;
+        var scope = scopeFactory.CreateScopeWithNamedOptionContext(GenericOptionsNames.DefaultName);
+        disposable = scope;
+        requestStorage = scope.ServiceProvider.GetRequiredService<IPartitionedAdminStorage<int, IAbstractMessage>>();
+        processedIndexStorage = scope.ServiceProvider.GetRequiredService<IStorage<int, long>>();
+        messageHandler = scope.ServiceProvider.GetRequiredService<MessageHandler>();
     }
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        await using var mainScope = scopeFactory.CreateAsyncScopeWithNamedOptionContext(GenericOptionsNames.DefaultName);
-        var provider = mainScope.ServiceProvider;
-        var requestStorage = provider.GetRequiredService<IPartitionedAdminStorage<int, IAbstractMessage>>();
-        var processedIndexStorage = provider.GetRequiredService<IStorage<int, long>>();
-        var responseStorage = provider.GetRequiredService<IStorage<IAbstractMessage, CachingResult>>();
-
-        var serverOptions = options.CurrentValue;
-        var index = await processedIndexStorage.GetOrDefault(serverOptions.InstanceId, token) + 1;
+        logger.LogDebug("Find processing index.");
+        var index = await processedIndexStorage.GetOrDefault(options.CurrentValue.InstanceId, token) + 1;
+        logger.LogDebug("Found processing {Index:D5}.", index);
 
         while (!token.IsCancellationRequested)
         {
             logger.LogDebug("#{Index:D5}: Find next message.", index);
+
+            var serverOptions = options.CurrentValue;
 
             if (await requestStorage.TryGet(serverOptions.InstanceId, index, token) is not Some<IAbstractMessage>(var message)
                 || await requestStorage.TryGetAudit(serverOptions.InstanceId, index, token) is not Some<Audit>(var audit))
@@ -62,55 +64,16 @@ internal class GenericMessageHandlingService : BackgroundService
                 continue;
             }
 
-            var messageName = typeEncoder.Encode(message.GetType())
-                              ?? throw new NotSupportedException($"Not supported  message type '{message.GetType()}'.");
             var messageId = message.GetSha1();
-
-            logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) found.", index, messageName, messageId);
-
-            await using var scope = scopeFactory.CreateAsyncScopeWithNamedOptionContext(GenericOptionsNames.DefaultName);
-            var scopedProvider = scope.ServiceProvider;
-
-            var diagnosticContext = scopedProvider.GetRequiredService<DiagnosticContext>();
-            diagnosticContext.CorrelationId = audit.CorrelationId;
-
-            var client = scopedProvider.GetRequiredService<IMessagingClient>();
-
-            logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) handling: begins.",
-                index, messageName, messageId);
-
-
-            try
+            var messageType = message.GetType();
+            var messageName = typeEncoder.Encode(messageType);
+            if (!serverOptions.MessageTypes.Contains(messageType))
+                logger.LogInformation("#{Index:D5}: Message({MessageName}/{MessageId}) is unknown.", index, messageName, messageId);
+            else
             {
-                await responseStorage.AddOrGet(message, async _ =>
-                {
-                    CachingResult result;
-                    try
-                    {
-                        var response = await client.RequestObject(message, token);
-                        result = CachingResult.OfValue((dynamic)response);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) handling: request failed.",
-                            index, messageName, messageId);
-                        result = CachingResult.OfException(ex);
-                    }
-
-                    logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) handling: request responded.",
-                        index, messageName, messageId);
-                    return result;
-                }, token);
+                logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) found.", index, messageName, messageId);
+                await messageHandler.Handle(message, audit, token);
             }
-            catch (OperationCanceledException ex) when (token.IsCancellationRequested)
-            {
-                logger.LogInformation(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) handling: response storing cancelled.",
-                    index, messageName, messageId);
-                break;
-            }
-
-            logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) handling: succeeded.",
-                index, messageName, messageId);
 
             try
             {
@@ -118,18 +81,21 @@ internal class GenericMessageHandlingService : BackgroundService
             }
             catch (OperationCanceledException ex) when (token.IsCancellationRequested)
             {
-                logger.LogInformation(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) handling: index persisting cancelled.",
-                    index, messageName, messageId);
+                logger.LogInformation(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) index: cancelled.", index, messageName, messageId);
                 break;
             }
 
-            logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) handling: index persisted.",
-                index, messageName, messageId);
-
-            index++;
+            logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) index: updated.", index, messageName, messageId);
             await Task.WhenAny(Task.Delay(serverOptions.NextMessageDelayTime, token));
+            index++;
         }
 
         logger.LogInformation("#{Index:D5}: Exit by cancellation.", index);
+    }
+
+    public override void Dispose()
+    {
+        disposable.Dispose();
+        base.Dispose();
     }
 }
