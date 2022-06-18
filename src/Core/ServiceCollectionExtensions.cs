@@ -57,7 +57,18 @@ public static class ServiceCollectionExtensions
     ///     if it hasn't been already registered.
     /// </summary>
     public static IServiceCollection AddTypeEncoder(this IServiceCollection services) => services
+        .AddLogging()
         .TryAddSingleton<ITypeEncoder, TypeEncoder>();
+
+    /// <summary>
+    ///     Adds <see cref="ITypeEncoder"/> implementation with default behavior
+    ///     if it hasn't been already registered.
+    /// </summary>
+    /// <param name="services"/>
+    /// <param name="configureOptions">The action used to configure the options.</param>
+    public static IServiceCollection AddTypeEncoder(this IServiceCollection services, Action<TypeEncoderOptions> configureOptions) => services
+        .TryAddSingleton<ITypeEncoder, TypeEncoder>()
+        .Configure(configureOptions);
 
     /// <summary>
     ///     Adds default <see cref="NamedOptionsContext"/>.
@@ -89,7 +100,7 @@ public static class ServiceCollectionExtensions
     ///     to the underlying service collection and custom options binding configuration.
     /// </summary>
     /// <typeparam name="TOptions">The options type to be configured.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+    /// <param name="services"/>
     /// <param name="name">The name of the options instance.</param>
     public static Options.OptionsBuilder<TOptions> AddOptions<TOptions>(this IServiceCollection services, string name)
         where TOptions : class
@@ -106,7 +117,7 @@ public static class ServiceCollectionExtensions
     ///     to the underlying service collection and custom options binding configuration.
     /// </summary>
     /// <typeparam name="TOptions">The options type to be configured.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+    /// <param name="services"/>
     /// <param name="source">Custom configuration options source instance.</param>
     public static IServiceCollection BindOptions<TOptions>(this IServiceCollection services, IConfigureOptionsSource<TOptions> source)
         where TOptions : class => services
@@ -117,7 +128,7 @@ public static class ServiceCollectionExtensions
     ///     to the underlying service collection and custom options binding configuration.
     /// </summary>
     /// <typeparam name="TOptions">The options type to be configured.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+    /// <param name="services"/>
     /// <param name="name">The name of the options instance.</param>
     /// <param name="source">Custom configuration options source instance.</param>
     public static IServiceCollection BindOptions<TOptions>(this IServiceCollection services, string name, IConfigureOptionsSource<TOptions> source)
@@ -132,7 +143,6 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <typeparam name="TOptions">The options type to be configured.</typeparam>
     /// <typeparam name="TConfigureOptionsSource">Custom configuration options source type.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
     public static IServiceCollection BindOptions<TOptions, TConfigureOptionsSource>(this IServiceCollection services)
         where TConfigureOptionsSource : IConfigureOptionsSource<TOptions>
         where TOptions : class => services
@@ -144,7 +154,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <typeparam name="TOptions">The options type to be configured.</typeparam>
     /// <typeparam name="TConfigureOptionsSource">Custom configuration options source type.</typeparam>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+    /// <param name="services"/>
     /// <param name="name">The name of the options instance.</param>
     public static IServiceCollection BindOptions<TOptions, TConfigureOptionsSource>(this IServiceCollection services, string name)
         where TConfigureOptionsSource : IConfigureOptionsSource<TOptions>
@@ -156,7 +166,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Registers a configuration instance which TOptions will bind against.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+    /// <param name="services"/>
     /// <param name="config">The configuration being bound.</param>
     public static IServiceCollection Configure<TOptions>(this IServiceCollection services, IConfigurationSection config)
         where TOptions : class => services
@@ -178,7 +188,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Registers an options source instance which TOptions will bind against.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+    /// <param name="services"/>
     /// <param name="name">The name of the options instance.</param>
     /// <param name="source">The options source being bound.</param>
     public static IServiceCollection Configure<TOptions>(this IServiceCollection services, string name, IConfigureOptionsSource<TOptions> source)
@@ -191,6 +201,8 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Registers an action used to configure a particular type of options with following validation.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="configureOptions">The action used to configure the options.</param>
     public static IServiceCollection Configure<TOptions>(this IServiceCollection services, Action<TOptions> configureOptions)
         where TOptions : class => services
         .Configure(Microsoft.Extensions.Options.Options.DefaultName, configureOptions);
@@ -198,7 +210,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Registers an action used to configure a particular type of options with following validation.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+    /// <param name="services"/>
     /// <param name="name">The name of the options instance.</param>
     /// <param name="configureOptions">The action used to configure the options.</param>
     public static IServiceCollection Configure<TOptions>(this IServiceCollection services, string name, Action<TOptions> configureOptions)
@@ -211,7 +223,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Registers an action used to configure a particular type of options with following validation.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+    /// <param name="services"/>
     /// <param name="configureOptions">The action used to configure the options.</param>
     public static IServiceCollection Configure<TOptions, TDep>(this IServiceCollection services, Action<TOptions, TDep> configureOptions)
         where TOptions : class
@@ -221,7 +233,7 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Registers an action used to configure a particular type of options with following validation.
     /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
+    /// <param name="services"/>
     /// <param name="name">The name of the options instance.</param>
     /// <param name="configureOptions">The action used to configure the options.</param>
     public static IServiceCollection Configure<TOptions, TDep>(this IServiceCollection services, string name, Action<TOptions, TDep> configureOptions)
@@ -237,6 +249,9 @@ public static class ServiceCollectionExtensions
     ///     with the <paramref name="implementationType"/> implementation
     ///     to the <paramref name="services"/> if the service type hasn't already been registered.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="serviceType">The type of the service to register.</param>
+    /// <param name="implementationType">The implementation type of the service.</param>
     public static IServiceCollection TryAddTransient(this IServiceCollection services, Type serviceType, Type implementationType)
     {
         ServiceCollectionDescriptorExtensions.TryAddTransient(services, serviceType, implementationType);
@@ -264,6 +279,8 @@ public static class ServiceCollectionExtensions
     ///     to the <paramref name="services"/> if the service type hasn't already been registered.
     /// </summary>
     /// <typeparam name="TService">The type of the service to add.</typeparam>
+    /// <param name="services"/>
+    /// <param name="implementationFactory">The factory that creates the service.</param>
     public static IServiceCollection TryAddTransient<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
         where TService : class
     {
@@ -286,6 +303,9 @@ public static class ServiceCollectionExtensions
     ///     with the <paramref name="implementationType"/> implementation
     ///     to the <paramref name="services"/> if the service type hasn't already been registered.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="serviceType">The type of the service to register.</param>
+    /// <param name="implementationType">The implementation type of the service.</param>
     public static IServiceCollection TryAddScoped(this IServiceCollection services, Type serviceType, Type implementationType)
     {
         ServiceCollectionDescriptorExtensions.TryAddScoped(services, serviceType, implementationType);
@@ -313,6 +333,8 @@ public static class ServiceCollectionExtensions
     ///     to the <paramref name="services"/> if the service type hasn't already been registered.
     /// </summary>
     /// <typeparam name="TService">The type of the service to add.</typeparam>
+    /// <param name="services"/>
+    /// <param name="implementationFactory">The factory that creates the service.</param>
     public static IServiceCollection TryAddScoped<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
         where TService : class
     {
@@ -335,6 +357,9 @@ public static class ServiceCollectionExtensions
     ///     with the <paramref name="implementationType"/> implementation
     ///     to the <paramref name="services"/> if the service type hasn't already been registered.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="serviceType">The type of the service to register.</param>
+    /// <param name="implementationType">The implementation type of the service.</param>
     public static IServiceCollection TryAddSingleton(this IServiceCollection services, Type serviceType, Type implementationType)
     {
         ServiceCollectionDescriptorExtensions.TryAddSingleton(services, serviceType, implementationType);
@@ -347,6 +372,8 @@ public static class ServiceCollectionExtensions
     ///     to the <paramref name="services"/> if the service type hasn't already been registered.
     /// </summary>
     /// <typeparam name="TService">The type of the service to add.</typeparam>
+    /// <param name="services"/>
+    /// <param name="implementationFactory">The factory that creates the service.</param>
     public static IServiceCollection TryAddSingleton<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
         where TService : class
     {
@@ -394,6 +421,8 @@ public static class ServiceCollectionExtensions
     ///     and adds it as a <see cref="ServiceLifetime.Transient"/> service using the factory
     ///     specified in <paramref name="implementationFactory"/>.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="implementationFactory">The factory that creates the service.</param>
     public static IServiceCollection ReplaceTransient<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
         where TService : class =>
         services.Replace(ServiceDescriptor.Transient(implementationFactory));
@@ -411,6 +440,9 @@ public static class ServiceCollectionExtensions
     ///     Removes the first service in <see cref="IServiceCollection"/> with the same <paramref name="serviceType"/>
     ///     and adds it as a <see cref="ServiceLifetime.Transient"/> with the <paramref name="implementationType"/>.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="serviceType">The type of the service to register.</param>
+    /// <param name="implementationType">The implementation type of the service.</param>
     public static IServiceCollection ReplaceTransient(this IServiceCollection services, Type serviceType, Type implementationType) =>
         services.Replace(ServiceDescriptor.Transient(serviceType, implementationType));
 
@@ -419,6 +451,9 @@ public static class ServiceCollectionExtensions
     ///     and adds it as a <see cref="ServiceLifetime.Transient"/> service using the factory
     ///     specified in <paramref name="implementationFactory"/>.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="serviceType">The type of the service to register.</param>
+    /// <param name="implementationFactory">The factory that creates the service.</param>
     public static IServiceCollection ReplaceTransient(this IServiceCollection services, Type serviceType, Func<IServiceProvider, object> implementationFactory) =>
         services.Replace(ServiceDescriptor.Transient(serviceType, implementationFactory));
 
@@ -437,6 +472,8 @@ public static class ServiceCollectionExtensions
     ///     and adds it as a <see cref="ServiceLifetime.Scoped"/> service using the factory
     ///     specified in <paramref name="implementationFactory"/>.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="implementationFactory">The factory that creates the service.</param>
     public static IServiceCollection ReplaceScoped<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
         where TService : class =>
         services.Replace(ServiceDescriptor.Scoped(implementationFactory));
@@ -454,6 +491,9 @@ public static class ServiceCollectionExtensions
     ///     Removes the first service in <see cref="IServiceCollection"/> with the same <paramref name="serviceType"/>
     ///     and adds it as a <see cref="ServiceLifetime.Scoped"/> with the <paramref name="implementationType"/>.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="serviceType">The type of the service to register.</param>
+    /// <param name="implementationType">The implementation type of the service.</param>
     public static IServiceCollection ReplaceScoped(this IServiceCollection services, Type serviceType, Type implementationType) =>
         services.Replace(ServiceDescriptor.Scoped(serviceType, implementationType));
 
@@ -462,6 +502,9 @@ public static class ServiceCollectionExtensions
     ///     and adds it as a <see cref="ServiceLifetime.Scoped"/> service using the factory
     ///     specified in <paramref name="implementationFactory"/>.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="serviceType">The type of the service to register.</param>
+    /// <param name="implementationFactory">The factory that creates the service.</param>
     public static IServiceCollection ReplaceScoped(this IServiceCollection services, Type serviceType, Func<IServiceProvider, object> implementationFactory) =>
         services.Replace(ServiceDescriptor.Scoped(serviceType, implementationFactory));
 
@@ -480,6 +523,8 @@ public static class ServiceCollectionExtensions
     ///     and adds it as a <see cref="ServiceLifetime.Singleton"/> service using the factory
     ///     specified in <paramref name="implementationFactory"/>.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="implementationFactory">The factory that creates the service.</param>
     public static IServiceCollection ReplaceSingleton<TService>(this IServiceCollection services, Func<IServiceProvider, TService> implementationFactory)
         where TService : class =>
         services.Replace(ServiceDescriptor.Singleton(implementationFactory));
@@ -497,6 +542,9 @@ public static class ServiceCollectionExtensions
     ///     Removes the first service in <see cref="IServiceCollection"/> with the same <paramref name="serviceType"/>
     ///     and adds it as a <see cref="ServiceLifetime.Singleton"/> with the <paramref name="implementationType"/>.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="serviceType">The type of the service to register.</param>
+    /// <param name="implementationType">The implementation type of the service.</param>
     public static IServiceCollection ReplaceSingleton(this IServiceCollection services, Type serviceType, Type implementationType) =>
         services.Replace(ServiceDescriptor.Singleton(serviceType, implementationType));
 
@@ -505,6 +553,9 @@ public static class ServiceCollectionExtensions
     ///     and adds it as a <see cref="ServiceLifetime.Singleton"/> service using the factory
     ///     specified in <paramref name="implementationFactory"/>.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="serviceType">The type of the service to register.</param>
+    /// <param name="implementationFactory">The factory that creates the service.</param>
     public static IServiceCollection ReplaceSingleton(this IServiceCollection services, Type serviceType, Func<IServiceProvider, object> implementationFactory) =>
         services.Replace(ServiceDescriptor.Singleton(serviceType, implementationFactory));
 
@@ -514,6 +565,8 @@ public static class ServiceCollectionExtensions
     /// <remarks>
     ///     Pay attention, a proxy will be generated during configuration time so it will take additional time.
     /// </remarks>
+    /// <param name="services"/>
+    /// <param name="configureProxy">The action used to decorate the proxy.</param>
     /// <exception cref="ArgumentException"/>
     public static IServiceCollection Decorate<TService>(this IServiceCollection services, Action<Proxy<TService>> configureProxy)
         where TService : class
@@ -542,6 +595,8 @@ public static class ServiceCollectionExtensions
     /// <remarks>
     ///     Pay attention, a proxy will be generated during configuration time so it will take additional time.
     /// </remarks>
+    /// <param name="services"/>
+    /// <param name="configureProxy">The action used to decorate the proxy.</param>
     /// <exception cref="ArgumentException"/>
     public static IServiceCollection Decorate<TService>(this IServiceCollection services, Action<IServiceProvider, Proxy<TService>> configureProxy)
         where TService : class

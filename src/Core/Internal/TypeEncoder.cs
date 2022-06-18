@@ -1,4 +1,7 @@
 using Assistant.Net.Abstractions;
+using Assistant.Net.Options;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,29 +12,37 @@ using System.Text.RegularExpressions;
 namespace Assistant.Net.Internal;
 
 /// <summary>
-///     Default implementation of type encoder
-///     with short type name based behavior.
+///     Default implementation of type encoder with short type name based behavior.
 /// </summary>
-internal class TypeEncoder : ITypeEncoder, IDisposable
+internal sealed class TypeEncoder : ITypeEncoder, IDisposable
 {
     private const string GenericTypeArgumentsSeparator = ",";
 
-    private readonly Dictionary<string, Type> knownTypes = new();
+    private readonly ILogger<TypeEncoder> logger;
+    private readonly TypeEncoderOptions options;
+    private readonly List<(string name, Type type)> duplicatedTypes = new();
+    private readonly Dictionary<string, Type> decodeTypes = new();
+    private readonly Dictionary<Type, string> encodeTypes = new();
     private readonly Regex arrayRegex = new("^(\\w+)(\\[(,*)\\])?$", RegexOptions.Compiled);
     private readonly Regex genericRegex = new("^(\\w+`\\d)(\\[([\\[\\]`,\\w]+)*\\])?$", RegexOptions.Compiled);
 
-    public TypeEncoder()
+    public TypeEncoder(ILogger<TypeEncoder> logger, IOptions<TypeEncoderOptions> options)
     {
+        this.logger = logger;
+        this.options = options.Value;
+
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             AddTypes(assembly);
         AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
     }
 
+    public IEnumerable<(string name, Type type)> DuplicatedTypes => duplicatedTypes;
+
     void IDisposable.Dispose() => AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoad;
 
     public Type? Decode(string encodedType)
     {
-        if (knownTypes.TryGetValue(encodedType, out var type))
+        if (decodeTypes.TryGetValue(encodedType, out var type))
             return type;
 
         var arrayMatch = arrayRegex.Match(encodedType);
@@ -40,7 +51,7 @@ internal class TypeEncoder : ITypeEncoder, IDisposable
             var arrayType = arrayMatch.Groups[1].Value;
             var arrayRanksDefinition = arrayMatch.Groups[3].Value;
 
-            if (!knownTypes.TryGetValue(arrayType, out var typeDefinition))
+            if (!decodeTypes.TryGetValue(arrayType, out var typeDefinition))
                 return null; // unknown array type
 
             if (arrayRanksDefinition.Length == 0)
@@ -55,7 +66,7 @@ internal class TypeEncoder : ITypeEncoder, IDisposable
             var typeDefinitionName = genericMatch.Groups[1].Value;
             var argumentTypeNames = genericMatch.Groups[3].Value.Split(GenericTypeArgumentsSeparator);
 
-            if (!knownTypes.TryGetValue(typeDefinitionName, out var typeDefinition))
+            if (!decodeTypes.TryGetValue(typeDefinitionName, out var typeDefinition))
                 return null; // unknown definition type
 
             var argumentTypes = argumentTypeNames.Select(Decode).ToArray();
@@ -65,33 +76,59 @@ internal class TypeEncoder : ITypeEncoder, IDisposable
             return typeDefinition.MakeGenericType(argumentTypes!);
         }
 
-        return null; // not supported
+        return null; // unknown type
     }
 
     /// <exception cref="ArgumentException"/>
     public string? Encode(Type type)
     {
-        if (type.GetCustomAttribute<CompilerGeneratedAttribute>() != null)
-            return null;// not supported
+        if (encodeTypes.TryGetValue(type, out var name))
+            return name;
 
-        if (!type.IsGenericType || type.IsGenericTypeDefinition)
-            return type.Name;
+        if (type.IsArray)
+            return GetName(type);
+
+        if (type.IsGenericTypeDefinition)
+            return null; // excluded
+
+        if (!type.IsGenericType || !encodeTypes.TryGetValue(type.GetGenericTypeDefinition(), out name))
+            return null; // unknown type
 
         var argumentTypeNames = type.GetGenericArguments().Select(Encode);
         var commaSeparatedArgumentTypeNames = string.Join(GenericTypeArgumentsSeparator, argumentTypeNames);
-        return $"{type.Name}[{commaSeparatedArgumentTypeNames}]";
+        return $"{GetName(type)}[{commaSeparatedArgumentTypeNames}]";
     }
 
     private void AddTypes(Assembly assembly)
     {
-        var types = assembly.GetTypes().Where(x => !string.IsNullOrEmpty(x.Namespace));
-        foreach (var type in types)
+        if (options.ExcludedAssembly.Contains(assembly))
+            return;
+
+        var types = assembly.GetTypes()
+            .Where(x => x.IsPublic)
+            .Where(x => x.Namespace != null)
+            .Where(x => x.GetCustomAttribute<CompilerGeneratedAttribute>() == null)
+            .Where(x => !options.ExcludedNamespaces.Any(y => x.Namespace!.StartsWith(y)))
+            .ToArray();
+        foreach (var type in types.Except(encodeTypes.Keys).Except(options.ExcludedTypes))
         {
-            var typeName = type.Name;
-            if (!knownTypes.ContainsKey(typeName))
-                knownTypes.Add(typeName, type);
+            var name = GetName(type);
+            if (!decodeTypes.TryGetValue(name, out var knownType))
+            {
+                encodeTypes.Add(type, name);
+                decodeTypes.Add(name, type);
+            }
+            else if (type != knownType)
+            {
+                duplicatedTypes.Add((name, knownType));
+                logger.LogWarning("Duplicate {Type} was ignored.", knownType);
+            }
         }
     }
 
+    private static string GetName(Type type) => type.IsNested
+        ? type.FullName!.Substring(type.Namespace!.Length)
+        : type.Name;
+    
     private void OnAssemblyLoad(object? sender, AssemblyLoadEventArgs args) => AddTypes(args.LoadedAssembly);
 }

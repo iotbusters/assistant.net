@@ -31,7 +31,9 @@ A tool that converts type to string and resolves it back if it's available in cu
 Alternative to .net default full assembly name although it ignores type assembly name/version and namespace.
 
 ```csharp
-using var provider = new ServiceCollection().AddTypeEncoder().BuildServiceProvider();
+using var provider = new ServiceCollection()
+    .AddTypeEncoder(o => o.Exclude("NUnit").Exclude<DateTime>())
+    .BuildServiceProvider();
 
 var encoder = provider.GetRequiredService<ITypeEncoder>();
 
@@ -71,7 +73,7 @@ using var provider = new ServiceCollection()
     .Configure<SomeOptions>("name", o => o.Value = 123)
     .BuildServiceProvider();
 using var scope = provider.CreateScope();
-scope.ServiceProvider.ConfigureNamedOptionContext("name");
+scope.ConfigureNamedOptionContext("name");
 
 var options = scope.ServiceProvider.GetRequiredService<INamedOptions<SomeOptions>>().Value;
 ```
