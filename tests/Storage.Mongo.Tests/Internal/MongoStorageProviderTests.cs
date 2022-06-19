@@ -159,7 +159,7 @@ public class MongoStorageProviderTests
 
         MongoCollectionMock = MockCollection<MongoRecord>(mongoDatabaseMock);
 
-        TestKey = new KeyRecord(id: Guid.NewGuid().ToString(), type: "key", content: Array.Empty<byte>());
+        TestKey = new KeyRecord(id: Guid.NewGuid().ToString(), type: "key", content: Array.Empty<byte>(), valueType: "value");
 
         Provider = new ServiceCollection()
             .AddStorage(b => b
