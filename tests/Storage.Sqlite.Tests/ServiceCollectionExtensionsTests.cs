@@ -11,10 +11,12 @@ namespace Assistant.Net.Storage.Sqlite.Tests;
 
 public class ServiceCollectionExtensionsTests
 {
+    private const string ConnectionString = "Data Source=:memory:";
+
     private static IServiceProvider Provider => new ServiceCollection()
         .AddSystemClock()
         .AddStorage(b => b
-            .UseSqlite("Data Source=:memory:")
+            .UseSqlite(ConnectionString)
             .AddSqlite<TestKey, object>()
             .AddSqlitePartitioned<TestKey, object>()
             .AddSqliteHistorical<TestKey, object>())
@@ -23,7 +25,7 @@ public class ServiceCollectionExtensionsTests
     private static IServiceProvider SingleProvider => new ServiceCollection()
         .AddSystemClock()
         .AddStorage(b => b
-            .UseSqlite("Data Source=:memory:")
+            .UseSqlite(ConnectionString)
             .UseSqliteSingleProvider()
             .AddSingle<TestKey, object>()
             .AddSinglePartitioned<TestKey, object>()
@@ -33,9 +35,9 @@ public class ServiceCollectionExtensionsTests
 
     private static IServiceProvider NamedProvider => new ServiceCollection()
         .AddSystemClock()
-        .AddStorage(b => b.UseSqlite("Data Source=:memory:").AddSqlite<TestKey, object>())
-        .ConfigureStorage("1", b => b.UseSqlite("Data Source=:memory:").AddSqlitePartitioned<TestKey, object>())
-        .ConfigureStorage("2", b => b.UseSqlite("Data Source=:memory:").AddSqliteHistorical<TestKey, object>())
+        .AddStorage(b => b.UseSqlite(ConnectionString).AddSqlite<TestKey, object>())
+        .AddStorage("1", b => b.UseSqlite(ConnectionString).AddSqlitePartitioned<TestKey, object>())
+        .AddStorage("2", b => b.UseSqlite(ConnectionString).AddSqliteHistorical<TestKey, object>())
         .BuildServiceProvider();
 
     [Test]

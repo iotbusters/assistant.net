@@ -33,8 +33,8 @@ public class ServiceCollectionExtensionsTests
     private static IServiceProvider NamedProvider => new ServiceCollection()
         .AddSystemClock()
         .AddStorage(b => b.UseMongo("mongodb://localhost").AddMongo<TestKey, object>())
-        .ConfigureStorage("1", b => b.UseMongo("mongodb://localhost").AddMongoPartitioned<TestKey, object>())
-        .ConfigureStorage("2", b => b.UseMongo("mongodb://localhost").AddMongoHistorical<TestKey, object>())
+        .AddStorage("1", b => b.UseMongo("mongodb://localhost").AddMongoPartitioned<TestKey, object>())
+        .AddStorage("2", b => b.UseMongo("mongodb://localhost").AddMongoHistorical<TestKey, object>())
         .BuildServiceProvider();
 
     [Test]

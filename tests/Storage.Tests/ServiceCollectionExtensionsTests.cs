@@ -36,8 +36,8 @@ public class ServiceCollectionExtensionsTests
     private static IServiceProvider NamedProvider => new ServiceCollection()
         .AddSystemClock()
         .AddStorage(b => b.AddLocal<TestKey, object>())
-        .ConfigureStorage("1", b => b.AddLocalPartitioned<TestKey, object>())
-        .ConfigureStorage("2", b => b.AddLocalHistorical<TestKey, object>())
+        .AddStorage("1", b => b.AddLocalPartitioned<TestKey, object>())
+        .AddStorage("2", b => b.AddLocalHistorical<TestKey, object>())
         .BuildServiceProvider();
 
     [Test]

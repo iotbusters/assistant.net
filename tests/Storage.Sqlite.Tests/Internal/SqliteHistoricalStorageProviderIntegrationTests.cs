@@ -89,7 +89,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
         // arrange: storage population
         foreach (var i in Enumerable.Range(1, count))
         {
-            var key = new KeyRecord(i.ToString(), "type", Array.Empty<byte>());
+            var key = new KeyRecord(i.ToString(), "type", Array.Empty<byte>(), "type");
             await Storage.AddOrUpdate(key, TestValue($"{i}-1", version: i));
             await Storage.AddOrUpdate(TestKey, TestValue($"value-{i}", version: i));
         }
@@ -147,7 +147,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
         // arrange: storage population
         foreach (var i in Enumerable.Range(1, count))
         {
-            var key = new KeyRecord(i.ToString(), "type", Array.Empty<byte>());
+            var key = new KeyRecord(i.ToString(), "type", Array.Empty<byte>(), "type");
             await Storage.AddOrUpdate(key, TestValue($"{i}-1", version: i));
             await Storage.AddOrUpdate(TestKey, TestValue($"value-{i}", version: i));
         }
@@ -275,7 +275,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     private static CancellationToken LongCancellationToken => new CancellationTokenSource(2000).Token;
     private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version = 1) => new(TestCorrelationId, TestUser, TestDate, version);
-    private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>());
+    private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: "type");
     private string TestCorrelationId { get; } = Guid.NewGuid().ToString();
     private string TestUser { get; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;
