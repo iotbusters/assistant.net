@@ -20,7 +20,7 @@ public class MessagingClientFixtureBuilder
     public MessagingClientFixtureBuilder()
     {
         Services = new ServiceCollection()
-            .AddTypeEncoder(o => o.Exclude("Microsoft.VisualStudio").Exclude("NUnit"))
+            .AddTypeEncoder(o => o.Exclude("NUnit"))
             .AddMessagingClient(b => b
                 .UseWeb(hcb => hcb.ConfigureHttpClient(hc =>
                 {
@@ -39,7 +39,7 @@ public class MessagingClientFixtureBuilder
                 .UseTestServer()
                 .Configure(b => b.UseRemoteWebMessageHandler()))
             .ConfigureServices(s => s
-                .AddTypeEncoder(o => o.Exclude("Microsoft.VisualStudio").Exclude("NUnit"))
+                .AddTypeEncoder(o => o.Exclude("NUnit"))
                 .AddWebMessageHandling(b => b
                     .RemoveInterceptor<CachingInterceptor>()
                     .RemoveInterceptor<RetryingInterceptor>()

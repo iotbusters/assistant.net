@@ -13,7 +13,7 @@ public class MessagingClientFixtureBuilder
             .UseTestServer()
             .Configure(b => b.UseRemoteWebMessageHandler())
             .ConfigureServices(s => s
-                .AddTypeEncoder(o => o.Exclude("Microsoft.VisualStudio").Exclude("NUnit"))
+                .AddTypeEncoder(o => o.Exclude("NUnit"))
                 .AddWebMessageHandling(b => b
                     .RemoveInterceptor<CachingInterceptor>()
                     .RemoveInterceptor<DeferredCachingInterceptor>()
