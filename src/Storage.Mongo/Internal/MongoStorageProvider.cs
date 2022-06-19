@@ -50,14 +50,13 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogDebug("Storage.AddOrGet({KeyId}): {Attempt} won't proceed.", key.Id, attempt);
-                break;
+                logger.LogError("Storage.AddOrGet({KeyId}): {Attempt} reached the limit.", key.Id, attempt);
+                throw new StorageConcurrencyException();
             }
-                
+
+            logger.LogWarning("Storage.AddOrGet({KeyId}): {Attempt} failed.", key.Id, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
-
-        throw new StorageConcurrencyException();
     }
 
     public async Task<ValueRecord> AddOrUpdate(
@@ -82,14 +81,13 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} won't proceed.", key.Id, attempt);
-                break;
+                logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} reached the limit.", key.Id, attempt);
+                throw new StorageConcurrencyException();
             }
 
+            logger.LogWarning("Storage.AddOrGet({KeyId}): {Attempt} failed.", key.Id, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
-
-        throw new StorageConcurrencyException();
     }
 
     public Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token) => FindOne(key, token);
@@ -103,13 +101,13 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
 
     private async Task<Option<ValueRecord>> FindOne(KeyRecord key, CancellationToken token)
     {
-        logger.LogDebug("MongoDB({CollectionName}:{RecordId}) finding: begins.", collection.CollectionNamespace.FullName, key.Id);
+        logger.LogDebug("MongoDB({CollectionName}: {RecordId}) finding: begins.", collection.CollectionNamespace.FullName, key.Id);
 
         var found = await collection.Find(filter: x => x.Id == key.Id, new FindOptions()).SingleOrDefaultAsync(token);
 
         logger.LogDebug(found != null
-                ? "MongoDB({CollectionName}:{RecordId}) finding: succeeded."
-                : "MongoDB({CollectionName}:{RecordId}) finding: not found.",
+                ? "MongoDB({CollectionName}: {RecordId}) finding: succeeded."
+                : "MongoDB({CollectionName}: {RecordId}) finding: not found.",
             collection.CollectionNamespace.FullName, key.Id);
 
         return found.AsOption().MapOption(x => new ValueRecord(x.ValueType, x.ValueContent, new Audit(x.Details, x.Version)));
@@ -127,7 +125,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
             added.Content,
             added.Audit.Details);
 
-        logger.LogDebug("MongoDB({CollectionName}:{RecordId}) inserting: begins.", collection.CollectionNamespace.FullName, key.Id);
+        logger.LogDebug("MongoDB({CollectionName}: {RecordId}) inserting: begins.", collection.CollectionNamespace.FullName, key.Id);
 
         try
         {
@@ -136,12 +134,12 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
                 new InsertOneOptions(),
                 token);
 
-            logger.LogDebug("MongoDB({CollectionName}:{RecordId}) inserting : succeeded.", collection.CollectionNamespace.FullName, key.Id);
+            logger.LogDebug("MongoDB({CollectionName}: {RecordId}) inserting : succeeded.", collection.CollectionNamespace.FullName, key.Id);
             return Option.Some(added with {Audit = new Audit(added.Audit.Details, addedRecord.Version)});
         }
         catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
         {
-            logger.LogWarning(ex, "MongoDB({CollectionName}:{RecordId}) inserting: already present.", collection.CollectionNamespace.FullName, key.Id);
+            logger.LogWarning(ex, "MongoDB({CollectionName}: {RecordId}) inserting: already present.", collection.CollectionNamespace.FullName, key.Id);
             return Option.None;
         }
     }
@@ -164,7 +162,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
             updated.Content,
             updated.Audit.Details);
 
-        logger.LogDebug("MongoDB({CollectionName}:{RecordId}:{OldVersion}/{NewVersion}) replacing: begins.",
+        logger.LogDebug("MongoDB({CollectionName}: {RecordId})[{OldVersion}/{NewVersion}] replacing: begins.",
             collection.CollectionNamespace.FullName, key.Id, found.Audit.Version, updatedRecord.Version);
 
         var result = await collection.ReplaceOneAsync(
@@ -175,12 +173,12 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
 
         if (result.MatchedCount != 0)
         {
-            logger.LogDebug("MongoDB({CollectionName}:{RecordId}:{OldVersion}/{NewVersion}) replacing: succeeded.",
+            logger.LogDebug("MongoDB({CollectionName}: {RecordId})[{OldVersion}/{NewVersion}] replacing: succeeded.",
                 collection.CollectionNamespace.FullName, key.Id, found.Audit.Version, updatedRecord.Version);
             return Option.Some(updated with {Audit = new Audit(updated.Audit.Details, updatedRecord.Version)});
         }
 
-        logger.LogDebug("MongoDB({CollectionName}:{RecordId}:{OldVersion}/{NewVersion}) replacing: outdated version.",
+        logger.LogDebug("MongoDB({CollectionName}: {RecordId})[{OldVersion}/{NewVersion}] replacing: outdated version.",
             collection.CollectionNamespace.FullName, key.Id, found.Audit.Version, updatedRecord.Version);
         return Option.None;
 
@@ -188,7 +186,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
 
     private async Task<Option<ValueRecord>> DeleteOne(KeyRecord key, CancellationToken token)
     {
-        logger.LogDebug("MongoDB({CollectionName}:{RecordId}) deleting: begins.", collection.CollectionNamespace.FullName, key.Id);
+        logger.LogDebug("MongoDB({CollectionName}: {RecordId}) deleting: begins.", collection.CollectionNamespace.FullName, key.Id);
 
         var deleted = await collection.FindOneAndDeleteAsync<MongoRecord>(
             filter: x => x.Id == key.Id,
@@ -196,8 +194,8 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
             token);
 
         logger.LogDebug(deleted != null
-                ? "MongoDB({CollectionName}:{RecordId}) deleting: succeeded."
-                : "MongoDB({CollectionName}:{RecordId}) deleting: not found.",
+                ? "MongoDB({CollectionName}: {RecordId}) deleting: succeeded."
+                : "MongoDB({CollectionName}: {RecordId}) deleting: not found.",
             collection.CollectionNamespace.FullName, key.Id);
 
         return deleted.AsOption().MapOption(x => new ValueRecord(x.ValueType, x.ValueContent, new Audit(x.Details, x.Version)));
