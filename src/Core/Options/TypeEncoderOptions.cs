@@ -19,9 +19,14 @@ public class TypeEncoderOptions
         "Assistant.Net.Interceptors",
         "Assistant.Net.Options",
         "Assistant.Net.Unions",
+        "Microsoft",
+        "System.Configuration",
+        "System.Data",
         "System.Diagnostics",
         "System.Reflection",
-        "System.Runtime"
+        "System.Runtime",
+        "System.Threading",
+        "System.Xml"
     };
 
     /// <summary>
