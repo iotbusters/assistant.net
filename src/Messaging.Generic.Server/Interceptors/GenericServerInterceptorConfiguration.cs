@@ -13,15 +13,16 @@ namespace Assistant.Net.Messaging.Interceptors;
 public sealed class GenericServerInterceptorConfiguration : IMessageConfiguration
 {
     /// <inheritdoc/>
-    public void Configure(MessagingClientBuilder builder) =>
-        builder.Services
-            .ConfigureMessagingClient(builder.Name, b => b
-                .AddConfiguration<DefaultInterceptorConfiguration>()
-                .Retry(new ExponentialBackoff {MaxAttemptNumber = 5, Interval = TimeSpan.FromSeconds(1), Rate = 1.2})
-                .TimeoutIn(TimeSpan.FromSeconds(3)))
-            // order matters: it overrides one from DefaultInterceptorConfiguration implementation.
-            .AddStorage(builder.Name, b => b
-                .AddSingle<IAbstractMessage, CachingResult>()
-                .AddSinglePartitioned<int, IAbstractMessage>()
-                .AddSingle<int, long>());
+    public void Configure(MessagingClientBuilder builder)
+    {
+        builder
+            .AddConfiguration<DefaultInterceptorConfiguration>()
+            .ReplaceInterceptor<CachingInterceptor, RespondingInterceptor>()
+            .Retry(new ExponentialBackoff {MaxAttemptNumber = 5, Interval = TimeSpan.FromSeconds(1), Rate = 1.2})
+            .TimeoutIn(TimeSpan.FromSeconds(3));
+        builder.Services.AddStorage(builder.Name, b => b
+            .AddSingle<IAbstractMessage, CachingResult>()
+            .AddSinglePartitioned<int, IAbstractMessage>()
+            .AddSingle<int, long>());
+    }
 }

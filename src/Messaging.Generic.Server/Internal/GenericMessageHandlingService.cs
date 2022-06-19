@@ -48,18 +48,16 @@ internal sealed class GenericMessageHandlingService : BackgroundService
     {
         logger.LogDebug("Find processing index.");
         var index = await processedIndexStorage.GetOrDefault(options.CurrentValue.InstanceId, token) + 1;
-        logger.LogDebug("Found processing {Index:D5}.", index);
+        logger.LogInformation("{Index:D5} processing: begins.", index);
 
         while (!token.IsCancellationRequested)
         {
-            logger.LogDebug("#{Index:D5}: Find next message.", index);
-
             var serverOptions = options.CurrentValue;
 
             if (await requestStorage.TryGet(serverOptions.InstanceId, index, token) is not Some<IAbstractMessage>(var message)
                 || await requestStorage.TryGetAudit(serverOptions.InstanceId, index, token) is not Some<Audit>(var audit))
             {
-                logger.LogDebug("#{Index:D5}: No message has found yet.", index);
+                logger.LogDebug("#{Index:D5} processing: message not found.", index);
                 await Task.WhenAny(Task.Delay(serverOptions.InactivityDelayTime, token));
                 continue;
             }
@@ -90,7 +88,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             index++;
         }
 
-        logger.LogInformation("#{Index:D5}: Exit by cancellation.", index);
+        logger.LogInformation("#{Index:D5} processing: cancelled.", index);
     }
 
     public override void Dispose()

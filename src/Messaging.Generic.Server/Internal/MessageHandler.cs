@@ -1,10 +1,7 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Utils;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +18,6 @@ internal sealed class MessageHandler : IDisposable
     private readonly ITypeEncoder typeEncoder;
     private readonly IServiceScopeFactory scopeFactory;
     private readonly IDisposable disposable;
-    private readonly IStorage<IAbstractMessage, CachingResult> responseStorage;
 
     public MessageHandler(
         ILogger<MessageHandler> logger,
@@ -33,7 +29,6 @@ internal sealed class MessageHandler : IDisposable
         this.scopeFactory = scopeFactory;
         var scope = scopeFactory.CreateAsyncScopeWithNamedOptionContext(GenericOptionsNames.DefaultName);
         disposable = scope;
-        responseStorage = scope.ServiceProvider.GetRequiredService<IStorage<IAbstractMessage, CachingResult>>();
     }
 
     public async Task Handle(IAbstractMessage message, Audit audit, CancellationToken token)
@@ -51,32 +46,16 @@ internal sealed class MessageHandler : IDisposable
 
         try
         {
-            await responseStorage.AddOrGet(message, async _ =>
-            {
-                CachingResult result;
-                try
-                {
-                    var response = await client.RequestObject(message, token);
-                    result = CachingResult.OfValue((dynamic)response);
-                }
-                catch (MessageNotRegisteredException)
-                {
-                    throw;
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Message({MessageName}/{MessageId}) handling: request failed.", messageName, messageId);
-                    result = CachingResult.OfException(ex);
-                }
-
-                logger.LogDebug("Message({MessageName}/{MessageId}) handling: request responded.", messageName, messageId);
-                return result;
-            }, token);
+            await client.RequestObject(message, token); // response is stored at RespondingInterceptor
         }
         catch (OperationCanceledException ex) when (token.IsCancellationRequested)
         {
-            logger.LogInformation(ex, "Message({MessageName}/{MessageId}) handling: response storing cancelled.", messageName, messageId);
+            logger.LogDebug(ex, "Message({MessageName}/{MessageId}) handling: cancelled.", messageName, messageId);
             return;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Message({MessageName}/{MessageId}) handling: failed.", messageName, messageId);
         }
 
         logger.LogDebug("Message({MessageName}/{MessageId}) handling: succeeded.", messageName, messageId);
