@@ -4,6 +4,25 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.3.118] - 2022-06-19
+
+[Assistant.NET Release 0.3.118](https://github.com/iotbusters/assistant.net/releases/tag/0.3.118)
+
+### 0.3.118 Added
+
+- static types filtering in type encoder
+- extension method for disabling timeout interceptor when debugger is attached
+
+### 0.3.118 Changed
+
+- moved response storing to interceptor for generic messaging server
+- small refactoring to web and generic messaging clients
+- storage and messaging logging
+
+### 0.3.118 Fixed
+
+- conflicting key between different storage value types issue
+
 ## [0.2.117] - 2022-06-18
 
 [Assistant.NET Release 0.2.117](https://github.com/iotbusters/assistant.net/releases/tag/0.2.117)
@@ -12,7 +31,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - type encoder configuration
 - diagnostics configuration extension methods
-- missed message type acceptance filtering in storage base messaging server
+- missed message type acceptance filtering in generic messaging server
 
 ## [0.2.116] - 2022-06-17
 
