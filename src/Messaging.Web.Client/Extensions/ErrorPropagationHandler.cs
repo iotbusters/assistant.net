@@ -31,7 +31,7 @@ public sealed class ErrorPropagationHandler : DelegatingHandler
         {
             (true, HttpStatusCode.NotModified)  => response,
             (true, HttpStatusCode.OK)           => response,
-            (true, HttpStatusCode.Accepted)     => throw new MessageDeferredException(),
+            (true, HttpStatusCode.Accepted)     => throw new MessageDeferredException("Web message handler deferred a message."),
             (true, var x)                       => throw new MessageContractException(InvalidStatusMessage(x)),
 
             (false, HttpStatusCode.NotFound)            => throw await ReadException(response, cancellationToken),
