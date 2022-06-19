@@ -146,14 +146,7 @@ public static class MessagingClientOptionsExtensions
             if (!options.Interceptors.Any(x => x.MessageType == messageType && x.InterceptorType == interceptorType))
             {
                 var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
-                {
-                    var interceptor = p.Create(interceptorType);
-                    var responseType = messageType.GetResponseType();
-                    var abstractInterceptorType =
-                        typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, responseType!);
-                    var abstractInterceptor = p.Create(abstractInterceptorType, interceptor);
-                    return (IAbstractInterceptor)abstractInterceptor;
-                });
+                    CreateAbstractInterceptor(p, interceptorType, messageType));
                 options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, factory));
             }
 
@@ -173,9 +166,13 @@ public static class MessagingClientOptionsExtensions
         if (!messageTypes.Any())
             throw new ArgumentException($"Expected message interceptor but provided {interceptorType}.", nameof(interceptorInstance));
 
-        var factory = new InstanceFactory<IAbstractInterceptor>(_ => (IAbstractInterceptor)interceptorInstance);
         foreach (var messageType in messageTypes)
-            options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, factory));
+            if (!options.Interceptors.Any(x => x.MessageType == messageType && x.InterceptorType == interceptorType))
+            {
+                var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
+                    CreateAbstractInterceptor(p, interceptorInstance, messageType));
+                options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, factory));
+            }
 
         return options;
     }
@@ -205,10 +202,7 @@ public static class MessagingClientOptionsExtensions
             var index = options.Interceptors.IndexOf(definition);
             options.Interceptors.RemoveAt(index);
             var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
-            {
-                var interceptor = p.Create(replacementType);
-                return (IAbstractInterceptor)interceptor;
-            });
+                CreateAbstractInterceptor(p, replacementType, definition.MessageType));
             options.Interceptors.Insert(index, new InterceptorDefinition(definition.MessageType, replacementType, factory));
         }
 
@@ -241,4 +235,23 @@ public static class MessagingClientOptionsExtensions
         options.Interceptors.Clear();
         return options;
     }
+
+    private static IAbstractInterceptor CreateAbstractInterceptor(IServiceProvider provider, Type interceptorType, Type messageType)
+    {
+        var interceptor = provider.Create(interceptorType);
+        var responseType = messageType.GetResponseType();
+        var abstractInterceptorType = typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, responseType!);
+        var abstractInterceptor = provider.Create(abstractInterceptorType, interceptor);
+        return (IAbstractInterceptor)abstractInterceptor;
+    }
+
+    private static IAbstractInterceptor CreateAbstractInterceptor(IServiceProvider provider, object interceptor, Type messageType)
+    {
+        var interceptorType = interceptor.GetType();
+        var responseType = messageType.GetResponseType();
+        var abstractInterceptorType = typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, responseType!);
+        var abstractInterceptor = provider.Create(abstractInterceptorType, interceptor);
+        return (IAbstractInterceptor)abstractInterceptor;
+    }
+
 }

@@ -1,5 +1,7 @@
+using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Utils;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
@@ -11,7 +13,10 @@ namespace Assistant.Net.Messaging.Interceptors;
 public sealed class DiagnosticsInterceptor : DiagnosticsInterceptor<IMessage<object>, object>, IMessageInterceptor
 {
     /// <summary/>
-    public DiagnosticsInterceptor(ILogger<DiagnosticsInterceptor<IMessage<object>, object>> logger, IDiagnosticFactory diagnosticFactory) : base(logger, diagnosticFactory) { }
+    public DiagnosticsInterceptor(
+        ILogger<DiagnosticsInterceptor<IMessage<object>, object>> logger,
+        ITypeEncoder typeEncode,
+        IDiagnosticFactory diagnosticFactory) : base(logger, typeEncode, diagnosticFactory) { }
 }
 
 /// <summary>
@@ -21,37 +26,50 @@ public class DiagnosticsInterceptor<TMessage, TResponse> : IMessageInterceptor<T
     where TMessage : IMessage<TResponse>
 {
     private readonly ILogger logger;
+    private readonly ITypeEncoder typeEncode;
     private readonly IDiagnosticFactory diagnosticFactory;
 
     /// <summary/>
     public DiagnosticsInterceptor(
         ILogger<DiagnosticsInterceptor<TMessage, TResponse>> logger,
+        ITypeEncoder typeEncode,
         IDiagnosticFactory diagnosticFactory)
     {
         this.logger = logger;
+        this.typeEncode = typeEncode;
         this.diagnosticFactory = diagnosticFactory;
     }
 
     /// <inheritdoc/>
     public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
     {
-        var messageName = message.GetType().Name.ToLower();
+        var messageId = message.GetSha1();
+        var messageName = typeEncode.Encode(message.GetType());
 
-        logger.LogInformation("{Message} handling operation has started.", messageName);
         var operation = diagnosticFactory.Start($"{messageName}-handling-local");
+        logger.LogDebug("Message({MessageName}/{MessageId}) operation: begins.", messageId, messageName);
 
+        TResponse response;
         try
         {
-            var response = await next(message, token);
-            logger.LogInformation("{Message} handling operation has succeeded.", messageName);
-            operation.Complete();
-            return response;
+            response = await next(message, token);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            logger.LogError(ex, "{Message} handling operation has failed.", messageName);
+            logger.LogWarning("Message({MessageName}/{MessageId}) operation: cancelled.",
+                messageName, messageId);
             operation.Fail();
             throw;
         }
+        catch (Exception ex)
+        {
+            logger.LogInformation(ex, "Message({MessageName}/{MessageId}) operation: failed.", messageId, messageName);
+            operation.Fail();
+            throw;
+        }
+
+        logger.LogDebug("Message({MessageName}/{MessageId}) operation: succeeded.", messageId, messageName);
+        operation.Complete();
+        return response;
     }
 }

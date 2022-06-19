@@ -35,7 +35,7 @@ public sealed class MessagingClientOptions
     /// <remarks>
     ///     It impacts <see cref="ErrorHandlingInterceptor{TMessage,TResponse}"/>.
     /// </remarks>
-    public List<Type> ExposedExceptions { get; } = new() {typeof(MessageException)};
+    public HashSet<Type> ExposedExceptions { get; } = new() {typeof(MessageException)};
 
     /// <summary>
     ///     List of allowed for retrying transient exceptions.
@@ -43,7 +43,7 @@ public sealed class MessagingClientOptions
     /// <remarks>
     ///     It impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor{TMessage,TResponse}"/>.
     /// </remarks>
-    public List<Type> TransientExceptions { get; } = new();
+    public HashSet<Type> TransientExceptions { get; } = new();
 
     /// <summary>
     ///     Message handling retry strategy.
