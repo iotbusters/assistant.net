@@ -105,8 +105,8 @@ internal sealed class TypeEncoder : ITypeEncoder, IDisposable
             return;
 
         var types = assembly.GetTypes()
-            .Where(x => x.IsPublic)
-            .Where(x => x.Namespace != null)
+            .Where(x => x.IsPublic && x.Namespace != null)
+            .Where(x => !x.IsAbstract || !x.IsSealed) // not static
             .Where(x => x.GetCustomAttribute<CompilerGeneratedAttribute>() == null)
             .Where(x => !options.ExcludedNamespaces.Any(y => x.Namespace!.StartsWith(y)))
             .ToArray();
