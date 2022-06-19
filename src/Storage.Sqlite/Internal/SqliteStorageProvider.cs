@@ -110,7 +110,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         await DeleteValue(key, token);
 
     public IQueryable<KeyRecord> GetKeys() =>
-        CreateDbContext().StorageKeys.AsNoTracking().Select(x => new KeyRecord(x.Id, x.Type, x.Content));
+        CreateDbContext().StorageKeys.AsNoTracking().Select(x => new KeyRecord(x.Id, x.Type, x.Content, x.ValueType));
 
     public void Dispose() { }
 
@@ -154,7 +154,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
             logger.LogDebug("SQLite({KeyId}) key: found.", key.Id);
         else
         {
-            var keyRecord = new StorageKeyRecord(key.Id, key.Type, key.Content);
+            var keyRecord = new StorageKeyRecord(key.Id, key.Type, key.Content, key.ValueType);
             await dbContext.AddAsync(keyRecord, token);
 
             logger.LogDebug("SQLite({KeyId}) key: adding.", key.Id);

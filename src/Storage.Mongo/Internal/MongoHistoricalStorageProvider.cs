@@ -53,7 +53,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
                 return currentValue;
             }
 
-            var addedKey = new MongoKeyRecord(key.Id, key.Type, key.Content);
+            var addedKey = new MongoKeyRecord(key.Id, key.Type, key.Content, key.ValueType);
             await InsertOne(keyCollection, addedKey, token);
 
             var newValue = await addFactory(key);
@@ -92,7 +92,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
             ValueRecord newValue;
             if (await TryGet(key, token) is not Some<ValueRecord>(var currentValue))
             {
-                var addedKey = new MongoKeyRecord(key.Id, key.Type, key.Content);
+                var addedKey = new MongoKeyRecord(key.Id, key.Type, key.Content, key.ValueType);
                 await InsertOne(keyCollection, addedKey, token);
                     
                 newValue = await addFactory(key);
@@ -254,7 +254,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
         from k in keyCollection.AsQueryable(new AggregateOptions())
         join kv in keyValueCollection on k.Id equals kv.Key.Id into kvs
         where kvs.Any()
-        select new KeyRecord(k.Id, k.Type, k.Content);
+        select new KeyRecord(k.Id, k.Type, k.Content, k.ValueType);
 
     public void Dispose() { /* The mongo client is DI managed. */ }
 
