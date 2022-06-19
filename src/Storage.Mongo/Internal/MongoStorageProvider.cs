@@ -95,7 +95,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
     public Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken token) => DeleteOne(key, token);
 
     public IQueryable<KeyRecord> GetKeys() =>
-        collection.AsQueryable(new AggregateOptions()).Select(x => new KeyRecord(x.Id, x.KeyType, x.KeyContent));
+        collection.AsQueryable(new AggregateOptions()).Select(x => new KeyRecord(x.Id, x.KeyType, x.KeyContent, x.ValueType));
 
     public void Dispose() { /* The mongo client is DI managed. */ }
 

@@ -19,11 +19,12 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
 {
     private readonly IDiagnosticContext diagnosticContext;
     private readonly ISystemClock clock;
-    protected readonly string KeyType;
-    protected readonly string ValueType;
-    protected readonly IStorageProvider<TValue> BackedStorage;
-    protected readonly IValueConverter<TKey> KeyConverter;
+    private readonly string keyType;
+    private readonly string valueType;
+    private readonly byte[] valueTypeContent;
+    private readonly IValueConverter<TKey> keyConverter;
     protected readonly IValueConverter<TValue> ValueConverter;
+    protected readonly IStorageProvider<TValue> BackedStorage;
 
     /// <exception cref="ArgumentException"/>
     protected Storage(
@@ -35,11 +36,12 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     {
         this.diagnosticContext = diagnosticContext;
         this.clock = clock;
-        this.KeyType = GetTypeName<TKey>(typeEncoder);
-        this.ValueType = GetTypeName<TValue>(typeEncoder);
-        this.BackedStorage = backedStorage;
-        this.KeyConverter = GetConverter<TKey>(provider);
+        this.keyType = GetTypeName<TKey>(typeEncoder);
+        this.valueType = GetTypeName<TValue>(typeEncoder);
+        this.valueTypeContent = GetConverter<string>(provider).Convert(valueType).ConfigureAwait(false).GetAwaiter().GetResult();
+        this.keyConverter = GetConverter<TKey>(provider);
         this.ValueConverter = GetConverter<TValue>(provider);
+        this.BackedStorage = backedStorage;
     }
 
     /// <exception cref="ArgumentException"/>
@@ -60,11 +62,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     {
         try
         {
-            var keyContent = await KeyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: KeyType,
-                content: keyContent);
+            var keyRecord = await CreateKeyRecord(key, token);
             var valueRecord = await BackedStorage.AddOrGet(
                 keyRecord,
                 addFactory: async _ =>
@@ -72,7 +70,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                     var value = await addFactory(key);
                     var content = await ValueConverter.Convert(value, token);
                     var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, 1);
-                    return new ValueRecord(ValueType, content, audit);
+                    return new ValueRecord(valueType, content, audit);
                 }, token);
             return await ValueConverter.Convert(valueRecord.Content, token);
         }
@@ -90,11 +88,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     {
         try
         {
-            var keyContent = await KeyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: KeyType,
-                content: keyContent);
+            var keyRecord = await CreateKeyRecord(key, token);
             var valueRecord = await BackedStorage.AddOrUpdate(
                 keyRecord,
                 addFactory: async _ =>
@@ -102,7 +96,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                     var value = await addFactory(key);
                     var content = await ValueConverter.Convert(value, token);
                     var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, 1);
-                    return new ValueRecord(ValueType, content, audit);
+                    return new ValueRecord(valueType, content, audit);
                 },
                 updateFactory: async (_, old) =>
                 {
@@ -110,7 +104,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                     var newValue = await updateFactory(key, oldValue);
                     var content = await ValueConverter.Convert(newValue, token);
                     var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, old.Audit.Version + 1);
-                    return new ValueRecord(ValueType, content, audit);
+                    return new ValueRecord(valueType, content, audit);
                 },
                 token);
             return await ValueConverter.Convert(valueRecord.Content, token);
@@ -125,11 +119,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     {
         try
         {
-            var keyContent = await KeyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: KeyType,
-                content: keyContent);
+            var keyRecord = await CreateKeyRecord(key, token);
             return await BackedStorage.TryGet(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
         }
         catch (Exception ex) when (ex is not StorageException)
@@ -142,11 +132,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     {
         try
         {
-            var keyContent = await KeyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: KeyType,
-                content: keyContent);
+            var keyRecord = await CreateKeyRecord(key, token);
             return await BackedStorage.TryGet(keyRecord, token).MapOption(x => x.Audit);
         }
         catch (Exception ex) when (ex is not StorageException)
@@ -159,11 +145,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     {
         try
         {
-            var keyContent = await KeyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: KeyType,
-                content: keyContent);
+            var keyRecord = await CreateKeyRecord(key, token);
             return await BackedStorage.TryRemove(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
         }
         catch (Exception ex) when (ex is not StorageException)
@@ -174,9 +156,21 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
 
     public IAsyncEnumerable<TKey> GetKeys(CancellationToken token) =>
         BackedStorage.GetKeys()
-            .Where(x => x.Type == KeyType)
+            .Where(x => x.Type == keyType && x.ValueType == valueType)
             .AsAsync()
-            .Select(x => KeyConverter.Convert(x.Content, token));
+            .Select(x => keyConverter.Convert(x.Content, token));
+
+    protected async Task<KeyRecord> CreateKeyRecord(TKey key, CancellationToken token)
+    {
+        var keyContent = await keyConverter.Convert(key, token);
+        var keyIdContent = keyContent.ToArray();
+        Array.Resize(ref keyIdContent, keyIdContent.Length + valueTypeContent.Length);
+        Array.Copy(valueTypeContent, 0, keyIdContent, keyIdContent.Length - valueTypeContent.Length, valueTypeContent.Length);
+
+        var keyId = keyIdContent.GetSha1();
+        var keyRecord = new KeyRecord(keyId, keyType, keyContent, valueType);
+        return keyRecord;
+    }
 
     private static string GetTypeName<T>(ITypeEncoder typeEncoder) =>
         typeEncoder.Encode(typeof(T)) ?? throw new ArgumentException($"Type({typeof(T).Name}) isn't supported.");

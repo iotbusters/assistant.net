@@ -19,6 +19,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
 {
     private readonly string keyType;
     private readonly string valueType;
+    private readonly byte[] valueTypeContent;
     private readonly IDiagnosticContext diagnosticContext;
     private readonly ISystemClock clock;
     private readonly IPartitionedStorageProvider<TValue> backedStorage;
@@ -36,6 +37,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
         this.clock = clock;
         this.keyType = GetTypeName<TKey>(typeEncoder);
         this.valueType = GetTypeName<TValue>(typeEncoder);
+        this.valueTypeContent = GetConverter<string>(provider).Convert(valueType).ConfigureAwait(false).GetAwaiter().GetResult();
         this.backedStorage = GetProvider(provider);
         this.keyConverter = GetConverter<TKey>(provider);
         this.valueConverter = GetConverter<TValue>(provider);
@@ -45,11 +47,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
     {
         try
         {
-            var keyContent = await keyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: keyType,
-                content: keyContent);
+            var keyRecord = await CreateKeyRecord(key, token);
             var content = await valueConverter.Convert(value, token);
             return await backedStorage.Add(
                 keyRecord,
@@ -77,11 +75,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
             throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {index}.", nameof(index));
         try
         {
-            var keyContent = await keyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: keyType,
-                content: keyContent);
+            var keyRecord = await CreateKeyRecord(key, token);
             return await backedStorage.TryGet(keyRecord, index, token).MapOption(x => valueConverter.Convert(x.Content, token));
         }
         catch (Exception ex) when (ex is not StorageException)
@@ -102,11 +96,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
             throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {index}.", nameof(index));
         try
         {
-            var keyContent = await keyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: keyType,
-                content: keyContent);
+            var keyRecord = await CreateKeyRecord(key, token);
             return await backedStorage.TryGet(keyRecord, index, token).MapOption(x => x.Audit);
         }
         catch (Exception ex) when (ex is not StorageException)
@@ -119,11 +109,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
     {
         try
         {
-            var keyContent = await keyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: keyType,
-                content: keyContent);
+            var keyRecord = await CreateKeyRecord(key, token);
             return await backedStorage.TryRemove(keyRecord, token).MapOption(x => valueConverter.Convert(x.Content, token));
         }
         catch (Exception ex) when (ex is not StorageException)
@@ -138,17 +124,25 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
             throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {upToIndex}.", nameof(upToIndex));
         try
         {
-            var keyContent = await keyConverter.Convert(key, token);
-            var keyRecord = new KeyRecord(
-                id: keyContent.GetSha1(),
-                type: keyType,
-                content: keyContent);
+            var keyRecord = await CreateKeyRecord(key, token);
             return await backedStorage.TryRemove(keyRecord, upToIndex, token);
         }
         catch (Exception ex) when (ex is not StorageException)
         {
             throw new StorageException(ex);
         }
+    }
+
+    protected async Task<KeyRecord> CreateKeyRecord(TKey key, CancellationToken token)
+    {
+        var keyContent = await keyConverter.Convert(key, token);
+        var keyIdContent = keyContent.ToArray();
+        Array.Resize(ref keyIdContent, keyIdContent.Length + valueTypeContent.Length);
+        Array.Copy(valueTypeContent, 0, keyIdContent, keyIdContent.Length - valueTypeContent.Length, valueTypeContent.Length);
+
+        var keyId = keyIdContent.GetSha1();
+        var keyRecord = new KeyRecord(keyId, keyType, keyContent, valueType);
+        return keyRecord;
     }
 
     private static string GetTypeName<T>(ITypeEncoder typeEncoder) =>
