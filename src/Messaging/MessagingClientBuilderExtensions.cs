@@ -5,6 +5,8 @@ using Assistant.Net.Messaging.Options;
 using Assistant.Net.RetryStrategies;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Diagnostics;
+using System.Threading;
 
 namespace Assistant.Net.Messaging;
 
@@ -366,6 +368,22 @@ public static class MessagingClientBuilderExtensions
     public static MessagingClientBuilder TimeoutIn(this MessagingClientBuilder builder, TimeSpan timeout)
     {
         builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.Timeout = timeout);
+        return builder;
+    }
+
+    /// <summary>
+    ///     Overrides message handling timeout to infinite if debugger is attached.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="TimeoutInterceptor"/>.
+    /// </remarks>
+    public static MessagingClientBuilder DebuggerTimeout(this MessagingClientBuilder builder)
+    {
+        builder.Services.ConfigureMessagingClientOptions(builder.Name, o =>
+        {
+            if (Debugger.IsAttached)
+                o.Timeout = Timeout.InfiniteTimeSpan;
+        });
         return builder;
     }
 }
