@@ -51,14 +51,13 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogDebug("Storage.AddOrGet({KeyId}): {Attempt} won't proceed.", key.Id, attempt);
-                break;
+                logger.LogError("Storage.AddOrGet({KeyId}): {Attempt} reached the limit.", key.Id, attempt);
+                throw new StorageConcurrencyException();
             }
-                
+
+            logger.LogWarning("Storage.AddOrGet({KeyId}): {Attempt} failed.", key.Id, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
-
-        throw new StorageConcurrencyException();
     }
 
     public async Task<ValueRecord> AddOrUpdate(
@@ -92,19 +91,16 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
                 }
             }
 
-            logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} failed.", key.Id, attempt);
-
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} won't proceed.", key.Id, attempt);
-                break;
+                logger.LogError("Storage.AddOrUpdate({KeyId}): {Attempt} reached the limit.", key.Id, attempt);
+                throw new StorageConcurrencyException();
             }
 
+            logger.LogWarning("Storage.AddOrUpdate({KeyId}): {Attempt} failed.", key.Id, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
-
-        throw new StorageConcurrencyException();
     }
 
     public async Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token) =>
@@ -130,7 +126,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
 
         var found = await values.SingleOrDefaultAsync(x => x.KeyId == key.Id, token);
         if (found != null)
-            logger.LogDebug("SQLite({KeyId}:{Version}) querying: found.", key.Id, found.Version);
+            logger.LogDebug("SQLite({KeyId})[{Version}] querying: found.", key.Id, found.Version);
         else
             logger.LogDebug("SQLite({KeyId}) querying: not found.", key.Id);
 
@@ -198,7 +194,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         var oldValue = ToValue(found);
         var newValue = await updateFactory(key, oldValue);
 
-        logger.LogDebug("SQLite({KeyId}:{OldVersion}/{NewVersion}) updating: begins.",
+        logger.LogDebug("SQLite({KeyId})[{OldVersion}/{NewVersion}] updating: begins.",
             key.Id, oldValue.Audit.Version, newValue.Audit.Version);
 
         found.Version = newValue.Audit.Version;
@@ -212,19 +208,19 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         }
         catch (DbUpdateConcurrencyException ex)
         {
-            logger.LogWarning(ex, "SQLite({KeyId}:{OldVersion}/{NewVersion}) updating: already modified concurrently.",
+            logger.LogWarning(ex, "SQLite({KeyId})[{OldVersion}/{NewVersion}] updating: already modified concurrently.",
                 key.Id, oldValue.Audit.Version, newValue.Audit.Version);
             return Option.None;
         }
         catch (DbUpdateException ex) when (ex.InnerException is SqliteException {SqliteExtendedErrorCode: 787})
         {
             // note: foreign key constraint violation (https://www.sqlite.org/rescode.html#constraint_foreignkey)
-            logger.LogWarning(ex, "SQLite({KeyId}:{OldVersion}/{NewVersion}) inserting: key concurrently deleted.",
+            logger.LogWarning(ex, "SQLite({KeyId})[{OldVersion}/{NewVersion}] inserting: key concurrently deleted.",
                 key.Id, oldValue.Audit.Version, newValue.Audit.Version);
             return Option.None;
         }
 
-        logger.LogDebug("SQLite({KeyId}:{OldVersion}/{NewVersion}) updating: succeeded.",
+        logger.LogDebug("SQLite({KeyId})[{OldVersion}/{NewVersion}] updating: succeeded.",
             key.Id, oldValue.Audit.Version, newValue.Audit.Version);
         return Option.Some(newValue);
     }
