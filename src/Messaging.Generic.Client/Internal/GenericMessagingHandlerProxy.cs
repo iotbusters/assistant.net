@@ -45,8 +45,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         var strategy = clientOptions.ResponsePoll;
         var attempt = 1;
 
-        var messageName = typeEncoder.Encode(message.GetType())
-                          ?? throw new NotSupportedException($"Not supported  message type '{message.GetType()}'.");
+        var messageName = typeEncoder.Encode(message.GetType());
         var messageId = message.GetSha1();
 
         await Publish(message, token);
@@ -54,38 +53,39 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
 
         logger.LogDebug("Message({MessageName}/{MessageId}) polling: {Attempt} begins.", messageName, messageId, attempt);
 
-        while (!token.IsCancellationRequested)
+        while (true)
         {
             if (await responseStorage.TryGet((IAbstractMessage)message, token) is Some<CachingResult>(var response))
             {
-                logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} ends with response.", messageName, messageId, attempt);
+                logger.LogDebug("Message({MessageName}/{MessageId}) polling: {Attempt} ends with response.",
+                    messageName, messageId, attempt);
                 return response.GetValue();
             }
-
-            logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} ends without response.", messageName, messageId, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} won't proceed.", messageName, messageId, attempt);
-                break;
+                logger.LogWarning("Message({MessageName}/{MessageId}) polling: {Attempt} reached the limit.",
+                    messageName, messageId, attempt);
+                throw new MessageDeferredException("No response from server in defined amount of time.");
             }
 
+            logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} ends without response.",
+                messageName, messageId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
-
-        throw new MessageDeferredException("No response from server in defined amount of time.");
     }
 
     public async Task Publish(object message, CancellationToken token)
     {
         var clientOptions = options.Value;
+        var messageName = typeEncoder.Encode(message.GetType());
+        var messageId = message.GetSha1();
+
+        logger.LogDebug("Message({MessageName}/{MessageId}) publishing: begins.", messageName, messageId);
 
         await requestStorage.Add(clientOptions.InstanceId, (IAbstractMessage)message, token);
-
-        var messageName = typeEncoder.Encode(message.GetType())
-                          ?? throw new NotSupportedException($"Not supported  message type '{message.GetType()}'.");
-        var messageId = message.GetSha1();
-        logger.LogDebug("Message({MessageName}/{MessageId}) publishing: succeeded.", messageName, messageId);
+        
+        logger.LogDebug("Message({MessageName}/{MessageId}) publishing: ends.", messageName, messageId);
     }
 }
