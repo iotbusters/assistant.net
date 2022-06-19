@@ -18,11 +18,12 @@ public class MessagingClientFixtureBuilder
     public MessagingClientFixtureBuilder()
     {
         Services = new ServiceCollection()
-            .AddTypeEncoder(o => o.Exclude("Microsoft.VisualStudio").Exclude("NUnit"))
+            .AddTypeEncoder(o => o.Exclude("NUnit"))
             .AddMessagingClient(b => b
                 .RemoveInterceptor<CachingInterceptor>()
                 .RemoveInterceptor<RetryingInterceptor>()
-                .RemoveInterceptor<TimeoutInterceptor>())
+                .RemoveInterceptor<TimeoutInterceptor>()
+                .ClearTransientExceptions())
             .ConfigureGenericHandlerProxyOptions(o => o.ResponsePoll = new ConstantBackoff
             {
                 Interval = TimeSpan.FromSeconds(0.02), MaxAttemptNumber = 20
@@ -30,12 +31,13 @@ public class MessagingClientFixtureBuilder
             .BindOptions(clientSource);
         RemoteHostBuilder = Host.CreateDefaultBuilder()
             .ConfigureServices(s => s
-                .AddTypeEncoder(o => o.Exclude("Microsoft.VisualStudio").Exclude("NUnit"))
+                .AddTypeEncoder(o => o.Exclude("NUnit"))
                 .AddGenericMessageHandling()
                 .ConfigureGenericMessagingClient(o => o
                     .RemoveInterceptor<CachingInterceptor>()
                     .RemoveInterceptor<RetryingInterceptor>()
-                    .RemoveInterceptor<TimeoutInterceptor>())
+                    .RemoveInterceptor<TimeoutInterceptor>()
+                    .ClearTransientExceptions())
                 .ConfigureGenericHandlingServerOptions(o =>
                 {
                     o.InactivityDelayTime = TimeSpan.FromSeconds(0.005);

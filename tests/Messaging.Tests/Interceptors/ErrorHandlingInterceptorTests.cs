@@ -1,9 +1,11 @@
+using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Tests.Mocks;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using System;
 using System.Threading;
@@ -62,7 +64,12 @@ public class ErrorHandlingInterceptorTests
     public void Setup()
     {
         Options = new MessagingClientOptions();
-        Interceptor = new ErrorHandlingInterceptor(new TestNamedOptions {Value = Options});
+        Interceptor = new ServiceCollection()
+            .AddTypeEncoder()
+            .AddSingleton<INamedOptions<MessagingClientOptions>>(new TestNamedOptions {Value = Options})
+            .AddSingleton<ErrorHandlingInterceptor>()
+            .BuildServiceProvider()
+            .GetRequiredService<ErrorHandlingInterceptor>();
     }
 
     private MessagingClientOptions Options { get; set; } = null!;
