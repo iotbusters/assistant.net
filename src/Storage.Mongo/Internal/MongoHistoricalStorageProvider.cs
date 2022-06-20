@@ -53,8 +53,9 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
                 return currentValue;
             }
 
-            var addedKey = new MongoKeyRecord(key.Id, key.Type, key.Content, key.ValueType);
-            await InsertOne(keyCollection, addedKey, token);
+            var id = new Key(key.Id, key.ValueType);
+            var addedKey = new MongoKeyRecord(id, key.Type, key.Content, key.ValueType);
+            await InsertOne(keyCollection, addedKey, id, token);
 
             var newValue = await addFactory(key);
             if (await AddValue(key, newValue, token) is Some<ValueRecord>(var added))
@@ -92,8 +93,9 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
             ValueRecord newValue;
             if (await TryGet(key, token) is not Some<ValueRecord>(var currentValue))
             {
-                var addedKey = new MongoKeyRecord(key.Id, key.Type, key.Content, key.ValueType);
-                await InsertOne(keyCollection, addedKey, token);
+                var id = new Key(key.Id, key.ValueType);
+                var addedKey = new MongoKeyRecord(id, key.Type, key.Content, key.ValueType);
+                await InsertOne(keyCollection, addedKey, id, token);
                     
                 newValue = await addFactory(key);
                 logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} adding value.", key.Id, attempt);
@@ -129,10 +131,10 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
         var currentValue = await (
                 from kv in keyValueCollection.AsQueryable(new AggregateOptions())
-                where kv.Key.Id == key.Id
-                orderby kv.Key.Version descending
+                where kv.KeyVersion.Key == new Key(key.Id, key.ValueType)
+                orderby kv.KeyVersion.Version descending
                 join v in valueCollection on kv.ValueId equals v.Id
-                select new ValueRecord(v.Type, v.Content, new Audit(v.Details, kv.Key.Version)))
+                select new ValueRecord(v.Type, v.Content, new Audit(v.Details, kv.KeyVersion.Version)))
             .FirstOrDefaultAsync(token);
 
         if (currentValue == null)
@@ -152,9 +154,9 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
         var currentValue = await (
                 from kv in keyValueCollection.AsQueryable(new AggregateOptions())
-                where kv.Key.Id == key.Id && kv.Key.Version == version
+                where kv.KeyVersion.Key == new Key(key.Id, key.ValueType) && kv.KeyVersion.Version == version
                 join v in valueCollection on kv.ValueId equals v.Id
-                select new ValueRecord(v.Type, v.Content, new Audit(v.Details, kv.Key.Version)))
+                select new ValueRecord(v.Type, v.Content, new Audit(v.Details, kv.KeyVersion.Version)))
             .SingleOrDefaultAsync(token);
 
         if (currentValue == null)
@@ -187,7 +189,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
             currentValue = found;
             await DeleteMany(
                 keyValueCollection,
-                filter: x => x.Key.Id == key.Id && x.Key.Version <= currentValue.Audit.Version,
+                filter: x => x.KeyVersion.Key == new Key(key.Id, key.ValueType) && x.KeyVersion.Version <= currentValue.Audit.Version,
                 token);
 
             attempt++;
@@ -209,12 +211,12 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
         logger.LogDebug("Storage.TryRemove({KeyId}): cleaning unreferenced keys.", key.Id);
         var unreferencedKeyIds = await
             (from k in keyCollection.AsQueryable(new AggregateOptions())
-                join kv in keyValueCollection on k.Id equals kv.Key.Id into joined
+                join kv in keyValueCollection on k.Key equals kv.KeyVersion.Key into joined
                 where !joined.Any()
-                select k.Id).ToListAsync(token);
+                select k.Key).ToListAsync(token);
         if (unreferencedKeyIds.Any())
             // note: remove unreferenced keys left after previous operations.
-            await DeleteMany(keyCollection, x => unreferencedKeyIds.Contains(x.Id), token);
+            await DeleteMany(keyCollection, x => unreferencedKeyIds.Contains(x.Key), token);
 
         logger.LogDebug("Storage.TryRemove({KeyId}): cleaning unreferenced value versions.", key.Id);
         var unreferencedValueIds = await
@@ -235,7 +237,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
         var deletedCount = await DeleteMany(
             keyValueCollection,
-            filter: x => x.Key.Id == key.Id && x.Key.Version <= upToVersion,
+            filter: x => x.KeyVersion.Key == new Key(key.Id, key.ValueType) && x.KeyVersion.Version <= upToVersion,
             token);
 
         logger.LogDebug("Storage.TryRemove({KeyId}): cleaning unreferenced value versions.", key.Id);
@@ -252,9 +254,9 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
     public IQueryable<KeyRecord> GetKeys() =>
         from k in keyCollection.AsQueryable(new AggregateOptions())
-        join kv in keyValueCollection on k.Id equals kv.Key.Id into kvs
+        join kv in keyValueCollection on k.Key equals kv.KeyVersion.Key into kvs
         where kvs.Any()
-        select new KeyRecord(k.Id, k.Type, k.Content, k.ValueType);
+        select new KeyRecord(k.Key.Id, k.Type, k.Content, k.Key.ValueType);
 
     public void Dispose() { /* The mongo client is DI managed. */ }
 
@@ -268,11 +270,11 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
             newValue.Type,
             newValue.Content,
             newValue.Audit.Details);
-        if (!await InsertOne(valueCollection, valueRecord, token))
+        if (!await InsertOne(valueCollection, valueRecord, valueRecord.Id, token))
             return Option.None; // note: not really expected issue.
 
-        var keyValueRecord = new MongoKeyValueRecord(new(key.Id, newValue.Audit.Version), valueRecord.Id);
-        var isInserted = await InsertOne(keyValueCollection, keyValueRecord, token);
+        var keyValueRecord = new MongoKeyValueRecord(new(new(key.Id, key.ValueType), newValue.Audit.Version), valueRecord.Id);
+        var isInserted = await InsertOne(keyValueCollection, keyValueRecord, keyValueRecord.KeyVersion, token);
 
         if (!isInserted)
             return Option.None; // note: the value version is added.
@@ -280,22 +282,21 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
         return Option.Some(newValue);
     }
 
-    private async Task<bool> InsertOne<T>(IMongoCollection<T> collection, T record, CancellationToken token)
-        where T : IRecordIdentity
+    private async Task<bool> InsertOne<T>(IMongoCollection<T> collection, T record, object id, CancellationToken token)
     {
-        logger.LogDebug("MongoDB({CollectionName}:{RecordId}) inserting: begins.", collection.CollectionNamespace.FullName, record.Id);
+        logger.LogDebug("MongoDB({CollectionName}:{RecordId}) inserting: begins.", collection.CollectionNamespace.FullName, id);
         try
         {
             await collection.InsertOneAsync(
                 record,
                 new InsertOneOptions(),
                 token);
-            logger.LogDebug("MongoDB({CollectionName}:{RecordId}) inserting : succeeded.", collection.CollectionNamespace.FullName, record.Id);
+            logger.LogDebug("MongoDB({CollectionName}:{RecordId}) inserting : succeeded.", collection.CollectionNamespace.FullName, id);
             return true;
         }
         catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
         {
-            logger.LogWarning(ex, "MongoDB({CollectionName}:{RecordId}) inserting: already present.", collection.CollectionNamespace.FullName, record.Id);
+            logger.LogWarning(ex, "MongoDB({CollectionName}:{RecordId}) inserting: already present.", collection.CollectionNamespace.FullName, id);
             return false;
         }
     }

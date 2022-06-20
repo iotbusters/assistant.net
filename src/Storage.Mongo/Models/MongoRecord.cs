@@ -15,28 +15,26 @@ public sealed class MongoRecord
 
     /// <summary />
     public MongoRecord(
-        string id,
+        Key key,
         string keyType,
         byte[] keyContent,
         long version,
-        string valueType,
         byte[] valueContent,
         IDictionary<string, string> details)
     {
-        Id = id;
+        Key = key;
         KeyType = keyType;
         KeyContent = keyContent;
         Version = version;
-        ValueType = valueType;
         ValueContent = valueContent;
         Details = details;
     }
 
     /// <summary>
-    ///     Unique identifier.
+    ///     Unique key identifier.
     /// </summary>
     [BsonId]
-    public string Id { get; set; } = default!;
+    public Key Key { get; set; } = default!;
 
     /// <summary>
     ///     Key type name.
@@ -52,11 +50,6 @@ public sealed class MongoRecord
     ///     <see cref="ValueContent"/> state version.
     /// </summary>
     public long Version { get; set; } = default!;
-
-    /// <summary>
-    ///     Value type name.
-    /// </summary>
-    public string ValueType { get; set; } = default!;
 
     /// <summary>
     ///     Binary value content.

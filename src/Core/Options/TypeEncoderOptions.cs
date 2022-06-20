@@ -20,6 +20,7 @@ public class TypeEncoderOptions
         "Assistant.Net.Options",
         "Assistant.Net.Unions",
         "Microsoft",
+        "System.ComponentModel",
         "System.Configuration",
         "System.Data",
         "System.Diagnostics",

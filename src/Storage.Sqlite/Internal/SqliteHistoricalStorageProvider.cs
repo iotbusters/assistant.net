@@ -62,13 +62,11 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
             if (!strategy.CanRetry(attempt))
             {
                 logger.LogDebug("Storage.AddOrGet({KeyId}): {Attempt} won't proceed.", key.Id, attempt);
-                break;
+                throw new StorageConcurrencyException();
             }
 
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
-
-        throw new StorageConcurrencyException();
     }
 
     public async Task<ValueRecord> AddOrUpdate(
@@ -101,13 +99,11 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
             if (!strategy.CanRetry(attempt))
             {
                 logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} won't proceed.", key.Id, attempt);
-                break;
+                throw new StorageConcurrencyException();
             }
 
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
-
-        throw new StorageConcurrencyException();
     }
 
     public async Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token)
@@ -119,7 +115,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
         var found = await storageDbContext.HistoricalValues
             .AsNoTracking()
             .OrderBy(x => x.Version)
-            .LastOrDefaultAsync(x => x.KeyId == key.Id, token);
+            .LastOrDefaultAsync(x => x.KeyId == key.Id && x.ValueType == key.ValueType, token);
 
         if (found != null)
             logger.LogDebug("SQLite({KeyId}:{Version}) querying: found.", key.Id, found.Version);
@@ -139,7 +135,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
 
         var found = await storageDbContext.HistoricalValues
             .AsNoTracking()
-            .SingleOrDefaultAsync(x => x.KeyId == key.Id && x.Version == version, token); 
+            .SingleOrDefaultAsync(x => x.KeyId == key.Id && x.ValueType == key.ValueType && x.Version == version, token); 
 
         if (found != null)
             logger.LogDebug("SQLite({KeyId}:{Version}) querying: found.", key.Id, found.Version);
@@ -183,13 +179,11 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
             if (!strategy.CanRetry(attempt))
             {
                 logger.LogDebug("Storage.TryRemove({KeyId}): {Attempt} won't proceed.", key.Id, attempt);
-                break;
+                throw new StorageConcurrencyException();
             }
 
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
-
-        throw new StorageConcurrencyException();
     }
 
     public async Task<long> TryRemove(KeyRecord key, long upToVersion, CancellationToken token)
@@ -220,7 +214,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
 
         var dbContext = CreateDbContext();
 
-        if (await dbContext.HistoricalKeys.AnyAsync(x => x.Id == key.Id, token))
+        if (await dbContext.HistoricalKeys.AnyAsync(x => x.Id == key.Id && x.ValueType == key.ValueType, token))
             logger.LogDebug("SQLite({KeyId}) key: found.", key.Id);
         else
         {
@@ -261,7 +255,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
             return Option.None;
 
         var dbContext = CreateDbContext();
-        var valueQuery = dbContext.HistoricalValues.Where(x => x.KeyId == key.Id && x.Version <= found.Audit.Version);
+        var valueQuery = dbContext.HistoricalValues.Where(x => x.KeyId == key.Id && x.ValueType == key.ValueType && x.Version <= found.Audit.Version);
 
         var count = await valueQuery.LongCountAsync(token);
         logger.LogDebug("SQLite({KeyId}) deleting: found {Count}.", key.Id, count);
@@ -278,7 +272,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
         logger.LogDebug("SQLite({KeyId}) deleting: begins.", key.Id);
 
         var dbContext = CreateDbContext();
-        var valueQuery = dbContext.HistoricalValues.Where(x => x.KeyId == key.Id && x.Version <= upToVersion);
+        var valueQuery = dbContext.HistoricalValues.Where(x => x.KeyId == key.Id && x.ValueType == key.ValueType && x.Version <= upToVersion);
 
         var count = await valueQuery.LongCountAsync(token);
         logger.LogDebug("SQLite({KeyId}) deleting: found {Count}.", key.Id, count);
@@ -297,7 +291,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
         var dbContext = CreateDbContext();
         var keys = dbContext.HistoricalKeys;
         var values = dbContext.HistoricalValues;
-        var keyQuery = keys.Where(key => !values.Any(x => x.KeyId == key.Id));
+        var keyQuery = keys.Where(key => !values.Any(x => x.KeyId == key.Id && x.ValueType == key.ValueType));
 
         var count = await keyQuery.LongCountAsync(token);
         logger.LogDebug("SQLite(*) deleting: found {Count}.", count);

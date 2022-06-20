@@ -46,7 +46,7 @@ public sealed class StorageDbContext : DbContext
     {
         var keyBuilder = modelBuilder.Entity<StorageKeyRecord>();
         keyBuilder.ToTable(StorageKeysTableName)
-            .HasKey(x => x.Id);
+            .HasKey(x => new {x.Id, x.ValueType});
         keyBuilder.Property(x => x.Id)
             .HasMaxLength(40);
         keyBuilder.Property(x => x.Type)
@@ -56,7 +56,7 @@ public sealed class StorageDbContext : DbContext
 
         var valueBuilder = modelBuilder.Entity<StorageValueRecord>();
         valueBuilder.ToTable(StorageValuesTableName)
-            .HasKey(x => x.KeyId);
+            .HasKey(x => new {x.KeyId, x.ValueType});
         valueBuilder.Property(x => x.KeyId)
             .HasMaxLength(40);
         valueBuilder.Property(x => x.ValueType)
@@ -67,7 +67,7 @@ public sealed class StorageDbContext : DbContext
             .IsConcurrencyToken();
         valueBuilder.HasOne<StorageKeyRecord>()
             .WithMany()
-            .HasForeignKey(x => x.KeyId)
+            .HasForeignKey(x => new {x.KeyId, x.ValueType})
             .OnDelete(DeleteBehavior.Cascade);
         valueBuilder.OwnsMany(x => x.Details, b =>
         {
@@ -87,7 +87,7 @@ public sealed class StorageDbContext : DbContext
     {
         var keyBuilder = modelBuilder.Entity<HistoricalKeyRecord>();
         keyBuilder.ToTable(HistoricalKeysTableName)
-            .HasKey(x => x.Id);
+            .HasKey(x => new {x.Id, x.ValueType});
         keyBuilder.Property(x => x.Id)
             .HasMaxLength(40);
         keyBuilder.Property(x => x.Type)
@@ -97,7 +97,7 @@ public sealed class StorageDbContext : DbContext
 
         var valueBuilder = modelBuilder.Entity<HistoricalValueRecord>();
         valueBuilder.ToTable(HistoricalValuesTableName)
-            .HasKey(x => new {x.KeyId, x.Version});
+            .HasKey(x => new {x.KeyId, x.ValueType, x.Version});
         valueBuilder.Property(x => x.KeyId)
             .HasMaxLength(40);
         valueBuilder.Property(x => x.ValueType)
@@ -108,7 +108,7 @@ public sealed class StorageDbContext : DbContext
             .IsConcurrencyToken();
         valueBuilder.HasOne<HistoricalKeyRecord>()
             .WithMany()
-            .HasForeignKey(x => x.KeyId)
+            .HasForeignKey(x => new {x.KeyId, x.ValueType})
             .OnDelete(DeleteBehavior.Cascade);
         valueBuilder.OwnsMany(x => x.Details, b =>
         {
