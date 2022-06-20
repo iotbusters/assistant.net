@@ -23,26 +23,26 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     [Test]
     public async Task AddOrGet_returnsAddedValue_notExists()
     {
-        var value = await Storage.AddOrGet(TestKey, TestValue("added"));
+        var value = await Storage.AddOrGet(TestKey, TestValue(version: 2));
 
-        value.Should().BeEquivalentTo(new {Type = "added"});
+        value.Should().BeEquivalentTo(new {Type = nameof(Mocks.TestValue), Audit = Audit(version: 2)});
     }
 
     [Test]
     public async Task AddOrGet_returnsExistingValue_exists()
     {
-        await Storage.AddOrGet(TestKey, TestValue("added-1"));
+        await Storage.AddOrGet(TestKey, TestValue());
 
-        var value = await Storage.AddOrGet(TestKey, TestValue("added-2"));
+        var value = await Storage.AddOrGet(TestKey, TestValue());
 
-        value.Should().BeEquivalentTo(TestValue("added-1"), o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(TestValue(), o => o.ComparingByMembers<ValueRecord>());
     }
 
     [TestCase(5)]
     public async Task AddOrGet_returnsValuesAndInitialVersion_concurrently(int concurrencyCount)
     {
-        var tasks = Enumerable.Range(1, concurrencyCount).Select(i =>
-            Storage.AddOrGet(TestKey, TestValue($"value-{i}")));
+        var tasks = Enumerable.Range(1, concurrencyCount).Select(_ =>
+            Storage.AddOrGet(TestKey, TestValue()));
         var values = await Task.WhenAll(tasks);
 
         var lastValue = await Storage.TryGet(TestKey);
@@ -54,25 +54,25 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     [Test]
     public async Task AddOrUpdate_returnsAddedValue()
     {
-        var value = await Storage.AddOrUpdate(TestKey, _ => TestValue("added"), (_, _) => TestValue("updated"));
+        var value = await Storage.AddOrUpdate(TestKey, _ => TestValue(), (_, _) => TestValue());
 
-        value.Should().BeEquivalentTo(TestValue("added"), o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(TestValue(), o => o.ComparingByMembers<ValueRecord>());
     }
 
     [Test]
     public async Task AddOrUpdate_returnsUpdatedValue()
     {
-        await Storage.AddOrGet(TestKey, TestValue("added-1", version: 1));
+        await Storage.AddOrGet(TestKey, TestValue(version: 1));
 
-        var value = await Storage.AddOrUpdate(TestKey, _ => TestValue("added-2", version: 2), (_, _) => TestValue("updated", version: 3));
+        var value = await Storage.AddOrUpdate(TestKey, _ => TestValue(version: 2), (_, _) => TestValue(version: 3));
 
-        value.Should().BeEquivalentTo(TestValue("updated", version: 3), o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(TestValue(version: 3), o => o.ComparingByMembers<ValueRecord>());
     }
 
     [TestCase(5)]
     public async Task AddOrUpdate_returnsValuesAndOneOfRequestedVersions_concurrently(int concurrencyCount)
     {
-        var requestedValues = Enumerable.Range(1, concurrencyCount).Select(i => TestValue($"value-{i}", version: i)).ToArray();
+        var requestedValues = Enumerable.Range(1, concurrencyCount).Select(i => TestValue(version: i)).ToArray();
         var tasks = requestedValues.Select(x => Storage.AddOrUpdate(TestKey, x));
 
         var values = await Task.WhenAll(tasks);
@@ -89,20 +89,20 @@ public class SqliteHistoricalStorageProviderIntegrationTests
         // arrange: storage population
         foreach (var i in Enumerable.Range(1, count))
         {
-            var key = new KeyRecord(i.ToString(), "type", Array.Empty<byte>(), "type");
-            await Storage.AddOrUpdate(key, TestValue($"{i}-1", version: i));
-            await Storage.AddOrUpdate(TestKey, TestValue($"value-{i}", version: i));
+            var key = new KeyRecord(i.ToString(), "type", Array.Empty<byte>(), nameof(Mocks.TestValue));
+            await Storage.AddOrUpdate(key, TestValue(version: i));
+            await Storage.AddOrUpdate(TestKey, TestValue(version: i));
         }
 
         // act: time measurement
         var watch = Stopwatch.StartNew();
         // act: operation
-        var value = await Storage.AddOrUpdate(TestKey, TestValue("value-X", version: count + 1));
+        var value = await Storage.AddOrUpdate(TestKey, TestValue(version: count + 1));
         watch.Stop();
 
         // assert
         watch.Elapsed.Should().BeLessOrEqualTo(TimeSpan.FromSeconds(0.1));
-        value.Should().BeEquivalentTo(TestValue("value-X", version: count + 1), o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(TestValue(version: count + 1), o => o.ComparingByMembers<ValueRecord>());
     }
 
     [Test]
@@ -116,11 +116,11 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     [Test]
     public async Task TryGet_returnsSome_exists()
     {
-        await Storage.AddOrGet(TestKey, TestValue("value"));
+        await Storage.AddOrGet(TestKey, TestValue());
 
         var value = await Storage.TryGet(TestKey);
 
-        value.Should().BeEquivalentTo(new {Value = TestValue("value")}, o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(new {Value = TestValue()}, o => o.ComparingByMembers<ValueRecord>());
     }
 
     [Test]
@@ -134,11 +134,11 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     [Test]
     public async Task TryGetByVersion_returnsSome_exists()
     {
-        await Storage.AddOrGet(TestKey, TestValue("value"));
+        await Storage.AddOrGet(TestKey, TestValue());
 
         var value = await Storage.TryGet(TestKey, version: 1);
 
-        value.Should().BeEquivalentTo(new { Value = TestValue("value") }, o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(new { Value = TestValue() }, o => o.ComparingByMembers<ValueRecord>());
     }
 
     [TestCase(1000), Ignore("Manual run only")]
@@ -147,9 +147,9 @@ public class SqliteHistoricalStorageProviderIntegrationTests
         // arrange: storage population
         foreach (var i in Enumerable.Range(1, count))
         {
-            var key = new KeyRecord(i.ToString(), "type", Array.Empty<byte>(), "type");
-            await Storage.AddOrUpdate(key, TestValue($"{i}-1", version: i));
-            await Storage.AddOrUpdate(TestKey, TestValue($"value-{i}", version: i));
+            var key = new KeyRecord(i.ToString(), "type", Array.Empty<byte>(), nameof(Mocks.TestValue));
+            await Storage.AddOrUpdate(key, TestValue(version: i));
+            await Storage.AddOrUpdate(TestKey, TestValue(version: i));
         }
 
         // act: time measurement
@@ -161,7 +161,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
         // assert
         watch.Elapsed.Should().BeLessOrEqualTo(TimeSpan.FromSeconds(0.1));
         value.Should().BeEquivalentTo(
-            TestValue($"value-{count}", version: count), o => o.ComparingByMembers<ValueRecord>());
+            TestValue(version: count), o => o.ComparingByMembers<ValueRecord>());
     }
 
     [Test]
@@ -175,17 +175,17 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     [Test]
     public async Task TryRemove_returnsSome_exists()
     {
-        await Storage.AddOrGet(TestKey, TestValue("value"));
+        await Storage.AddOrGet(TestKey, TestValue());
 
         var value = await Storage.TryRemove(TestKey);
 
-        value.Should().BeEquivalentTo(new {Value = TestValue("value")}, o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(new {Value = TestValue()}, o => o.ComparingByMembers<ValueRecord>());
     }
 
     [Test]
     public async Task TryRemove_doesNotLostVersions_AddOrUpdateConcurrently()
     {
-        var requestedValues = Enumerable.Range(1, 5).Select(i => TestValue($"value-{i}", version: i)).ToArray();
+        var requestedValues = Enumerable.Range(1, 5).Select(i => TestValue(version: i)).ToArray();
         await Storage.AddOrGet(TestKey, requestedValues[0]);
 
         var removeTask = Storage.TryRemove(TestKey);
@@ -215,14 +215,14 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     public async Task TryRemoveByVersion_returnsSome_exists()
     {
         foreach (var i in Enumerable.Range(1, 5))
-            await Storage.AddOrUpdate(TestKey, TestValue($"value-{i}", version: i));
+            await Storage.AddOrUpdate(TestKey, TestValue(version: i));
 
         var count = await Storage.TryRemove(TestKey, upToVersion: 4);
 
         count.Should().Be(4);
         var value5 = await Storage.TryGet(TestKey, version: 5);
         value5.Should().BeEquivalentTo(
-            new {Value = TestValue("value-5", version: 5)},
+            new {Value = TestValue(version: 5)},
             o => o.ComparingByMembers<ValueRecord>());
         var value4 = await Storage.TryGet(TestKey, version: 4);
         value4.Should().BeEquivalentTo(new None<ValueRecord>());
@@ -233,11 +233,73 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     [Test]
     public async Task GetKeys_returnsKeys()
     {
-        await Storage.AddOrGet(TestKey, TestValue("value"));
+        await Storage.AddOrGet(TestKey, TestValue());
 
         var value = Storage.GetKeys().ToArray();
 
         value.Should().BeEquivalentTo(new[] {TestKey});
+    }
+
+    [Test]
+    public async Task TryGet_returnsSome_FromStorageProviderOfTheSameValue()
+    {
+        var provider = new ServiceCollection()
+            .AddStorage(b => b
+                .UseSqlite(ConnectionString)
+                .AddSqliteHistorical<TestKey, TestValue>())
+            .BuildServiceProvider();
+
+        var storage1 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestValue>>();
+        var storage2 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestValue>>();
+
+        var key = new TestKey(true);
+        await storage1.AddOrGet(key, new TestValue(true));
+        var value = await storage2.TryGet(key);
+
+        value.Should().Be(Option.Some(new TestValue(true)));
+    }
+
+    [Test]
+    public async Task TryGet_returnsNone_FromStorageOfAnotherValue()
+    {
+        var provider = new ServiceCollection()
+            .AddStorage(b => b
+                .UseSqlite(ConnectionString)
+                .AddSqliteHistorical<TestKey, TestBase>()
+                .AddSqliteHistorical<TestKey, TestValue>())
+            .BuildServiceProvider();
+
+        var storage1 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestBase>>();
+        var storage2 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestValue>>();
+
+        var key = new TestKey(true);
+        await storage1.AddOrGet(key, new TestValue(true));
+        var value = await storage2.TryGet(key);
+
+        value.Should().Be((Option<TestValue>)Option.None);
+    }
+
+    [Test]
+    public async Task TryGet_returnsSome_FromStorageUsedAdding()
+    {
+        var provider = new ServiceCollection()
+            .AddStorage(b => b
+                .UseSqlite(ConnectionString)
+                .AddSqliteHistorical<TestKey, TestBase>()
+                .AddSqliteHistorical<TestKey, TestValue>())
+            .BuildServiceProvider();
+
+        var storage1 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestBase>>();
+        var storage2 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestValue>>();
+
+        var key = new TestKey(true);
+        await storage1.AddOrGet(key, new TestValue(true));
+        await storage2.AddOrGet(key, new TestValue(false));
+        var value1 = await storage1.TryGet(key);
+        var value2 = await storage2.TryGet(key);
+
+        value1.Should().Be(Option.Some<TestBase>(new TestValue(true)));
+        value2.Should().Be(Option.Some(new TestValue(false)));
     }
 
     [OneTimeSetUp]
@@ -273,9 +335,9 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     private SqliteConnection MasterConnection { get; } = new(ConnectionString);
     private static CancellationToken CancellationToken => new CancellationTokenSource(100).Token;
     private static CancellationToken LongCancellationToken => new CancellationTokenSource(2000).Token;
-    private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
+    private ValueRecord TestValue(int version = 1) => new(Type: nameof(Mocks.TestValue), Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version = 1) => new(TestCorrelationId, TestUser, TestDate, version);
-    private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: "type");
+    private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: nameof(Mocks.TestValue));
     private string TestCorrelationId { get; } = Guid.NewGuid().ToString();
     private string TestUser { get; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;

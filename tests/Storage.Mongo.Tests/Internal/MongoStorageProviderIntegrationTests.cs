@@ -17,31 +17,30 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Mongo.Tests.Internal;
 
-public class MongoStorageProviderTestsIntegrationTests
+public class MongoStorageProviderIntegrationTests
 {
     [Test]
     public async Task AddOrGet_returnsAddedValue_notExists()
     {
-        var value = await Storage.AddOrGet(TestKey, TestValue("added"));
+        var value = await Storage.AddOrGet(TestKey, TestValue(version: 2));
 
-        value.Should().BeEquivalentTo(new {Type = "added"});
+        value.Should().BeEquivalentTo(new {Audit = Audit(version: 2)});
     }
 
     [Test]
     public async Task AddOrGet_returnsExistingValue_exists()
     {
-        await Storage.AddOrGet(TestKey, TestValue("added-1"));
+        await Storage.AddOrGet(TestKey, TestValue());
 
-        var value = await Storage.AddOrGet(TestKey, TestValue("added-2"));
+        var value = await Storage.AddOrGet(TestKey, TestValue(version: 2));
 
-        value.Should().BeEquivalentTo(TestValue("added-1"), o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(TestValue(), o => o.ComparingByMembers<ValueRecord>());
     }
 
     [TestCase(5)]
     public async Task AddOrGet_returnsValuesAndInitialVersion_concurrently(int concurrencyCount)
     {
-        var tasks = Enumerable.Range(1, concurrencyCount).Select(
-            i => Storage.AddOrGet(TestKey, TestValue($"value-{i}", version: 1)));
+        var tasks = Enumerable.Range(1, concurrencyCount).Select(_ => Storage.AddOrGet(TestKey, TestValue(version: 1)));
         var values = await Task.WhenAll(tasks);
         values.Select(x => x.Type).Distinct().Should().HaveCount(1);
 
@@ -52,25 +51,25 @@ public class MongoStorageProviderTestsIntegrationTests
     [Test]
     public async Task AddOrUpdate_returnsAddedValue()
     {
-        var value = await Storage.AddOrUpdate(TestKey, _ => TestValue("added"), (_, _) => TestValue("updated"));
+        var value = await Storage.AddOrUpdate(TestKey, _ => TestValue(), (_, _) => TestValue(version: 2));
 
-        value.Should().BeEquivalentTo(TestValue("added"), o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(TestValue(), o => o.ComparingByMembers<ValueRecord>());
     }
 
     [Test]
     public async Task AddOrUpdate_returnsUpdatedValue()
     {
-        await Storage.AddOrGet(TestKey, TestValue("added-1"));
+        await Storage.AddOrGet(TestKey, TestValue());
 
-        var value = await Storage.AddOrUpdate(TestKey, _ => TestValue("added-2"), (_, _) => TestValue("updated"));
+        var value = await Storage.AddOrUpdate(TestKey, _ => TestValue(version: 2), (_, _) => TestValue(version: 3));
 
-        value.Should().BeEquivalentTo(TestValue("updated"), o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(TestValue(version: 3), o => o.ComparingByMembers<ValueRecord>());
     }
 
     [TestCase(5)]
     public async Task AddOrUpdate_returnsValuesAndOneOfRequestedVersions_concurrently(int concurrencyCount)
     {
-        var requestedValues = Enumerable.Range(1, concurrencyCount).Select(i => TestValue($"value-{i}", version: i)).ToArray();
+        var requestedValues = Enumerable.Range(1, concurrencyCount).Select(TestValue).ToArray();
         var tasks = requestedValues.Select(x => Storage.AddOrUpdate(TestKey, x));
 
         var values = await Task.WhenAll(tasks);
@@ -92,11 +91,11 @@ public class MongoStorageProviderTestsIntegrationTests
     [Test]
     public async Task TryGet_returnsSome_exists()
     {
-        await Storage.AddOrGet(TestKey, TestValue("value"));
+        await Storage.AddOrGet(TestKey, TestValue());
 
         var value = await Storage.TryGet(TestKey);
 
-        value.Should().BeEquivalentTo(new {Value = TestValue("value")}, o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(new {Value = TestValue()}, o => o.ComparingByMembers<ValueRecord>());
     }
 
     [Test]
@@ -110,30 +109,91 @@ public class MongoStorageProviderTestsIntegrationTests
     [Test]
     public async Task TryRemove_returnsSome_exists()
     {
-        await Storage.AddOrGet(TestKey, TestValue("value"));
+        await Storage.AddOrGet(TestKey, TestValue());
 
         var value = await Storage.TryRemove(TestKey);
 
-        value.Should().BeEquivalentTo(new {Value = TestValue("value")}, o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(new {Value = TestValue()}, o => o.ComparingByMembers<ValueRecord>());
     }
 
     [Test]
     public async Task GetKeys_returnsKeys()
     {
-        await Storage.AddOrGet(TestKey, TestValue("value"));
+        await Storage.AddOrGet(TestKey, TestValue());
 
         var value = Storage.GetKeys().ToArray();
 
         value.Should().BeEquivalentTo(new[] {TestKey});
     }
 
+    [Test]
+    public async Task TryGet_returnsSome_FromStorageProviderOfTheSameValue()
+    {
+        var provider = new ServiceCollection()
+            .AddStorage(b => b
+                .UseMongo(ConnectionString)
+                .AddMongo<TestKey, TestValue>())
+            .BuildServiceProvider();
+
+        var storage1 = provider.GetRequiredService<IStorage<TestKey, TestValue>>();
+        var storage2 = provider.GetRequiredService<IStorage<TestKey, TestValue>>();
+
+        var key = new TestKey(true);
+        await storage1.AddOrGet(key, new TestValue(true));
+        var value = await storage2.TryGet(key);
+
+        value.Should().Be(Option.Some(new TestValue(true)));
+    }
+
+    [Test]
+    public async Task TryGet_returnsNone_FromStorageOfAnotherValue()
+    {
+        var provider = new ServiceCollection()
+            .AddStorage(b => b
+                .UseMongo(ConnectionString)
+                .AddMongo<TestKey, TestBase>()
+                .AddMongo<TestKey, TestValue>())
+            .BuildServiceProvider();
+
+        var storage1 = provider.GetRequiredService<IStorage<TestKey, TestBase>>();
+        var storage2 = provider.GetRequiredService<IStorage<TestKey, TestValue>>();
+
+        var key = new TestKey(true);
+        await storage1.AddOrGet(key, new TestValue(true));
+        var value = await storage2.TryGet(key);
+
+        value.Should().Be((Option<TestValue>)Option.None);
+    }
+
+    [Test]
+    public async Task TryGet_returnsSome_FromStorageUsedAdding()
+    {
+        var provider = new ServiceCollection()
+            .AddStorage(b => b
+                .UseMongo(ConnectionString)
+                .AddMongo<TestKey, TestBase>()
+                .AddMongo<TestKey, TestValue>())
+            .BuildServiceProvider();
+
+        var storage1 = provider.GetRequiredService<IStorage<TestKey, TestBase>>();
+        var storage2 = provider.GetRequiredService<IStorage<TestKey, TestValue>>();
+
+        var key = new TestKey(true);
+        await storage1.AddOrGet(key, new TestValue(true));
+        await storage2.AddOrGet(key, new TestValue(false));
+        var value1 = await storage1.TryGet(key);
+        var value2 = await storage2.TryGet(key);
+
+        value1.Should().Be(Option.Some<TestBase>(new TestValue(true)));
+        value2.Should().Be(Option.Some(new TestValue(false)));
+    }
+
     [OneTimeSetUp]
     public async Task OneTimeSetup()
     {
-        var connectionString = "mongodb://127.0.0.1:27017";
         Provider = new ServiceCollection()
             .AddStorage(b => b
-                .UseMongo(o => o.ConnectionString = connectionString)
+                .UseMongo(o => o.ConnectionString = ConnectionString)
                 .AddMongo<TestKey, TestValue>())
             .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
             .AddSystemClock(_ => TestDate)
@@ -154,7 +214,7 @@ public class MongoStorageProviderTestsIntegrationTests
         }
 
         if (!pingContent.Contains("ok"))
-            Assert.Ignore($"The tests require mongodb instance at {connectionString}.");
+            Assert.Ignore($"The tests require mongodb instance at {ConnectionString}.");
     }
 
     [OneTimeTearDown]
@@ -163,10 +223,11 @@ public class MongoStorageProviderTestsIntegrationTests
     [SetUp, TearDown]
     public Task Cleanup() => MongoClient.DropDatabaseAsync(MongoNames.DatabaseName, CancellationToken);
 
+    private const string ConnectionString = "mongodb://127.0.0.1:27017";
     private static CancellationToken CancellationToken => new CancellationTokenSource(200).Token;
-    private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
+    private ValueRecord TestValue(int version = 1) => new(Type: nameof(Mocks.TestValue), Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version) => new(TestCorrelationId, TestUser, TestDate, version);
-    private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: "value");
+    private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: nameof(Mocks.TestValue));
     private string TestCorrelationId { get; set; } = Guid.NewGuid().ToString();
     private string TestUser { get; set; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;
