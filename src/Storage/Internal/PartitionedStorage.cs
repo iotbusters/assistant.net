@@ -19,7 +19,6 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
 {
     private readonly string keyType;
     private readonly string valueType;
-    private readonly byte[] valueTypeContent;
     private readonly IDiagnosticContext diagnosticContext;
     private readonly ISystemClock clock;
     private readonly IPartitionedStorageProvider<TValue> backedStorage;
@@ -37,7 +36,6 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
         this.clock = clock;
         this.keyType = GetTypeName<TKey>(typeEncoder);
         this.valueType = GetTypeName<TValue>(typeEncoder);
-        this.valueTypeContent = GetConverter<string>(provider).Convert(valueType).ConfigureAwait(false).GetAwaiter().GetResult();
         this.backedStorage = GetProvider(provider);
         this.keyConverter = GetConverter<TKey>(provider);
         this.valueConverter = GetConverter<TValue>(provider);
@@ -136,11 +134,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
     protected async Task<KeyRecord> CreateKeyRecord(TKey key, CancellationToken token)
     {
         var keyContent = await keyConverter.Convert(key, token);
-        var keyIdContent = keyContent.ToArray();
-        Array.Resize(ref keyIdContent, keyIdContent.Length + valueTypeContent.Length);
-        Array.Copy(valueTypeContent, 0, keyIdContent, keyIdContent.Length - valueTypeContent.Length, valueTypeContent.Length);
-
-        var keyId = keyIdContent.GetSha1();
+        var keyId = keyContent.GetSha1();
         var keyRecord = new KeyRecord(keyId, keyType, keyContent, valueType);
         return keyRecord;
     }

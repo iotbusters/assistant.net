@@ -74,7 +74,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
             logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} begins.", key.Id, attempt);
 
             var storageDbContext = CreateDbContext();
-            if (await storageDbContext.StorageValues.AnyAsync(x => x.KeyId == key.Id, token))
+            if (await storageDbContext.StorageValues.AnyAsync(x => x.KeyId == key.Id && x.ValueType == key.ValueType, token))
             {
                 if (await UpdateValue(key, updateFactory, token) is Some<ValueRecord>(var updated))
                 {
@@ -124,7 +124,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
     {
         logger.LogDebug("SQLite({KeyId}) querying: begins.", key.Id);
 
-        var found = await values.SingleOrDefaultAsync(x => x.KeyId == key.Id, token);
+        var found = await values.SingleOrDefaultAsync(x => x.KeyId == key.Id && x.ValueType == key.ValueType, token);
         if (found != null)
             logger.LogDebug("SQLite({KeyId})[{Version}] querying: found.", key.Id, found.Version);
         else
@@ -150,7 +150,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
 
         var dbContext = CreateDbContext();
 
-        if (await dbContext.StorageKeys.AnyAsync(x => x.Id == key.Id, token))
+        if (await dbContext.StorageKeys.AnyAsync(x => x.Id == key.Id && x.ValueType == key.ValueType, token))
             logger.LogDebug("SQLite({KeyId}) key: found.", key.Id);
         else
         {

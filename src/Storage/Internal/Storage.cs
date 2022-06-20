@@ -21,7 +21,6 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     private readonly ISystemClock clock;
     private readonly string keyType;
     private readonly string valueType;
-    private readonly byte[] valueTypeContent;
     private readonly IValueConverter<TKey> keyConverter;
     protected readonly IValueConverter<TValue> ValueConverter;
     protected readonly IStorageProvider<TValue> BackedStorage;
@@ -38,7 +37,6 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
         this.clock = clock;
         this.keyType = GetTypeName<TKey>(typeEncoder);
         this.valueType = GetTypeName<TValue>(typeEncoder);
-        this.valueTypeContent = GetConverter<string>(provider).Convert(valueType).ConfigureAwait(false).GetAwaiter().GetResult();
         this.keyConverter = GetConverter<TKey>(provider);
         this.ValueConverter = GetConverter<TValue>(provider);
         this.BackedStorage = backedStorage;
@@ -163,11 +161,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     protected async Task<KeyRecord> CreateKeyRecord(TKey key, CancellationToken token)
     {
         var keyContent = await keyConverter.Convert(key, token);
-        var keyIdContent = keyContent.ToArray();
-        Array.Resize(ref keyIdContent, keyIdContent.Length + valueTypeContent.Length);
-        Array.Copy(valueTypeContent, 0, keyIdContent, keyIdContent.Length - valueTypeContent.Length, valueTypeContent.Length);
-
-        var keyId = keyIdContent.GetSha1();
+        var keyId = keyContent.GetSha1();
         var keyRecord = new KeyRecord(keyId, keyType, keyContent, valueType);
         return keyRecord;
     }

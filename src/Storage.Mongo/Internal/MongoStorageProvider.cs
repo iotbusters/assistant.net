@@ -95,7 +95,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
     public Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken token) => DeleteOne(key, token);
 
     public IQueryable<KeyRecord> GetKeys() =>
-        collection.AsQueryable(new AggregateOptions()).Select(x => new KeyRecord(x.Id, x.KeyType, x.KeyContent, x.ValueType));
+        collection.AsQueryable(new AggregateOptions()).Select(x => new KeyRecord(x.Key.Id, x.KeyType, x.KeyContent, x.Key.ValueType));
 
     public void Dispose() { /* The mongo client is DI managed. */ }
 
@@ -103,25 +103,25 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
     {
         logger.LogDebug("MongoDB({CollectionName}: {RecordId}) finding: begins.", collection.CollectionNamespace.FullName, key.Id);
 
-        var found = await collection.Find(filter: x => x.Id == key.Id, new FindOptions()).SingleOrDefaultAsync(token);
+        var found = await collection.Find(filter: x => x.Key == new Key(key.Id, key.ValueType), new FindOptions()).SingleOrDefaultAsync(token);
 
         logger.LogDebug(found != null
                 ? "MongoDB({CollectionName}: {RecordId}) finding: succeeded."
                 : "MongoDB({CollectionName}: {RecordId}) finding: not found.",
             collection.CollectionNamespace.FullName, key.Id);
 
-        return found.AsOption().MapOption(x => new ValueRecord(x.ValueType, x.ValueContent, new Audit(x.Details, x.Version)));
+        return found.AsOption().MapOption(x => new ValueRecord(key.ValueType, x.ValueContent, new Audit(x.Details, x.Version)));
     }
 
     private async Task<Option<ValueRecord>> InsertOne(KeyRecord key, Func<KeyRecord, Task<ValueRecord>> addFactory, CancellationToken token)
     {
         var added = await addFactory(key);
+        var keyId = new Key(key.Id, key.ValueType);
         var addedRecord = new MongoRecord(
-            key.Id,
+            keyId,
             key.Type,
             key.Content,
             added.Audit.Version,
-            added.Type,
             added.Content,
             added.Audit.Details);
 
@@ -154,11 +154,10 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
 
         var updated = await updateFactory(key, found);
         var updatedRecord = new MongoRecord(
-            key.Id,
+            new(key.Id, key.ValueType),
             key.Type,
             key.Content,
             updated.Audit.Version,
-            updated.Type,
             updated.Content,
             updated.Audit.Details);
 
@@ -166,7 +165,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
             collection.CollectionNamespace.FullName, key.Id, found.Audit.Version, updatedRecord.Version);
 
         var result = await collection.ReplaceOneAsync(
-            filter: x => x.Id == key.Id && x.Version == found.Audit.Version,
+            filter: x => x.Key == new Key(key.Id,key.ValueType) && x.Version == found.Audit.Version,
             updatedRecord,
             new ReplaceOptions(),
             token);
@@ -189,7 +188,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
         logger.LogDebug("MongoDB({CollectionName}: {RecordId}) deleting: begins.", collection.CollectionNamespace.FullName, key.Id);
 
         var deleted = await collection.FindOneAndDeleteAsync<MongoRecord>(
-            filter: x => x.Id == key.Id,
+            filter: x => x.Key == new Key(key.Id, key.ValueType),
             new FindOneAndDeleteOptions<MongoRecord>(),
             token);
 
@@ -198,6 +197,6 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
                 : "MongoDB({CollectionName}: {RecordId}) deleting: not found.",
             collection.CollectionNamespace.FullName, key.Id);
 
-        return deleted.AsOption().MapOption(x => new ValueRecord(x.ValueType, x.ValueContent, new Audit(x.Details, x.Version)));
+        return deleted.AsOption().MapOption(x => new ValueRecord(key.ValueType, x.ValueContent, new Audit(x.Details, x.Version)));
     }
 }
