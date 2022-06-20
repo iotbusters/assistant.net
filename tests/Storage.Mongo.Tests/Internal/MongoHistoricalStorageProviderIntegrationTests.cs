@@ -238,13 +238,74 @@ public class MongoHistoricalStorageProviderIntegrationTests
         value.Should().BeEquivalentTo(new[] {TestKey});
     }
 
+    [Test]
+    public async Task TryGet_returnsSome_FromStorageProviderOfTheSameValue()
+    {
+        var provider = new ServiceCollection()
+            .AddStorage(b => b
+                .UseMongo(ConnectionString)
+                .AddMongoHistorical<TestKey, TestValue>())
+            .BuildServiceProvider();
+
+        var storage1 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestValue>>();
+        var storage2 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestValue>>();
+
+        var key = new TestKey(true);
+        await storage1.AddOrGet(key, new TestValue(true));
+        var value = await storage2.TryGet(key);
+
+        value.Should().Be(Option.Some(new TestValue(true)));
+    }
+
+    [Test]
+    public async Task TryGet_returnsNone_FromStorageOfAnotherValue()
+    {
+        var provider = new ServiceCollection()
+            .AddStorage(b => b
+                .UseMongo(ConnectionString)
+                .AddMongoHistorical<TestKey, TestBase>()
+                .AddMongoHistorical<TestKey, TestValue>())
+            .BuildServiceProvider();
+
+        var storage1 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestBase>>();
+        var storage2 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestValue>>();
+
+        var key = new TestKey(true);
+        await storage1.AddOrGet(key, new TestValue(true));
+        var value = await storage2.TryGet(key);
+
+        value.Should().Be((Option<TestValue>)Option.None);
+    }
+
+    [Test]
+    public async Task TryGet_returnsSome_FromStorageUsedAdding()
+    {
+        var provider = new ServiceCollection()
+            .AddStorage(b => b
+                .UseMongo(ConnectionString)
+                .AddMongoHistorical<TestKey, TestBase>()
+                .AddMongoHistorical<TestKey, TestValue>())
+            .BuildServiceProvider();
+
+        var storage1 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestBase>>();
+        var storage2 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestValue>>();
+
+        var key = new TestKey(true);
+        await storage1.AddOrGet(key, new TestValue(true));
+        await storage2.AddOrGet(key, new TestValue(false));
+        var value1 = await storage1.TryGet(key);
+        var value2 = await storage2.TryGet(key);
+
+        value1.Should().Be(Option.Some<TestBase>(new TestValue(true)));
+        value2.Should().Be(Option.Some(new TestValue(false)));
+    }
+
     [OneTimeSetUp]
     public async Task OneTimeSetup()
     {
-        var connectionString = "mongodb://127.0.0.1:27017";
         Provider = new ServiceCollection()
             .AddStorage(b => b
-                .UseMongo(o => o.Connection(connectionString).Database(MongoNames.DatabaseName))
+                .UseMongo(o => o.Connection(ConnectionString).Database(MongoNames.DatabaseName))
                 .AddMongoHistorical<TestKey, TestValue>())
             .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
             .AddSystemClock(_ => TestDate)
@@ -265,7 +326,7 @@ public class MongoHistoricalStorageProviderIntegrationTests
         }
 
         if (!pingContent.Contains("ok"))
-            Assert.Ignore($"The tests require mongodb instance at {connectionString}.");
+            Assert.Ignore($"The tests require mongodb instance at {ConnectionString}.");
     }
 
     [OneTimeTearDown]
@@ -274,6 +335,7 @@ public class MongoHistoricalStorageProviderIntegrationTests
     [SetUp]
     public async Task SetUp() => await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName, CancellationToken);
 
+    private const string ConnectionString = "mongodb://127.0.0.1:27017";
     private static CancellationToken CancellationToken => new CancellationTokenSource(200).Token;
     private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version) => new(TestCorrelationId, TestUser, TestDate, version);

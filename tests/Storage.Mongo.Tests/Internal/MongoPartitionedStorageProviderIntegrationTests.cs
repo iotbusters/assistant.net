@@ -126,13 +126,78 @@ public class MongoPartitionedStorageProviderIntegrationTests
         count2.Should().Be(1);
     }
 
+    [Test]
+    public async Task TryGet_returnsSome_FromStorageProviderOfTheSameValue()
+    {
+        var provider = new ServiceCollection()
+            .AddStorage(b => b
+                .UseMongo(ConnectionString)
+                .AddMongoPartitioned<TestKey, TestValue>())
+            .BuildServiceProvider();
+
+        var storage1 = provider.GetRequiredService<IPartitionedStorage<TestKey, TestValue>>();
+        var storage2 = provider.GetRequiredService<IPartitionedStorage<TestKey, TestValue>>();
+
+        var key = new TestKey(true);
+        await storage1.Add(key, new TestValue(true));
+        var value = await storage2.TryGet(key, 1);
+
+        value.Should().Be(Option.Some(new TestValue(true)));
+    }
+
+    [Test]
+    public async Task TryGet_returnsNone_FromStorageOfAnotherValue()
+    {
+        var provider = new ServiceCollection()
+            .AddStorage(b => b
+                .UseMongo(ConnectionString)
+                .AddMongoPartitioned<TestKey, TestBase>()
+                .AddMongoPartitioned<TestKey, TestValue>())
+            .BuildServiceProvider();
+
+        var storage1 = provider.GetRequiredService<IPartitionedStorage<TestKey, TestBase>>();
+        var storage2 = provider.GetRequiredService<IPartitionedStorage<TestKey, TestValue>>();
+
+        var key = new TestKey(true);
+        await storage1.Add(key, new TestValue(true));
+        var value = await storage2.TryGet(key, 1);
+
+        value.Should().Be((Option<TestValue>)Option.None);
+    }
+
+    [Test]
+    public async Task TryGet_returnsSome_FromStorageUsedAdding()
+    {
+        var provider = new ServiceCollection()
+            .AddStorage(b => b
+                .UseMongo(ConnectionString)
+                .AddMongoPartitioned<TestKey, TestBase>()
+                .AddMongoPartitioned<TestKey, TestValue>())
+            .BuildServiceProvider();
+
+        var storage1 = provider.GetRequiredService<IPartitionedStorage<TestKey, TestBase>>();
+        var storage2 = provider.GetRequiredService<IPartitionedStorage<TestKey, TestValue>>();
+
+        var key = new TestKey(true);
+        await storage1.Add(key, new TestValue(true));
+        await storage2.Add(key, new TestValue(false));
+        var value1 = await storage1.TryGet(key, 1);
+        var value2 = await storage2.TryGet(key, 1);
+        var value3 = await storage1.TryGet(key, 2);
+        var value4 = await storage2.TryGet(key, 3);
+
+        value1.Should().Be(Option.Some<TestBase>(new TestValue(true)));
+        value2.Should().Be(Option.Some(new TestValue(false)));
+        value3.Should().Be((Option<TestBase>)Option.None);
+        value4.Should().Be((Option<TestValue>)Option.None);
+    }
+
     [OneTimeSetUp]
     public async Task OneTimeSetup()
     {
-        const string connectionString = "mongodb://127.0.0.1:27017";
         Provider = new ServiceCollection()
             .AddStorage(b => b
-                .UseMongo(o => o.ConnectionString = connectionString)
+                .UseMongo(o => o.ConnectionString = ConnectionString)
                 .AddMongoPartitioned<TestKey, TestValue>())
             .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
             .AddSystemClock(_ => TestDate)
@@ -152,7 +217,7 @@ public class MongoPartitionedStorageProviderIntegrationTests
             pingContent = string.Empty;
         }
         if (!pingContent.Contains("ok"))
-            Assert.Ignore($"The tests require mongodb instance at {connectionString}.");
+            Assert.Ignore($"The tests require mongodb instance at {ConnectionString}.");
     }
 
     [OneTimeTearDown]
@@ -161,6 +226,7 @@ public class MongoPartitionedStorageProviderIntegrationTests
     [SetUp, TearDown]
     public async Task Cleanup() => await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName, CancellationToken);
 
+    private const string ConnectionString = "mongodb://127.0.0.1:27017";
     private static CancellationToken CancellationToken => new CancellationTokenSource(200).Token;
     private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version) => new(TestCorrelationId, TestUser, TestDate, version);
