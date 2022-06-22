@@ -8,7 +8,6 @@ using Assistant.Net.Messaging.Tests.Mocks;
 using Assistant.Net.Storage;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Exceptions;
-using Assistant.Net.Unions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -94,17 +93,21 @@ public class CachingInterceptorTests
     [SetUp]
     public void Setup()
     {
+        Options = new MessagingClientOptions();
         var services = new ServiceCollection()
             .AddTransient<CachingInterceptor>()
-            .AddSingleton<INamedOptions<MessagingClientOptions>>(new TestNamedOptions {Value = new MessagingClientOptions()})
+            .AddSingleton<INamedOptions<MessagingClientOptions>>(new TestNamedOptions {Value = Options})
             .AddSystemClock()
             .AddStorage(b => b.AddLocal<IAbstractMessage, CachingResult>());
         Provider = services.BuildServiceProvider();
     }
 
-    private IServiceProvider Provider { get; set; } = default!;
+    [TearDown]
+    public void TearDown() => Provider.Dispose();
+
+    private ServiceProvider Provider { get; set; } = default!;
     private IAbstractInterceptor Interceptor => Provider.GetRequiredService<CachingInterceptor>();
-    private MessagingClientOptions Options => Provider.GetRequiredService<INamedOptions<MessagingClientOptions>>().Value;
+    private MessagingClientOptions Options { get; set; } = default!;
     private IStorage<IAbstractMessage, CachingResult> Cache => Provider.GetRequiredService<IStorage<IAbstractMessage, CachingResult>>();
     private static TestMessage Message => new(0);
 

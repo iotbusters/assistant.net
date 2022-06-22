@@ -64,16 +64,19 @@ public class ErrorHandlingInterceptorTests
     public void Setup()
     {
         Options = new MessagingClientOptions();
-        Interceptor = new ServiceCollection()
+        var services = new ServiceCollection()
             .AddTypeEncoder()
             .AddSingleton<INamedOptions<MessagingClientOptions>>(new TestNamedOptions {Value = Options})
-            .AddSingleton<ErrorHandlingInterceptor>()
-            .BuildServiceProvider()
-            .GetRequiredService<ErrorHandlingInterceptor>();
+            .AddSingleton<ErrorHandlingInterceptor>();
+        Provider = services.BuildServiceProvider();
     }
 
-    private MessagingClientOptions Options { get; set; } = null!;
-    private IAbstractInterceptor Interceptor { get; set; } = null!;
+    [TearDown]
+    public void TearDown() => Provider.Dispose();
+
+    private ServiceProvider Provider { get; set; } = default!;
+    private MessagingClientOptions Options { get; set; } = default!;
+    private IAbstractInterceptor Interceptor => Provider.GetRequiredService<ErrorHandlingInterceptor>();
     private static TestMessage Message => new(0);
 
     private static Func<IAbstractMessage, CancellationToken, Task<object>> Fail(Exception ex) => (_, _) => throw ex;
