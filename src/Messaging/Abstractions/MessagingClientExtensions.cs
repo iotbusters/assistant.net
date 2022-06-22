@@ -24,7 +24,7 @@ public static class MessagingClientExtensions
     ///     Request-response behavior.
     /// </remarks>
     public static Task Request(this IMessagingClient client, IMessage message, CancellationToken token = default) => client
-        .Request<None>(message, token);
+        .Request<Nothing>(message, token);
 
     /// <summary>
     ///     Sends a message object asynchronously to associated message handler without waiting for a response.
