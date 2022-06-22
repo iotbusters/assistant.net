@@ -61,7 +61,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
                 },
                 token);
         }
-        catch (Exception ex) when (ex is not StorageException)
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
             throw new StorageException(ex);
         }
@@ -76,7 +76,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
             var keyRecord = await CreateKeyRecord(key, token);
             return await backedStorage.TryGet(keyRecord, index, token).MapOption(x => valueConverter.Convert(x.Content, token));
         }
-        catch (Exception ex) when (ex is not StorageException)
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
             throw new StorageException(ex);
         }
@@ -97,7 +97,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
             var keyRecord = await CreateKeyRecord(key, token);
             return await backedStorage.TryGet(keyRecord, index, token).MapOption(x => x.Audit);
         }
-        catch (Exception ex) when (ex is not StorageException)
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
             throw new StorageException(ex);
         }
@@ -110,7 +110,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
             var keyRecord = await CreateKeyRecord(key, token);
             return await backedStorage.TryRemove(keyRecord, token).MapOption(x => valueConverter.Convert(x.Content, token));
         }
-        catch (Exception ex) when (ex is not StorageException)
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
             throw new StorageException(ex);
         }
@@ -125,7 +125,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
             var keyRecord = await CreateKeyRecord(key, token);
             return await backedStorage.TryRemove(keyRecord, upToIndex, token);
         }
-        catch (Exception ex) when (ex is not StorageException)
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
             throw new StorageException(ex);
         }

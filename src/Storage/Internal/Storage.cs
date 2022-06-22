@@ -26,6 +26,18 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     protected readonly IStorageProvider<TValue> BackedStorage;
 
     /// <exception cref="ArgumentException"/>
+    public Storage(
+        IServiceProvider provider,
+        IDiagnosticContext diagnosticContext,
+        ISystemClock clock,
+        ITypeEncoder typeEncoder) : this(
+        provider,
+        diagnosticContext,
+        clock,
+        typeEncoder,
+        GetProvider(provider)) { }
+
+    /// <exception cref="ArgumentException"/>
     protected Storage(
         IServiceProvider provider,
         IDiagnosticContext diagnosticContext,
@@ -42,37 +54,24 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
         this.BackedStorage = backedStorage;
     }
 
-    /// <exception cref="ArgumentException"/>
-    public Storage(
-        IServiceProvider provider,
-        IDiagnosticContext diagnosticContext,
-        ISystemClock clock,
-        ITypeEncoder typeEncoder) : this(
-        provider,
-        diagnosticContext,
-        clock,
-        typeEncoder,
-        GetProvider(provider))
-    {
-    }
-
     public async Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory, CancellationToken token)
     {
+        var delayedToken = token;
         try
         {
-            var keyRecord = await CreateKeyRecord(key, token);
+            var keyRecord = await CreateKeyRecord(key, delayedToken);
             var valueRecord = await BackedStorage.AddOrGet(
                 keyRecord,
                 addFactory: async _ =>
                 {
                     var value = await addFactory(key);
-                    var content = await ValueConverter.Convert(value, token);
+                    var content = await ValueConverter.Convert(value, delayedToken);
                     var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, 1);
                     return new ValueRecord(valueType, content, audit);
-                }, token);
-            return await ValueConverter.Convert(valueRecord.Content, token);
+                }, delayedToken);
+            return await ValueConverter.Convert(valueRecord.Content, delayedToken);
         }
-        catch (Exception ex) when (ex is not StorageException)
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
             throw new StorageException(ex);
         }
@@ -107,7 +106,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                 token);
             return await ValueConverter.Convert(valueRecord.Content, token);
         }
-        catch (Exception ex) when (ex is not StorageException)
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
             throw new StorageException(ex);
         }
@@ -133,7 +132,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
             var keyRecord = await CreateKeyRecord(key, token);
             return await BackedStorage.TryGet(keyRecord, token).MapOption(x => x.Audit);
         }
-        catch (Exception ex) when (ex is not StorageException)
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
             throw new StorageException(ex);
         }
@@ -146,7 +145,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
             var keyRecord = await CreateKeyRecord(key, token);
             return await BackedStorage.TryRemove(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
         }
-        catch (Exception ex) when (ex is not StorageException)
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
             throw new StorageException(ex);
         }

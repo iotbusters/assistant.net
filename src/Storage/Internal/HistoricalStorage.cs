@@ -37,7 +37,7 @@ internal class HistoricalStorage<TKey, TValue> : Storage<TKey, TValue>, IHistori
             var keyRecord = await CreateKeyRecord(key, token);
             return await backedStorage.TryGet(keyRecord, version, token).MapOption(x => ValueConverter.Convert(x.Content, token));
         }
-        catch (Exception ex) when (ex is not StorageException)
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
             throw new StorageException(ex);
         }
@@ -52,7 +52,7 @@ internal class HistoricalStorage<TKey, TValue> : Storage<TKey, TValue>, IHistori
             var keyRecord = await CreateKeyRecord(key, token);
             return await backedStorage.TryRemove(keyRecord, upToVersion, token);
         }
-        catch (Exception ex) when (ex is not StorageException)
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
             throw new StorageException(ex);
         }
