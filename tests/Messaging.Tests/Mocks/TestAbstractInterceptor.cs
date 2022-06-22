@@ -7,7 +7,7 @@ namespace Assistant.Net.Messaging.Tests.Mocks;
 
 public class TestAbstractInterceptor : IAbstractInterceptor
 {
-    public Task<object> Intercept(Func<object, CancellationToken, Task<object>> next, object message, CancellationToken token)
+    public Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token)
     {
         CallCount++;
         return next(message, token);
