@@ -73,8 +73,8 @@ public class ErrorHandlingInterceptorTests
     }
 
     private MessagingClientOptions Options { get; set; } = null!;
-    private IMessageInterceptor Interceptor { get; set; } = null!;
+    private IAbstractInterceptor Interceptor { get; set; } = null!;
     private static TestMessage Message => new(0);
 
-    private static Func<IMessage<object>, CancellationToken, Task<object>> Fail(Exception ex) => (_, _) => throw ex;
+    private static Func<IAbstractMessage, CancellationToken, Task<object>> Fail(Exception ex) => (_, _) => throw ex;
 }
