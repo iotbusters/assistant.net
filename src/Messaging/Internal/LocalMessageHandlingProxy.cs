@@ -12,9 +12,9 @@ internal class LocalMessageHandlingProxy<TMessage, TResponse> : IAbstractHandler
     public LocalMessageHandlingProxy(IMessageHandler<TMessage, TResponse> handler) =>
         this.handler = handler;
 
-    public async Task<object> Request(object message, CancellationToken token) =>
+    public async Task<object> Request(IAbstractMessage message, CancellationToken token) =>
         (await handler.Handle((TMessage)message, token))!;
 
-    public async Task Publish(object message, CancellationToken token) =>
+    public async Task Publish(IAbstractMessage message, CancellationToken token) =>
         await handler.Handle((TMessage)message, token);
 }

@@ -126,7 +126,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
         }
     }
 
-    public async Task<Option<Audit>> TryGetAudit(TKey key, CancellationToken token = default)
+    public async Task<Option<Audit>> TryGetAudit(TKey key, CancellationToken token)
     {
         try
         {

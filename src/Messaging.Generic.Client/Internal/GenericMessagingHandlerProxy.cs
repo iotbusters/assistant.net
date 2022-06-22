@@ -38,7 +38,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         this.typeEncoder = typeEncoder;
     }
 
-    public async Task<object> Request(object message, CancellationToken token)
+    public async Task<object> Request(IAbstractMessage message, CancellationToken token)
     {
         var clientOptions = options.Value;
         var strategy = clientOptions.ResponsePoll;
@@ -54,7 +54,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
 
         while (true)
         {
-            if (await responseStorage.TryGet((IAbstractMessage)message, token) is Some<CachingResult>(var response))
+            if (await responseStorage.TryGet(message, token) is Some<CachingResult>(var response))
             {
                 logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} ends with response.",
                     messageName, messageId, attempt);
@@ -75,7 +75,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         }
     }
 
-    public async Task Publish(object message, CancellationToken token)
+    public async Task Publish(IAbstractMessage message, CancellationToken token)
     {
         var clientOptions = options.Value;
         var messageName = typeEncoder.Encode(message.GetType());

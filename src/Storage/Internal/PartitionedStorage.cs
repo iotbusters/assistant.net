@@ -88,7 +88,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
             .AsAsync()
             .Select(x => keyConverter.Convert(x.Content, token));
 
-    public async Task<Option<Audit>> TryGetAudit(TKey key, long index, CancellationToken token = default)
+    public async Task<Option<Audit>> TryGetAudit(TKey key, long index, CancellationToken token)
     {
         if (index <= 0)
             throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {index}.", nameof(index));
@@ -103,7 +103,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
         }
     }
 
-    public async Task<Option<TValue>> TryRemove(TKey key, CancellationToken token = default)
+    public async Task<Option<TValue>> TryRemove(TKey key, CancellationToken token)
     {
         try
         {
@@ -116,7 +116,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
         }
     }
 
-    public async Task<long> TryRemove(TKey key, long upToIndex, CancellationToken token = default)
+    public async Task<long> TryRemove(TKey key, long upToIndex, CancellationToken token)
     {
         if (upToIndex <= 0)
             throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {upToIndex}.", nameof(upToIndex));
