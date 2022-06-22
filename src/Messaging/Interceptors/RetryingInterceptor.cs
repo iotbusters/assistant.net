@@ -12,26 +12,13 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors;
 
-/// <inheritdoc cref="RetryingInterceptor{TMessage,TResponse}"/>
-public sealed class RetryingInterceptor : RetryingInterceptor<IMessage<object>, object>, IMessageInterceptor
-{
-    /// <summary/>
-    public RetryingInterceptor(
-        ILogger<RetryingInterceptor> logger,
-        ITypeEncoder typeEncoder,
-        IDiagnosticFactory diagnosticFactory,
-        INamedOptions<MessagingClientOptions> options)
-        : base(logger, typeEncoder, diagnosticFactory, options) { }
-}
-
 /// <summary>
 ///     Retrying message handling interceptor.
 /// </summary>
 /// <remarks>
 ///     The interceptor depends on <see cref="MessagingClientOptions.TransientExceptions"/> and <see cref="MessagingClientOptions.Retry"/>.
 /// </remarks>
-public class RetryingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
-    where TMessage : IMessage<TResponse>
+public sealed class RetryingInterceptor : IAbstractInterceptor
 {
     private readonly ILogger<RetryingInterceptor> logger;
     private readonly ITypeEncoder typeEncoder;
@@ -53,7 +40,7 @@ public class RetryingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMes
 
     /// <inheritdoc/>
     /// <exception cref="MessageRetryLimitExceededException"/>
-    public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
+    public async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token = default)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncoder.Encode(message.GetType());
@@ -62,9 +49,9 @@ public class RetryingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMes
         while (true)
         {
             var operation = diagnosticFactory.Start($"{messageName}-handling-attempt-{attempt}");
-            logger.LogDebug("Message({MessageName}/{MessageId}) retrying: {Attempt} begins.", messageName, messageId, attempt);
+            logger.LogInformation("Message({MessageName}/{MessageId}) retrying: {Attempt} begins.", messageName, messageId, attempt);
 
-            TResponse response;
+            object response;
             try
             {
                 response = await next(message, token);
@@ -100,9 +87,31 @@ public class RetryingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMes
                 continue;
             }
 
-            logger.LogDebug("Message({MessageName}/{MessageId}) retrying: {Attempt} succeeded.", messageName, messageId, attempt);
+            logger.LogInformation("Message({MessageName}/{MessageId}) retrying: {Attempt} succeeded.", messageName, messageId, attempt);
             operation.Complete();
             return response;
         }
     }
+}
+
+/// <inheritdoc cref="RetryingInterceptor"/>
+public sealed class RetryingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
+    where TMessage : IMessage<TResponse>
+{
+    private readonly RetryingInterceptor interceptor;
+
+    /// <summary/>
+    public RetryingInterceptor(
+        ILogger<RetryingInterceptor> logger,
+        ITypeEncoder typeEncoder,
+        IDiagnosticFactory diagnosticFactory,
+        INamedOptions<MessagingClientOptions> options)
+    {
+        this.interceptor = new RetryingInterceptor(logger, typeEncoder, diagnosticFactory, options);
+    }
+
+    /// <inheritdoc/>
+    /// <exception cref="MessageRetryLimitExceededException"/>
+    public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token) =>
+        (TResponse)await interceptor.Intercept(async (m, t) => (await next((TMessage)m, t))!, message, token);
 }

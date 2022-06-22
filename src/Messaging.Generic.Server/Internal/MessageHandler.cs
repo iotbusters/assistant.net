@@ -12,12 +12,11 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal;
 
-internal sealed class MessageHandler : IDisposable
+internal sealed class MessageHandler
 {
     private readonly ILogger<MessageHandler> logger;
     private readonly ITypeEncoder typeEncoder;
     private readonly IServiceScopeFactory scopeFactory;
-    private readonly IDisposable disposable;
 
     public MessageHandler(
         ILogger<MessageHandler> logger,
@@ -27,8 +26,6 @@ internal sealed class MessageHandler : IDisposable
         this.logger = logger;
         this.typeEncoder = typeEncoder;
         this.scopeFactory = scopeFactory;
-        var scope = scopeFactory.CreateAsyncScopeWithNamedOptionContext(GenericOptionsNames.DefaultName);
-        disposable = scope;
     }
 
     public async Task Handle(IAbstractMessage message, Audit audit, CancellationToken token)
@@ -41,25 +38,25 @@ internal sealed class MessageHandler : IDisposable
             .ConfigureDiagnosticContext(audit.CorrelationId, audit.User);
 
         var client = scope.ServiceProvider.GetRequiredService<IMessagingClient>();
-        
-        logger.LogDebug("Message({MessageName}/{MessageId}) handling: begins.", messageName, messageId);
+
+        logger.LogInformation("Message({MessageName}/{MessageId}) handling: begins.", messageName, messageId);
 
         try
         {
-            await client.RequestObject(message, token); // response is stored at RespondingInterceptor
+            await client.PublishObject(message, token);
+            // response is stored at RespondingInterceptor
         }
-        catch (OperationCanceledException ex) when (token.IsCancellationRequested)
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            logger.LogDebug(ex, "Message({MessageName}/{MessageId}) handling: cancelled.", messageName, messageId);
+            logger.LogWarning("Message({MessageName}/{MessageId}) handling: cancelled.", messageName, messageId);
             return;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Message({MessageName}/{MessageId}) handling: failed.", messageName, messageId);
+            return;
         }
 
-        logger.LogDebug("Message({MessageName}/{MessageId}) handling: succeeded.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}/{MessageId}) handling: succeeded.", messageName, messageId);
     }
-
-    void IDisposable.Dispose() => disposable.Dispose();
 }

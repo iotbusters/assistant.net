@@ -11,24 +11,13 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors;
 
-/// <inheritdoc cref="DiagnosticsInterceptor{TMessage,TResponse}"/>
-public sealed class ErrorHandlingInterceptor : ErrorHandlingInterceptor<IMessage<object>, object>, IMessageInterceptor
-{
-    /// <summary/>
-    public ErrorHandlingInterceptor(
-        ILogger<ErrorHandlingInterceptor> logger,
-        ITypeEncoder typeEncode,
-        INamedOptions<MessagingClientOptions> options) : base(logger, typeEncode, options) { }
-}
-
 /// <summary>
 ///     Global error handling interceptor.
 /// </summary>
 /// <remarks>
 ///     The interceptor depends on <see cref="MessagingClientOptions.ExposedExceptions"/>
 /// </remarks>
-public class ErrorHandlingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
-    where TMessage : IMessage<TResponse>
+public sealed class ErrorHandlingInterceptor : IAbstractInterceptor
 {
     private readonly ILogger<ErrorHandlingInterceptor> logger;
     private readonly ITypeEncoder typeEncode;
@@ -46,14 +35,15 @@ public class ErrorHandlingInterceptor<TMessage, TResponse> : IMessageInterceptor
     }
 
     /// <inheritdoc/>
-    public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
+    /// <exception cref="MessageFailedException"/>
+    public async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncode.Encode(message.GetType());
 
-        logger.LogDebug("Message({MessageName}/{MessageId}) error handling: begins.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}/{MessageId}) error handling: begins.", messageName, messageId);
 
-        TResponse response;
+        object response;
         try
         {
             response = await next(message, token);
@@ -75,7 +65,28 @@ public class ErrorHandlingInterceptor<TMessage, TResponse> : IMessageInterceptor
             throw new MessageFailedException(ex);
         }
 
-        logger.LogDebug("Message({MessageName}/{MessageId}) error handling: ends.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}/{MessageId}) error handling: ends.", messageName, messageId);
         return response;
     }
+}
+
+/// <inheritdoc cref="DiagnosticsInterceptor"/>
+public sealed class ErrorHandlingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
+    where TMessage : IMessage<TResponse>
+{
+    private readonly ErrorHandlingInterceptor interceptor;
+
+    /// <summary/>
+    public ErrorHandlingInterceptor(
+        ILogger<ErrorHandlingInterceptor> logger,
+        ITypeEncoder typeEncode,
+        INamedOptions<MessagingClientOptions> options)
+    {
+        this.interceptor = new ErrorHandlingInterceptor(logger, typeEncode, options);
+    }
+
+    /// <inheritdoc/>
+    /// <exception cref="MessageFailedException"/>
+    public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token) =>
+        (TResponse)await interceptor.Intercept(async (m, t) => (await next((TMessage)m, t))!, message, token);
 }

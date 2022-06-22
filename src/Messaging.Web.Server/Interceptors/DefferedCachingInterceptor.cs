@@ -11,23 +11,15 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors;
 
-/// <inheritdoc cref="DeferredCachingInterceptor{TMessage,TResponse}"/>
-public sealed class DeferredCachingInterceptor : DeferredCachingInterceptor<IMessage<object>, object>, IMessageInterceptor
-{
-    /// <summary/>
-    public DeferredCachingInterceptor(INamedOptions<MessagingClientOptions> options) : base(options) { }
-}
-
 /// <summary>
 ///     Deferred message response (including failures) caching interceptor.
 /// </summary>
 /// <remarks>
 ///     The interceptor depends on <see cref="MessagingClientOptions.TransientExceptions"/>
 /// </remarks>
-public class DeferredCachingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
-    where TMessage : IMessage<TResponse>
+public sealed class DeferredCachingInterceptor : IAbstractInterceptor
 {
-    private static readonly ConcurrentDictionary<string, DeferredCachingResult<TResponse>> deferredCache = new();
+    private static readonly ConcurrentDictionary<string, DeferredCachingResult<object>> deferredCache = new();
 
     private readonly MessagingClientOptions options;
 
@@ -36,13 +28,28 @@ public class DeferredCachingInterceptor<TMessage, TResponse> : IMessageIntercept
         this.options = options.Value;
 
     /// <inheritdoc/>
-    public Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
+    public async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token)
     {
         var key = message.GetSha1();
-        return deferredCache.GetOrAdd(key, _ => next(message, token).WhenFaulted(ex =>
+        return await deferredCache.GetOrAdd(key, _ => next(message, token).WhenFaulted(ex =>
         {
             if (ex is MessageDeferredException || options.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
                 deferredCache.TryRemove(key, out var _);
         })).GetTask();
     }
+}
+
+/// <inheritdoc cref="DeferredCachingInterceptor"/>
+public class DeferredCachingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
+    where TMessage : IMessage<TResponse>
+{
+    private readonly DeferredCachingInterceptor interceptor;
+
+    /// <summary/>
+    public DeferredCachingInterceptor(INamedOptions<MessagingClientOptions> options) =>
+        this.interceptor = new DeferredCachingInterceptor(options);
+
+    /// <inheritdoc/>
+    public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token) =>
+        (TResponse)await interceptor.Intercept(async (m, t) => (await next((TMessage)m, t))!, message, token);
 }

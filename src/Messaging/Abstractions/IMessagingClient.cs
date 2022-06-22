@@ -14,7 +14,7 @@ public interface IMessagingClient
     /// <remarks>
     ///     Request-response behavior.
     /// </remarks>
-    Task<object> RequestObject(object message, CancellationToken token = default);
+    Task<object> RequestObject(IAbstractMessage message, CancellationToken token = default);
 
     /// <summary>
     ///     Sends a message object asynchronously to associated message handler without waiting for a response.
@@ -22,5 +22,5 @@ public interface IMessagingClient
     /// <remarks>
     ///     Fire-and-forget behavior.
     /// </remarks>
-    Task PublishObject(object message, CancellationToken token = default);
+    Task PublishObject(IAbstractMessage message, CancellationToken token = default);
 }

@@ -47,8 +47,3 @@ public interface IMessageInterceptor<TMessage> : IMessageInterceptor<TMessage, N
             handler(message, token);
     }
 }
-
-/// <summary>
-///     Simple alias to interceptor that can handle all types of messages.
-/// </summary>
-public interface IMessageInterceptor : IMessageInterceptor<IMessage<object>, object> { }

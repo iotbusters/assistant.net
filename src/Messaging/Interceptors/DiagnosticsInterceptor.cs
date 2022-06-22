@@ -9,21 +9,10 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors;
 
-/// <inheritdoc cref="DiagnosticsInterceptor{TMessage,TResponse}"/>
-public sealed class DiagnosticsInterceptor : DiagnosticsInterceptor<IMessage<object>, object>, IMessageInterceptor
-{
-    /// <summary/>
-    public DiagnosticsInterceptor(
-        ILogger<DiagnosticsInterceptor<IMessage<object>, object>> logger,
-        ITypeEncoder typeEncode,
-        IDiagnosticFactory diagnosticFactory) : base(logger, typeEncode, diagnosticFactory) { }
-}
-
 /// <summary>
 ///     Operation tracking interceptor.
 /// </summary>
-public class DiagnosticsInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
-    where TMessage : IMessage<TResponse>
+public sealed class DiagnosticsInterceptor : IAbstractInterceptor
 {
     private readonly ILogger logger;
     private readonly ITypeEncoder typeEncode;
@@ -31,7 +20,7 @@ public class DiagnosticsInterceptor<TMessage, TResponse> : IMessageInterceptor<T
 
     /// <summary/>
     public DiagnosticsInterceptor(
-        ILogger<DiagnosticsInterceptor<TMessage, TResponse>> logger,
+        ILogger<DiagnosticsInterceptor> logger,
         ITypeEncoder typeEncode,
         IDiagnosticFactory diagnosticFactory)
     {
@@ -41,15 +30,15 @@ public class DiagnosticsInterceptor<TMessage, TResponse> : IMessageInterceptor<T
     }
 
     /// <inheritdoc/>
-    public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
+    public async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncode.Encode(message.GetType());
 
         var operation = diagnosticFactory.Start($"{messageName}-handling-local");
-        logger.LogDebug("Message({MessageName}/{MessageId}) operation: begins.", messageId, messageName);
+        logger.LogInformation("Message({MessageName}/{MessageId}) operation: begins.", messageId, messageName);
 
-        TResponse response;
+        object response;
         try
         {
             response = await next(message, token);
@@ -68,8 +57,28 @@ public class DiagnosticsInterceptor<TMessage, TResponse> : IMessageInterceptor<T
             throw;
         }
 
-        logger.LogDebug("Message({MessageName}/{MessageId}) operation: succeeded.", messageId, messageName);
+        logger.LogInformation("Message({MessageName}/{MessageId}) operation: succeeded.", messageId, messageName);
         operation.Complete();
         return response;
     }
+}
+
+/// <inheritdoc cref="DiagnosticsInterceptor"/>
+public sealed class DiagnosticsInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
+    where TMessage : IMessage<TResponse>
+{
+    private readonly DiagnosticsInterceptor interceptor;
+
+    /// <summary/>
+    public DiagnosticsInterceptor(
+        ILogger<DiagnosticsInterceptor> logger,
+        ITypeEncoder typeEncode,
+        IDiagnosticFactory diagnosticFactory)
+    {
+        this.interceptor = new DiagnosticsInterceptor(logger, typeEncode, diagnosticFactory);
+    }
+
+    /// <inheritdoc/>
+    public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token) =>
+        (TResponse)await interceptor.Intercept(async (m, t) => (await next((TMessage)m, t))!, message, token);
 }

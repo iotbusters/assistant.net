@@ -14,21 +14,28 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Interceptors;
 
 /// <summary>
-///     Message response (including failures) storing interceptor.
+///     Default message response (including failures) caching interceptor.
 /// </summary>
 /// <remarks>
 ///     The interceptor depends on <see cref="MessagingClientOptions.TransientExceptions"/>.
-///     It duplicates <see cref="CachingInterceptor"/> except <see cref="IMessageCacheIgnored"/> marker support.
 /// </remarks>
-internal class RespondingInterceptor : IMessageInterceptor
+public class DefaultCachingInterceptor : IAbstractInterceptor
 {
-    private readonly ILogger<RespondingInterceptor> logger;
+    private readonly ILogger logger;
     private readonly ITypeEncoder typeEncoder;
     private readonly IStorage<IAbstractMessage, CachingResult> cache;
     private readonly MessagingClientOptions options;
 
-    public RespondingInterceptor(
-        ILogger<RespondingInterceptor> logger,
+    /// <summary/>
+    public DefaultCachingInterceptor(
+        ILogger<DefaultCachingInterceptor> logger,
+        ITypeEncoder typeEncoder,
+        IStorage<IAbstractMessage, CachingResult> cache,
+        INamedOptions<MessagingClientOptions> options) : this((ILogger)logger, typeEncoder, cache, options) { }
+
+    /// <summary/>
+    protected DefaultCachingInterceptor(
+        ILogger logger,
         ITypeEncoder typeEncoder,
         IStorage<IAbstractMessage, CachingResult> cache,
         INamedOptions<MessagingClientOptions> options)
@@ -39,12 +46,13 @@ internal class RespondingInterceptor : IMessageInterceptor
         this.options = options.Value;
     }
 
-    public async Task<object> Intercept(Func<IMessage<object>, CancellationToken, Task<object>> next, IMessage<object> message, CancellationToken token = default)
+    /// <inheritdoc/>
+    public virtual async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncoder.Encode(message.GetType());
 
-        logger.LogDebug("Message({MessageName}/{MessageId}) responding: begins.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}/{MessageId}) caching: begins.", messageName, messageId);
 
         var result = await cache.AddOrGet(message, async _ =>
         {
@@ -56,27 +64,26 @@ internal class RespondingInterceptor : IMessageInterceptor
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
-                logger.LogWarning("Message({MessageName}/{MessageId}) responding: cancelled.", messageName, messageId);
+                logger.LogWarning("Message({MessageName}/{MessageId}) caching: cancelled.", messageName, messageId);
                 throw;
             }
             catch (Exception ex)
             {
                 if (ex is MessageDeferredException || options.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
                 {
-                    logger.LogError(ex, "Message({MessageName}/{MessageId}) responding: rethrows transient failure.",
-                        messageName, messageId);
+                    logger.LogError(ex, "Message({MessageName}/{MessageId}) caching: rethrows transient failure.", messageName, messageId);
                     throw;
                 }
 
-                logger.LogInformation(ex, "Message({MessageName}/{MessageId}) responding: failure.", messageName, messageId);
+                logger.LogWarning(ex, "Message({MessageName}/{MessageId}) caching: accepts permanent failure.", messageName, messageId);
                 result = CachingResult.OfException(ex);
             }
 
-            logger.LogInformation("Message({MessageName}/{MessageId}) responding: success.", messageName, messageId);
+            logger.LogInformation("Message({MessageName}/{MessageId}) caching: success.", messageName, messageId);
             return result;
         }, token);
 
-        logger.LogDebug("Message({MessageName}/{MessageId}) responding: ends.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}/{MessageId}) caching: ends.", messageName, messageId);
         return result.GetValue();
     }
 }

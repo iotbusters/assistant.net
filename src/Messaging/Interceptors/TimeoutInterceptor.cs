@@ -10,24 +10,13 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Interceptors;
 
-/// <inheritdoc cref="TimeoutInterceptor{TMessage,TResponse}"/>
-public sealed class TimeoutInterceptor : TimeoutInterceptor<IMessage<object>, object>, IMessageInterceptor
-{
-    /// <summary/>
-    public TimeoutInterceptor(
-        ILogger<TimeoutInterceptor> logger,
-        ITypeEncoder typeEncode,
-        INamedOptions<MessagingClientOptions> options) : base(logger, typeEncode, options) { }
-}
-
 /// <summary>
 ///     Timeout tracking interceptor.
 /// </summary>
 /// <remarks>
 ///     The interceptor depends on <see cref="MessagingClientOptions.Timeout"/>
 /// </remarks>
-public class TimeoutInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
-    where TMessage : IMessage<TResponse>
+public sealed class TimeoutInterceptor : IAbstractInterceptor
 {
     private readonly ILogger<TimeoutInterceptor> logger;
     private readonly ITypeEncoder typeEncode;
@@ -45,18 +34,19 @@ public class TimeoutInterceptor<TMessage, TResponse> : IMessageInterceptor<TMess
     }
 
     /// <inheritdoc/>
-    public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
+    /// <exception cref="TimeoutException"/>
+    public async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token = default)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncode.Encode(message.GetType());
 
-        logger.LogDebug("Message({MessageName}/{MessageId}) timeout counter: begins.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}/{MessageId}) timeout counter: begins.", messageName, messageId);
 
         using var timeoutSource = new CancellationTokenSource(options.Timeout);
         using var compositeSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutSource.Token, token);
 
         var watch = Stopwatch.StartNew();
-        TResponse response;
+        object response;
         try
         {
             response = await next(message, compositeSource.Token);
@@ -76,8 +66,29 @@ public class TimeoutInterceptor<TMessage, TResponse> : IMessageInterceptor<TMess
             throw new TimeoutException($"Operation run for {runtime} and exceeded the {options.Timeout} limit.", ex);
         }
 
-        logger.LogDebug("Message({MessageName}/{MessageId}) timeout counter: ends in {RunTime}.",
+        logger.LogInformation("Message({MessageName}/{MessageId}) timeout counter: ends in {RunTime}.",
             messageName, messageId, watch.Elapsed);
         return response;
     }
+}
+
+/// <inheritdoc cref="TimeoutInterceptor"/>
+public sealed class TimeoutInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
+    where TMessage : IMessage<TResponse>
+{
+    private readonly TimeoutInterceptor interceptor;
+
+    /// <summary/>
+    public TimeoutInterceptor(
+        ILogger<TimeoutInterceptor> logger,
+        ITypeEncoder typeEncode,
+        INamedOptions<MessagingClientOptions> options)
+    {
+        this.interceptor = new TimeoutInterceptor(logger, typeEncode, options);
+    }
+
+    /// <inheritdoc/>
+    /// <exception cref="TimeoutException"/>
+    public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token) =>
+        (TResponse)await interceptor.Intercept(async (m, t) => (await next((TMessage)m, t))!, message, token);
 }

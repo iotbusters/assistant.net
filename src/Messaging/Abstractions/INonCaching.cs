@@ -3,9 +3,9 @@
 namespace Assistant.Net.Messaging.Abstractions;
 
 /// <summary>
-///     Ignoring message caching abstraction.
+///     Ignoring message caching interface marker.
 /// </summary>
 /// <remarks>
 ///     It impacts <see cref="CachingInterceptor{TMessage,TResponse}"/>.
 /// </remarks>
-public interface IMessageCacheIgnored { }
+public interface INonCaching { }

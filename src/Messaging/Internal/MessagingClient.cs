@@ -24,14 +24,14 @@ internal class MessagingClient : IMessagingClient
     }
 
     /// <exception cref="MessageNotRegisteredException"/>
-    public Task<object> RequestObject(object message, CancellationToken token)
+    public Task<object> RequestObject(IAbstractMessage message, CancellationToken token)
     {
         var client = CreateInterceptingHandler(message.GetType());
         return client.Request(message, token);
     }
 
     /// <exception cref="MessageNotRegisteredException"/>
-    public Task PublishObject(object message, CancellationToken token)
+    public Task PublishObject(IAbstractMessage message, CancellationToken token)
     {
         var handler = CreateInterceptingHandler(message.GetType());
         return handler.Publish(message, token);
