@@ -1,6 +1,7 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Utils;
@@ -37,14 +38,14 @@ internal sealed class MessageHandler
             .CreateAsyncScopeWithNamedOptionContext(GenericOptionsNames.DefaultName)
             .ConfigureDiagnosticContext(audit.CorrelationId, audit.User);
 
+        var interceptor = scope.ServiceProvider.Create<DefaultCachingInterceptor>();
         var client = scope.ServiceProvider.GetRequiredService<IMessagingClient>();
 
         logger.LogInformation("Message({MessageName}/{MessageId}) handling: begins.", messageName, messageId);
 
         try
         {
-            await client.PublishObject(message, token);
-            // response is stored at RespondingInterceptor
+            await interceptor.Intercept(async (m, t) => await client.RequestObject(m, t), message, token);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {

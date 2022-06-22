@@ -28,6 +28,6 @@ public static class EnumerableExtensions
     {
         yield return enumerator.Current;
         for (var i = 1; i < size && enumerator.MoveNext(); i++)
-            yield return enumerator.Current; ;
+            yield return enumerator.Current;
     }
 }
