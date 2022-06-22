@@ -283,7 +283,7 @@ public static class MessagingClientBuilderExtensions
     ///     Allows retrying the transient exception type <typeparamref name="TException"/>.
     /// </summary>
     /// <remarks>
-    ///     It impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
+    ///     It impacts <see cref="CachingInterceptor"/> and <see cref="RetryingInterceptor"/>.
     /// </remarks>
     public static MessagingClientBuilder AddTransientException<TException>(this MessagingClientBuilder builder)
         where TException : Exception => builder.AddTransientException(typeof(TException));
@@ -292,7 +292,7 @@ public static class MessagingClientBuilderExtensions
     ///     Allows retrying the transient exception <paramref name="type"/>.
     /// </summary>
     /// <remarks>
-    ///     It impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
+    ///     It impacts <see cref="CachingInterceptor"/> and <see cref="RetryingInterceptor"/>.
     /// </remarks>
     public static MessagingClientBuilder AddTransientException(this MessagingClientBuilder builder, Type type)
     {
@@ -320,7 +320,7 @@ public static class MessagingClientBuilderExtensions
     ///     Removes all transient exception types.
     /// </summary>
     /// <remarks>
-    ///     It impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor"/>.
+    ///     It impacts <see cref="CachingInterceptor"/> and <see cref="RetryingInterceptor"/>.
     /// </remarks>
     public static MessagingClientBuilder ClearTransientExceptions(this MessagingClientBuilder builder)
     {
@@ -384,6 +384,18 @@ public static class MessagingClientBuilderExtensions
             if (Debugger.IsAttached)
                 o.Timeout = Timeout.InfiniteTimeSpan;
         });
+        return builder;
+    }
+
+    /// <summary>
+    ///     Overrides message handling cancellation delay.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="CancellationDelayInterceptor"/>.
+    /// </remarks>
+    public static MessagingClientBuilder DelayCancellation(this MessagingClientBuilder builder, TimeSpan delay)
+    {
+        builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.CancellationDelay = delay);
         return builder;
     }
 }

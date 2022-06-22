@@ -34,7 +34,7 @@ public sealed class MessagingClientOptions
     ///     List of allowed for exposing external exceptions.
     /// </summary>
     /// <remarks>
-    ///     It impacts <see cref="ErrorHandlingInterceptor{TMessage,TResponse}"/>.
+    ///     It impacts <see cref="ErrorHandlingInterceptor"/>.
     /// </remarks>
     public HashSet<Type> ExposedExceptions { get; } = new() {typeof(MessageException)};
 
@@ -42,7 +42,7 @@ public sealed class MessagingClientOptions
     ///     List of allowed for retrying transient exceptions.
     /// </summary>
     /// <remarks>
-    ///     It impacts <see cref="CachingInterceptor{TMessage,TResponse}"/> and <see cref="RetryingInterceptor{TMessage,TResponse}"/>.
+    ///     It impacts <see cref="CachingInterceptor"/> and <see cref="RetryingInterceptor"/>.
     /// </remarks>
     public HashSet<Type> TransientExceptions { get; } = new();
 
@@ -50,7 +50,7 @@ public sealed class MessagingClientOptions
     ///     Message handling retry strategy.
     /// </summary>
     /// <remarks>
-    ///     It impacts <see cref="RetryingInterceptor{TMessage,TResponse}"/>.
+    ///     It impacts <see cref="RetryingInterceptor"/>.
     /// </remarks>
     public IRetryStrategy Retry { get; set; } = new ExponentialBackoff
     {
@@ -63,7 +63,7 @@ public sealed class MessagingClientOptions
     ///     Message handling timeout.
     /// </summary>
     /// <remarks>
-    ///     It impacts <see cref="TimeoutInterceptor{TMessage,TResponse}"/>.
+    ///     It impacts <see cref="TimeoutInterceptor"/>.
     /// </remarks>
     [Time("00:00:00.001", "00:30:00")]
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
@@ -72,7 +72,7 @@ public sealed class MessagingClientOptions
     ///     Delay between cancellation was requested and actually called.
     /// </summary>
     /// <remarks>
-    ///     It impacts <see cref="CancellationDelayInterceptor{TMessage,TResponse}"/>.
+    ///     It impacts <see cref="CancellationDelayInterceptor"/>.
     /// </remarks>
     [Time("00:00:00", "00:30:00")]
     public TimeSpan CancellationDelay { get; set; } = TimeSpan.FromSeconds(10);
