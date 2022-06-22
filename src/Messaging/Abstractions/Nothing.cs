@@ -3,12 +3,12 @@
 /// <summary>
 ///     No message response representation.
 /// </summary>
-public sealed class None
+public sealed record Nothing
 {
-    private None() { }
+    private Nothing() { }
 
     /// <summary>
-    ///     Instance of none.
+    ///     Instance of no message response.
     /// </summary>
-    public static None Instance { get; } = new();
+    public static Nothing Instance => new();
 }

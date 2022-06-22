@@ -19,26 +19,31 @@ internal sealed class TypeEncoder : ITypeEncoder, IDisposable
     private const string GenericTypeArgumentsSeparator = ",";
 
     private readonly ILogger<TypeEncoder> logger;
-    private readonly TypeEncoderOptions options;
+    private readonly IOptionsMonitor<TypeEncoderOptions> optionsMonitor;
+    private readonly IDisposable optionsChangeOnSubscription;
     private readonly List<(string name, Type type)> duplicatedTypes = new();
     private readonly Dictionary<string, Type> decodeTypes = new();
     private readonly Dictionary<Type, string> encodeTypes = new();
     private readonly Regex arrayRegex = new("^(\\w+)(\\[(,*)\\])?$", RegexOptions.Compiled);
     private readonly Regex genericRegex = new("^(\\w+`\\d)(\\[([\\[\\]`,\\w]+)*\\])?$", RegexOptions.Compiled);
 
-    public TypeEncoder(ILogger<TypeEncoder> logger, IOptions<TypeEncoderOptions> options)
+    public TypeEncoder(ILogger<TypeEncoder> logger, IOptionsMonitor<TypeEncoderOptions> optionsMonitor)
     {
         this.logger = logger;
-        this.options = options.Value;
+        this.optionsMonitor = optionsMonitor;
+        this.optionsChangeOnSubscription = optionsMonitor.OnChange(Configure);
 
-        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            AddTypes(assembly);
+        Configure(optionsMonitor.CurrentValue);
         AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
     }
 
     public IEnumerable<(string name, Type type)> DuplicatedTypes => duplicatedTypes;
 
-    void IDisposable.Dispose() => AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoad;
+    void IDisposable.Dispose()
+    {
+        optionsChangeOnSubscription.Dispose();
+        AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoad;
+    }
 
     public Type? Decode(string encodedType)
     {
@@ -99,7 +104,21 @@ internal sealed class TypeEncoder : ITypeEncoder, IDisposable
         return $"{GetName(type)}[{commaSeparatedArgumentTypeNames}]";
     }
 
-    private void AddTypes(Assembly assembly)
+    private void Configure(TypeEncoderOptions o)
+    {
+        logger.LogInformation("Configure known types on options change.");
+
+        duplicatedTypes.Clear();
+        decodeTypes.Clear();
+        encodeTypes.Clear();
+        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            AddTypes(o, assembly);
+
+        logger.LogInformation("Configured types: {TypeCount} and duplicates: {DuplicatedTypeCount}.",
+            decodeTypes.Count, duplicatedTypes.Count);
+    }
+
+    private void AddTypes(TypeEncoderOptions options, Assembly assembly)
     {
         if (options.ExcludedAssembly.Contains(assembly))
             return;
@@ -130,5 +149,6 @@ internal sealed class TypeEncoder : ITypeEncoder, IDisposable
         ? type.FullName!.Substring(type.Namespace!.Length)
         : type.Name;
     
-    private void OnAssemblyLoad(object? sender, AssemblyLoadEventArgs args) => AddTypes(args.LoadedAssembly);
+    private void OnAssemblyLoad(object? sender, AssemblyLoadEventArgs args) =>
+        AddTypes(optionsMonitor.CurrentValue, args.LoadedAssembly);
 }

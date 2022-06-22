@@ -20,16 +20,16 @@ public interface IMessageHandler<in TMessage, TResponse> where TMessage : IMessa
 ///     Message handler abstraction that accepts <typeparamref name="TMessage"/> only when no object in response is expected.
 /// </summary>
 /// <typeparam name="TMessage">Specific message implementation type.</typeparam>
-public interface IMessageHandler<in TMessage> : IMessageHandler<TMessage, None> where TMessage : IMessage
+public interface IMessageHandler<in TMessage> : IMessageHandler<TMessage, Nothing> where TMessage : IMessage
 {
     /// <summary>
     ///     Handles <typeparamref name="TMessage"/> object.
     /// </summary>
     new Task Handle(TMessage message, CancellationToken token = default);
 
-    async Task<None> IMessageHandler<TMessage, None>.Handle(TMessage message, CancellationToken token)
+    async Task<Nothing> IMessageHandler<TMessage, Nothing>.Handle(TMessage message, CancellationToken token)
     {
         await Handle(message, token);
-        return None.Instance;
+        return Nothing.Instance;
     }
 }

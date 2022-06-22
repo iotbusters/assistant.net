@@ -21,7 +21,7 @@ public interface IMessageInterceptor<TMessage, TResponse> where TMessage : IMess
 ///     Message interceptor abstraction that accepts <typeparamref name="TMessage"/> and its children.
 ///     It's one piece in an intercepting chain with control over message with no response expectation.
 /// </summary>
-public interface IMessageInterceptor<TMessage> : IMessageInterceptor<TMessage, None> where TMessage : IMessage
+public interface IMessageInterceptor<TMessage> : IMessageInterceptor<TMessage, Nothing> where TMessage : IMessage
 {
     /// <summary>
     ///     Intercepts the <paramref name="message"/> or one of its children
@@ -29,18 +29,18 @@ public interface IMessageInterceptor<TMessage> : IMessageInterceptor<TMessage, N
     /// </summary>
     Task Intercept(IMessageHandler<TMessage> next, TMessage message, CancellationToken token = default);
 
-    async Task<None> IMessageInterceptor<TMessage, None>.Intercept(Func<TMessage, CancellationToken, Task<None>> next, TMessage message, CancellationToken token)
+    async Task<Nothing> IMessageInterceptor<TMessage, Nothing>.Intercept(Func<TMessage, CancellationToken, Task<Nothing>> next, TMessage message, CancellationToken token)
     {
         var handler = next as IMessageHandler<TMessage> ?? new MessageHandlerAdapter(next);
         await Intercept(handler, message, token);
-        return None.Instance;
+        return Nothing.Instance;
     }
 
     private class MessageHandlerAdapter : IMessageHandler<TMessage>
     {
-        private readonly Func<TMessage, CancellationToken, Task<None>> handler;
+        private readonly Func<TMessage, CancellationToken, Task<Nothing>> handler;
 
-        public MessageHandlerAdapter(Func<TMessage, CancellationToken, Task<None>> handler) =>
+        public MessageHandlerAdapter(Func<TMessage, CancellationToken, Task<Nothing>> handler) =>
             this.handler = handler;
 
         public Task Handle(TMessage message, CancellationToken token = default) =>

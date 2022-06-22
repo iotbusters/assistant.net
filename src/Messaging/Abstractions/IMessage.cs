@@ -10,6 +10,6 @@ public interface IMessage<out TResponse> : IAbstractMessage
 /// <summary>
 ///     Message abstraction that doesn't expect 
 /// </summary>
-public interface IMessage : IMessage<None>
+public interface IMessage : IMessage<Nothing>
 {
 }
