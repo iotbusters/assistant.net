@@ -1,5 +1,4 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,8 +16,5 @@ internal class LocalMessageHandlingProxy<TMessage, TResponse> : IAbstractHandler
         (await handler.Handle((TMessage)message, token))!;
 
     public async Task Publish(object message, CancellationToken token) =>
-        // note: it gives a 1ms window to fail the request.
-        await await Task.WhenAny(
-            handler.Handle((TMessage)message, token),
-            Task.Delay(TimeSpan.FromSeconds(0.001), token));
+        await handler.Handle((TMessage)message, token);
 }

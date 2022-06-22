@@ -14,6 +14,6 @@ internal class AbstractInterceptor<TInterceptor, TMessage, TResponse> : IAbstrac
     public AbstractInterceptor(TInterceptor interceptor) =>
         this.interceptor = interceptor;
 
-    public async Task<object> Intercept(Func<object, CancellationToken, Task<object>> next, object message, CancellationToken token) =>
+    public async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token) =>
         (await interceptor.Intercept(async (m, t) => (TResponse)await next(m, t), (TMessage)message, token))!;
 }

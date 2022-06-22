@@ -63,25 +63,24 @@ internal class WebMessageHandlerProxy : IAbstractHandler
 
         try
         {
-            // note: it gives a 100ms window to fail the request.
-            await await Task.WhenAny(
-                client.DelegateHandling(message, token),
-                Task.Delay(TimeSpan.FromSeconds(0.1), token));
-
-            logger.LogInformation("Message({MessageName}/{MessageId}): published.", messageName, messageId);
+            await client.DelegateHandling(message, token);
         }
         catch (MessageDeferredException ex)
         {
             logger.LogInformation(ex, "Message({MessageName}/{MessageId}): ignore deferred.", messageName, messageId);
+            return;
         }
         catch (OperationCanceledException ex)
         {
             logger.LogInformation(ex, "Message({MessageName}/{MessageId}): cancelled or exceeded timeout.", messageName, messageId);
+            throw;
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Message({MessageName}/{MessageId}): failed.", messageName, messageId);
             throw;
         }
+
+        logger.LogInformation("Message({MessageName}/{MessageId}): published.", messageName, messageId);
     }
 }

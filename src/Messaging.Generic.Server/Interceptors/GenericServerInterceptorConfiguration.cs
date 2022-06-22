@@ -17,7 +17,7 @@ public sealed class GenericServerInterceptorConfiguration : IMessageConfiguratio
     {
         builder
             .AddConfiguration<DefaultInterceptorConfiguration>()
-            .ReplaceInterceptor<CachingInterceptor, RespondingInterceptor>()
+            .ReplaceInterceptor<CachingInterceptor, DefaultCachingInterceptor>()
             .Retry(new ExponentialBackoff {MaxAttemptNumber = 5, Interval = TimeSpan.FromSeconds(1), Rate = 1.2})
             .TimeoutIn(TimeSpan.FromSeconds(3));
         builder.Services.AddStorage(builder.Name, b => b

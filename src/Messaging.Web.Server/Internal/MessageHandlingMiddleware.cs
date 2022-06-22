@@ -41,7 +41,7 @@ internal class MessageHandlingMiddleware : IMiddleware
         if (!serverOptions.MessageTypes.Contains(message.GetType()))
             throw new MessageNotRegisteredException(message.GetType());
 
-        var response = await client.RequestObject(message);
+        var response = await client.RequestObject((IAbstractMessage)message);
 
         await context.WriteMessageResponse(StatusCodes.Status200OK, response);
     }

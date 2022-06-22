@@ -40,22 +40,29 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         var attempt = 1;
         while (true)
         {
-            logger.LogDebug("Storage.AddOrGet({KeyId}): {Attempt} begins.", key.Id, attempt);
+            logger.LogInformation("Storage.AddOrGet({KeyId}): {Attempt} begins.", key.Id, attempt);
 
             if (await TryGet(key, token) is Some<ValueRecord>(var found))
+            {
+                logger.LogInformation("Storage.AddOrGet({KeyId}, {Version}): {Attempt} found.",
+                    key.Id, found.Audit.Version, attempt);
                 return found;
+            }
 
             if (await InsertValue(key, addFactory, token) is Some<ValueRecord>(var added))
+            {
+                logger.LogInformation("Storage.AddOrGet({KeyId}, {Version}): {Attempt} added.", key.Id, 1, attempt);
                 return added;
+            }
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Storage.AddOrGet({KeyId}): {Attempt} reached the limit.", key.Id, attempt);
+                logger.LogError("Storage.AddOrGet({KeyId}, {Version}): {Attempt} reached the limit.", key.Id, 1, attempt);
                 throw new StorageConcurrencyException();
             }
 
-            logger.LogWarning("Storage.AddOrGet({KeyId}): {Attempt} failed.", key.Id, attempt);
+            logger.LogWarning("Storage.AddOrGet({KeyId}, {Version}): {Attempt} failed.", key.Id, 1, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
@@ -67,18 +74,19 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         CancellationToken token)
     {
         var strategy = options.UpsertRetry;
+        var storageDbContext = CreateDbContext();
 
         var attempt = 1;
         while (true)
         {
-            logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} begins.", key.Id, attempt);
+            logger.LogInformation("Storage.AddOrUpdate({KeyId}): {Attempt} begins.", key.Id, attempt);
 
-            var storageDbContext = CreateDbContext();
             if (await storageDbContext.StorageValues.AnyAsync(x => x.KeyId == key.Id && x.ValueType == key.ValueType, token))
             {
                 if (await UpdateValue(key, updateFactory, token) is Some<ValueRecord>(var updated))
                 {
-                    logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} succeeded.", key.Id, attempt);
+                    logger.LogInformation("Storage.AddOrUpdate({KeyId}, {Version}): {Attempt} updated.",
+                        key.Id, updated.Audit.Version, attempt);
                     return updated;
                 }
             }
@@ -86,7 +94,8 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
             {
                 if (await InsertValue(key, addFactory, token) is Some<ValueRecord>(var added))
                 {
-                    logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} succeeded.", key.Id, attempt);
+                    logger.LogInformation("Storage.AddOrUpdate({KeyId}, {Version}): {Attempt} added.",
+                        key.Id, added.Audit.Version, attempt);
                     return added;
                 }
             }
@@ -151,13 +160,13 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         var dbContext = CreateDbContext();
 
         if (await dbContext.StorageKeys.AnyAsync(x => x.Id == key.Id && x.ValueType == key.ValueType, token))
-            logger.LogDebug("SQLite({KeyId}) key: found.", key.Id);
+            logger.LogDebug("SQLite({KeyId}, {Version}) key: found.", key.Id, added.Audit.Version);
         else
         {
             var keyRecord = new StorageKeyRecord(key.Id, key.Type, key.Content, key.ValueType);
             await dbContext.AddAsync(keyRecord, token);
 
-            logger.LogDebug("SQLite({KeyId}) key: adding.", key.Id);
+            logger.LogDebug("SQLite({KeyId}, {Version}) key: adding.", key.Id, added.Audit.Version);
         }
 
         try
@@ -168,17 +177,17 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         catch (DbUpdateException ex) when (ex.InnerException is SqliteException {SqliteExtendedErrorCode: 1555})
         {
             // note: primary key constraint violation (https://www.sqlite.org/rescode.html#constraint_primarykey)
-            logger.LogWarning(ex, "SQLite({KeyId}) inserting: already present.", key.Id);
+            logger.LogWarning(ex, "SQLite({KeyId}, {Version}) inserting: already present.", key.Id, added.Audit.Version);
             return Option.None;
         }
         catch (DbUpdateException ex) when (ex.InnerException is SqliteException {SqliteExtendedErrorCode: 787})
         {
             // note: foreign key constraint violation (https://www.sqlite.org/rescode.html#constraint_foreignkey)
-            logger.LogWarning(ex, "SQLite({KeyId}) inserting: key concurrently deleted.", key.Id);
+            logger.LogWarning(ex, "SQLite({KeyId}, {Version}) inserting: key concurrently deleted.", key.Id, added.Audit.Version);
             return Option.None;
         }
 
-        logger.LogDebug("SQLite({KeyId}) inserting: succeeded.", key.Id);
+        logger.LogDebug("SQLite({KeyId}, {Version}) inserting: succeeded.", key.Id, added.Audit.Version);
         return Option.Some(added);
     }
 
@@ -194,8 +203,8 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         var oldValue = ToValue(found);
         var newValue = await updateFactory(key, oldValue);
 
-        logger.LogDebug("SQLite({KeyId})[{OldVersion}/{NewVersion}] updating: begins.",
-            key.Id, oldValue.Audit.Version, newValue.Audit.Version);
+        logger.LogDebug("SQLite({KeyId})[{Version}] updating: begins.",
+            key.Id, newValue.Audit.Version);
 
         found.Version = newValue.Audit.Version;
         found.ValueContent = newValue.Content;
@@ -208,20 +217,20 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         }
         catch (DbUpdateConcurrencyException ex)
         {
-            logger.LogWarning(ex, "SQLite({KeyId})[{OldVersion}/{NewVersion}] updating: already modified concurrently.",
-                key.Id, oldValue.Audit.Version, newValue.Audit.Version);
+            logger.LogWarning(ex, "SQLite({KeyId})[{Version}] updating: already modified concurrently.",
+                key.Id, newValue.Audit.Version);
             return Option.None;
         }
         catch (DbUpdateException ex) when (ex.InnerException is SqliteException {SqliteExtendedErrorCode: 787})
         {
             // note: foreign key constraint violation (https://www.sqlite.org/rescode.html#constraint_foreignkey)
-            logger.LogWarning(ex, "SQLite({KeyId})[{OldVersion}/{NewVersion}] inserting: key concurrently deleted.",
-                key.Id, oldValue.Audit.Version, newValue.Audit.Version);
+            logger.LogWarning(ex, "SQLite({KeyId})[{Version}] inserting: key concurrently deleted.",
+                key.Id, newValue.Audit.Version);
             return Option.None;
         }
 
-        logger.LogDebug("SQLite({KeyId})[{OldVersion}/{NewVersion}] updating: succeeded.",
-            key.Id, oldValue.Audit.Version, newValue.Audit.Version);
+        logger.LogDebug("SQLite({KeyId})[{Version}] updating: succeeded.",
+            key.Id, newValue.Audit.Version);
         return Option.Some(newValue);
     }
 
@@ -231,7 +240,10 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
 
         var dbContext = CreateDbContext();
         if (await FindRecord(dbContext.StorageValues, key, token) is not Some<StorageValueRecord>(var found))
+        {
+            logger.LogDebug("SQLite({KeyId}) deleting: not found.", key.Id);
             return Option.None;
+        }
 
         try
         {
@@ -240,11 +252,11 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         }
         catch (DbUpdateConcurrencyException ex)
         {
-            logger.LogWarning(ex, "SQLite({KeyId}) deleting: already deleted.", key.Id);
+            logger.LogWarning(ex, "SQLite({KeyId})[{Version}] deleting: already deleted.", key.Id, found.Version);
             return Option.None;
         }
 
-        logger.LogDebug("SQLite({KeyId}) deleting: succeeded.", key.Id);
+        logger.LogDebug("SQLite({KeyId})[{Version}] deleting: succeeded.", key.Id, found.Version);
         return ToValue(found).AsOption();
     }
 }

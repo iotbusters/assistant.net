@@ -40,11 +40,11 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
         var attempt = 1;
         while (true)
         {
-            logger.LogDebug("Storage.AddOrGet({KeyId}): {Attempt} begins.", key.Id, attempt);
+            logger.LogInformation("Storage.AddOrGet({KeyId}): {Attempt} begins.", key.Id, attempt);
 
             if (await TryGet(key, token) is Some<ValueRecord>(var found))
             {
-                logger.LogDebug("Storage.AddOrGet({KeyId}:{Version}): {Attempt} found.",
+                logger.LogInformation("Storage.AddOrGet({KeyId}, {Version}): {Attempt} found.",
                     key.Id, found.Audit.Version, attempt);
                 return found;
             }
@@ -52,19 +52,20 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
             var newValue = await addFactory(key);
             if (await InsertValue(key, newValue, token))
             {
-                logger.LogDebug("Storage.AddOrGet({KeyId}:1): {Attempt} succeeded.", key.Id, attempt);
+                logger.LogInformation("Storage.AddOrGet({KeyId}, {Version}): {Attempt} added.",
+                    key.Id, newValue.Audit.Version, attempt);
                 return newValue;
             }
 
-            logger.LogDebug("Storage.AddOrGet({KeyId}:1): {Attempt} failed.", key.Id, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogDebug("Storage.AddOrGet({KeyId}): {Attempt} won't proceed.", key.Id, attempt);
+                logger.LogError("Storage.AddOrGet({KeyId}): {Attempt} reached the limit.", key.Id, attempt);
                 throw new StorageConcurrencyException();
             }
 
+            logger.LogWarning("Storage.AddOrGet({KeyId}): {Attempt} failed.", key.Id, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
@@ -80,35 +81,33 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
         var attempt = 1;
         while (true)
         {
-            logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} begins.", key.Id, attempt);
+            logger.LogInformation("Storage.AddOrUpdate({KeyId}): {Attempt} begins.", key.Id, attempt);
 
             var newValue = await TryGet(key, token) is Some<ValueRecord>(var found)
                 ? await updateFactory(key, found)
                 : await addFactory(key);
             if (await InsertValue(key, newValue, token))
             {
-                logger.LogDebug("Storage.AddOrUpdate({KeyId}:{Version}): {Attempt} succeeded.",
+                logger.LogInformation("Storage.AddOrUpdate({KeyId}, {Version}): {Attempt} added.",
                     key.Id, newValue.Audit.Version, attempt);
                 return newValue;
             }
 
-            logger.LogDebug("Storage.AddOrUpdate({KeyId}:{Version}): {Attempt} failed.",
-                key.Id, newValue.Audit.Version, attempt);
-
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogDebug("Storage.AddOrUpdate({KeyId}): {Attempt} won't proceed.", key.Id, attempt);
+                logger.LogError("Storage.AddOrUpdate({KeyId}): {Attempt} reached the limit.", key.Id, attempt);
                 throw new StorageConcurrencyException();
             }
 
+            logger.LogWarning("Storage.AddOrUpdate({KeyId}): {Attempt} failed.", key.Id, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
 
     public async Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token)
     {
-        logger.LogDebug("SQLite({KeyId}:latest) querying: begins.", key.Id);
+        logger.LogDebug("SQLite({KeyId})[latest] querying: begins.", key.Id);
 
         var storageDbContext = CreateDbContext();
 
@@ -118,9 +117,9 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
             .LastOrDefaultAsync(x => x.KeyId == key.Id && x.ValueType == key.ValueType, token);
 
         if (found != null)
-            logger.LogDebug("SQLite({KeyId}:{Version}) querying: found.", key.Id, found.Version);
+            logger.LogDebug("SQLite({KeyId})[{Version}] querying: found.", key.Id, found.Version);
         else
-            logger.LogDebug("SQLite({KeyId}:latest) querying: not found.", key.Id);
+            logger.LogDebug("SQLite({KeyId})[latest] querying: not found.", key.Id);
 
         return found.AsOption().MapOption(x =>
             new ValueRecord(x.ValueType, x.ValueContent, new Audit(x.Details.FromDetailArray(), x.Version)));
@@ -129,7 +128,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
     /// <exception cref="ArgumentOutOfRangeException"/>
     public async Task<Option<ValueRecord>> TryGet(KeyRecord key, long version, CancellationToken token)
     {
-        logger.LogDebug("SQLite({KeyId}:{Version}) querying: begins.", key.Id, version);
+        logger.LogDebug("SQLite({KeyId})[{Version}] querying: begins.", key.Id, version);
 
         var storageDbContext = CreateDbContext();
 
@@ -138,9 +137,9 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
             .SingleOrDefaultAsync(x => x.KeyId == key.Id && x.ValueType == key.ValueType && x.Version == version, token); 
 
         if (found != null)
-            logger.LogDebug("SQLite({KeyId}:{Version}) querying: found.", key.Id, found.Version);
+            logger.LogDebug("SQLite({KeyId})[{Version}] querying: found.", key.Id, found.Version);
         else
-            logger.LogDebug("SQLite({KeyId}:{Version}) querying: not found.", key.Id, version);
+            logger.LogDebug("SQLite({KeyId})[{Version}] querying: not found.", key.Id, version);
 
         return found.AsOption().MapOption(x =>
             new ValueRecord(x.ValueType, x.ValueContent, new Audit(x.Details.FromDetailArray(), x.Version)));
@@ -153,11 +152,11 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
         var attempt = 1;
         while (true)
         {
-            logger.LogDebug("Storage.TryRemove({KeyId}): {Attempt} begins.", key.Id, attempt);
+            logger.LogInformation("Storage.TryRemove({KeyId}): {Attempt} begins.", key.Id, attempt);
 
             if (await DeleteMany(key, token) is not Some<ValueRecord>(var deleted))
             {
-                logger.LogDebug("Storage.TryRemove({KeyId}): {Attempt} not found.", key.Id, attempt);
+                logger.LogInformation("Storage.TryRemove({KeyId}): {Attempt} not found.", key.Id, attempt);
                 return Option.None; // note: no value versions.
             }
 
@@ -169,19 +168,19 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
 
                 await CleanupKeys(token);
 
-                logger.LogDebug("Storage.TryRemove({KeyId}): {Attempt}  succeeded.", key.Id, attempt);
+                logger.LogInformation("Storage.TryRemove({KeyId}, {Version}): {Attempt}  succeeded.",
+                    key.Id, deleted.Audit.Version, attempt);
                 return deleted.AsOption(); 
             }
-
-            logger.LogDebug("Storage.TryRemove({KeyId}): {Attempt} failed.", key.Id, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogDebug("Storage.TryRemove({KeyId}): {Attempt} won't proceed.", key.Id, attempt);
+                logger.LogError("Storage.TryRemove({KeyId}): {Attempt} won't proceed.", key.Id, attempt);
                 throw new StorageConcurrencyException();
             }
 
+            logger.LogWarning("Storage.TryRemove({KeyId}): {Attempt} failed.", key.Id, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
@@ -191,13 +190,13 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
         if (upToVersion <= 0)
             throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {upToVersion}.");
 
-        logger.LogDebug("Storage.TryRemove({KeyId}, 1..{Version}): begins.", key.Id, upToVersion);
+        logger.LogInformation("Storage.TryRemove({KeyId}, 1..{Version}): begins.", key.Id, upToVersion);
 
         var deletedCount = await DeleteMany(key, upToVersion, token);
 
         await CleanupKeys(token);
 
-        logger.LogDebug("Storage.TryRemove({KeyId}, 1..{Version}): succeeded with {Count}.", key.Id, upToVersion, deletedCount);
+        logger.LogInformation("Storage.TryRemove({KeyId}, 1..{Version}): succeeded with {Count}.", key.Id, upToVersion, deletedCount);
         return deletedCount;
     }
 
@@ -236,13 +235,13 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
             await dbContext.AddAsync(valueRecord, token);
             await dbContext.SaveChangesAsync(token);
 
-            logger.LogDebug("SQLite({KeyId}) inserting: succeeded.", key.Id);
+            logger.LogDebug("SQLite({KeyId})[{Version}] inserting: succeeded.", key.Id, newValue.Audit.Version);
             return true;
         }
         catch (DbUpdateException ex) when (ex.InnerException is SqliteException {SqliteExtendedErrorCode: 1555})
         {
             // note: primary key constraint violation (https://www.sqlite.org/rescode.html#constraint_primarykey)
-            logger.LogWarning(ex, "SQLite({KeyId}) inserting: already present.", key.Id);
+            logger.LogWarning(ex, "SQLite({KeyId})[{Version}] inserting: already present.", key.Id, newValue.Audit.Version);
             return false;
         }
     }
@@ -252,7 +251,10 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
         logger.LogDebug("SQLite({KeyId}) deleting: begins.", key.Id);
 
         if (await TryGet(key, token) is not Some<ValueRecord>(var found))
+        {
+            logger.LogDebug("SQLite({KeyId}) deleting: not found.", key.Id);
             return Option.None;
+        }
 
         var dbContext = CreateDbContext();
         var valueQuery = dbContext.HistoricalValues.Where(x => x.KeyId == key.Id && x.ValueType == key.ValueType && x.Version <= found.Audit.Version);

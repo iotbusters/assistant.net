@@ -49,10 +49,112 @@ public class MessagingClientTests
     }
 
     [Test]
+    public async Task RequestObject_callsInterceptor_specificMessage()
+    {
+        var interceptor = new TestMessageInterceptor<TestMessage, TestResponse>();
+        var client = new ServiceCollection()
+            .AddMessagingClient(b => b
+                .AddHandler<TestMessageHandler<TestMessage, TestResponse>>()
+                .ClearInterceptors()
+                .AddInterceptor(interceptor))
+            .BuildServiceProvider()
+            .GetRequiredService<IMessagingClient>();
+
+        await client.RequestObject(new TestMessage(0));
+
+        interceptor.CallCount.Should().Be(1);
+    }
+
+    [Test]
+    public async Task RequestObject_callsInterceptor_referenceResponseTypeInterceptor()
+    {
+        var interceptor = new TestMessageInterceptor<IMessage<object>, object>();
+        var client = new ServiceCollection()
+            .AddMessagingClient(b => b
+                .AddHandler<TestMessageHandler<TestMessage, TestResponse>>()
+                .ClearInterceptors()
+                .AddInterceptor(interceptor))
+            .BuildServiceProvider()
+            .GetRequiredService<IMessagingClient>();
+
+        await client.RequestObject(new TestMessage(0));
+
+        interceptor.CallCount.Should().Be(1);
+    }
+
+    [Test]
+    public async Task RequestObject_callsInterceptor_valueResponseTypeInterceptor()
+    {
+        var interceptor = new TestMessageInterceptor<IMessage<Guid>, Guid>();
+        var client = new ServiceCollection()
+            .AddMessagingClient(b => b
+                .AddHandler<TestMessageHandler<TestMessage3, Guid>>()
+                .ClearInterceptors()
+                .AddInterceptor(interceptor))
+            .BuildServiceProvider()
+            .GetRequiredService<IMessagingClient>();
+
+        await client.RequestObject(new TestMessage3());
+
+        interceptor.CallCount.Should().Be(1);
+    }
+
+    [Test]
+    public async Task RequestObject_doesNotCallInterceptor_referenceResponseTypeInterceptorButValueResponseType()
+    {
+        var interceptor = new TestMessageInterceptor<IMessage<object>, object>();
+        var client = new ServiceCollection()
+            .AddMessagingClient(b => b
+                .AddHandler<TestMessageHandler<TestMessage3, Guid>>()
+                .ClearInterceptors()
+                .AddInterceptor(interceptor))
+            .BuildServiceProvider()
+            .GetRequiredService<IMessagingClient>();
+
+        await client.RequestObject(new TestMessage3());
+
+        interceptor.CallCount.Should().Be(0);
+    }
+
+    [Test]
+    public async Task RequestObject_callsInterceptor_abstractInterceptorButReferenceResponseType()
+    {
+        var interceptor = new TestAbstractInterceptor();
+        var client = new ServiceCollection()
+            .AddMessagingClient(b => b
+                .AddHandler<TestMessageHandler<TestMessage, TestResponse>>()
+                .ClearInterceptors()
+                .AddInterceptor(interceptor))
+            .BuildServiceProvider()
+            .GetRequiredService<IMessagingClient>();
+
+        await client.RequestObject(new TestMessage(0));
+
+        interceptor.CallCount.Should().Be(1);
+    }
+
+    [Test]
+    public async Task RequestObject_callsInterceptor_abstractInterceptorButValueResponseType()
+    {
+        var interceptor = new TestAbstractInterceptor();
+        var client = new ServiceCollection()
+            .AddMessagingClient(b => b
+                .AddHandler<TestMessageHandler<TestMessage3, Guid>>()
+                .ClearInterceptors()
+                .AddInterceptor(interceptor))
+            .BuildServiceProvider()
+            .GetRequiredService<IMessagingClient>();
+
+        await client.RequestObject(new TestMessage3());
+
+        interceptor.CallCount.Should().Be(1);
+    }
+
+    [Test]
     public async Task RequestObject_returnsResponseObject_defaultInterceptors()
     {
         var client = new ServiceCollection()
-            .AddMessagingClient(b => b.AddHandler<TestScenarioMessageHandler>())
+            .AddMessagingClient(b => b.AddHandler<TestScenarioMessageHandler>().ClearInterceptors())
             .BuildServiceProvider()
             .GetRequiredService<IMessagingClient>();
 
@@ -100,6 +202,108 @@ public class MessagingClientTests
     }
 
     [Test]
+    public async Task PublishObject_callsInterceptor_specificMessage()
+    {
+        var interceptor = new TestMessageInterceptor<TestMessage, TestResponse>();
+        var client = new ServiceCollection()
+            .AddMessagingClient(b => b
+                .AddHandler<TestMessageHandler<TestMessage, TestResponse>>()
+                .ClearInterceptors()
+                .AddInterceptor(interceptor))
+            .BuildServiceProvider()
+            .GetRequiredService<IMessagingClient>();
+
+        await client.PublishObject(new TestMessage(0));
+
+        interceptor.CallCount.Should().Be(1);
+    }
+
+    [Test]
+    public async Task PublishObject_callsInterceptor_referenceResponseTypeInterceptor()
+    {
+        var interceptor = new TestMessageInterceptor<IMessage<object>, object>();
+        var client = new ServiceCollection()
+            .AddMessagingClient(b => b
+                .AddHandler<TestMessageHandler<TestMessage, TestResponse>>()
+                .ClearInterceptors()
+                .AddInterceptor(interceptor))
+            .BuildServiceProvider()
+            .GetRequiredService<IMessagingClient>();
+
+        await client.PublishObject(new TestMessage(0));
+
+        interceptor.CallCount.Should().Be(1);
+    }
+
+    [Test]
+    public async Task PublishObject_callsInterceptor_valueResponseTypeInterceptor()
+    {
+        var interceptor = new TestMessageInterceptor<IMessage<Guid>, Guid>();
+        var client = new ServiceCollection()
+            .AddMessagingClient(b => b
+                .AddHandler<TestMessageHandler<TestMessage3, Guid>>()
+                .ClearInterceptors()
+                .AddInterceptor(interceptor))
+            .BuildServiceProvider()
+            .GetRequiredService<IMessagingClient>();
+
+        await client.PublishObject(new TestMessage3());
+
+        interceptor.CallCount.Should().Be(1);
+    }
+
+    [Test]
+    public async Task PublishObject_doesNotCallInterceptor_referenceResponseTypeInterceptorButValueResponseType()
+    {
+        var interceptor = new TestMessageInterceptor<IMessage<object>, object>();
+        var client = new ServiceCollection()
+            .AddMessagingClient(b => b
+                .AddHandler<TestMessageHandler<TestMessage3, Guid>>()
+                .ClearInterceptors()
+                .AddInterceptor(interceptor))
+            .BuildServiceProvider()
+            .GetRequiredService<IMessagingClient>();
+
+        await client.PublishObject(new TestMessage3());
+
+        interceptor.CallCount.Should().Be(0);
+    }
+
+    [Test]
+    public async Task PublishObject_callsInterceptor_abstractInterceptorButReferenceResponseType()
+    {
+        var interceptor = new TestAbstractInterceptor();
+        var client = new ServiceCollection()
+            .AddMessagingClient(b => b
+                .AddHandler<TestMessageHandler<TestMessage, TestResponse>>()
+                .ClearInterceptors()
+                .AddInterceptor(interceptor))
+            .BuildServiceProvider()
+            .GetRequiredService<IMessagingClient>();
+
+        await client.PublishObject(new TestMessage(0));
+
+        interceptor.CallCount.Should().Be(1);
+    }
+
+    [Test]
+    public async Task PublishObject_callsInterceptor_abstractInterceptorButValueResponseType()
+    {
+        var interceptor = new TestAbstractInterceptor();
+        var client = new ServiceCollection()
+            .AddMessagingClient(b => b
+                .AddHandler<TestMessageHandler<TestMessage3, Guid>>()
+                .ClearInterceptors()
+                .AddInterceptor(interceptor))
+            .BuildServiceProvider()
+            .GetRequiredService<IMessagingClient>();
+
+        await client.PublishObject(new TestMessage3());
+
+        interceptor.CallCount.Should().Be(1);
+    }
+
+    [Test]
     public async Task PublishObject_returnsResponseObject_defaultInterceptors()
     {
         var handler = new TestMessageHandler<TestMessage, TestResponse>(new TestResponse(false));
@@ -120,9 +324,9 @@ public class MessagingClientTests
         var handler2 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(2));
         var handler3 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(3));
         var mainProvider = new ServiceCollection()
-            .AddMessagingClient(b => b.AddHandler(handler1))
-            .ConfigureMessagingClient("1", b => b.AddHandler(handler2))
-            .ConfigureMessagingClient("2", b => b.AddHandler(handler3))
+            .AddMessagingClient(b => b.AddHandler(handler1).ClearInterceptors())
+            .ConfigureMessagingClient("1", b => b.AddHandler(handler2).ClearInterceptors())
+            .ConfigureMessagingClient("2", b => b.AddHandler(handler3).ClearInterceptors())
             .BuildServiceProvider();
         
         var provider1 = mainProvider.CreateScope().ServiceProvider;
@@ -145,9 +349,9 @@ public class MessagingClientTests
         var handler2 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(2));
         var handler3 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(3));
         var mainProvider = new ServiceCollection()
-            .AddMessagingClient(b => b.AddHandler(handler1))
-            .ConfigureMessagingClient("1", b => b.AddHandler(handler2))
-            .ConfigureMessagingClient("2", b => b.AddHandler(handler3))
+            .AddMessagingClient(b => b.AddHandler(handler1).ClearInterceptors())
+            .ConfigureMessagingClient("1", b => b.AddHandler(handler2).ClearInterceptors())
+            .ConfigureMessagingClient("2", b => b.AddHandler(handler3).ClearInterceptors())
             .BuildServiceProvider();
 
         var provider1 = mainProvider.CreateScope().ServiceProvider;

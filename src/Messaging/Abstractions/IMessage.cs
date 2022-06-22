@@ -13,24 +13,3 @@ public interface IMessage<out TResponse> : IAbstractMessage
 public interface IMessage : IMessage<None>
 {
 }
-
-/// <summary>
-///     Very generic message abstraction that is used primarily for type restrictions 
-///     in configuration and other internal logic.
-/// </summary>
-public interface IAbstractMessage
-{
-}
-
-/// <summary>
-///     No message response representation.
-/// </summary>
-public sealed class None
-{
-    private None() { }
-
-    /// <summary>
-    ///     Instance of none.
-    /// </summary>
-    public static None Instance { get; } = new();
-}

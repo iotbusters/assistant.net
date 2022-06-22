@@ -160,7 +160,7 @@ public static class MessagingClientBuilderExtensions
     /// </summary>
     public static MessagingClientBuilder AddInterceptor(this MessagingClientBuilder builder, Type interceptorType)
     {
-        if (!interceptorType.IsMessageInterceptor())
+        if (!interceptorType.IsMessageInterceptor() && !interceptorType.IsAbstractInterceptor())
             throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
 
         builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddInterceptor(interceptorType));
@@ -174,7 +174,7 @@ public static class MessagingClientBuilderExtensions
     public static MessagingClientBuilder AddInterceptor(this MessagingClientBuilder builder, object interceptorInstance)
     {
         var interceptorType = interceptorInstance.GetType();
-        if (!interceptorType.IsMessageInterceptor())
+        if (!interceptorType.IsMessageInterceptor() && !interceptorType.IsAbstractInterceptor())
             throw new ArgumentException($"Expected message interceptor but provided {interceptorType}.", nameof(interceptorInstance));
 
         builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddInterceptor(interceptorInstance));
@@ -205,7 +205,7 @@ public static class MessagingClientBuilderExtensions
     /// </summary>
     public static MessagingClientBuilder ReplaceInterceptor(this MessagingClientBuilder builder, Type targetType, Type replacementType)
     {
-        if (!targetType.IsMessageInterceptor())
+        if (!targetType.IsMessageInterceptor() && !targetType.IsAbstractInterceptor())
             throw new ArgumentException($"Expected interceptor but provided {targetType}.", nameof(targetType));
 
         builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.ReplaceInterceptor(targetType, replacementType));
@@ -219,14 +219,14 @@ public static class MessagingClientBuilderExtensions
         where TInterceptor : class => builder.RemoveInterceptor(typeof(TInterceptor));
 
     /// <summary>
-    ///     Removes an interceptor <paramref name="type"/>.
+    ///     Removes an interceptor <paramref name="interceptorType"/>.
     /// </summary>
-    public static MessagingClientBuilder RemoveInterceptor(this MessagingClientBuilder builder, Type type)
+    public static MessagingClientBuilder RemoveInterceptor(this MessagingClientBuilder builder, Type interceptorType)
     {
-        if (!type.IsMessageInterceptor())
-            throw new ArgumentException($"Expected interceptor but provided {type}.", nameof(type));
+        if (!interceptorType.IsMessageInterceptor() && !interceptorType.IsAbstractInterceptor())
+            throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
 
-        builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.RemoveInterceptor(type));
+        builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.RemoveInterceptor(interceptorType));
         return builder;
     }
 

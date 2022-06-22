@@ -16,7 +16,7 @@ internal class InterceptingMessageHandler
         this.interceptors = interceptors.GetEnumerator();
     }
 
-    public async Task<object> Request(object message, CancellationToken token)
+    public async Task<object> Request(IAbstractMessage message, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
 
@@ -26,7 +26,7 @@ internal class InterceptingMessageHandler
         return (await handler.Request(message, token))!;
     }
 
-    public async Task Publish(object message, CancellationToken token)
+    public async Task Publish(IAbstractMessage message, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
 

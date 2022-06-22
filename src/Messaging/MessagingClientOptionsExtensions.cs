@@ -138,17 +138,21 @@ public static class MessagingClientOptionsExtensions
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddInterceptor(this MessagingClientOptions options, Type interceptorType)
     {
-        var messageTypes = interceptorType.GetMessageInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
-        if(!messageTypes.Any())
+        if (!interceptorType.IsMessageInterceptor() && !interceptorType.IsAbstractInterceptor())
             throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
 
-        foreach (var messageType in messageTypes)
-            if (!options.Interceptors.Any(x => x.MessageType == messageType && x.InterceptorType == interceptorType))
-            {
-                var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
-                    CreateAbstractInterceptor(p, interceptorType, messageType));
-                options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, factory));
-            }
+        var messageTypes = interceptorType.GetMessageInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First());
+        if (interceptorType.IsAbstractInterceptor())
+            messageTypes = messageTypes.Append(typeof(object));
+
+        var newMessageTypes = messageTypes
+            .Where(x => !options.Interceptors.Any(d => d.MessageType == x && d.InterceptorType == interceptorType));
+        foreach (var messageType in newMessageTypes)
+        {
+            var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
+                CreateAbstractInterceptor(p, interceptorType, messageType));
+            options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, factory));
+        }
 
         return options;
     }
@@ -162,23 +166,28 @@ public static class MessagingClientOptionsExtensions
     public static MessagingClientOptions AddInterceptor(this MessagingClientOptions options, object interceptorInstance)
     {
         var interceptorType = interceptorInstance.GetType();
-        var messageTypes = interceptorType.GetMessageInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
-        if (!messageTypes.Any())
-            throw new ArgumentException($"Expected message interceptor but provided {interceptorType}.", nameof(interceptorInstance));
+        if (!interceptorType.IsMessageInterceptor() && !interceptorType.IsAbstractInterceptor())
+            throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
 
-        foreach (var messageType in messageTypes)
-            if (!options.Interceptors.Any(x => x.MessageType == messageType && x.InterceptorType == interceptorType))
-            {
-                var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
-                    CreateAbstractInterceptor(p, interceptorInstance, messageType));
-                options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, factory));
-            }
+        var messageTypes = interceptorType.GetMessageInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First());
+        if (interceptorType.IsAbstractInterceptor())
+            messageTypes = messageTypes.Append(typeof(object));
+
+        var newMessageTypes = messageTypes
+            .Where(x => !options.Interceptors.Any(d => d.MessageType == x && d.InterceptorType == interceptorType));
+        foreach (var messageType in newMessageTypes)
+        {
+            var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
+                CreateAbstractInterceptor(p, interceptorInstance, messageType));
+            options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, factory));
+        }
 
         return options;
     }
 
     /// <summary>
-    ///     Replaces matching messages of the interceptor type <paramref name="targetType"/> in the list with <paramref name="replacementType"/>.
+    ///     Replaces matching messages of the interceptor type <paramref name="targetType"/>
+    ///     in the list with <paramref name="replacementType"/>.
     /// </summary>
     /// <param name="options"/>
     /// <param name="targetType">Message interceptor type to be replaced.</param>
@@ -186,16 +195,16 @@ public static class MessagingClientOptionsExtensions
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions ReplaceInterceptor(this MessagingClientOptions options, Type targetType, Type replacementType)
     {
-        if (!replacementType.IsMessageInterceptor())
+        if (!replacementType.IsMessageInterceptor() && !replacementType.IsAbstractInterceptor())
             throw new ArgumentException($"Expected interceptor but provided {replacementType}.", nameof(replacementType));
 
         var messageTypes = replacementType.GetMessageInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First());
+        if (replacementType.IsAbstractInterceptor())
+            messageTypes = messageTypes.Append(typeof(object));
+
         var definitions = options.Interceptors
             .Where(x => x.InterceptorType == targetType && messageTypes.Contains(x.MessageType))
             .ToArray();
-
-        if (!definitions.Any())
-            return options.AddInterceptor(replacementType);
 
         foreach (var definition in definitions)
         {
@@ -210,6 +219,40 @@ public static class MessagingClientOptionsExtensions
     }
 
     /// <summary>
+    ///     Replaces matching messages of the interceptor type <paramref name="targetType"/>
+    ///     in the list with <paramref name="replacementInstance"/>.
+    /// </summary>
+    /// <param name="options"/>
+    /// <param name="targetType">Message interceptor type to be replaced.</param>
+    /// <param name="replacementInstance">Message interceptor instance to be used instead.</param>
+    /// <exception cref="ArgumentException"/>
+    public static MessagingClientOptions ReplaceInterceptor(this MessagingClientOptions options, Type targetType, object replacementInstance)
+    {
+        var replacementType = replacementInstance.GetType();
+        if (!replacementType.IsMessageInterceptor() && !replacementType.IsAbstractInterceptor())
+            throw new ArgumentException($"Expected interceptor but provided {replacementType}.", nameof(replacementType));
+
+        var messageTypes = replacementType.GetMessageInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First());
+        if (replacementType.IsAbstractInterceptor())
+            messageTypes = messageTypes.Append(typeof(object));
+
+        var definitions = options.Interceptors
+            .Where(x => x.InterceptorType == targetType && messageTypes.Contains(x.MessageType))
+            .ToArray();
+
+        foreach (var definition in definitions)
+        {
+            var index = options.Interceptors.IndexOf(definition);
+            options.Interceptors.RemoveAt(index);
+            var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
+                CreateAbstractInterceptor(p, replacementInstance, definition.MessageType));
+            options.Interceptors.Insert(index, new InterceptorDefinition(definition.MessageType, replacementType, factory));
+        }
+
+        return options;
+    }
+
+    /// <summary>
     ///     Removes the interceptor type <paramref name="interceptorType"/> from the list.
     /// </summary>
     /// <param name="options"/>
@@ -217,7 +260,7 @@ public static class MessagingClientOptionsExtensions
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions RemoveInterceptor(this MessagingClientOptions options, Type interceptorType)
     {
-        if (!interceptorType.IsMessageInterceptor())
+        if (!interceptorType.IsMessageInterceptor() && !interceptorType.IsAbstractInterceptor())
             throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
 
         var definitions = options.Interceptors.Where(x => x.InterceptorType == interceptorType).ToArray();
@@ -239,6 +282,10 @@ public static class MessagingClientOptionsExtensions
     private static IAbstractInterceptor CreateAbstractInterceptor(IServiceProvider provider, Type interceptorType, Type messageType)
     {
         var interceptor = provider.Create(interceptorType);
+
+        if (messageType == typeof(object))
+            return (IAbstractInterceptor)interceptor;
+
         var responseType = messageType.GetResponseType();
         var abstractInterceptorType = typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, responseType!);
         var abstractInterceptor = provider.Create(abstractInterceptorType, interceptor);
@@ -247,11 +294,13 @@ public static class MessagingClientOptionsExtensions
 
     private static IAbstractInterceptor CreateAbstractInterceptor(IServiceProvider provider, object interceptor, Type messageType)
     {
+        if (messageType == typeof(object))
+            return (IAbstractInterceptor)interceptor;
+
         var interceptorType = interceptor.GetType();
         var responseType = messageType.GetResponseType();
         var abstractInterceptorType = typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, responseType!);
         var abstractInterceptor = provider.Create(abstractInterceptorType, interceptor);
         return (IAbstractInterceptor)abstractInterceptor;
     }
-
 }
