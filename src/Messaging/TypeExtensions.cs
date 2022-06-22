@@ -81,7 +81,7 @@ public static class TypeExtensions
         handlerType.IsInterface && handlerType.IsGenericType && handlerType.GetGenericTypeDefinition() == typeof(IMessageHandler<,>);
 
     /// <summary>
-    ///     Gets all implemented the <see cref="IMessageInterceptor"/> types.
+    ///     Gets all implemented the <see cref="IMessageInterceptor{TMessage,TResponse}"/> types.
     /// </summary>
     public static Type[] GetMessageInterceptorInterfaceTypes(this Type interceptorType)
     {
@@ -96,7 +96,7 @@ public static class TypeExtensions
     }
 
     /// <summary>
-    ///     Verifies if provided <paramref name="interceptorType"/> implements the <see cref="IMessageInterceptor"/>.
+    ///     Verifies if provided <paramref name="interceptorType"/> implements the <see cref="IMessageInterceptor{TMessage,TResponse}"/>.
     /// </summary>
     public static bool IsMessageInterceptor(this Type interceptorType) =>
         interceptorType.GetInterfaces().Any(x => x.IsMessageInterceptorInterface());
