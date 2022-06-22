@@ -4,20 +4,21 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
-## [0.3.120] - 2022-06-22
+## [0.3.121] - 2022-06-22
 
-[Assistant.NET Release 0.3.120](https://github.com/iotbusters/assistant.net/releases/tag/0.3.120)
+[Assistant.NET Release 0.3.121](https://github.com/iotbusters/assistant.net/releases/tag/0.3.121)
 
-### 0.3.120 Added
+### 0.3.121 Added
 
 - message interceptors implemented 'IAbstractInterceptor' support in messaging
 
-### 0.3.120 Changed
+### 0.3.121 Changed
 
 - renamed non-caching message marker interface to `INonCaching` in messaging
+- moved message caching responsibility into `MessageHandler` in messaging
 - messaging logging
 
-### 0.3.120 Fixed
+### 0.3.121 Fixed
 
 - predefined message interceptors to support value typed message responses in messaging
 
