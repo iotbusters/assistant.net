@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Linq;
 
 namespace Assistant.Net.DataAnnotations;
@@ -12,36 +13,43 @@ public class TimeAttribute : ValidationAttribute
 {
     private readonly TimeSpan? minValue;
     private readonly TimeSpan? maxValue;
-    private readonly List<string> invalidArgumentMessages = new(2);
+    /// <summary>
+    ///     
+    /// </summary>
+    private readonly List<string> invalidArgumentMessages = new(3);
 
     /// <summary/>
-    /// <param name="minStringValue">Minimum time value presented as string with format: '00:00:00' or '00:00:00.0'.</param>
-    /// <param name="maxStringValue">Maximum time value presented as string with format: '00:00:00' or '00:00:00.0'.</param>
-    /// <exception cref="ArgumentException"/>
-    /// <exception cref="ArgumentOutOfRangeException"/>
+    /// <param name="minStringValue">Minimum time value (including) presented as string with format: '00:00:00' or '00:00:00.0'.</param>
+    /// <param name="maxStringValue">Maximum time value (including) presented as string with format: '00:00:00' or '00:00:00.0'.</param>
     public TimeAttribute(string? minStringValue = null, string? maxStringValue = null)
     {
         this.minValue = ConvertOrDefault(minStringValue) ?? TimeSpan.MinValue;
         this.maxValue = ConvertOrDefault(maxStringValue) ?? TimeSpan.MaxValue;
+
+        if (maxValue < minValue)
+            invalidArgumentMessages.Add($"The max value {maxValue} is less than min value {minValue}.");
     }
 
     /// <summary/>
-    /// <param name="minSeconds">Minimum time value in seconds.</param>
-    /// <param name="maxSeconds">Maximum time value in seconds.</param>
-    /// <exception cref="ArgumentException"/>
-    /// <exception cref="ArgumentOutOfRangeException"/>
+    /// <param name="minSeconds">Minimum time value (including) in seconds.</param>
+    /// <param name="maxSeconds">Maximum time value (including) in seconds.</param>
     public TimeAttribute(float? minSeconds = null, float? maxSeconds = null)
     {
         this.minValue = ConvertOrDefault(minSeconds) ?? TimeSpan.MinValue;
         this.maxValue = ConvertOrDefault(maxSeconds) ?? TimeSpan.MaxValue;
+
+        if (maxValue < minValue)
+            invalidArgumentMessages.Add($"The max value {maxValue} is less than min value {minValue}.");
     }
 
     /// <summary/>
-    /// <exception cref="ArgumentException"/>
     public TimeAttribute(TimeSpan? minValue, TimeSpan? maxValue)
     {
         this.minValue = minValue ?? TimeSpan.MinValue;
         this.maxValue = maxValue ?? TimeSpan.MaxValue;
+
+        if (this.maxValue < this.minValue)
+            invalidArgumentMessages.Add($"The max value {maxValue} is less than min value {minValue}.");
     }
 
     /// <inheritdoc />
@@ -65,7 +73,7 @@ public class TimeAttribute : ValidationAttribute
             var messages = new List<string>(2);
             if(isLessThan)
                 messages.Add($"less than {minValue}");
-            if (isLessThan)
+            if (isGreaterThan)
                 messages.Add($"greater than {maxValue}");
             var message = $"The value {time} is " + string.Join(" and ", messages) + ".";
             return new ValidationResult(message, memberNames);
@@ -79,17 +87,14 @@ public class TimeAttribute : ValidationAttribute
         if (stringValue == null)
             return null;
 
-        if (!TimeSpan.TryParse(stringValue, out var value))
+        if (!TimeSpan.TryParseExact(stringValue, "c", new DateTimeFormatInfo(), out var value))
         {
             invalidArgumentMessages.Add($"Invalid time string: '{stringValue}'.");
             return null;
         }
 
         if (value < TimeSpan.Zero)
-        {
-            invalidArgumentMessages.Add($"The time value should be greater or equal to zero: '{value}'.");
-            return null;
-        }
+            invalidArgumentMessages.Add($"The value {value} is below zero.");
 
         return value;
     }
@@ -100,10 +105,7 @@ public class TimeAttribute : ValidationAttribute
             return null;
 
         if (seconds < 0f)
-        {
-            invalidArgumentMessages.Add($"The value should be greater or equal to zero: '{seconds}'.");
-            return null;
-        }
+            invalidArgumentMessages.Add($"The value {seconds}s is below zero.");
 
         return TimeSpan.FromSeconds(seconds.Value);
     }
