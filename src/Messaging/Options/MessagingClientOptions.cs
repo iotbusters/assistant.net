@@ -1,4 +1,5 @@
 using Assistant.Net.Abstractions;
+using Assistant.Net.DataAnnotations;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Interceptors;
@@ -64,5 +65,15 @@ public sealed class MessagingClientOptions
     /// <remarks>
     ///     It impacts <see cref="TimeoutInterceptor{TMessage,TResponse}"/>.
     /// </remarks>
-    public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(10);
+    [Time("00:00:00.001", "00:30:00")]
+    public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    ///     Delay between cancellation was requested and actually called.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="CancellationDelayInterceptor{TMessage,TResponse}"/>.
+    /// </remarks>
+    [Time("00:00:00", "00:30:00")]
+    public TimeSpan CancellationDelay { get; set; } = TimeSpan.FromSeconds(10);
 }

@@ -23,7 +23,7 @@ internal class InterceptingMessageHandler
         if (interceptors.MoveNext())
             return await interceptors.Current.Intercept(Request, message, token);
 
-        return (await handler.Request(message, token))!;
+        return await handler.Request(message, token);
     }
 
     public async Task Publish(IAbstractMessage message, CancellationToken token)

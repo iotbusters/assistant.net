@@ -35,7 +35,7 @@ public sealed class TimeoutInterceptor : IAbstractInterceptor
 
     /// <inheritdoc/>
     /// <exception cref="TimeoutException"/>
-    public async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token = default)
+    public async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncode.Encode(message.GetType());
@@ -58,12 +58,12 @@ public sealed class TimeoutInterceptor : IAbstractInterceptor
                 messageName, messageId, watch.Elapsed);
             throw;
         }
-        catch (TaskCanceledException ex)
+        catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
         {
             var runtime = watch.Elapsed;
-            logger.LogError(ex, "Message({MessageName}/{MessageId}) timeout counter: {RunTime} exceeded the {Timeout} limit.",
+            logger.LogError("Message({MessageName}/{MessageId}) timeout counter: {RunTime} exceeded the {Timeout} limit.",
                 messageName, messageId, runtime, options.Timeout);
-            throw new TimeoutException($"Operation run for {runtime} and exceeded the {options.Timeout} limit.", ex);
+            throw new TimeoutException($"Operation run for {runtime} and exceeded the {options.Timeout} limit.");
         }
 
         logger.LogInformation("Message({MessageName}/{MessageId}) timeout counter: ends in {RunTime}.",

@@ -40,7 +40,7 @@ public sealed class RetryingInterceptor : IAbstractInterceptor
 
     /// <inheritdoc/>
     /// <exception cref="MessageRetryLimitExceededException"/>
-    public async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token = default)
+    public async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncoder.Encode(message.GetType());

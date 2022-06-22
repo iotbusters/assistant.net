@@ -27,6 +27,7 @@ public sealed class DefaultInterceptorConfiguration : IMessageConfiguration
             .AddInterceptor<DiagnosticsInterceptor>()
             .AddInterceptor<CachingInterceptor>()
             .AddInterceptor<ErrorHandlingInterceptor>()
+            .AddInterceptor<CancellationDelayInterceptor>()
             .AddInterceptor<RetryingInterceptor>()
             .AddInterceptor<TimeoutInterceptor>()
             .ExposeException<TimeoutException>()
