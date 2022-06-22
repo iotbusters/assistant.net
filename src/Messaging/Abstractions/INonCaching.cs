@@ -6,6 +6,6 @@ namespace Assistant.Net.Messaging.Abstractions;
 ///     Ignoring message caching interface marker.
 /// </summary>
 /// <remarks>
-///     It impacts <see cref="CachingInterceptor{TMessage,TResponse}"/>.
+///     It impacts <see cref="CachingInterceptor"/>.
 /// </remarks>
 public interface INonCaching { }
