@@ -22,12 +22,12 @@ public class CancellationDelayInterceptorTests
         var timer = Stopwatch.StartNew();
 
         await Interceptor.Awaiting(x => x.Intercept(async (_, token) =>
-            {
-                await Task.WhenAll(Task.Delay(Timeout.Infinite, token));
-                timer.Stop();
-                return Response;
-            }, Message, cancelledSource.Token))
-            .Should().ThrowAsync<OperationCanceledException>();
+        {
+            await Task.WhenAll(Task.Delay(Timeout.Infinite, token));
+            return Response;
+        }, Message, cancelledSource.Token)).Should().ThrowAsync<OperationCanceledException>();
+        timer.Stop();
+
         timer.Elapsed.Should().BeGreaterThan(Options.CancellationDelay);
     }
 
@@ -37,11 +37,8 @@ public class CancellationDelayInterceptorTests
         var source = new CancellationTokenSource();
         var timer = Stopwatch.StartNew();
 
-        await Interceptor.Intercept((_, token) => Task.Run<object>(() =>
-        {
-            timer.Stop();
-            return Response;
-        }, token), Message, source.Token);
+        await Interceptor.Intercept((_, token) => Task.Run<object>(() => Response, token), Message, source.Token);
+        timer.Stop();
 
         timer.Elapsed.Should().BeLessThan(Options.CancellationDelay);
     }
@@ -55,9 +52,9 @@ public class CancellationDelayInterceptorTests
         await Interceptor.Intercept(async (_, token) =>
         {
             await Task.WhenAll(Task.Delay(Options.CancellationDelay, token));
-            timer.Stop();
             return Response;
         }, Message, cancelledSource.Token);
+        timer.Stop();
 
         timer.Elapsed.Should().BeGreaterThan(Options.CancellationDelay);
     }
