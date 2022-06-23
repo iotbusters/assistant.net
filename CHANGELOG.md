@@ -4,16 +4,16 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
-## [0.3.122] - 2022-06-23
+## [0.3.123] - 2022-06-23
 
-[Assistant.NET Release 0.3.122](https://github.com/iotbusters/assistant.net/releases/tag/0.3.122)
+[Assistant.NET Release 0.3.123](https://github.com/iotbusters/assistant.net/releases/tag/0.3.123)
 
-### 0.3.122 Added
+### 0.3.123 Added
 
 - delayed cancellation interceptor
 - added time validation attribute
 
-### 0.3.122 Changed
+### 0.3.123 Changed
 
 - type encoder become reloadable
 - renamed no-response class to void conflicts with unions namespace
