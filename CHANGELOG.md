@@ -26,7 +26,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - type encoder become reloadable
 - renamed no-response class to void conflicts with unions namespace
-- allowed exposing opration cancelled exception from storage
+- allowed exposing operation cancelled exception from storage
 
 ## [0.3.121] - 2022-06-22
 
@@ -65,7 +65,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - conflicting key between different storage value types issue
 
-## [0.2.117] - 2022-06-18
+## [unlisted][0.2.117] - 2022-06-18
 
 [Assistant.NET Release 0.2.117](https://github.com/iotbusters/assistant.net/releases/tag/0.2.117)
 
@@ -75,7 +75,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 - diagnostics configuration extension methods
 - missed message type acceptance filtering in generic messaging server
 
-## [0.2.116] - 2022-06-17
+## [unlisted][0.2.116] - 2022-06-17
 
 [Assistant.NET Release 0.2.116](https://github.com/iotbusters/assistant.net/releases/tag/0.2.116)
 
@@ -92,7 +92,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - disposing db context in sqlite storage provider which missed
 
-## [0.2.115] - 2022-06-15
+## [unlisted][0.2.115] - 2022-06-15
 
 [Assistant.NET Release 0.2.115](https://github.com/iotbusters/assistant.net/releases/tag/0.2.115)
 
@@ -118,7 +118,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 - processed messages cleanup in messaging generic server
 - disposing db context in sqlite storage provider
 
-## [0.2.114] - 2022-06-01
+## [unlisted][0.2.114] - 2022-06-01
 
 [Assistant.NET Release 0.2.114](https://github.com/iotbusters/assistant.net/releases/tag/0.2.114)
 
@@ -135,7 +135,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - generic builder abstraction and extensions
 
-## [0.2.113] - 2022-06-06
+## [unlisted][0.2.113] - 2022-06-06
 
 [Assistant.NET Release 0.2.113](https://github.com/iotbusters/assistant.net/releases/tag/0.2.113)
 
@@ -163,7 +163,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 - default MongoDB database name
 - mongo client factory
 
-## [0.2.109] - 2022-05-22
+## [unlisted][0.2.109] - 2022-05-22
 
 [Assistant.NET Release 0.2.109](https://github.com/iotbusters/assistant.net/releases/tag/0.2.109)
 
@@ -171,7 +171,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - message caching controlling interfaces accepted by caching interceptor
 
-## [0.2.108] - 2022-05-20
+## [unlisted][0.2.108] - 2022-05-20
 
 [Assistant.NET Release 0.2.108](https://github.com/iotbusters/assistant.net/releases/tag/0.2.108)
 
@@ -195,7 +195,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - messaging web/mongo packages
 
-## [0.2.105] - 2022-05-05
+## [unlisted][0.2.105] - 2022-05-05
 
 [Assistant.NET Release 0.2.105](https://github.com/iotbusters/assistant.net/releases/tag/0.2.105)
 
@@ -211,7 +211,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - issues with options binding
 
-## [0.2.103] - 2022-02-13
+## [unlisted][0.2.103] - 2022-02-13
 
 [Assistant.NET Release 0.2.103](https://github.com/iotbusters/assistant.net/releases/tag/0.2.103)
 
@@ -223,7 +223,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - issues with options
 
-## [0.2.102] - 2021-12-20
+## [unlisted][0.2.102] - 2021-12-20
 
 [Assistant.NET Release 0.2.102](https://github.com/iotbusters/assistant.net/releases/tag/0.2.102)
 
@@ -231,7 +231,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - upgraded to .net version 6
 
-## [0.2.101] - 2021-12-16
+## [unlisted][0.2.101] - 2021-12-16
 
 [Assistant.NET Release 0.2.101](https://github.com/iotbusters/assistant.net/releases/tag/0.2.101)
 
@@ -239,7 +239,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - reworked messaging client and handling configuration builders to hide unsupported options
 
-## [0.1.100] - 2021-12-08
+## [unlisted][0.1.100] - 2021-12-08
 
 [Assistant.NET Release 0.1.100](https://github.com/iotbusters/assistant.net/releases/tag/0.1.100)
 
@@ -248,7 +248,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 - replaced dedicated messaging server options with named messaging client options
 - mongo options naming to be compatible with messaging client options naming
 
-## [0.1.99] - 2021-12-05
+## [unlisted][0.1.99] - 2021-12-05
 
 [Assistant.NET Release 0.1.99](https://github.com/iotbusters/assistant.net/releases/tag/0.1.99)
 
@@ -261,7 +261,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - referenced messaging server options to messaging client options reload
 
-## [0.1.98] - 2021-11-13
+## [unlisted][0.1.98] - 2021-11-13
 
 [Assistant.NET Release 0.1.98](https://github.com/iotbusters/assistant.net/releases/tag/0.1.98)
 
@@ -269,7 +269,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - mongo and web message handlers removal and cleanup during configuration
 
-## [0.1.97] - 2021-11-13
+## [unlisted][0.1.97] - 2021-11-13
 
 [Assistant.NET Release 0.1.97](https://github.com/iotbusters/assistant.net/releases/tag/0.1.97)
 
@@ -285,7 +285,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - message handling providers
 
-## [0.1.96] - 2021-11-09
+## [unlisted][0.1.96] - 2021-11-09
 
 [Assistant.NET Release 0.1.96](https://github.com/iotbusters/assistant.net/releases/tag/0.1.96)
 
@@ -293,7 +293,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - split `MongoOptions` for server/client by name
 
-## [0.1.95] - 2021-11-09
+## [unlisted][0.1.95] - 2021-11-09
 
 [Assistant.NET Release 0.1.95](https://github.com/iotbusters/assistant.net/releases/tag/0.1.95)
 
@@ -308,7 +308,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - overriding local handlers (after providers recent introduction)
 
-## [0.1.94] - 2021-11-03
+## [unlisted][0.1.94] - 2021-11-03
 
 [Assistant.NET Release 0.1.94](https://github.com/iotbusters/assistant.net/releases/tag/0.1.94)
 
@@ -323,7 +323,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 - renamed `IMessagingClient` related extension methods
 - introduced `IMessageHandlingProvider` abstraction to isolate data provider for messaging client
 
-## [0.1.93] - 2021-10-31
+## [unlisted][0.1.93] - 2021-10-31
 
 [Assistant.NET Release 0.1.93](https://github.com/iotbusters/assistant.net/releases/tag/0.1.93)
 
@@ -339,7 +339,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
   - removed type constrains during handler and interceptor registrations (but added runtime validation instead)
   - decomposed interceptor cascade calls to reduce generated stacktrace because of chain of lambdas
 
-## [0.1.92] - 2021-10-25
+## [unlisted][0.1.92] - 2021-10-25
 
 [Assistant.NET Release 0.1.92](https://github.com/iotbusters/assistant.net/releases/tag/0.1.92)
 
@@ -353,7 +353,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
   - mongo and web provider configurations were completely changed for server implementations
 - `IMongoClient` configuration is isolated between different providers (`storage` and `messaging`)
 
-## [0.1.91] - 2021-10-18
+## [unlisted][0.1.91] - 2021-10-18
 
 [Assistant.NET Release 0.1.91](https://github.com/iotbusters/assistant.net/releases/tag/0.1.91)
 
@@ -368,7 +368,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 - audit models in `Messaging` and `Storage`
 - remote handling registration to support only registered messages on a server for WEB and MongoDB providers
 
-## [0.1.90] - 2021-10-18
+## [unlisted][0.1.90] - 2021-10-18
 
 [Assistant.NET Release 0.1.90](https://github.com/iotbusters/assistant.net/releases/tag/0.1.90)
 
@@ -402,7 +402,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 - fixed `IDiagnosticContext` registration
 - fixed `Decorate()` extension method
 
-## [0.1.88] - 2021-09-28
+## [unlisted][0.1.88] - 2021-09-28
 
 [Assistant.NET Release 0.1.88](https://github.com/iotbusters/assistant.net/releases/tag/0.1.88)
 
@@ -415,7 +415,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - default value for reading partition from partitioned storage
 
-## [0.1.86] - 2021-09-23
+## [unlisted][0.1.86] - 2021-09-23
 
 [Assistant.NET Release 0.1.86](https://github.com/iotbusters/assistant.net/releases/tag/0.1.86)
 
@@ -438,7 +438,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 - some remote message server handling duplicates
 - requirement to handle only message requests on a configured host
 
-## [0.1.78] - 2021-09-20
+## [unlisted][0.1.78] - 2021-09-20
 
 [Assistant.NET Release 0.1.78](https://github.com/iotbusters/assistant.net/releases/tag/0.1.78)
 
@@ -451,7 +451,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 - introduced none backward compatible change to remote messaging
 - local storage refactoring
 
-## [0.1.72] - 2021-09-08
+## [unlisted][0.1.72] - 2021-09-08
 
 [Assistant.NET Release 0.1.72](https://github.com/iotbusters/assistant.net/releases/tag/0.1.72)
 
@@ -464,7 +464,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - caching interceptor issues related to serialization in `Storage`
 
-## [0.1.71] - 2021-09-02
+## [unlisted][0.1.71] - 2021-09-02
 
 [Assistant.NET Release 0.1.71](https://github.com/iotbusters/assistant.net/releases/tag/0.1.71)
 
@@ -472,7 +472,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - introduced none backward compatible change to serialization and storage related packages
 
-## [0.1.70] - 2021-09-02
+## [unlisted][0.1.70] - 2021-09-02
 
 [Assistant.NET Release 0.1.70](https://github.com/iotbusters/assistant.net/releases/tag/0.1.70)
 
@@ -485,7 +485,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - task mapping extensions
 
-## [0.1.69] - 2021-09-01
+## [unlisted][0.1.69] - 2021-09-01
 
 [Assistant.NET Release 0.1.69](https://github.com/iotbusters/assistant.net/releases/tag/0.1.69)
 
@@ -493,7 +493,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - fixed local storage lifetime issue
 
-## [0.1.68] - 2021-08-25
+## [unlisted][0.1.68] - 2021-08-25
 
 [Assistant.NET Release 0.1.68](https://github.com/iotbusters/assistant.net/releases/tag/0.1.68)
 
@@ -502,7 +502,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 - introduced none backward compatible change to messaging related packages
   - `command` related files were renamed to `message` to avoid ambiguity with patterns
 
-## [0.1.65] - 2021-08-17
+## [unlisted][0.1.65] - 2021-08-17
 
 [Assistant.NET Release 0.1.65](https://github.com/iotbusters/assistant.net/releases/tag/0.1.65)
 
@@ -518,7 +518,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - unused files
 
-## [0.1.59] - 2021-08-03
+## [unlisted][0.1.59] - 2021-08-03
 
 [Assistant.NET Release 0.1.59](https://github.com/iotbusters/assistant.net/releases/tag/0.1.59)
 
@@ -526,7 +526,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - proxy generation packages
 
-## [0.1.42] - 2021-06-29
+## [unlisted][0.1.42] - 2021-06-29
 
 [Release 0.1.42](https://github.com/iotbusters/assistant.net/releases/tag/0.1.42)
 
@@ -542,7 +542,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - bug fixes
 
-## [0.1.40] - 2021-06-03
+## [unlisted][0.1.40] - 2021-06-03
 
 [Release 0.1.40](https://github.com/iotbusters/assistant.net/releases/tag/0.1.40)
 
