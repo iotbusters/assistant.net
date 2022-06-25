@@ -119,7 +119,13 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         await DeleteValue(key, token);
 
     public IQueryable<KeyRecord> GetKeys() =>
-        CreateDbContext().StorageKeys.AsNoTracking().Select(x => new KeyRecord(x.Id, x.Type, x.Content, x.ValueType));
+        CreateDbContext().StorageKeys.AsNoTracking().Select(x => new KeyRecord
+        {
+            Id = x.Id,
+            Type = x.Type,
+            Content = x.Content,
+            ValueType = x.ValueType
+        });
 
     public void Dispose() { }
 

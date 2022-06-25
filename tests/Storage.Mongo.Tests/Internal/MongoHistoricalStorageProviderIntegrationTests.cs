@@ -1,5 +1,6 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics;
+using Assistant.Net.Options;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Mongo.Tests.Mocks;
@@ -7,7 +8,7 @@ using Assistant.Net.Storage.Options;
 using Assistant.Net.Unions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using NUnit.Framework;
 using System;
@@ -230,7 +231,6 @@ public class MongoHistoricalStorageProviderIntegrationTests
     [Test]
     public async Task GetKeys_returnsKeys()
     {
-        await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName);
         await Storage.AddOrGet(TestKey, TestValue("value"));
 
         var value = Storage.GetKeys().ToArray();
@@ -243,7 +243,7 @@ public class MongoHistoricalStorageProviderIntegrationTests
     {
         var provider = new ServiceCollection()
             .AddStorage(b => b
-                .UseMongo(ConnectionString)
+                .UseMongo(SetupMongo.ConfigureMongo)
                 .AddMongoHistorical<TestKey, TestValue>())
             .BuildServiceProvider();
 
@@ -262,7 +262,7 @@ public class MongoHistoricalStorageProviderIntegrationTests
     {
         var provider = new ServiceCollection()
             .AddStorage(b => b
-                .UseMongo(ConnectionString)
+                .UseMongo(SetupMongo.ConfigureMongo)
                 .AddMongoHistorical<TestKey, TestBase>()
                 .AddMongoHistorical<TestKey, TestValue>())
             .BuildServiceProvider();
@@ -282,7 +282,7 @@ public class MongoHistoricalStorageProviderIntegrationTests
     {
         var provider = new ServiceCollection()
             .AddStorage(b => b
-                .UseMongo(ConnectionString)
+                .UseMongo(SetupMongo.ConfigureMongo)
                 .AddMongoHistorical<TestKey, TestBase>()
                 .AddMongoHistorical<TestKey, TestValue>())
             .BuildServiceProvider();
@@ -301,42 +301,28 @@ public class MongoHistoricalStorageProviderIntegrationTests
     }
 
     [OneTimeSetUp]
-    public async Task OneTimeSetup()
-    {
+    public void OneTimeSetup() =>
         Provider = new ServiceCollection()
             .AddStorage(b => b
-                .UseMongo(o => o.Connection(ConnectionString).Database(MongoNames.DatabaseName))
+                .UseMongo(SetupMongo.ConfigureMongo)
                 .AddMongoHistorical<TestKey, TestValue>())
             .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
             .AddSystemClock(_ => TestDate)
             .BuildServiceProvider();
 
-        string pingContent;
-        try
-        {
-            var ping = await MongoClient.GetDatabase("db").RunCommandAsync(
-                (Command<BsonDocument>)"{ping:1}",
-                ReadPreference.Nearest,
-                CancellationToken);
-            pingContent = ping.ToString();
-        }
-        catch
-        {
-            pingContent = string.Empty;
-        }
-
-        if (!pingContent.Contains("ok"))
-            Assert.Ignore($"The tests require mongodb instance at {ConnectionString}.");
-    }
-
     [OneTimeTearDown]
     public void OneTimeTearDown() => Provider?.Dispose();
 
     [SetUp]
-    public async Task SetUp() => await MongoClient.DropDatabaseAsync(MongoNames.DatabaseName, CancellationToken);
+    public async Task Cleanup()
+    {
+        var provider = Provider!.CreateScope().ServiceProvider;
+        var database = provider.GetRequiredService<IOptions<MongoOptions>>().Value.DatabaseName;
+        await provider.GetRequiredService<IMongoClient>().DropDatabaseAsync(database, CancellationToken);
+    }
 
-    private const string ConnectionString = "mongodb://127.0.0.1:27017";
     private static CancellationToken CancellationToken => new CancellationTokenSource(200).Token;
+
     private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version) => new(TestCorrelationId, TestUser, TestDate, version);
     private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: "type");
@@ -344,7 +330,6 @@ public class MongoHistoricalStorageProviderIntegrationTests
     private string TestUser { get; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;
     private ServiceProvider? Provider { get; set; }
-    private IMongoClient MongoClient => Provider!.GetRequiredService<IMongoClient>();
 
     private IHistoricalStorageProvider<TestValue> Storage => (IHistoricalStorageProvider<TestValue>)
         Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value.HistoricalProviders[typeof(TestValue)].Create(Provider!);

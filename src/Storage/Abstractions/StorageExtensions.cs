@@ -24,8 +24,9 @@ public static class StorageExtensions
     public static Task<TValue> AddOrGet<TKey, TValue>(
         this IStorage<TKey, TValue> storage,
         TKey key,
-        Func<TKey, TValue> addFactory) =>
-        storage.AddOrGet(key, x => Task.FromResult(addFactory(x)));
+        Func<TKey, TValue> addFactory,
+        CancellationToken token = default) =>
+        storage.AddOrGet(key, x => Task.FromResult(addFactory(x)), token);
 
     /// <summary>
     ///    Tries to add a value associated to the <paramref name="key"/> if it doesn't exist.

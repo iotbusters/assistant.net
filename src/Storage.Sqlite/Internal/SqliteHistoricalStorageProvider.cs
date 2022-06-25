@@ -201,7 +201,13 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
     }
 
     public IQueryable<KeyRecord> GetKeys() =>
-        CreateDbContext().HistoricalKeys.AsNoTracking().Select(x => new KeyRecord(x.Id, x.Type, x.Content, x.ValueType));
+        CreateDbContext().HistoricalKeys.AsNoTracking().Select(x => new KeyRecord
+        {
+            Id = x.Id,
+            Type = x.Type,
+            Content = x.Content,
+            ValueType = x.ValueType
+        });
 
     public void Dispose() { }
 
