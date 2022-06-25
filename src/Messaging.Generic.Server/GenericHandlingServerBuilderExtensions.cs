@@ -1,4 +1,5 @@
 ﻿using Assistant.Net.Messaging.Options;
+using Assistant.Net.Storage;
 using System;
 
 namespace Assistant.Net.Messaging;
@@ -8,6 +9,15 @@ namespace Assistant.Net.Messaging;
 /// </summary>
 public static class GenericHandlingServerBuilderExtensions
 {
+    /// <summary>
+    ///     Configures local provider for storage based messaging handling.
+    /// </summary>
+    public static GenericHandlingServerBuilder UseLocal(this GenericHandlingServerBuilder builder)
+    {
+        builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b.UseLocalSingleProvider());
+        return builder;
+    }
+
     /// <summary>
     ///     Registers a server message handler type <typeparamref name="THandler"/>.
     /// </summary>
