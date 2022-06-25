@@ -42,10 +42,9 @@ public class CancellationDelayInterceptor : IAbstractInterceptor
         logger.LogInformation("Message({MessageName}/{MessageId}) timeout counter: begins.", messageName, messageId);
 
         using var gracefulShutdownSource = new CancellationTokenSource();
+        await using var registration = token.Register(() => gracefulShutdownSource.CancelAfter(options.CancellationDelay));
 
         var timer = new Stopwatch();
-        var gracefulShutdownTask = ConfigureGracefulShutdown(timer, gracefulShutdownSource, token);
-
         object response;
         try
         {
@@ -60,11 +59,6 @@ public class CancellationDelayInterceptor : IAbstractInterceptor
                 messageName, messageId, delayedTime, delayTime);
             throw new OperationCanceledException($"Operation was cancelled hardly after {delayedTime}.", ex);
         }
-        finally
-        {
-            gracefulShutdownSource.Cancel();
-            await gracefulShutdownTask;
-        }
 
         if (timer.Elapsed > TimeSpan.Zero)
             logger.LogInformation("Message({MessageName}/{MessageId}) cancellation delay: ended gracefully in {DelayedTime}.",
@@ -73,26 +67,6 @@ public class CancellationDelayInterceptor : IAbstractInterceptor
             logger.LogInformation("Message({MessageName}/{MessageId}) cancellation delay: no cancellation requested.",
                 messageName, messageId);
         return response;
-    }
-
-    private async Task ConfigureGracefulShutdown(
-        Stopwatch timer,
-        CancellationTokenSource gracefulShutdownTokenSource,
-        CancellationToken shutdownToken)
-    {
-        await Task.WhenAny(
-            Task.Delay(Timeout.InfiniteTimeSpan, shutdownToken),
-            Task.Delay(Timeout.InfiniteTimeSpan, gracefulShutdownTokenSource.Token));
-
-        if (gracefulShutdownTokenSource.IsCancellationRequested)
-            return;
-
-        timer.Start();
-        await Task.WhenAny(
-            Task.Delay(options.CancellationDelay, gracefulShutdownTokenSource.Token));
-
-        //gracefulShutdownSource.CancelAfter(options.CancellationDelay);
-        gracefulShutdownTokenSource.Cancel();
     }
 }
 

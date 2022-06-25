@@ -16,7 +16,7 @@ namespace Assistant.Net.Messaging.Tests.Interceptors;
 public class CancellationDelayInterceptorTests
 {
     [Test]
-    public async Task Intercept_delaysTaskCancellationFailure()
+    public async Task Intercept_delaysCancellation_longRunningOperation()
     {
         var cancelledSource = new CancellationTokenSource(0);
         var timer = Stopwatch.StartNew();
@@ -32,7 +32,7 @@ public class CancellationDelayInterceptorTests
     }
 
     [Test]
-    public async Task Intercept_noCancellation()
+    public async Task Intercept_doesNotDelay_noCancellation()
     {
         var source = new CancellationTokenSource();
         var timer = Stopwatch.StartNew();
@@ -41,22 +41,6 @@ public class CancellationDelayInterceptorTests
         timer.Stop();
 
         timer.Elapsed.Should().BeLessThan(Options.CancellationDelay);
-    }
-
-    [Test]
-    public async Task Intercept_delaysTaskCancellationSafely()
-    {
-        var cancelledSource = new CancellationTokenSource(0);
-        var timer = Stopwatch.StartNew();
-
-        await Interceptor.Intercept(async (_, token) =>
-        {
-            await Task.WhenAll(Task.Delay(Options.CancellationDelay, token));
-            return Response;
-        }, Message, cancelledSource.Token);
-        timer.Stop();
-
-        timer.Elapsed.Should().BeGreaterThan(Options.CancellationDelay);
     }
 
     [SetUp]
