@@ -4,6 +4,15 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.3.124] - 2022-06-25
+
+[Assistant.NET Release 0.3.124](https://github.com/iotbusters/assistant.net/releases/tag/0.3.124)
+
+### 0.3.124 Fixed
+
+- get keys issue in sqlite storage provider
+- added missing cancellation token to storage extension method
+
 ## [0.3.123] - 2022-06-23
 
 [Assistant.NET Release 0.3.123](https://github.com/iotbusters/assistant.net/releases/tag/0.3.123)
