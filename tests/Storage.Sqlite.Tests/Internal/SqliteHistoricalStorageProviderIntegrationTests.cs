@@ -6,7 +6,6 @@ using Assistant.Net.Storage.Options;
 using Assistant.Net.Storage.Sqlite.Tests.Mocks;
 using Assistant.Net.Unions;
 using FluentAssertions;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -245,7 +244,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     {
         var provider = new ServiceCollection()
             .AddStorage(b => b
-                .UseSqlite(ConnectionString)
+                .UseSqlite(SetupSqlite.ConnectionString)
                 .AddSqliteHistorical<TestKey, TestValue>())
             .BuildServiceProvider();
 
@@ -264,7 +263,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     {
         var provider = new ServiceCollection()
             .AddStorage(b => b
-                .UseSqlite(ConnectionString)
+                .UseSqlite(SetupSqlite.ConnectionString)
                 .AddSqliteHistorical<TestKey, TestBase>()
                 .AddSqliteHistorical<TestKey, TestValue>())
             .BuildServiceProvider();
@@ -284,7 +283,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     {
         var provider = new ServiceCollection()
             .AddStorage(b => b
-                .UseSqlite(ConnectionString)
+                .UseSqlite(SetupSqlite.ConnectionString)
                 .AddSqliteHistorical<TestKey, TestBase>()
                 .AddSqliteHistorical<TestKey, TestValue>())
             .BuildServiceProvider();
@@ -303,18 +302,15 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     }
 
     [OneTimeSetUp]
-    public async Task OneTimeSetup()
+    public void OneTimeSetup()
     {
-        await MasterConnection.OpenAsync(CancellationToken);
         Provider = new ServiceCollection()
             .AddStorage(b => b
-                .UseSqlite(ConnectionString)
+                .UseSqlite(SetupSqlite.ConnectionString)
                 .AddSqliteHistorical<TestKey, TestValue>())
             .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
             .AddSystemClock(_ => TestDate)
             .BuildServiceProvider();
-        var dbContext = await Provider.GetRequiredService<IDbContextFactory<StorageDbContext>>().CreateDbContextAsync(CancellationToken);
-        await dbContext.Database.EnsureCreatedAsync(LongCancellationToken);
     }
 
     [OneTimeTearDown]
@@ -328,13 +324,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
         await dbContext.SaveChangesAsync(CancellationToken);
     }
 
-    private const string ConnectionString = "Data Source=test;Mode=Memory;Cache=Shared";
-    /// <summary>
-    ///     Shared SQLite in-memory database connection keeping the data shared between other connections.
-    /// </summary>
-    private SqliteConnection MasterConnection { get; } = new(ConnectionString);
     private static CancellationToken CancellationToken => new CancellationTokenSource(100).Token;
-    private static CancellationToken LongCancellationToken => new CancellationTokenSource(2000).Token;
     private ValueRecord TestValue(int version = 1) => new(Type: nameof(Mocks.TestValue), Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version = 1) => new(TestCorrelationId, TestUser, TestDate, version);
     private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: nameof(Mocks.TestValue));

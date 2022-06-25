@@ -8,6 +8,9 @@ namespace Assistant.Net.Storage.Models;
 public sealed class KeyRecord
 {
     /// <summary/>
+    public KeyRecord() { }
+
+    /// <summary/>
     public KeyRecord(string id, string type, byte[] content, string valueType)
     {
         Id = id;
@@ -19,22 +22,22 @@ public sealed class KeyRecord
     /// <summary>
     ///     Unique identifier across specific <see cref="Type"/> keys.
     /// </summary>
-    public string Id { get; }
+    public string Id { get; init; } = null!;
 
     /// <summary>
     ///     Key type name.
     /// </summary>
-    public string Type { get; }
+    public string Type { get; init; } = null!;
 
     /// <summary>
     ///     Binary key content.
     /// </summary>
-    public byte[] Content { get; }
+    public byte[] Content { get; init; } = null!;
 
     /// <summary>
     ///     Value type name.
     /// </summary>
-    public string ValueType { get; }
+    public string ValueType { get; init; } = null!;
 
     /// <inheritdoc cref="Equals(object?)"/>
     public bool Equals(KeyRecord key) =>
