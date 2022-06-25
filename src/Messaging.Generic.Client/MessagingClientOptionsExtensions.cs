@@ -1,7 +1,10 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Internal;
+using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Options;
+using Assistant.Net.Storage;
+using Assistant.Net.Storage.Options;
 using System;
 
 namespace Assistant.Net.Messaging;
@@ -12,10 +15,26 @@ namespace Assistant.Net.Messaging;
 public static class MessagingClientOptionsExtensions
 {
     /// <summary>
+    ///     Configures messaging client to use local single provider.
+    /// </summary>
+    public static MessagingClientBuilder UseLocalSingleProvider(this MessagingClientBuilder builder)
+    {
+        builder.Services
+            .AddStorage(builder.Name, b => b
+                .UseLocalSingleProvider()
+                .AddSingle<IAbstractMessage, CachingResult>()
+                .AddSinglePartitioned<int, IAbstractMessage>()
+                .AddSingle<int, long>())
+            .ConfigureMessagingClientOptions(builder.Name, o => o.UseGenericSingleProvider());
+        return builder;
+    }
+
+    /// <summary>
     ///     Configures the messaging client to use storage based single provider implementation.
     /// </summary>
     /// <remarks>
-    ///     Pay attention, it has storage dependencies configured separately in <see cref="MessagingClientBuilder"/>.
+    ///     Pay attention, it has storage dependencies configured separately in <see cref="StorageBuilder"/>
+    ///     or specific provider extension like <see cref="UseLocalSingleProvider"/>.
     /// </remarks>
     public static MessagingClientOptions UseGenericSingleProvider(this MessagingClientOptions options) => options
         .UseSingleProvider(p => p.Create<GenericMessagingHandlerProxy>());

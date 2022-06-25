@@ -27,23 +27,11 @@ public interface IMessageInterceptor<TMessage> : IMessageInterceptor<TMessage, N
     ///     Intercepts the <paramref name="message"/> or one of its children
     ///     and delegates the call to the <paramref name="next"/> interceptor if needed.
     /// </summary>
-    Task Intercept(IMessageHandler<TMessage> next, TMessage message, CancellationToken token = default);
+    Task Intercept(Func<TMessage, CancellationToken, Task> next, TMessage message, CancellationToken token = default);
 
     async Task<Nothing> IMessageInterceptor<TMessage, Nothing>.Intercept(Func<TMessage, CancellationToken, Task<Nothing>> next, TMessage message, CancellationToken token)
     {
-        var handler = next as IMessageHandler<TMessage> ?? new MessageHandlerAdapter(next);
-        await Intercept(handler, message, token);
+        await Intercept(next, message, token);
         return Nothing.Instance;
-    }
-
-    private class MessageHandlerAdapter : IMessageHandler<TMessage>
-    {
-        private readonly Func<TMessage, CancellationToken, Task<Nothing>> handler;
-
-        public MessageHandlerAdapter(Func<TMessage, CancellationToken, Task<Nothing>> handler) =>
-            this.handler = handler;
-
-        public Task Handle(TMessage message, CancellationToken token = default) =>
-            handler(message, token);
     }
 }
