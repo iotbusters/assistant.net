@@ -46,7 +46,7 @@ public class ExceptionJsonConverterTests
             .Should().ThrowAsync<JsonException>();
     }
 
-    [TestCase("{\"type\":\"Exception\",\"message\":\"1\"}")]
+    [TestCase("{\"type\":\"Exception\",\"message\":\"1\",\"stacktrace\":\"2\"}")]
     public async Task DeserializeNotMessageExceptionContent(string content)
     {
         await using var stream = new MemoryStream();
@@ -57,7 +57,7 @@ public class ExceptionJsonConverterTests
             .Should().ThrowAsync<JsonException>();
     }
 
-    [TestCase("{\"type\":\"InvalidOperationException\",\"message\":\"1\",\"unknown\":\"2\"}")]
+    [TestCase("{\"type\":\"InvalidOperationException\",\"message\":\"1\",\"unknown\":\"2\",\"stacktrace\":\"3\"}")]
     public async Task DeserializeAdditionalProperties(string content)
     {
         await using var stream = new MemoryStream();
@@ -72,7 +72,7 @@ public class ExceptionJsonConverterTests
             .And.BeEquivalentTo(new { Message = "1" });
     }
 
-    [TestCase("{\"type\":\"UnknownException\",\"message\":\"1\"}")]
+    [TestCase("{\"type\":\"UnknownException\",\"message\":\"1\",\"stacktrace\":\"2\"}")]
     public async Task DeserializeUnknownException(string content)
     {
         await using var stream = new MemoryStream();
