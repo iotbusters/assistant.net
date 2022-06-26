@@ -23,6 +23,7 @@ public class MessageExceptionJsonConverterTests
     [TestCase("{}", "Property 'type' is required.")]
     [TestCase("{\"message\":\"1\"}", "Property 'type' is required.")]
     [TestCase("{\"type\":\"MessageFailedException\"}", "Property 'message' is required.")]
+    [TestCase("{\"type\":\"MessageFailedException\",\"message\":\"1\"}", "Property 'stacktrace' is required.")]
     public async Task DeserializeAsync_throwsJsonException_invalidContent(string content, string message)
     {
         await using var stream = new MemoryStream();
@@ -35,7 +36,7 @@ public class MessageExceptionJsonConverterTests
             .Should().ThrowAsync<JsonException>().WithMessage(message);
     }
 
-    [TestCase("{\"type\":\"Exception\",\"message\":\"1\"}")]
+    [TestCase("{\"type\":\"Exception\",\"message\":\"1\",\"stacktrace\":\"2\"}")]
     public async Task DeserializeAsync_throwsJsonException_notMessageExceptionContent(string content)
     {
         await using var stream = new MemoryStream();
@@ -48,7 +49,7 @@ public class MessageExceptionJsonConverterTests
             .Should().ThrowAsync<JsonException>().WithMessage("Unsupported by converter exception type `Exception`.");
     }
 
-    [TestCase("{\"type\":\"MessageFailedException\",\"message\":\"1\",\"unknown\":\"2\"}")]
+    [TestCase("{\"type\":\"MessageFailedException\",\"message\":\"1\",\"unknown\":\"2\",\"stacktrace\":\"3\"}")]
     public async Task DeserializeAsync_returnsMessageFailedException_additionalProperties(string content)
     {
         await using var stream = new MemoryStream();
@@ -60,10 +61,10 @@ public class MessageExceptionJsonConverterTests
         var deserialized = await JsonSerializer.DeserializeAsync<MessageException>(stream, Options());
 
         deserialized.Should().BeOfType<MessageFailedException>()
-            .And.BeEquivalentTo(new { Message = "1" });
+            .And.BeEquivalentTo(new {Message = "1"});
     }
 
-    [TestCase("{\"type\":\"UnknownException1\",\"message\":\"1\"}")]
+    [TestCase("{\"type\":\"UnknownException1\",\"message\":\"1\",\"stacktrace\":\"2\"}")]
     public async Task DeserializeAsync_returnsUnknownMessageException_unknownException(string content)
     {
         await using var stream = new MemoryStream();
@@ -103,7 +104,7 @@ public class MessageExceptionJsonConverterTests
         var deserialized = await JsonSerializer.DeserializeAsync<MessageException>(stream, options);
 
         deserialized.Should().BeOfType(exception.GetType())
-            .And.BeEquivalentTo(exception);
+            .And.BeEquivalentTo(exception, o => o.Excluding(m => m.StackTrace).Excluding(m => m.InnerException!.StackTrace));
     }
 
     private static IEnumerable<MessageException> SupportedExceptions()

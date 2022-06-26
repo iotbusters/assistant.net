@@ -56,7 +56,9 @@ public class CachingInterceptorTests
             .Should().ThrowAsync<TestMessageExecutionException>();
 
         var cached = await Cache.GetOrDefault(Message);
-        cached.Should().BeEquivalentTo(CachingResult.OfException(new TestMessageExecutionException()));
+        cached.Should().BeEquivalentTo(
+            CachingResult.OfException(new TestMessageExecutionException()),
+            o => o.Excluding(m => m.Exception.StackTrace));
     }
 
     [Test]

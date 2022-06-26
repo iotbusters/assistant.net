@@ -112,6 +112,6 @@ public sealed class RetryingInterceptor<TMessage, TResponse> : IMessageIntercept
 
     /// <inheritdoc/>
     /// <exception cref="MessageRetryLimitExceededException"/>
-    public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token) =>
+    public async Task<TResponse> Intercept(MessageInterceptor<TMessage, TResponse> next, TMessage message, CancellationToken token) =>
         (TResponse)await interceptor.Intercept(async (m, t) => (await next((TMessage)m, t))!, message, token);
 }

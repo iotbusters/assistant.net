@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,6 +28,7 @@ public interface IMessageHandler<in TMessage> : IMessageHandler<TMessage, Nothin
     /// </summary>
     new Task Handle(TMessage message, CancellationToken token = default);
 
+    [StackTraceHidden]
     async Task<Nothing> IMessageHandler<TMessage, Nothing>.Handle(TMessage message, CancellationToken token)
     {
         await Handle(message, token);

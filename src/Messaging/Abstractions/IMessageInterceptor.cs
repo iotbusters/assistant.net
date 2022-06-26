@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,7 +15,7 @@ public interface IMessageInterceptor<TMessage, TResponse> where TMessage : IMess
     ///     Intercepts the <paramref name="message"/> or one of its children
     ///     and delegates the call to the <paramref name="next"/> interceptor if needed.
     /// </summary>
-    Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token = default);
+    Task<TResponse> Intercept(MessageInterceptor<TMessage, TResponse> next, TMessage message, CancellationToken token = default);
 }
 
 /// <summary>
@@ -29,9 +30,15 @@ public interface IMessageInterceptor<TMessage> : IMessageInterceptor<TMessage, N
     /// </summary>
     Task Intercept(Func<TMessage, CancellationToken, Task> next, TMessage message, CancellationToken token = default);
 
-    async Task<Nothing> IMessageInterceptor<TMessage, Nothing>.Intercept(Func<TMessage, CancellationToken, Task<Nothing>> next, TMessage message, CancellationToken token)
+    [StackTraceHidden]
+    async Task<Nothing> IMessageInterceptor<TMessage, Nothing>.Intercept(MessageInterceptor<TMessage, Nothing> next, TMessage message, CancellationToken token)
     {
         await Intercept(next, message, token);
         return Nothing.Instance;
     }
 }
+
+/// <summary>
+///     A function handling the message.
+/// </summary>
+public delegate Task<TResponse> MessageInterceptor<in TMessage, TResponse>(TMessage message, CancellationToken token) where TMessage : IMessage<TResponse>;
