@@ -79,6 +79,6 @@ public sealed class DiagnosticsInterceptor<TMessage, TResponse> : IMessageInterc
     }
 
     /// <inheritdoc/>
-    public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token) =>
+    public async Task<TResponse> Intercept(MessageInterceptor<TMessage, TResponse> next, TMessage message, CancellationToken token) =>
         (TResponse)await interceptor.Intercept(async (m, t) => (await next((TMessage)m, t))!, message, token);
 }

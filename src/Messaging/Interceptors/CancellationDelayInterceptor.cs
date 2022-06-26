@@ -87,6 +87,6 @@ public sealed class CancellationDelayInterceptor<TMessage, TResponse> : IMessage
 
     /// <inheritdoc/>
     /// <exception cref="TimeoutException"/>
-    public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token) =>
+    public async Task<TResponse> Intercept(MessageInterceptor<TMessage, TResponse> next, TMessage message, CancellationToken token) =>
         (TResponse)await interceptor.Intercept(async (m, t) => (await next((TMessage)m, t))!, message, token);
 }
