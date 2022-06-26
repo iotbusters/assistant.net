@@ -4,6 +4,18 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [0.3.127] - 2022-06-26
+
+[Assistant.NET Release 0.3.127](https://github.com/iotbusters/assistant.net/releases/tag/0.3.127)
+
+### 0.3.127 Added
+
+- added exception stacktrace to json serializer
+
+### 0.3.127 Changed
+
+- hide exceptino related extension methods and internal irrelevant methods
+
 ## [0.3.125] - 2022-06-25
 
 [Assistant.NET Release 0.3.125](https://github.com/iotbusters/assistant.net/releases/tag/0.3.125)
