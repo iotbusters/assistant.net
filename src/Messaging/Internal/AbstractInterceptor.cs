@@ -1,10 +1,12 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal;
 
+[StackTraceHidden]
 internal class AbstractInterceptor<TInterceptor, TMessage, TResponse> : IAbstractInterceptor
     where TInterceptor : IMessageInterceptor<TMessage, TResponse>
     where TMessage : IMessage<TResponse>

@@ -1,7 +1,9 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Serialization.Exceptions;
 using System;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -22,6 +24,7 @@ public class ExceptionJsonConverter<T> : JsonConverter<T>
     private const string TypePropertyName = "type";
     private const string MessagePropertyName = "message";
     private const string InnerExceptionPropertyName = "inner";
+    private const string StackTracePropertyName = "stacktrace";
 
     private readonly ITypeEncoder typeEncoder;
 
@@ -49,6 +52,9 @@ public class ExceptionJsonConverter<T> : JsonConverter<T>
             JsonSerializer.Serialize(writer, value.InnerException, options);
         }
 
+        var stackTrace = new StackTrace(value, fNeedFileInfo: true).ToString();
+        writer.WriteString(StackTracePropertyName, stackTrace);
+
         writer.WriteEndObject();
     }
 
@@ -60,13 +66,16 @@ public class ExceptionJsonConverter<T> : JsonConverter<T>
         if (reader.TokenType != JsonTokenType.StartObject)
             throw new JsonException("Start object token is expected.");
 
-        var (encodedType, message, inner) = ReadExceptionContent(ref reader, options);
+        var (encodedType, message, inner, stackTrace) = ReadExceptionContent(ref reader, options);
 
         if (encodedType == null)
             throw new JsonException($"Property '{TypePropertyName}' is required.");
 
         if (message == null)
             throw new JsonException($"Property '{MessagePropertyName}' is required.");
+
+        if (stackTrace == null)
+            throw new JsonException($"Property '{StackTracePropertyName}' is required.");
 
         var type = typeEncoder.Decode(encodedType);
         if (type == null)
@@ -82,7 +91,9 @@ public class ExceptionJsonConverter<T> : JsonConverter<T>
         var ctorArguments = new object?[] {message, inner}.Where(x => x != null).ToArray();
         try
         {
-            return (T)Activator.CreateInstance(type, ctorArguments)!;
+            var exception = (T)Activator.CreateInstance(type, ctorArguments)!;
+            ExceptionDispatchInfo.SetRemoteStackTrace(exception, stackTrace);
+            return exception;
         }
         catch(Exception ex)
         {
@@ -96,13 +107,14 @@ public class ExceptionJsonConverter<T> : JsonConverter<T>
     }
 
     /// <exception cref="JsonException"/>
-    private (string? type, string? message, T? inner) ReadExceptionContent(
+    private (string? type, string? message, T? inner, string? stackTrace) ReadExceptionContent(
         ref Utf8JsonReader reader,
         JsonSerializerOptions options)
     {
         string? encodedType = null;
         string? message = null;
         T? inner = null;
+        string? stackTrace = null;
 
         for (reader.Read(); reader.TokenType != JsonTokenType.EndObject; reader.Read())
         {
@@ -134,8 +146,11 @@ public class ExceptionJsonConverter<T> : JsonConverter<T>
                         inner = exception;
                     break;
 
-                // todo: implement
-                //case StackTracePropertyName: throw new NotSupportedException();
+                case StackTracePropertyName:
+                    if (reader.TokenType != JsonTokenType.String)
+                        throw new JsonException("String token is expected.");
+                    stackTrace = reader.GetString();
+                    break;
 
                 default:
                     reader.Skip(); // ignore additional property values
@@ -143,6 +158,6 @@ public class ExceptionJsonConverter<T> : JsonConverter<T>
             }
         }
 
-        return (encodedType, message, inner);
+        return (encodedType, message, inner, stackTrace);
     }
 }
