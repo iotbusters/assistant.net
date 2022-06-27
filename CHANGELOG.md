@@ -6,9 +6,21 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Added
+### Changed
+
+- none
+
+## [0.3.128] - 2022-06-27
+
+[Assistant.NET Release 0.3.128](https://github.com/iotbusters/assistant.net/releases/tag/0.3.128)
+
+### 0.3.128 Added
 
 - extension methods for registering configuration change token source
+
+### 0.3.128 Fixed
+
+- publish method in messaging client
 
 ## [0.3.127] - 2022-06-26
 
