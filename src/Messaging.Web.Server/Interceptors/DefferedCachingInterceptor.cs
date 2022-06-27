@@ -28,10 +28,10 @@ public sealed class DeferredCachingInterceptor : IAbstractInterceptor
         this.options = options.Value;
 
     /// <inheritdoc/>
-    public async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token) =>
+    public async Task<object> Intercept(MessageInterceptor next, IAbstractMessage message, CancellationToken token) =>
         await deferredCache.GetOrAdd(message.GetSha1(), _ => StartIntercepting(next, message, token)).GetTask();
 
-    private async Task<object> StartIntercepting(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token)
+    private async Task<object> StartIntercepting(MessageInterceptor next, IAbstractMessage message, CancellationToken token)
     {
         try
         {

@@ -4,8 +4,6 @@ using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage.Abstractions;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,7 +26,7 @@ public sealed class CachingInterceptor : DefaultCachingInterceptor
         INamedOptions<MessagingClientOptions> options) : base(logger, typeEncoder, cache, options) { }
 
     /// <inheritdoc/>
-    public override async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token)
+    public override async Task<object> Intercept(MessageInterceptor next, IAbstractMessage message, CancellationToken token)
     {
         if(message is INonCaching)
             return await next(message, token);
