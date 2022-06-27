@@ -142,6 +142,35 @@ public static class ServiceCollectionExtensions
     ///     to the underlying service collection and custom options binding configuration.
     /// </summary>
     /// <typeparam name="TOptions">The options type to be configured.</typeparam>
+    /// <typeparam name="TConfigureOptionsSource">Configuration options source type.</typeparam>
+    /// <param name="services"/>
+    /// <param name="factory">Custom configuration options source instance factory.</param>
+    public static IServiceCollection BindOptions<TOptions, TConfigureOptionsSource>(this IServiceCollection services, Func<IServiceProvider, TConfigureOptionsSource> factory)
+        where TConfigureOptionsSource : class, IConfigureOptionsSource<TOptions>
+        where TOptions : class => services
+        .BindOptions<TOptions, TConfigureOptionsSource>(Microsoft.Extensions.Options.Options.DefaultName, factory);
+
+    /// <summary>
+    ///     Registers Configure calls for the same named <typeparamref name="TOptions"/>
+    ///     to the underlying service collection and custom options binding configuration.
+    /// </summary>
+    /// <typeparam name="TOptions">The options type to be configured.</typeparam>
+    /// <typeparam name="TConfigureOptionsSource">Configuration options source type.</typeparam>
+    /// <param name="services"/>
+    /// <param name="name">The name of the options instance.</param>
+    /// <param name="factory">Custom configuration options source instance factory.</param>
+    public static IServiceCollection BindOptions<TOptions, TConfigureOptionsSource>(this IServiceCollection services, string name, Func<IServiceProvider, TConfigureOptionsSource> factory)
+        where TConfigureOptionsSource : class, IConfigureOptionsSource<TOptions>
+        where TOptions : class => services
+        .AddOptions<TOptions>(name)
+        .Bind(factory)
+        .Services;
+
+    /// <summary>
+    ///     Registers Configure calls for the same named <typeparamref name="TOptions"/>
+    ///     to the underlying service collection and custom options binding configuration.
+    /// </summary>
+    /// <typeparam name="TOptions">The options type to be configured.</typeparam>
     /// <typeparam name="TConfigureOptionsSource">Custom configuration options source type.</typeparam>
     public static IServiceCollection BindOptions<TOptions, TConfigureOptionsSource>(this IServiceCollection services)
         where TConfigureOptionsSource : IConfigureOptionsSource<TOptions>

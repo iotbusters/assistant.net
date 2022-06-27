@@ -4,13 +4,19 @@ All relevant changes to packages which were released or being prepared for relea
 
 See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- extension methods for registering configuration change token source
+
 ## [0.3.127] - 2022-06-26
 
 [Assistant.NET Release 0.3.127](https://github.com/iotbusters/assistant.net/releases/tag/0.3.127)
 
 ### 0.3.127 Added
 
-- added exception stacktrace to json serializer
+- exception stacktrace to json serializer
 
 ### 0.3.127 Changed
 
@@ -23,7 +29,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 ### 0.3.125 Fixed
 
 - get keys issue in sqlite storage provider
-- added missing cancellation token to storage extension method
+- missing cancellation token to storage extension method
 
 ## [0.3.123] - 2022-06-23
 
@@ -32,7 +38,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 ### 0.3.123 Added
 
 - delayed cancellation interceptor
-- added time validation attribute
+- time validation attribute
 
 ### 0.3.123 Changed
 
