@@ -1,5 +1,6 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -32,10 +33,17 @@ internal class InterceptingMessageHandler
 
         if (interceptors.MoveNext())
         {
-            await interceptors.Current.Intercept(Request, message, token);
+            await interceptors.Current.Intercept(PublishInternal, message, token);
             return;
         }
 
         await handler.Publish(message, token);
+    }
+
+    [StackTraceHidden]
+    private async Task<object> PublishInternal(IAbstractMessage message, CancellationToken token)
+    {
+        await Publish(message, token);
+        return Nothing.Instance;
     }
 }
