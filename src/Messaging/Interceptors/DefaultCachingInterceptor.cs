@@ -47,7 +47,7 @@ public class DefaultCachingInterceptor : IAbstractInterceptor
     }
 
     /// <inheritdoc/>
-    public virtual async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token)
+    public virtual async Task<object> Intercept(MessageInterceptor next, IAbstractMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncoder.Encode(message.GetType());

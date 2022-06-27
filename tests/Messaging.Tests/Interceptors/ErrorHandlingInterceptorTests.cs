@@ -8,7 +8,6 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Tests.Interceptors;
@@ -79,5 +78,5 @@ public class ErrorHandlingInterceptorTests
     private IAbstractInterceptor Interceptor => Provider.GetRequiredService<ErrorHandlingInterceptor>();
     private static TestMessage Message => new(0);
 
-    private static Func<IAbstractMessage, CancellationToken, Task<object>> Fail(Exception ex) => (_, _) => throw ex;
+    private static MessageInterceptor Fail(Exception ex) => (_, _) => throw ex;
 }

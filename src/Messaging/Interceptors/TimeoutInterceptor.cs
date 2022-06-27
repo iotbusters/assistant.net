@@ -35,7 +35,7 @@ public sealed class TimeoutInterceptor : IAbstractInterceptor
 
     /// <inheritdoc/>
     /// <exception cref="TimeoutException"/>
-    public async Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token)
+    public async Task<object> Intercept(MessageInterceptor next, IAbstractMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncode.Encode(message.GetType());

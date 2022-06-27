@@ -13,5 +13,10 @@ public interface IAbstractInterceptor
     /// <summary>
     ///     Executes some logic before and after intercepted behaviour in <paramref name="next"/>.
     /// </summary>
-    Task<object> Intercept(Func<IAbstractMessage, CancellationToken, Task<object>> next, IAbstractMessage message, CancellationToken token = default);
+    Task<object> Intercept(MessageInterceptor next, IAbstractMessage message, CancellationToken token = default);
 }
+
+/// <summary>
+///     A function handling the message.
+/// </summary>
+public delegate Task<object> MessageInterceptor(IAbstractMessage message, CancellationToken token);
