@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Assistant.Net;
@@ -56,20 +57,6 @@ public static class AsyncEnumerableExtensions
     }
 
     /// <summary>
-    ///     Returns the input typed as <see cref="IEnumerable{T}"/> asynchronously.
-    /// </summary>
-    public static async Task<IEnumerable<TSource>> AsEnumerableAsync<TSource>(this IAsyncEnumerable<TSource> source)
-    {
-        var list = new List<TSource>();
-        await using var enumerator = source.GetAsyncEnumerator();
-
-        while (await enumerator.MoveNextAsync())
-            list.Add(enumerator.Current);
-
-        return list.ToImmutableArray();
-    }
-
-    /// <summary>
     ///     Returns <paramref name="source" /> asynchronously broken into batches of <see cref="IEnumerable{T}"/>
     ///     by <paramref name="size"/>.
     /// </summary>
@@ -89,5 +76,67 @@ public static class AsyncEnumerableExtensions
                 list.Add(enumerator.Current);
             yield return list;
         }
+    }
+
+    /// <summary>
+    ///     Returns the input typed as <see cref="IEnumerable{T}"/> asynchronously.
+    /// </summary>
+    public static async ValueTask<IEnumerable<TSource>> AsEnumerableAsync<TSource>(this IAsyncEnumerable<TSource> source) => await source
+        .ToImmutableArrayAsync();
+
+    /// <summary>
+    ///     Returns the input typed as <see cref="ImmutableArray{T}"/> asynchronously.
+    /// </summary>
+    public static async ValueTask<ImmutableArray<TSource>> ToImmutableArrayAsync<TSource>(this IAsyncEnumerable<TSource> source)
+    {
+        var list = new List<TSource>();
+        await using var enumerator = source.GetAsyncEnumerator();
+
+        while (await enumerator.MoveNextAsync())
+            list.Add(enumerator.Current);
+
+        return list.ToImmutableArray();
+    }
+
+    /// <summary>
+    ///     Returns the input typed as <see cref="ImmutableList{T}"/> asynchronously.
+    /// </summary>
+    public static async ValueTask<ImmutableList<TSource>> ToImmutableListAsync<TSource>(this IAsyncEnumerable<TSource> source)
+    {
+        var list = new List<TSource>();
+        await using var enumerator = source.GetAsyncEnumerator();
+
+        while (await enumerator.MoveNextAsync())
+            list.Add(enumerator.Current);
+
+        return list.ToImmutableList();
+    }
+
+    /// <summary>
+    ///     Returns the input typed as an array asynchronously.
+    /// </summary>
+    public static async ValueTask<TSource[]> ToArrayAsync<TSource>(this IAsyncEnumerable<TSource> source)
+    {
+        var list = new List<TSource>();
+        await using var enumerator = source.GetAsyncEnumerator();
+
+        while (await enumerator.MoveNextAsync())
+            list.Add(enumerator.Current);
+
+        return list.ToArray();
+    }
+
+    /// <summary>
+    ///     Returns the input typed as <see cref="List{T}"/> asynchronously.
+    /// </summary>
+    public static async ValueTask<List<TSource>> ToListAsync<TSource>(this IAsyncEnumerable<TSource> source)
+    {
+        var list = new List<TSource>();
+        await using var enumerator = source.GetAsyncEnumerator();
+
+        while (await enumerator.MoveNextAsync())
+            list.Add(enumerator.Current);
+
+        return list.ToList();
     }
 }
