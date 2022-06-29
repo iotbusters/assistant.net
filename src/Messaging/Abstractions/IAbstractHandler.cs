@@ -15,7 +15,7 @@ public interface IAbstractHandler
     /// <remarks>
     ///     Request-response behavior.
     /// </remarks>
-    Task<object> Request(IAbstractMessage message, CancellationToken token = default);
+    ValueTask<object> Request(IAbstractMessage message, CancellationToken token = default);
 
     /// <summary>
     ///     Publishes the <paramref name="message"/> object handling without waiting for a response.
@@ -23,5 +23,5 @@ public interface IAbstractHandler
     /// <remarks>
     ///     Fire-and-forget behavior.
     /// </remarks>
-    Task Publish(IAbstractMessage message, CancellationToken token = default);
+    ValueTask Publish(IAbstractMessage message, CancellationToken token = default);
 }

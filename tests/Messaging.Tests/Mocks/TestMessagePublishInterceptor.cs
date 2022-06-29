@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Tests.Mocks;
 
-public class TestMessageInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
-    where TMessage : IMessage<TResponse>
+public class TestMessagePublishInterceptor<TMessage> : IMessagePublishInterceptor<TMessage>
+    where TMessage : IAbstractMessage
 {
-    public Task<TResponse> Intercept(MessageInterceptor<TMessage, TResponse> next, TMessage message, CancellationToken token)
+    public ValueTask Intercept(PublishMessageHandler<TMessage> next, TMessage message, CancellationToken token)
     {
         CallCount++;
         return next(message, token);

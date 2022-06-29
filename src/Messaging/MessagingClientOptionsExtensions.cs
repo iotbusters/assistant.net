@@ -3,6 +3,7 @@ using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Options;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Assistant.Net.Messaging;
@@ -138,21 +139,12 @@ public static class MessagingClientOptionsExtensions
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddInterceptor(this MessagingClientOptions options, Type interceptorType)
     {
-        if (!interceptorType.IsMessageInterceptor() && !interceptorType.IsAbstractInterceptor())
+        if (!interceptorType.IsRequestMessageInterceptor() && !interceptorType.IsAbstractRequestInterceptor()
+            && !interceptorType.IsPublishMessageInterceptor() && !interceptorType.IsAbstractPublishInterceptor())
             throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
 
-        var messageTypes = interceptorType.GetMessageInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First());
-        if (interceptorType.IsAbstractInterceptor())
-            messageTypes = messageTypes.Append(typeof(object));
-
-        var newMessageTypes = messageTypes
-            .Where(x => !options.Interceptors.Any(d => d.MessageType == x && d.InterceptorType == interceptorType));
-        foreach (var messageType in newMessageTypes)
-        {
-            var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
-                CreateAbstractInterceptor(p, interceptorType, messageType));
-            options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, factory));
-        }
+        options.RequestInterceptors.AddAbstractInterceptor(interceptorType);
+        options.PublishInterceptors.AddAbstractInterceptor(interceptorType);
 
         return options;
     }
@@ -166,21 +158,12 @@ public static class MessagingClientOptionsExtensions
     public static MessagingClientOptions AddInterceptor(this MessagingClientOptions options, object interceptorInstance)
     {
         var interceptorType = interceptorInstance.GetType();
-        if (!interceptorType.IsMessageInterceptor() && !interceptorType.IsAbstractInterceptor())
+        if (!interceptorType.IsRequestMessageInterceptor() && !interceptorType.IsAbstractRequestInterceptor()
+            && !interceptorType.IsPublishMessageInterceptor() && !interceptorType.IsAbstractPublishInterceptor())
             throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
 
-        var messageTypes = interceptorType.GetMessageInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First());
-        if (interceptorType.IsAbstractInterceptor())
-            messageTypes = messageTypes.Append(typeof(object));
-
-        var newMessageTypes = messageTypes
-            .Where(x => !options.Interceptors.Any(d => d.MessageType == x && d.InterceptorType == interceptorType));
-        foreach (var messageType in newMessageTypes)
-        {
-            var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
-                CreateAbstractInterceptor(p, interceptorInstance, messageType));
-            options.Interceptors.Add(new InterceptorDefinition(messageType, interceptorType, factory));
-        }
+        options.RequestInterceptors.AddAbstractInterceptor(interceptorInstance);
+        options.PublishInterceptors.AddAbstractInterceptor(interceptorInstance);
 
         return options;
     }
@@ -195,25 +178,12 @@ public static class MessagingClientOptionsExtensions
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions ReplaceInterceptor(this MessagingClientOptions options, Type targetType, Type replacementType)
     {
-        if (!replacementType.IsMessageInterceptor() && !replacementType.IsAbstractInterceptor())
+        if (!replacementType.IsRequestMessageInterceptor() && !replacementType.IsAbstractRequestInterceptor()
+            && !replacementType.IsPublishMessageInterceptor() && !replacementType.IsAbstractPublishInterceptor())
             throw new ArgumentException($"Expected interceptor but provided {replacementType}.", nameof(replacementType));
 
-        var messageTypes = replacementType.GetMessageInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First());
-        if (replacementType.IsAbstractInterceptor())
-            messageTypes = messageTypes.Append(typeof(object));
-
-        var definitions = options.Interceptors
-            .Where(x => x.InterceptorType == targetType && messageTypes.Contains(x.MessageType))
-            .ToArray();
-
-        foreach (var definition in definitions)
-        {
-            var index = options.Interceptors.IndexOf(definition);
-            options.Interceptors.RemoveAt(index);
-            var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
-                CreateAbstractInterceptor(p, replacementType, definition.MessageType));
-            options.Interceptors.Insert(index, new InterceptorDefinition(definition.MessageType, replacementType, factory));
-        }
+        options.RequestInterceptors.ReplaceAbstractInterceptor(targetType, replacementType);
+        options.PublishInterceptors.ReplaceAbstractInterceptor(targetType, replacementType);
 
         return options;
     }
@@ -228,26 +198,13 @@ public static class MessagingClientOptionsExtensions
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions ReplaceInterceptor(this MessagingClientOptions options, Type targetType, object replacementInstance)
     {
-        var replacementType = replacementInstance.GetType();
-        if (!replacementType.IsMessageInterceptor() && !replacementType.IsAbstractInterceptor())
-            throw new ArgumentException($"Expected interceptor but provided {replacementType}.", nameof(replacementType));
+        var  interceptorType = replacementInstance.GetType();
+        if (! interceptorType.IsRequestMessageInterceptor() && ! interceptorType.IsAbstractRequestInterceptor()
+            && ! interceptorType.IsPublishMessageInterceptor() && ! interceptorType.IsAbstractPublishInterceptor())
+            throw new ArgumentException($"Expected interceptor but provided { interceptorType}.", nameof( interceptorType));
 
-        var messageTypes = replacementType.GetMessageInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First());
-        if (replacementType.IsAbstractInterceptor())
-            messageTypes = messageTypes.Append(typeof(object));
-
-        var definitions = options.Interceptors
-            .Where(x => x.InterceptorType == targetType && messageTypes.Contains(x.MessageType))
-            .ToArray();
-
-        foreach (var definition in definitions)
-        {
-            var index = options.Interceptors.IndexOf(definition);
-            options.Interceptors.RemoveAt(index);
-            var factory = new InstanceCachingFactory<IAbstractInterceptor>(p =>
-                CreateAbstractInterceptor(p, replacementInstance, definition.MessageType));
-            options.Interceptors.Insert(index, new InterceptorDefinition(definition.MessageType, replacementType, factory));
-        }
+        options.RequestInterceptors.ReplaceAbstractInterceptor(targetType, replacementInstance);
+        options.PublishInterceptors.ReplaceAbstractInterceptor(targetType, replacementInstance);
 
         return options;
     }
@@ -260,12 +217,17 @@ public static class MessagingClientOptionsExtensions
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions RemoveInterceptor(this MessagingClientOptions options, Type interceptorType)
     {
-        if (!interceptorType.IsMessageInterceptor() && !interceptorType.IsAbstractInterceptor())
+        if (!interceptorType.IsRequestMessageInterceptor() && !interceptorType.IsAbstractRequestInterceptor()
+            && !interceptorType.IsPublishMessageInterceptor() && !interceptorType.IsAbstractPublishInterceptor())
             throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
 
-        var definitions = options.Interceptors.Where(x => x.InterceptorType == interceptorType).ToArray();
-        foreach (var definition in definitions)
-            options.Interceptors.Remove(definition);
+        var requestDefinitions = options.RequestInterceptors.Where(x => x.InterceptorType == interceptorType).ToArray();
+        foreach (var definition in requestDefinitions)
+            options.RequestInterceptors.Remove(definition);
+
+        var publishDefinitions = options.PublishInterceptors.Where(x => x.InterceptorType == interceptorType).ToArray();
+        foreach (var definition in publishDefinitions)
+            options.PublishInterceptors.Remove(definition);
 
         return options;
     }
@@ -275,32 +237,152 @@ public static class MessagingClientOptionsExtensions
     /// </summary>
     public static MessagingClientOptions ClearInterceptors(this MessagingClientOptions options)
     {
-        options.Interceptors.Clear();
+        options.RequestInterceptors.Clear();
+        options.PublishInterceptors.Clear();
         return options;
     }
 
-    private static IAbstractInterceptor CreateAbstractInterceptor(IServiceProvider provider, Type interceptorType, Type messageType)
+    private static void AddAbstractInterceptor(this IList<InterceptorDefinition<IAbstractRequestInterceptor>> list, Type interceptorType)
     {
-        var interceptor = provider.Create(interceptorType);
-
-        if (messageType == typeof(object))
-            return (IAbstractInterceptor)interceptor;
-
-        var responseType = messageType.GetResponseType();
-        var abstractInterceptorType = typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, responseType!);
-        var abstractInterceptor = provider.Create(abstractInterceptorType, interceptor);
-        return (IAbstractInterceptor)abstractInterceptor;
+        var messageTypes = list.GetUndefinedMessageTypes(interceptorType);
+        foreach (var messageType in messageTypes)
+        {
+            var factory = new InstanceCachingFactory<IAbstractRequestInterceptor>(p =>
+                CreateAbstractRequestInterceptor(p, messageType, p.Create(interceptorType)));
+            list.Add(new InterceptorDefinition<IAbstractRequestInterceptor>(messageType, interceptorType, factory));
+        }
     }
 
-    private static IAbstractInterceptor CreateAbstractInterceptor(IServiceProvider provider, object interceptor, Type messageType)
+    private static void AddAbstractInterceptor(this IList<InterceptorDefinition<IAbstractPublishInterceptor>> list, Type interceptorType)
     {
-        if (messageType == typeof(object))
-            return (IAbstractInterceptor)interceptor;
+        var newMessageTypes = list.GetUndefinedMessageTypes(interceptorType);
+        foreach (var messageType in newMessageTypes)
+        {
+            var factory = new InstanceCachingFactory<IAbstractPublishInterceptor>(p =>
+                CreateAbstractPublishInterceptor(p, messageType, p.Create(interceptorType)));
+            list.Add(new InterceptorDefinition<IAbstractPublishInterceptor>(messageType, interceptorType, factory));
+        }
+    }
 
-        var interceptorType = interceptor.GetType();
-        var responseType = messageType.GetResponseType();
-        var abstractInterceptorType = typeof(AbstractInterceptor<,,>).MakeGenericType(interceptorType, messageType, responseType!);
-        var abstractInterceptor = provider.Create(abstractInterceptorType, interceptor);
-        return (IAbstractInterceptor)abstractInterceptor;
+    private static void AddAbstractInterceptor(this IList<InterceptorDefinition<IAbstractRequestInterceptor>> list, object interceptorInstance)
+    {
+        var interceptorType = interceptorInstance.GetType();
+        var messageTypes = list.GetUndefinedMessageTypes(interceptorType);
+        foreach (var messageType in messageTypes)
+        {
+            var factory = new InstanceCachingFactory<IAbstractRequestInterceptor>(p =>
+                CreateAbstractRequestInterceptor(p, messageType, interceptorInstance));
+            list.Add(new InterceptorDefinition<IAbstractRequestInterceptor>(messageType, interceptorType, factory));
+        }
+    }
+
+    private static void AddAbstractInterceptor(this IList<InterceptorDefinition<IAbstractPublishInterceptor>> list, object interceptorInstance)
+    {
+        var interceptorType = interceptorInstance.GetType();
+        var newMessageTypes = list.GetUndefinedMessageTypes(interceptorType);
+        foreach (var messageType in newMessageTypes)
+        {
+            var factory = new InstanceCachingFactory<IAbstractPublishInterceptor>(p =>
+                CreateAbstractPublishInterceptor(p, messageType, interceptorInstance));
+            list.Add(new InterceptorDefinition<IAbstractPublishInterceptor>(messageType, interceptorType, factory));
+        }
+    }
+
+    private static void ReplaceAbstractInterceptor(this IList<InterceptorDefinition<IAbstractRequestInterceptor>> list, Type targetType, Type replacementType)
+    {
+        var messageTypes = GetRequestMessageTypes(replacementType);
+        var definitions = list.Where(x => x.InterceptorType == targetType && messageTypes.Contains(x.MessageType)).ToArray();
+        foreach (var definition in definitions)
+            list.ReplaceDefinition(definition, replacementType);
+    }
+
+    private static void ReplaceAbstractInterceptor(this IList<InterceptorDefinition<IAbstractPublishInterceptor>> list, Type targetType, Type replacementType)
+    {
+        var messageTypes = GetPublishMessageTypes(replacementType);
+        var definitions = list.Where(x => x.InterceptorType == targetType && messageTypes.Contains(x.MessageType)).ToArray();
+        foreach (var definition in definitions)
+            list.ReplaceDefinition(definition, replacementType);
+    }
+
+    private static void ReplaceAbstractInterceptor(this IList<InterceptorDefinition<IAbstractRequestInterceptor>> list, Type targetType, object replacementInstance)
+    {
+        var interceptorType = replacementInstance.GetType();
+        var messageTypes = GetRequestMessageTypes(interceptorType);
+        var definitions = list.Where(x => x.InterceptorType == targetType && messageTypes.Contains(x.MessageType)).ToArray();
+        foreach (var definition in definitions)
+            list.ReplaceDefinition(definition, replacementInstance);
+    }
+
+    private static void ReplaceAbstractInterceptor(this IList<InterceptorDefinition<IAbstractPublishInterceptor>> list, Type targetType, object replacementInstance)
+    {
+        var interceptorType = replacementInstance.GetType();
+        var messageTypes = GetPublishMessageTypes(interceptorType);
+        var definitions = list.Where(x => x.InterceptorType == targetType && messageTypes.Contains(x.MessageType)).ToArray();
+        foreach (var definition in definitions)
+            list.ReplaceDefinition(definition, replacementInstance);
+    }
+
+    private static IEnumerable<Type> GetUndefinedMessageTypes(this IList<InterceptorDefinition<IAbstractRequestInterceptor>> list, Type interceptorType) =>
+        GetRequestMessageTypes(interceptorType).Where(x => !list.Any(d => d.MessageType == x && d.InterceptorType == interceptorType));
+
+    private static IEnumerable<Type> GetUndefinedMessageTypes(this IList<InterceptorDefinition<IAbstractPublishInterceptor>> list, Type interceptorType) =>
+        GetPublishMessageTypes(interceptorType).Where(x => !list.Any(d => d.MessageType == x && d.InterceptorType == interceptorType));
+
+    private static IEnumerable<Type> GetRequestMessageTypes(Type interceptorType)
+    {
+        var messageTypes = interceptorType.GetMessageRequestInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First());
+        if (interceptorType.IsAbstractRequestInterceptor())
+            return messageTypes.Append(typeof(object));
+        return messageTypes;
+    }
+
+    private static IEnumerable<Type> GetPublishMessageTypes(Type interceptorType)
+    {
+        var messageTypes = interceptorType.GetMessagePublishInterceptorInterfaceTypes().Select(x => x.GetGenericArguments().First());
+        if (interceptorType.IsAbstractPublishInterceptor())
+            return messageTypes.Append(typeof(object));
+        return messageTypes;
+    }
+
+    private static IAbstractRequestInterceptor CreateAbstractRequestInterceptor(IServiceProvider provider, Type messageType, object interceptorInstance)
+    {
+        if (interceptorInstance is IAbstractRequestInterceptor interceptor)
+            return interceptor;
+
+        var responseType = messageType.GetResponseType()!;
+        var abstractInterceptorType = typeof(AbstractRequestInterceptor<,>).MakeGenericType(messageType, responseType);
+        var abstractInterceptor = provider.Create(abstractInterceptorType, interceptorInstance);
+        return (IAbstractRequestInterceptor)abstractInterceptor;
+    }
+
+    private static IAbstractPublishInterceptor CreateAbstractPublishInterceptor(IServiceProvider provider, Type messageType, object interceptorInstance)
+    {
+        if (interceptorInstance is IAbstractPublishInterceptor interceptor)
+            return interceptor;
+
+        var abstractInterceptorType = typeof(AbstractPublishInterceptor<>).MakeGenericType(messageType);
+        var abstractInterceptor = provider.Create(abstractInterceptorType, interceptorInstance);
+        return (IAbstractPublishInterceptor)abstractInterceptor;
+    }
+
+    private static void ReplaceDefinition<T>(this IList<InterceptorDefinition<T>> list, InterceptorDefinition<T> definition, Type interceptorType)
+        where T : class
+    {
+        var index = list.IndexOf(definition);
+        list.RemoveAt(index);
+
+        var factory = new InstanceCachingFactory<T>(p => (T)p.Create(interceptorType));
+        list.Add(new InterceptorDefinition<T>(definition.MessageType, interceptorType, factory));
+    }
+
+    private static void ReplaceDefinition<T>(this IList<InterceptorDefinition<T>> list, InterceptorDefinition<T> definition, object replacementInstance)
+        where T : class
+    {
+        var interceptorType = replacementInstance.GetType();
+        var index = list.IndexOf(definition);
+        list.RemoveAt(index);
+
+        var factory = new InstanceCachingFactory<T>(_ => (T)replacementInstance);
+        list.Add(new InterceptorDefinition<T>(definition.MessageType, interceptorType, factory));
     }
 }

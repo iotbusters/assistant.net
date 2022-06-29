@@ -19,7 +19,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 /// <remarks>
 ///     The interceptor depends on <see cref="MessagingClientOptions.TransientExceptions"/>.
 /// </remarks>
-public class DefaultCachingInterceptor : IAbstractInterceptor
+public class DefaultCachingInterceptor : SharedAbstractInterceptor
 {
     private readonly ILogger logger;
     private readonly ITypeEncoder typeEncoder;
@@ -47,7 +47,7 @@ public class DefaultCachingInterceptor : IAbstractInterceptor
     }
 
     /// <inheritdoc/>
-    public virtual async Task<object> Intercept(MessageInterceptor next, IAbstractMessage message, CancellationToken token)
+    protected override async ValueTask<object> InterceptInternal(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncoder.Encode(message.GetType());
@@ -60,7 +60,7 @@ public class DefaultCachingInterceptor : IAbstractInterceptor
             try
             {
                 var response = await next(message, token);
-                result = CachingResult.OfValue((dynamic)response);
+                result = CachingResult.OfValue((dynamic) response);
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {

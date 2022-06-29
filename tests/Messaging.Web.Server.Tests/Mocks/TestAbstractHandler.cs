@@ -11,9 +11,9 @@ internal class TestAbstractHandler : IAbstractHandler
     public TestAbstractHandler(object handlerInstance) =>
         this.handlerInstance = handlerInstance;
 
-    public async Task<object> Request(IAbstractMessage message, CancellationToken token) =>
+    public async ValueTask<object> Request(IAbstractMessage message, CancellationToken token) =>
         await handlerInstance.Handle(message, token);
 
-    public async Task Publish(IAbstractMessage message, CancellationToken token) =>
+    public async ValueTask Publish(IAbstractMessage message, CancellationToken token) =>
         await handlerInstance.Handle(message, token);
 }

@@ -18,7 +18,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 /// <remarks>
 ///     The interceptor depends on <see cref="MessagingClientOptions.TransientExceptions"/> and <see cref="MessagingClientOptions.Retry"/>.
 /// </remarks>
-public sealed class RetryingInterceptor : IAbstractInterceptor
+public sealed class RetryingInterceptor : SharedAbstractInterceptor
 {
     private readonly ILogger<RetryingInterceptor> logger;
     private readonly ITypeEncoder typeEncoder;
@@ -40,7 +40,7 @@ public sealed class RetryingInterceptor : IAbstractInterceptor
 
     /// <inheritdoc/>
     /// <exception cref="MessageRetryLimitExceededException"/>
-    public async Task<object> Intercept(MessageInterceptor next, IAbstractMessage message, CancellationToken token)
+    protected override async ValueTask<object> InterceptInternal(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncoder.Encode(message.GetType());
@@ -92,26 +92,4 @@ public sealed class RetryingInterceptor : IAbstractInterceptor
             return response;
         }
     }
-}
-
-/// <inheritdoc cref="RetryingInterceptor"/>
-public sealed class RetryingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
-    where TMessage : IMessage<TResponse>
-{
-    private readonly RetryingInterceptor interceptor;
-
-    /// <summary/>
-    public RetryingInterceptor(
-        ILogger<RetryingInterceptor> logger,
-        ITypeEncoder typeEncoder,
-        IDiagnosticFactory diagnosticFactory,
-        INamedOptions<MessagingClientOptions> options)
-    {
-        this.interceptor = new RetryingInterceptor(logger, typeEncoder, diagnosticFactory, options);
-    }
-
-    /// <inheritdoc/>
-    /// <exception cref="MessageRetryLimitExceededException"/>
-    public async Task<TResponse> Intercept(MessageInterceptor<TMessage, TResponse> next, TMessage message, CancellationToken token) =>
-        (TResponse)await interceptor.Intercept(async (m, t) => (await next((TMessage)m, t))!, message, token);
 }

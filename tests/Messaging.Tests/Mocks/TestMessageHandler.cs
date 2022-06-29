@@ -6,11 +6,8 @@ namespace Assistant.Net.Messaging.Tests.Mocks;
 
 public class TestMessageHandler<TMessage, TResponse> : IMessageHandler<TMessage, TResponse>
     where TMessage : IMessage<TResponse>
-    where TResponse: new()
 {
     private readonly TResponse response;
-
-    public TestMessageHandler() : this(new TResponse()) { }
 
     public TestMessageHandler(TResponse response) =>
         this.response = response;

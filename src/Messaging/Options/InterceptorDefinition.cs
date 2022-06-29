@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Options;
+﻿using Assistant.Net.Options;
 using System;
 
 namespace Assistant.Net.Messaging.Options;
@@ -7,13 +6,13 @@ namespace Assistant.Net.Messaging.Options;
 /// <summary>
 ///     Message interceptor definition.
 /// </summary>
-public sealed class InterceptorDefinition
+public sealed class InterceptorDefinition<TInterceptor> where TInterceptor : class
 {
     /// <summary/>
     public InterceptorDefinition(
         Type messageType,
         Type interceptorType,
-        InstanceFactory<IAbstractInterceptor> factory)
+        InstanceFactory<TInterceptor> factory)
     {
         MessageType = messageType;
         InterceptorType = interceptorType;
@@ -33,5 +32,5 @@ public sealed class InterceptorDefinition
     /// <summary>
     ///     Interceptor instance factory.
     /// </summary>
-    public InstanceFactory<IAbstractInterceptor> Factory { get; }
+    public InstanceFactory<TInterceptor> Factory { get; }
 }

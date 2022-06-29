@@ -81,35 +81,68 @@ public static class TypeExtensions
         handlerType.IsInterface && handlerType.IsGenericType && handlerType.GetGenericTypeDefinition() == typeof(IMessageHandler<,>);
 
     /// <summary>
-    ///     Gets all implemented the <see cref="IMessageInterceptor{TMessage,TResponse}"/> types.
+    ///     Gets all implemented the <see cref="IMessageRequestInterceptor{TMessage,TResponse}"/> types.
     /// </summary>
-    public static Type[] GetMessageInterceptorInterfaceTypes(this Type interceptorType)
+    public static Type[] GetMessageRequestInterceptorInterfaceTypes(this Type interceptorType)
     {
-        var interceptorInterfaceTypes = interceptorType.GetInterfaces().Where(x => x.IsMessageInterceptorInterface()).ToArray();
+        var interceptorInterfaceTypes = interceptorType.GetInterfaces().Where(x => x.IsMessageRequestInterceptorInterface()).ToArray();
         if (interceptorInterfaceTypes.Any())
             return interceptorInterfaceTypes;
 
-        if (interceptorType.IsMessageInterceptorInterface())
+        if (interceptorType.IsMessageRequestInterceptorInterface())
             return new[] {interceptorType};
 
         return Array.Empty<Type>();
     }
 
     /// <summary>
-    ///     Verifies if provided <paramref name="interceptorType"/> implements the <see cref="IMessageInterceptor{TMessage,TResponse}"/>.
+    ///     Gets all implemented the <see cref="IMessagePublishInterceptor{TMessage}"/> types.
     /// </summary>
-    public static bool IsMessageInterceptor(this Type interceptorType) =>
-        interceptorType.GetInterfaces().Any(x => x.IsMessageInterceptorInterface());
+    public static Type[] GetMessagePublishInterceptorInterfaceTypes(this Type interceptorType)
+    {
+        var interceptorInterfaceTypes = interceptorType.GetInterfaces().Where(x => x.IsMessagePublishInterceptorInterface()).ToArray();
+        if (interceptorInterfaceTypes.Any())
+            return interceptorInterfaceTypes;
+
+        if (interceptorType.IsMessagePublishInterceptorInterface())
+            return new[] {interceptorType};
+
+        return Array.Empty<Type>();
+    }
 
     /// <summary>
-    ///     Verifies if provided <paramref name="interceptorType"/> implements the <see cref="IAbstractInterceptor"/>.
+    ///     Verifies if provided <paramref name="interceptorType"/> implements the <see cref="IMessageRequestInterceptor{TMessage,TResponse}"/>.
     /// </summary>
-    public static bool IsAbstractInterceptor(this Type interceptorType) =>
-        interceptorType.GetInterfaces().Any(x => x.IsAssignableTo(typeof(IAbstractInterceptor)));
+    public static bool IsRequestMessageInterceptor(this Type interceptorType) =>
+        interceptorType.GetInterfaces().Any(x => x.IsMessageRequestInterceptorInterface());
+
+    /// <summary>
+    ///     Verifies if provided <paramref name="interceptorType"/> implements the <see cref="IMessagePublishInterceptor{TMessage}"/>.
+    /// </summary>
+    public static bool IsPublishMessageInterceptor(this Type interceptorType) =>
+        interceptorType.GetInterfaces().Any(x => x.IsMessagePublishInterceptorInterface());
+
+    /// <summary>
+    ///     Verifies if provided <paramref name="interceptorType"/> implements the <see cref="IAbstractRequestInterceptor"/>.
+    /// </summary>
+    public static bool IsAbstractRequestInterceptor(this Type interceptorType) =>
+        interceptorType.GetInterfaces().Any(x => x.IsAssignableTo(typeof(IAbstractRequestInterceptor)));
+
+    /// <summary>
+    ///     Verifies if provided <paramref name="interceptorType"/> implements the <see cref="IAbstractPublishInterceptor"/>.
+    /// </summary>
+    public static bool IsAbstractPublishInterceptor(this Type interceptorType) =>
+        interceptorType.GetInterfaces().Any(x => x.IsAssignableTo(typeof(IAbstractPublishInterceptor)));
 
     /// <summary>
     ///     Verifies if provided <paramref name="interceptorType"/> is a message handler interface.
     /// </summary>
-    private static bool IsMessageInterceptorInterface(this Type interceptorType) =>
-        interceptorType.IsInterface && interceptorType.IsGenericType && interceptorType.GetGenericTypeDefinition() == typeof(IMessageInterceptor<,>);
+    private static bool IsMessageRequestInterceptorInterface(this Type interceptorType) =>
+        interceptorType.IsInterface && interceptorType.IsGenericType && interceptorType.GetGenericTypeDefinition() == typeof(IMessageRequestInterceptor<,>);
+
+    /// <summary>
+    ///     Verifies if provided <paramref name="interceptorType"/> is a message handler interface.
+    /// </summary>
+    private static bool IsMessagePublishInterceptorInterface(this Type interceptorType) =>
+        interceptorType.IsInterface && interceptorType.IsGenericType && interceptorType.GetGenericTypeDefinition() == typeof(IMessagePublishInterceptor<>);
 }

@@ -17,7 +17,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 /// <remarks>
 ///     The interceptor depends on <see cref="MessagingClientOptions.ExposedExceptions"/>
 /// </remarks>
-public sealed class ErrorHandlingInterceptor : IAbstractInterceptor
+public sealed class ErrorHandlingInterceptor : SharedAbstractInterceptor
 {
     private readonly ILogger<ErrorHandlingInterceptor> logger;
     private readonly ITypeEncoder typeEncode;
@@ -36,7 +36,7 @@ public sealed class ErrorHandlingInterceptor : IAbstractInterceptor
 
     /// <inheritdoc/>
     /// <exception cref="MessageFailedException"/>
-    public async Task<object> Intercept(MessageInterceptor next, IAbstractMessage message, CancellationToken token)
+    protected override async ValueTask<object> InterceptInternal(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncode.Encode(message.GetType());
@@ -68,25 +68,4 @@ public sealed class ErrorHandlingInterceptor : IAbstractInterceptor
         logger.LogInformation("Message({MessageName}/{MessageId}) error handling: ends.", messageName, messageId);
         return response;
     }
-}
-
-/// <inheritdoc cref="DiagnosticsInterceptor"/>
-public sealed class ErrorHandlingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
-    where TMessage : IMessage<TResponse>
-{
-    private readonly ErrorHandlingInterceptor interceptor;
-
-    /// <summary/>
-    public ErrorHandlingInterceptor(
-        ILogger<ErrorHandlingInterceptor> logger,
-        ITypeEncoder typeEncode,
-        INamedOptions<MessagingClientOptions> options)
-    {
-        this.interceptor = new ErrorHandlingInterceptor(logger, typeEncode, options);
-    }
-
-    /// <inheritdoc/>
-    /// <exception cref="MessageFailedException"/>
-    public async Task<TResponse> Intercept(MessageInterceptor<TMessage, TResponse> next, TMessage message, CancellationToken token) =>
-        (TResponse)await interceptor.Intercept(async (m, t) => (await next((TMessage)m, t))!, message, token);
 }

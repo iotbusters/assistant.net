@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Tests.Mocks;
 
-public class TestAbstractInterceptor : IAbstractInterceptor
+public class TestAbstractInterceptor : SharedAbstractInterceptor
 {
-    public Task<object> Intercept(MessageInterceptor next, IAbstractMessage message, CancellationToken token)
+    protected override ValueTask<object> InterceptInternal(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
     {
         CallCount++;
         return next(message, token);
