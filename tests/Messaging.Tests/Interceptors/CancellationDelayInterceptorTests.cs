@@ -27,7 +27,7 @@ public class CancellationDelayInterceptorTests
         }, Message, cancelledSource.Token)).Should().ThrowAsync<OperationCanceledException>();
         timer.Stop();
 
-        timer.Elapsed.Should().BeGreaterThan(Options.CancellationDelay);
+        timer.Elapsed.Should().BeGreaterThan(Options.CancellationDelay * Approximation);
     }
 
     [Test]
@@ -39,7 +39,7 @@ public class CancellationDelayInterceptorTests
         await Interceptor.Intercept((_, _) => ValueTask.FromResult<object>(Response), Message, source.Token);
         timer.Stop();
 
-        timer.Elapsed.Should().BeLessThan(Options.CancellationDelay);
+        timer.Elapsed.Should().BeLessThan(Options.CancellationDelay * Approximation);
     }
 
     [Test]
@@ -54,7 +54,7 @@ public class CancellationDelayInterceptorTests
         }, Message, cancelledSource.Token)).Should().ThrowAsync<OperationCanceledException>();
         timer.Stop();
 
-        timer.Elapsed.Should().BeGreaterThan(Options.CancellationDelay);
+        timer.Elapsed.Should().BeGreaterThan(Options.CancellationDelay * Approximation);
     }
 
     [Test]
@@ -66,7 +66,7 @@ public class CancellationDelayInterceptorTests
         await Interceptor.Intercept((_, _) => ValueTask.CompletedTask, Message, source.Token);
         timer.Stop();
 
-        timer.Elapsed.Should().BeLessThan(Options.CancellationDelay);
+        timer.Elapsed.Should().BeLessThan(Options.CancellationDelay * Approximation);
     }
 
     [OneTimeSetUp]
@@ -84,6 +84,8 @@ public class CancellationDelayInterceptorTests
 
     [OneTimeTearDown]
     public void TearDown() => Provider.Dispose();
+
+    private const double Approximation = 0.9;
 
     private ServiceProvider Provider { get; set; } = default!;
     private CancellationDelayInterceptor Interceptor => Provider.GetRequiredService<CancellationDelayInterceptor>();
