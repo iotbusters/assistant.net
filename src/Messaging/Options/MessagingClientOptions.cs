@@ -26,9 +26,14 @@ public sealed class MessagingClientOptions
     public Dictionary<Type, InstanceFactory<IAbstractHandler>> Handlers { get; } = new();
 
     /// <summary>
-    ///     List of registered interceptors.
+    ///     List of registered request interceptors.
     /// </summary>
-    public List<InterceptorDefinition> Interceptors { get; } = new();
+    public List<InterceptorDefinition<IAbstractRequestInterceptor>> RequestInterceptors { get; } = new();
+
+    /// <summary>
+    ///     List of registered publish interceptors.
+    /// </summary>
+    public List<InterceptorDefinition<IAbstractPublishInterceptor>> PublishInterceptors { get; } = new();
 
     /// <summary>
     ///     List of allowed for exposing external exceptions.

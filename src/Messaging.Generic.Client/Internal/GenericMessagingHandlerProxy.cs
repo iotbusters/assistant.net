@@ -38,7 +38,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         this.typeEncoder = typeEncoder;
     }
 
-    public async Task<object> Request(IAbstractMessage message, CancellationToken token)
+    public async ValueTask<object> Request(IAbstractMessage message, CancellationToken token)
     {
         var clientOptions = options.Value;
         var strategy = clientOptions.ResponsePoll;
@@ -75,7 +75,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         }
     }
 
-    public async Task Publish(IAbstractMessage message, CancellationToken token)
+    public async ValueTask Publish(IAbstractMessage message, CancellationToken token)
     {
         var clientOptions = options.Value;
         var messageName = typeEncoder.Encode(message.GetType());
@@ -83,7 +83,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
 
         logger.LogInformation("Message({MessageName}/{MessageId}) publishing: begins.", messageName, messageId);
 
-        await requestStorage.Add(clientOptions.InstanceId, (IAbstractMessage)message, token);
+        await requestStorage.Add(clientOptions.InstanceId, message, token);
         
         logger.LogInformation("Message({MessageName}/{MessageId}) publishing: ends.", messageName, messageId);
     }

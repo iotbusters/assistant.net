@@ -10,17 +10,23 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - none
 
-## [0.3.128] - 2022-06-27
+## [0.3.128] - 2022-06-29
 
 [Assistant.NET Release 0.3.128](https://github.com/iotbusters/assistant.net/releases/tag/0.3.128)
 
 ### 0.3.128 Added
 
 - extension methods for registering configuration change token source
+- request/publish interceptor interfaces
+- introduced shared publish/request interceptor base class
 
 ### 0.3.128 Fixed
 
 - publish method in messaging client
+
+### 0.3.128 Removed
+
+- single request/publish interceptor interface
 
 ## [0.3.127] - 2022-06-26
 
@@ -33,6 +39,8 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 ### 0.3.127 Changed
 
 - hide exceptino related extension methods and internal irrelevant methods
+- improved interceptor returning task to value task
+- messaging registration extension methods
 
 ## [0.3.125] - 2022-06-25
 

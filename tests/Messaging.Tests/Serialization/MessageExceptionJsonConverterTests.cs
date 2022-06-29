@@ -127,10 +127,8 @@ public class MessageExceptionJsonConverterTests
             new ServiceCollection()
                 .AddTypeEncoder()
                 .AddTransient<MessageExceptionJsonConverter>()
-                .AddSingleton<INamedOptions<MessagingClientOptions>>(new TestNamedOptions
-                {
-                    Value = new MessagingClientOptions {ExposedExceptions = {exceptionType ?? typeof(NullReferenceException)}}
-                })
+                .AddSingleton<INamedOptions<MessagingClientOptions>>(new TestNamedOptions(
+                    new MessagingClientOptions {ExposedExceptions = {exceptionType ?? typeof(NullReferenceException)}}))
                 .BuildServiceProvider()
                 .GetRequiredService<MessageExceptionJsonConverter>()
         },

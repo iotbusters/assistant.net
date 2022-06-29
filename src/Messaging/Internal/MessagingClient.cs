@@ -24,31 +24,34 @@ internal class MessagingClient : IMessagingClient
     }
 
     /// <exception cref="MessageNotRegisteredException"/>
-    public Task<object> RequestObject(IAbstractMessage message, CancellationToken token)
+    public async Task<object> RequestObject(IAbstractMessage message, CancellationToken token)
     {
-        var client = CreateInterceptingHandler(message.GetType());
-        return client.Request(message, token);
-    }
-
-    /// <exception cref="MessageNotRegisteredException"/>
-    public Task PublishObject(IAbstractMessage message, CancellationToken token)
-    {
-        var handler = CreateInterceptingHandler(message.GetType());
-        return handler.Publish(message, token);
-    }
-
-    /// <exception cref="MessageNotRegisteredException"/>
-    private InterceptingMessageHandler CreateInterceptingHandler(Type messageType)
-    {
-        if(!options.Handlers.TryGetValue(messageType, out var factory))
+        var messageType = message.GetType();
+        if (!options.Handlers.TryGetValue(messageType, out var factory))
             throw new MessageNotRegisteredException(messageType);
 
         var handler = factory.Create(provider);
-
-        var interceptors = options.Interceptors
+        var interceptors = options.RequestInterceptors
             .Where(x => x.MessageType.IsAssignableFrom(messageType))
             .Select(x => x.Factory.Create(provider));
 
-        return new InterceptingMessageHandler(handler, interceptors);
+        var messageHandler = new InterceptingRequestMessageHandler(handler, interceptors);
+        return await messageHandler.Request(message, token);
+    }
+
+    /// <exception cref="MessageNotRegisteredException"/>
+    public async Task PublishObject(IAbstractMessage message, CancellationToken token)
+    {
+        var messageType = message.GetType();
+        if (!options.Handlers.TryGetValue(messageType, out var factory))
+            throw new MessageNotRegisteredException(messageType);
+
+        var handler = factory.Create(provider);
+        var interceptors = options.PublishInterceptors
+            .Where(x => x.MessageType.IsAssignableFrom(messageType))
+            .Select(x => x.Factory.Create(provider));
+
+        var messageHandler = new InterceptingPublishMessageHandler(handler, interceptors);
+        await messageHandler.Publish(message, token);
     }
 }

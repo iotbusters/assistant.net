@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Tests.Mocks;
 
-public class TestScenarioMessageHandler : IMessageHandler<TestMessage, TestResponse>, IMessageHandler<IMessage<object>, object>
+public class TestScenarioMessageHandler : IMessageHandler<TestMessage, TestResponse>
 {
     private readonly Func<TestMessage, Task<TestResponse>> handler;
 
@@ -19,9 +19,6 @@ public class TestScenarioMessageHandler : IMessageHandler<TestMessage, TestRespo
         this.handler = handler;
 
     public Task<TestResponse> Handle(TestMessage message, CancellationToken token) => handler(message);
-
-    public async Task<object> Handle(IMessage<object> message, CancellationToken token = default) =>
-        await Handle((TestMessage)message, token);
 
     private static Task<TestResponse> DefaultBehavior(TestMessage message) => message.Scenario switch
     {

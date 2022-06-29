@@ -12,6 +12,7 @@ using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Tests.Interceptors;
@@ -19,9 +20,9 @@ namespace Assistant.Net.Messaging.Tests.Interceptors;
 public class CachingInterceptorTests
 {
     [Test]
-    public async Task Intercept_returnsResponseAndCaches()
+    public async Task Intercept_returnsResponseAndCaches_request()
     {
-        var response = await Interceptor.Intercept((_, _) => Task.FromResult<object>(new TestResponse(false)), Message);
+        var response = await Interceptor.Intercept(SuccessRequest(new TestResponse(false)), Message, default);
 
         response.Should().BeEquivalentTo(new TestResponse(false));
         var cached = await Cache.GetOrDefault(Message);
@@ -29,19 +30,19 @@ public class CachingInterceptorTests
     }
 
     [Test]
-    public async Task Intercept_returnsResponseFromCache()
+    public async Task Intercept_returnsResponseFromCache_request()
     {
-        await Interceptor.Intercept((_, _) => Task.FromResult<object>(new TestResponse(false)), Message);
+        await Interceptor.Intercept(SuccessRequest(new TestResponse(false)), Message, default);
 
-        var response = await Interceptor.Intercept((_, _) => Task.FromResult<object>(new TestResponse(true)), Message);
+        var response = await Interceptor.Intercept((_, _) => ValueTask.FromResult<object>(new TestResponse(true)), Message, default);
 
         response.Should().BeEquivalentTo(new TestResponse(false));
     }
 
     [Test]
-    public async Task Intercept_returnsResponseAndDoesNotCache_INoneCaching()
+    public async Task Intercept_returnsResponseAndDoesNotCache_requestAndINoneCaching()
     {
-        var response = await Interceptor.Intercept((_, _) => Task.FromResult<object>(new TestResponse(false)), new TestMessage4());
+        var response = await Interceptor.Intercept(SuccessRequest(new TestResponse(false)), new TestMessage4(), default);
 
         response.Should().BeEquivalentTo(new TestResponse(false));
         var cached = await Cache.GetOrDefault(new TestMessage4());
@@ -49,9 +50,9 @@ public class CachingInterceptorTests
     }
 
     [Test]
-    public async Task Intercept_throwsMessageExecutionExceptionAndCaches()
+    public async Task Intercept_throwsMessageExecutionExceptionAndCaches_request()
     {
-        await Interceptor.Awaiting(x => x.Intercept(Fail(new TestMessageExecutionException()), Message))
+        await Interceptor.Awaiting(x => x.Intercept(FailRequest(new TestMessageExecutionException()), Message, default))
             .Should().ThrowAsync<TestMessageExecutionException>();
 
         var cached = await Cache.GetOrDefault(Message);
@@ -61,9 +62,9 @@ public class CachingInterceptorTests
     }
 
     [Test]
-    public async Task Intercept_throwsMessageExecutionExceptionAndDoesNotCache_MessageDeferredException()
+    public async Task Intercept_throwsMessageExecutionExceptionAndDoesNotCache_requestAndMessageDeferredException()
     {
-        await Interceptor.Awaiting(x => x.Intercept(Fail(new MessageDeferredException()), Message))
+        await Interceptor.Awaiting(x => x.Intercept(FailRequest(new MessageDeferredException()), Message, default))
             .Should().ThrowAsync<StorageException>().WithInnerException(typeof(MessageDeferredException));
 
         var cached = await Cache.GetOrDefault(Message);
@@ -71,11 +72,11 @@ public class CachingInterceptorTests
     }
 
     [Test]
-    public async Task Intercept_throwsMessageExecutionExceptionAndDoesNotCache_TransientException()
+    public async Task Intercept_throwsMessageExecutionExceptionAndDoesNotCache_requestAndTransientException()
     {
         Options.TransientExceptions.Add(typeof(ArgumentException));
 
-        await Interceptor.Awaiting(x => x.Intercept(Fail(new ArgumentException()), Message))
+        await Interceptor.Awaiting(x => x.Intercept(FailRequest(new ArgumentException()), Message, default))
             .Should().ThrowAsync<StorageException>().WithInnerException(typeof(ArgumentException));
 
         var cached = await Cache.GetOrDefault(Message);
@@ -83,34 +84,105 @@ public class CachingInterceptorTests
     }
 
     [Test]
-    public async Task Intercept_throwsMessageExecutionExceptionFromCache()
+    public async Task Intercept_throwsMessageExecutionExceptionFromCache_request()
     {
         await Cache.AddOrGet(Message, _ => new CachingExceptionResult(new TestMessageExecutionException()));
 
-        await Interceptor.Awaiting(x => x.Intercept(Fail(new ArgumentException()), Message))
+        await Interceptor.Awaiting(x => x.Intercept(FailRequest(new ArgumentException()), Message, default))
             .Should().ThrowAsync<TestMessageExecutionException>();
     }
 
-    [SetUp]
-    public void Setup()
+    [Test]
+    public async Task Intercept_caches_publish()
+    {
+        await Interceptor.Intercept(SuccessPublish(), Message, default);
+
+        var cached = await Cache.GetOrDefault(Message);
+        cached.Should().BeEquivalentTo(CachingResult.OfValue(Nothing.Instance));
+    }
+
+    [Test]
+    public async Task Intercept_doesNotCache_publishAndINoneCaching()
+    {
+        await Interceptor.Intercept(SuccessPublish(), new TestMessage4(), default);
+
+        var cached = await Cache.GetOrDefault(new TestMessage4());
+        cached.Should().BeNull();
+    }
+
+    [Test]
+    public async Task Intercept_throwsMessageExecutionExceptionAndCaches_publish()
+    {
+        await Interceptor.Awaiting(x => x.Intercept(FailPublish(new TestMessageExecutionException()), Message, default))
+            .Should().ThrowAsync<TestMessageExecutionException>();
+
+        var cached = await Cache.GetOrDefault(Message);
+        cached.Should().BeEquivalentTo(
+            CachingResult.OfException(new TestMessageExecutionException()),
+            o => o.Excluding(m => m.Exception.StackTrace));
+    }
+
+    [Test]
+    public async Task Intercept_throwsMessageExecutionExceptionAndDoesNotCache_publishAndMessageDeferredException()
+    {
+        await Interceptor.Awaiting(x => x.Intercept(FailPublish(new MessageDeferredException()), Message, default))
+            .Should().ThrowAsync<StorageException>().WithInnerException(typeof(MessageDeferredException));
+
+        var cached = await Cache.GetOrDefault(Message);
+        cached.Should().BeNull();
+    }
+
+    [Test]
+    public async Task Intercept_throwsMessageExecutionExceptionAndDoesNotCache_publishAndTransientException()
+    {
+        Options.TransientExceptions.Add(typeof(ArgumentException));
+
+        await Interceptor.Awaiting(x => x.Intercept(FailPublish(new ArgumentException()), Message, default))
+            .Should().ThrowAsync<StorageException>().WithInnerException(typeof(ArgumentException));
+
+        var cached = await Cache.GetOrDefault(Message);
+        cached.Should().BeNull();
+    }
+
+    [Test]
+    public async Task Intercept_throwsMessageExecutionExceptionFromCache_Publish()
+    {
+        await Cache.AddOrGet(Message, _ => new CachingExceptionResult(new TestMessageExecutionException()));
+
+        await Interceptor.Awaiting(x => x.Intercept(FailPublish(new ArgumentException()), Message, default))
+            .Should().ThrowAsync<TestMessageExecutionException>();
+    }
+
+    [OneTimeSetUp]
+    public void OneTimeSetup()
     {
         Options = new MessagingClientOptions();
         var services = new ServiceCollection()
             .AddTransient<CachingInterceptor>()
-            .AddSingleton<INamedOptions<MessagingClientOptions>>(new TestNamedOptions {Value = Options})
+            .AddSingleton<INamedOptions<MessagingClientOptions>>(new TestNamedOptions(Options))
             .AddSystemClock()
             .AddStorage(b => b.AddLocal<IAbstractMessage, CachingResult>());
         Provider = services.BuildServiceProvider();
     }
 
+    [OneTimeTearDown]
+    public void OneTimeTearDown() => Provider.Dispose();
+
     [TearDown]
-    public void TearDown() => Provider.Dispose();
+    public async Task TearDown()
+    {
+        var keys = await Cache.GetKeys().AsEnumerableAsync();
+        await Task.WhenAll(keys.Select(x => Cache.TryRemove(x)));
+    }
 
     private ServiceProvider Provider { get; set; } = default!;
-    private IAbstractInterceptor Interceptor => Provider.GetRequiredService<CachingInterceptor>();
+    private CachingInterceptor Interceptor => Provider.GetRequiredService<CachingInterceptor>();
     private MessagingClientOptions Options { get; set; } = default!;
-    private IStorage<IAbstractMessage, CachingResult> Cache => Provider.GetRequiredService<IStorage<IAbstractMessage, CachingResult>>();
+    private IAdminStorage<IAbstractMessage, CachingResult> Cache => Provider.GetRequiredService<IAdminStorage<IAbstractMessage, CachingResult>>();
     private static TestMessage Message => new(0);
 
-    private static MessageInterceptor Fail(Exception ex) => (_, _) => throw ex;
+    private static RequestMessageHandler SuccessRequest(object response) => (_, _) => ValueTask.FromResult(response);
+    private static PublishMessageHandler SuccessPublish() => (_, _) => ValueTask.CompletedTask;
+    private static RequestMessageHandler FailRequest(Exception ex) => (_, _) => throw ex;
+    private static PublishMessageHandler FailPublish(Exception ex) => (_, _) => throw ex;
 }

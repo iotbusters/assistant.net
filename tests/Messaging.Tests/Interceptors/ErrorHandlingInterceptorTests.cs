@@ -15,33 +15,31 @@ namespace Assistant.Net.Messaging.Tests.Interceptors;
 public class ErrorHandlingInterceptorTests
 {
     [Test]
-    public async Task Intercept_returnsResponse()
+    public async Task Intercept_returnsResponse_request()
     {
-        var response = await Interceptor.Intercept((_,_) => Task.FromResult<object>(new TestResponse(false)), Message);
+        var response = await Interceptor.Intercept(SuccessRequest(new TestResponse(false)), Message, default);
 
         response.Should().BeEquivalentTo(new TestResponse(false));
     }
 
     [Test]
-    public async Task Intercept_throwsMessageExecutionException()
-    {
-        await Interceptor.Awaiting(x => x.Intercept(Fail(new TestMessageExecutionException()), Message))
+    public async Task Intercept_throwsMessageExecutionException_request() =>
+        await Interceptor.Awaiting(x => x.Intercept(FailRequest(new TestMessageExecutionException()), Message, default))
             .Should().ThrowAsync<TestMessageExecutionException>();
-    }
 
     [TestCase(typeof(OperationCanceledException))]
     [TestCase(typeof(TaskCanceledException))]
     [TestCase(typeof(TimeoutException))]
     [TestCase(typeof(Exception))]
-    public async Task Intercept_throws(Type exceptionType)
+    public async Task Intercept_throws_request(Type exceptionType)
     {
         Options.ExposedExceptions.Add(exceptionType);
 
         try
         {
-            await Interceptor.Intercept(Fail((Exception)Activator.CreateInstance(exceptionType)!), Message);
+            await Interceptor.Intercept(FailRequest((Exception)Activator.CreateInstance(exceptionType)!), Message, default);
         }
-        catch (Exception ex)
+        catch (Exception ex) // ThrowAsync() doesn't support System.Type argument
         {
             ex.Should().BeOfType(exceptionType);
             return;
@@ -53,30 +51,72 @@ public class ErrorHandlingInterceptorTests
     [TestCase(typeof(TaskCanceledException))]
     [TestCase(typeof(TimeoutException))]
     [TestCase(typeof(Exception))]
-    public async Task Intercept_throwsMessageFailedException_thrown(Type exceptionType)
-    {
-        await Interceptor.Awaiting(x => x.Intercept(Fail((Exception)Activator.CreateInstance(exceptionType)!), Message))
+    public async Task Intercept_throwsMessageFailedException_requestAndThrown(Type exceptionType) =>
+        await Interceptor.Awaiting(x => x.Intercept(FailRequest((Exception)Activator.CreateInstance(exceptionType)!), Message, default))
             .Should().ThrowAsync<MessageFailedException>();
+
+    [Test]
+    public async Task Intercept_returnsResponse_publish() =>
+        await Interceptor.Awaiting(x => x.Intercept(SuccessPublish(), Message, default))
+            .Should().NotThrowAsync();
+
+    [Test]
+    public async Task Intercept_throwsMessageExecutionException_publish() =>
+        await Interceptor.Awaiting(x => x.Intercept(FailPublish(new TestMessageExecutionException()), Message, default))
+            .Should().ThrowAsync<TestMessageExecutionException>();
+
+    [TestCase(typeof(OperationCanceledException))]
+    [TestCase(typeof(TaskCanceledException))]
+    [TestCase(typeof(TimeoutException))]
+    [TestCase(typeof(Exception))]
+    public async Task Intercept_throws_publish(Type exceptionType)
+    {
+        Options.ExposedExceptions.Add(exceptionType);
+
+        try
+        {
+            await Interceptor.Intercept(FailPublish((Exception)Activator.CreateInstance(exceptionType)!), Message, default);
+        }
+        catch (Exception ex) // ThrowAsync() doesn't support System.Type argument
+        {
+            ex.Should().BeOfType(exceptionType);
+            return;
+        }
+        Assert.Fail("Expected an exception to be thrown.");
     }
 
-    [SetUp]
-    public void Setup()
+    [TestCase(typeof(OperationCanceledException))]
+    [TestCase(typeof(TaskCanceledException))]
+    [TestCase(typeof(TimeoutException))]
+    [TestCase(typeof(Exception))]
+    public async Task Intercept_throwsMessageFailedException_publishAndThrown(Type exceptionType) =>
+        await Interceptor.Awaiting(x => x.Intercept(FailPublish((Exception)Activator.CreateInstance(exceptionType)!), Message, default))
+            .Should().ThrowAsync<MessageFailedException>();
+
+    [OneTimeSetUp]
+    public void OneTimeSetup()
     {
         Options = new MessagingClientOptions();
         var services = new ServiceCollection()
             .AddTypeEncoder()
-            .AddSingleton<INamedOptions<MessagingClientOptions>>(new TestNamedOptions {Value = Options})
-            .AddSingleton<ErrorHandlingInterceptor>();
+            .AddTransient<INamedOptions<MessagingClientOptions>>(_=> new TestNamedOptions(() => Options))
+            .AddTransient<ErrorHandlingInterceptor>();
         Provider = services.BuildServiceProvider();
     }
 
-    [TearDown]
-    public void TearDown() => Provider.Dispose();
+    [SetUp]
+    public void Setup() => Options = new MessagingClientOptions();
+
+    [OneTimeTearDown]
+    public void OneTimeTearDown() => Provider.Dispose();
 
     private ServiceProvider Provider { get; set; } = default!;
     private MessagingClientOptions Options { get; set; } = default!;
-    private IAbstractInterceptor Interceptor => Provider.GetRequiredService<ErrorHandlingInterceptor>();
+    private ErrorHandlingInterceptor Interceptor => Provider.GetRequiredService<ErrorHandlingInterceptor>();
     private static TestMessage Message => new(0);
 
-    private static MessageInterceptor Fail(Exception ex) => (_, _) => throw ex;
+    private static RequestMessageHandler SuccessRequest(object response) => (_, _) => ValueTask.FromResult(response);
+    private static PublishMessageHandler SuccessPublish() => (_, _) => ValueTask.CompletedTask;
+    private static RequestMessageHandler FailRequest(Exception ex) => (_, _) => throw ex;
+    private static PublishMessageHandler FailPublish(Exception ex) => (_, _) => throw ex;
 }

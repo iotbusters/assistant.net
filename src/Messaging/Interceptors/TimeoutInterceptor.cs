@@ -16,7 +16,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 /// <remarks>
 ///     The interceptor depends on <see cref="MessagingClientOptions.Timeout"/>
 /// </remarks>
-public sealed class TimeoutInterceptor : IAbstractInterceptor
+public sealed class TimeoutInterceptor : SharedAbstractInterceptor
 {
     private readonly ILogger<TimeoutInterceptor> logger;
     private readonly ITypeEncoder typeEncode;
@@ -35,7 +35,7 @@ public sealed class TimeoutInterceptor : IAbstractInterceptor
 
     /// <inheritdoc/>
     /// <exception cref="TimeoutException"/>
-    public async Task<object> Intercept(MessageInterceptor next, IAbstractMessage message, CancellationToken token)
+    protected override async ValueTask<object> InterceptInternal(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncode.Encode(message.GetType());
@@ -70,25 +70,4 @@ public sealed class TimeoutInterceptor : IAbstractInterceptor
             messageName, messageId, watch.Elapsed);
         return response;
     }
-}
-
-/// <inheritdoc cref="TimeoutInterceptor"/>
-public sealed class TimeoutInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
-    where TMessage : IMessage<TResponse>
-{
-    private readonly TimeoutInterceptor interceptor;
-
-    /// <summary/>
-    public TimeoutInterceptor(
-        ILogger<TimeoutInterceptor> logger,
-        ITypeEncoder typeEncode,
-        INamedOptions<MessagingClientOptions> options)
-    {
-        this.interceptor = new TimeoutInterceptor(logger, typeEncode, options);
-    }
-
-    /// <inheritdoc/>
-    /// <exception cref="TimeoutException"/>
-    public async Task<TResponse> Intercept(MessageInterceptor<TMessage, TResponse> next, TMessage message, CancellationToken token) =>
-        (TResponse)await interceptor.Intercept(async (m, t) => (await next((TMessage)m, t))!, message, token);
 }

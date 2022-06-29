@@ -12,7 +12,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 /// <summary>
 ///     Operation tracking interceptor.
 /// </summary>
-public sealed class DiagnosticsInterceptor : IAbstractInterceptor
+public sealed class DiagnosticsInterceptor : SharedAbstractInterceptor
 {
     private readonly ILogger logger;
     private readonly ITypeEncoder typeEncode;
@@ -30,7 +30,7 @@ public sealed class DiagnosticsInterceptor : IAbstractInterceptor
     }
 
     /// <inheritdoc/>
-    public async Task<object> Intercept(MessageInterceptor next, IAbstractMessage message, CancellationToken token)
+    protected override async ValueTask<object> InterceptInternal(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncode.Encode(message.GetType());
@@ -61,24 +61,4 @@ public sealed class DiagnosticsInterceptor : IAbstractInterceptor
         operation.Complete();
         return response;
     }
-}
-
-/// <inheritdoc cref="DiagnosticsInterceptor"/>
-public sealed class DiagnosticsInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
-    where TMessage : IMessage<TResponse>
-{
-    private readonly DiagnosticsInterceptor interceptor;
-
-    /// <summary/>
-    public DiagnosticsInterceptor(
-        ILogger<DiagnosticsInterceptor> logger,
-        ITypeEncoder typeEncode,
-        IDiagnosticFactory diagnosticFactory)
-    {
-        this.interceptor = new DiagnosticsInterceptor(logger, typeEncode, diagnosticFactory);
-    }
-
-    /// <inheritdoc/>
-    public async Task<TResponse> Intercept(MessageInterceptor<TMessage, TResponse> next, TMessage message, CancellationToken token) =>
-        (TResponse)await interceptor.Intercept(async (m, t) => (await next((TMessage)m, t))!, message, token);
 }

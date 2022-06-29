@@ -24,7 +24,7 @@ internal class WebMessageHandlerProxy : IAbstractHandler
         this.client = client;
     }
 
-    public async Task<object> Request(IAbstractMessage message, CancellationToken token)
+    public async ValueTask<object> Request(IAbstractMessage message, CancellationToken token)
     {
         var messageName = message.GetType().Name;
         var messageId = message.GetSha1();
@@ -54,7 +54,7 @@ internal class WebMessageHandlerProxy : IAbstractHandler
         }
     }
 
-    public async Task Publish(IAbstractMessage message, CancellationToken token)
+    public async ValueTask Publish(IAbstractMessage message, CancellationToken token)
     {
         var messageName = message.GetType().Name;
         var messageId = message.GetSha1();

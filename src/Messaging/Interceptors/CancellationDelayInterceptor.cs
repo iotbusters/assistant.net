@@ -16,7 +16,7 @@ namespace Assistant.Net.Messaging.Interceptors;
 /// <remarks>
 ///     The interceptor depends on <see cref="MessagingClientOptions.CancellationDelay"/>
 /// </remarks>
-public class CancellationDelayInterceptor : IAbstractInterceptor
+public class CancellationDelayInterceptor : SharedAbstractInterceptor
 {
     private readonly ILogger<CancellationDelayInterceptor> logger;
     private readonly ITypeEncoder typeEncode;
@@ -34,7 +34,7 @@ public class CancellationDelayInterceptor : IAbstractInterceptor
     }
 
     /// <inheritdoc/>
-    public async Task<object> Intercept(MessageInterceptor next, IAbstractMessage message, CancellationToken token)
+    protected override async ValueTask<object> InterceptInternal(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncode.Encode(message.GetType());
@@ -66,27 +66,7 @@ public class CancellationDelayInterceptor : IAbstractInterceptor
         else
             logger.LogInformation("Message({MessageName}/{MessageId}) cancellation delay: no cancellation requested.",
                 messageName, messageId);
+
         return response;
     }
-}
-
-/// <inheritdoc cref="CancellationDelayInterceptor"/>
-public sealed class CancellationDelayInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
-    where TMessage : IMessage<TResponse>
-{
-    private readonly CancellationDelayInterceptor interceptor;
-
-    /// <summary/>
-    public CancellationDelayInterceptor(
-        ILogger<CancellationDelayInterceptor> logger,
-        ITypeEncoder typeEncode,
-        INamedOptions<MessagingClientOptions> options)
-    {
-        this.interceptor = new CancellationDelayInterceptor(logger, typeEncode, options);
-    }
-
-    /// <inheritdoc/>
-    /// <exception cref="TimeoutException"/>
-    public async Task<TResponse> Intercept(MessageInterceptor<TMessage, TResponse> next, TMessage message, CancellationToken token) =>
-        (TResponse)await interceptor.Intercept(async (m, t) => (await next((TMessage)m, t))!, message, token);
 }
