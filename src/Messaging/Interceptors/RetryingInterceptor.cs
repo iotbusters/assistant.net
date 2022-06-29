@@ -82,7 +82,7 @@ public sealed class RetryingInterceptor : SharedAbstractInterceptor
                     messageName, messageId, attempt);
 
                 operation.Fail();
-                await Task.WhenAll(Task.Delay(options.Retry.DelayTime(attempt), token));
+                await Task.WhenAny(Task.Delay(options.Retry.DelayTime(attempt), token));
                 attempt++;
                 continue;
             }
