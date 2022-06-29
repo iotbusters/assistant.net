@@ -59,8 +59,8 @@ jobs:
       mongo-server: ${{ steps.change-detected.outputs.mongo-server }}
       sqlite-client: ${{ steps.change-detected.outputs.sqlite-client }}
       sqlite-server: ${{ steps.change-detected.outputs.sqlite-server }}
-      sgeneric-client: ${{ steps.change-detected.outputs.generic-client }}
-      sgeneric-server: ${{ steps.change-detected.outputs.generic-server }}
+      generic-client: ${{ steps.change-detected.outputs.generic-client }}
+      generic-server: ${{ steps.change-detected.outputs.generic-server }}
       total: ${{ steps.change-detected.outputs.total }}
 
   build:
