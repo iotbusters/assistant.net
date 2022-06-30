@@ -112,8 +112,11 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         }
     }
 
-    public async Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token) =>
-        await FindRecord(CreateDbContext().StorageValues.AsNoTracking(), key, token).MapOption(ToValue);
+    public async Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token)
+    {
+        var option = await FindRecord(CreateDbContext().StorageValues.AsNoTracking(), key, token);
+        return option.MapOption(ToValue);
+    }
 
     public async Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken token) =>
         await DeleteValue(key, token);

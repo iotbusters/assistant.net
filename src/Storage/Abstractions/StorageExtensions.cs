@@ -12,11 +12,14 @@ public static class StorageExtensions
     /// <summary>
     ///     Tries to find a value by associated to the <paramref name="key"/> or return a default value.
     /// </summary>
-    public static Task<TValue?> GetOrDefault<TKey, TValue>(
+    public static async Task<TValue?> GetOrDefault<TKey, TValue>(
         this IStorage<TKey, TValue> storage,
         TKey key,
-        CancellationToken token = default) =>
-        storage.TryGet(key, token).GetValueOrDefault();
+        CancellationToken token = default)
+    {
+        var option = await storage.TryGet(key, token);
+        return option.GetValueOrDefault();
+    }
 
     /// <summary>
     ///    Tries to add a value associated to the <paramref name="key"/> if it doesn't exist.

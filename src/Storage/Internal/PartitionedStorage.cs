@@ -74,7 +74,8 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
-            return await backedStorage.TryGet(keyRecord, index, token).MapOption(x => valueConverter.Convert(x.Content, token));
+            var option = await backedStorage.TryGet(keyRecord, index, token);
+            return await option.MapOptionAsync(x => valueConverter.Convert(x.Content, token));
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
@@ -95,7 +96,8 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
-            return await backedStorage.TryGet(keyRecord, index, token).MapOption(x => x.Audit);
+            var option = await backedStorage.TryGet(keyRecord, index, token);
+            return option.MapOption(x => x.Audit);
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
@@ -108,7 +110,8 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
-            return await backedStorage.TryRemove(keyRecord, token).MapOption(x => valueConverter.Convert(x.Content, token));
+            var option = await backedStorage.TryRemove(keyRecord, token);
+            return await option.MapOptionAsync(x => valueConverter.Convert(x.Content, token));
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {

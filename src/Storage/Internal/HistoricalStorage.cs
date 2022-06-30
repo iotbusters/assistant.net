@@ -35,7 +35,8 @@ internal class HistoricalStorage<TKey, TValue> : Storage<TKey, TValue>, IHistori
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
-            return await backedStorage.TryGet(keyRecord, version, token).MapOption(x => ValueConverter.Convert(x.Content, token));
+            var option = await backedStorage.TryGet(keyRecord, version, token);
+            return await option.MapOptionAsync(x => ValueConverter.Convert(x.Content, token));
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
