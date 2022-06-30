@@ -1,5 +1,6 @@
 using Assistant.Net.Unions;
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace Assistant.Net;
@@ -13,14 +14,8 @@ public static class OptionExtensions
     ///     Converts a value wrapped in <see cref="Option{T}"/> from <typeparamref name="TSource"/> to <typeparamref name="TResult"/>
     ///     with <paramref name="selector"/> function.
     /// </summary>
-    public static async Task<Option<TResult>> MapOption<TSource, TResult>(this Task<Option<TSource>> source, Func<TSource, TResult> selector) =>
-        (await source).MapOption(selector);
-
-    /// <summary>
-    ///     Converts a value wrapped in <see cref="Option{T}"/> from <typeparamref name="TSource"/> to <typeparamref name="TResult"/>
-    ///     with <paramref name="selector"/> function.
-    /// </summary>
-    public static async Task<Option<TResult>> MapOption<TSource, TResult>(this Task<Option<TSource>> source, Func<TSource, Task<TResult>> selector) => await source switch
+    [StackTraceHidden]
+    public static async Task<Option<TResult>> MapOptionAsync<TSource, TResult>(this Option<TSource> source, Func<TSource, Task<TResult>> selector) => source switch
     {
         Some<TSource>(var value)    => Option.Some(await selector(value)),
         _                           => Option.None
@@ -30,16 +25,7 @@ public static class OptionExtensions
     ///     Converts a value wrapped in <see cref="Option{T}"/> from <typeparamref name="TSource"/> to <typeparamref name="TResult"/>
     ///     with <paramref name="selector"/> function.
     /// </summary>
-    public static async Task<Option<TResult>> MapOption<TSource, TResult>(this Option<TSource> source, Func<TSource, Task<TResult>> selector) => source switch
-    {
-        Some<TSource>(var value)    => Option.Some(await selector(value)),
-        _                           => Option.None
-    };
-
-    /// <summary>
-    ///     Converts a value wrapped in <see cref="Option{T}"/> from <typeparamref name="TSource"/> to <typeparamref name="TResult"/>
-    ///     with <paramref name="selector"/> function.
-    /// </summary>
+    [StackTraceHidden]
     public static Option<TResult> MapOption<TSource, TResult>(this Option<TSource> option, Func<TSource, TResult> selector) => option switch
     {
         Some<TSource>(var value)    => Option.Some(selector(value)),
@@ -57,12 +43,6 @@ public static class OptionExtensions
         null  => Option.None,
         var x => Option.Some(x)
     };
-
-    /// <summary>
-    ///     Gets a wrapped value from <see cref="Some{T}"/> or default if <see cref="None"/>.
-    /// </summary>
-    public static async Task<TSource?> GetValueOrDefault<TSource>(this Task<Option<TSource>> source) =>
-        (await source).GetValueOrDefault();
 
     /// <summary>
     ///     Gets a wrapped value from <see cref="Some{T}"/> or default if <see cref="None"/>.

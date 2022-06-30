@@ -117,7 +117,8 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
-            return await BackedStorage.TryGet(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
+            var option = await BackedStorage.TryGet(keyRecord, token);
+            return await option.MapOptionAsync(x => ValueConverter.Convert(x.Content, token));
         }
         catch (Exception ex) when (ex is not StorageException)
         {
@@ -130,7 +131,8 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
-            return await BackedStorage.TryGet(keyRecord, token).MapOption(x => x.Audit);
+            var option = await BackedStorage.TryGet(keyRecord, token);
+            return option.MapOption(x => x.Audit);
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
@@ -143,7 +145,8 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
-            return await BackedStorage.TryRemove(keyRecord, token).MapOption(x => ValueConverter.Convert(x.Content, token));
+            var option = await BackedStorage.TryRemove(keyRecord, token);
+            return await option.MapOptionAsync(x => ValueConverter.Convert(x.Content, token));
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
