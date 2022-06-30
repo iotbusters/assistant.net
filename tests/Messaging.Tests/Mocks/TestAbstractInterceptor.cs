@@ -6,7 +6,7 @@ namespace Assistant.Net.Messaging.Tests.Mocks;
 
 public class TestAbstractInterceptor : SharedAbstractInterceptor
 {
-    protected override ValueTask<object> InterceptInternal(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
+    protected override ValueTask<object> Intercept(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
     {
         CallCount++;
         return next(message, token);

@@ -44,7 +44,7 @@ public sealed class DeferredCachingInterceptor : SharedAbstractInterceptor
     }
 
     /// <inheritdoc/>
-    protected override async ValueTask<object> InterceptInternal(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
+    protected override async ValueTask<object> Intercept(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
     {
         var messageId = message.GetSha1();
         var messageName = typeEncoder.Encode(message.GetType());
