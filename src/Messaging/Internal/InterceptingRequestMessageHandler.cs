@@ -1,10 +1,12 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Internal;
 
+[StackTraceHidden]
 internal struct InterceptingRequestMessageHandler
 {
     private readonly IAbstractHandler handler;
