@@ -36,7 +36,7 @@ public sealed class DiagnosticsInterceptor : SharedAbstractInterceptor
         var messageName = typeEncode.Encode(message.GetType());
 
         var operation = diagnosticFactory.Start($"{messageName}-handling-local");
-        logger.LogInformation("Message({MessageName}/{MessageId}) operation: begins.", messageId, messageName);
+        logger.LogInformation("Message({MessageName}, {MessageId}) operation: begins.", messageId, messageName);
 
         object response;
         try
@@ -45,19 +45,19 @@ public sealed class DiagnosticsInterceptor : SharedAbstractInterceptor
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            logger.LogWarning("Message({MessageName}/{MessageId}) operation: cancelled.",
+            logger.LogWarning("Message({MessageName}, {MessageId}) operation: cancelled.",
                 messageName, messageId);
             operation.Fail();
             throw;
         }
         catch (Exception ex)
         {
-            logger.LogInformation(ex, "Message({MessageName}/{MessageId}) operation: failed.", messageId, messageName);
+            logger.LogInformation(ex, "Message({MessageName}, {MessageId}) operation: failed.", messageId, messageName);
             operation.Fail();
             throw;
         }
 
-        logger.LogInformation("Message({MessageName}/{MessageId}) operation: succeeded.", messageId, messageName);
+        logger.LogInformation("Message({MessageName}, {MessageId}) operation: succeeded.", messageId, messageName);
         operation.Complete();
         return response;
     }

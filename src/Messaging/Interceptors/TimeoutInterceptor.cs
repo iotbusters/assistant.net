@@ -40,7 +40,7 @@ public sealed class TimeoutInterceptor : SharedAbstractInterceptor
         var messageId = message.GetSha1();
         var messageName = typeEncode.Encode(message.GetType());
 
-        logger.LogInformation("Message({MessageName}/{MessageId}) timeout counter: begins.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}, {MessageId}) timeout counter: begins.", messageName, messageId);
 
         using var timeoutSource = new CancellationTokenSource(options.Timeout);
         using var compositeSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutSource.Token, token);
@@ -54,19 +54,19 @@ public sealed class TimeoutInterceptor : SharedAbstractInterceptor
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            logger.LogWarning("Message({MessageName}/{MessageId}) timeout counter: cancelled in {RunTime}.",
+            logger.LogWarning("Message({MessageName}, {MessageId}) timeout counter: cancelled in {RunTime}.",
                 messageName, messageId, watch.Elapsed);
             throw;
         }
         catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
         {
             var runtime = watch.Elapsed;
-            logger.LogError("Message({MessageName}/{MessageId}) timeout counter: {RunTime} exceeded the {Timeout} limit.",
+            logger.LogError("Message({MessageName}, {MessageId}) timeout counter: {RunTime} exceeded the {Timeout} limit.",
                 messageName, messageId, runtime, options.Timeout);
             throw new TimeoutException($"Operation run for {runtime} and exceeded the {options.Timeout} limit.");
         }
 
-        logger.LogInformation("Message({MessageName}/{MessageId}) timeout counter: ends in {RunTime}.",
+        logger.LogInformation("Message({MessageName}, {MessageId}) timeout counter: ends in {RunTime}.",
             messageName, messageId, watch.Elapsed);
         return response;
     }

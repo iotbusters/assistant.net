@@ -66,10 +66,10 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             var messageType = message.GetType();
             var messageName = typeEncoder.Encode(messageType);
             if (!serverOptions.MessageTypes.Contains(messageType))
-                logger.LogInformation("#{Index:D5}: Message({MessageName}/{MessageId}) is unknown.", index, messageName, messageId);
+                logger.LogInformation("#{Index:D5}: Message({MessageName}, {MessageId}) is unknown.", index, messageName, messageId);
             else
             {
-                logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) found.", index, messageName, messageId);
+                logger.LogDebug("#{Index:D5}: Message({MessageName}, {MessageId}) found.", index, messageName, messageId);
                 await messageHandler.Handle(message, audit, token);
             }
 
@@ -79,11 +79,11 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             }
             catch (OperationCanceledException ex) when (token.IsCancellationRequested)
             {
-                logger.LogInformation(ex, "#{Index:D5}: Message({MessageName}/{MessageId}) index: cancelled.", index, messageName, messageId);
+                logger.LogInformation(ex, "#{Index:D5}: Message({MessageName}, {MessageId}) index: cancelled.", index, messageName, messageId);
                 break;
             }
 
-            logger.LogDebug("#{Index:D5}: Message({MessageName}/{MessageId}) index: updated.", index, messageName, messageId);
+            logger.LogDebug("#{Index:D5}: Message({MessageName}, {MessageId}) index: updated.", index, messageName, messageId);
             await Task.WhenAny(Task.Delay(serverOptions.NextMessageDelayTime, token));
             index++;
         }

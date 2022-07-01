@@ -48,7 +48,7 @@ public sealed class DeferredCachingInterceptor : SharedAbstractInterceptor
     {
         var messageId = message.GetSha1();
         var messageName = typeEncoder.Encode(message.GetType());
-        logger.LogInformation("Message({MessageName}/{MessageId}) deferred caching: begins.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}, {MessageId}) deferred caching: begins.", messageName, messageId);
 
         return await deferredCache.GetOrAdd(message.GetSha1(), _ => StartIntercepting(next, message, token)).GetTask();
     }
@@ -67,16 +67,16 @@ public sealed class DeferredCachingInterceptor : SharedAbstractInterceptor
             if (ex is MessageDeferredException || options.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
             {
                 deferredCache.TryRemove(message.GetSha1(), out _);
-                logger.LogError(ex, "Message({MessageName}/{MessageId}) deferred caching: rethrows transient failure.",
+                logger.LogError(ex, "Message({MessageName}, {MessageId}) deferred caching: rethrows transient failure.",
                     messageName, messageId);
             }
             else
-                logger.LogWarning(ex, "Message({MessageName}/{MessageId}) deferred caching: rethrows permanent failure.",
+                logger.LogWarning(ex, "Message({MessageName}, {MessageId}) deferred caching: rethrows permanent failure.",
                     messageName, messageId);
             throw;
         }
 
-        logger.LogInformation("Message({MessageName}/{MessageId}) deferred caching: ends.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}, {MessageId}) deferred caching: ends.", messageName, messageId);
         return response;
     }
 }

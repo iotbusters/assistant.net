@@ -50,13 +50,13 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         await Publish(message, token);
         await Task.Delay(strategy.DelayTime(attempt), token);
 
-        logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} begins.", messageName, messageId, attempt);
+        logger.LogInformation("Message({MessageName}, {MessageId}) polling: {Attempt} begins.", messageName, messageId, attempt);
 
         while (true)
         {
             if (await responseStorage.TryGet(message, token) is Some<CachingResult>(var response))
             {
-                logger.LogInformation("Message({MessageName}/{MessageId}) polling: {Attempt} ends with response.",
+                logger.LogInformation("Message({MessageName}, {MessageId}) polling: {Attempt} ends with response.",
                     messageName, messageId, attempt);
                 return response.GetValue();
             }
@@ -64,12 +64,12 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Message({MessageName}/{MessageId}) polling: {Attempt} reached the limit.",
+                logger.LogError("Message({MessageName}, {MessageId}) polling: {Attempt} reached the limit.",
                     messageName, messageId, attempt);
                 throw new MessageDeferredException("No response from server in defined amount of time.");
             }
 
-            logger.LogWarning("Message({MessageName}/{MessageId}) polling: {Attempt} ends without response.",
+            logger.LogWarning("Message({MessageName}, {MessageId}) polling: {Attempt} ends without response.",
                 messageName, messageId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
@@ -81,10 +81,10 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         var messageName = typeEncoder.Encode(message.GetType());
         var messageId = message.GetSha1();
 
-        logger.LogInformation("Message({MessageName}/{MessageId}) publishing: begins.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}, {MessageId}) publishing: begins.", messageName, messageId);
 
         await requestStorage.Add(clientOptions.InstanceId, message, token);
         
-        logger.LogInformation("Message({MessageName}/{MessageId}) publishing: ends.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}, {MessageId}) publishing: ends.", messageName, messageId);
     }
 }

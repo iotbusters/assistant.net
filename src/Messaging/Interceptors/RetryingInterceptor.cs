@@ -49,7 +49,7 @@ public sealed class RetryingInterceptor : SharedAbstractInterceptor
         while (true)
         {
             var operation = diagnosticFactory.Start($"{messageName}-handling-attempt-{attempt}");
-            logger.LogInformation("Message({MessageName}/{MessageId}) retrying: {Attempt} begins.", messageName, messageId, attempt);
+            logger.LogInformation("Message({MessageName}, {MessageId}) retrying: {Attempt} begins.", messageName, messageId, attempt);
 
             object response;
             try
@@ -58,27 +58,27 @@ public sealed class RetryingInterceptor : SharedAbstractInterceptor
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
-                logger.LogWarning("Message({MessageName}/{MessageId}) retrying: {Attempt} cancelled.",
+                logger.LogWarning("Message({MessageName}, {MessageId}) retrying: {Attempt} cancelled.",
                     messageName, messageId, attempt);
                 throw;
             }
             catch (Exception ex) when (!options.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
             {
-                logger.LogError(ex, "Message({MessageName}/{MessageId}) retrying: {Attempt} rethrows permanent error.",
+                logger.LogError(ex, "Message({MessageName}, {MessageId}) retrying: {Attempt} rethrows permanent error.",
                     messageName, messageId, attempt);
                 operation.Fail();
                 throw;
             }
             catch (Exception ex) when (!options.Retry.CanRetry(attempt + 1))
             {
-                logger.LogError(ex, "Message({MessageName}/{MessageId}) retrying: {Attempt} reached the limit.",
+                logger.LogError(ex, "Message({MessageName}, {MessageId}) retrying: {Attempt} reached the limit.",
                     messageName, messageId, attempt);
                 operation.Fail();
                 throw new MessageRetryLimitExceededException();
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Message({MessageName}/{MessageId}) retrying: {Attempt} failed on transient error.",
+                logger.LogWarning(ex, "Message({MessageName}, {MessageId}) retrying: {Attempt} failed on transient error.",
                     messageName, messageId, attempt);
 
                 operation.Fail();
@@ -87,7 +87,7 @@ public sealed class RetryingInterceptor : SharedAbstractInterceptor
                 continue;
             }
 
-            logger.LogInformation("Message({MessageName}/{MessageId}) retrying: {Attempt} succeeded.", messageName, messageId, attempt);
+            logger.LogInformation("Message({MessageName}, {MessageId}) retrying: {Attempt} succeeded.", messageName, messageId, attempt);
             operation.Complete();
             return response;
         }
