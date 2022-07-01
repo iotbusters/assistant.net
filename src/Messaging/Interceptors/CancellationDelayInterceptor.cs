@@ -39,7 +39,7 @@ public class CancellationDelayInterceptor : SharedAbstractInterceptor
         var messageId = message.GetSha1();
         var messageName = typeEncode.Encode(message.GetType());
 
-        logger.LogInformation("Message({MessageName}/{MessageId}) timeout counter: begins.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}, {MessageId}) timeout counter: begins.", messageName, messageId);
 
         using var gracefulShutdownSource = new CancellationTokenSource();
         await using var registration = token.Register(() => gracefulShutdownSource.CancelAfter(options.CancellationDelay));
@@ -54,17 +54,17 @@ public class CancellationDelayInterceptor : SharedAbstractInterceptor
         {
             var delayedTime = timer.Elapsed;
             var delayTime = options.CancellationDelay;
-            logger.LogError(ex, "Message({MessageName}/{MessageId}) cancellation delay: cancelled hardly after {DelayedTime} "
+            logger.LogError(ex, "Message({MessageName}, {MessageId}) cancellation delay: cancelled hardly after {DelayedTime} "
                                 + "exceeded the {DelayTime} limit.",
                 messageName, messageId, delayedTime, delayTime);
             throw new OperationCanceledException($"Operation was cancelled hardly after {delayedTime}.", ex);
         }
 
         if (timer.Elapsed > TimeSpan.Zero)
-            logger.LogInformation("Message({MessageName}/{MessageId}) cancellation delay: ended gracefully in {DelayedTime}.",
+            logger.LogInformation("Message({MessageName}, {MessageId}) cancellation delay: ended gracefully in {DelayedTime}.",
                 messageName, messageId, timer.Elapsed);
         else
-            logger.LogInformation("Message({MessageName}/{MessageId}) cancellation delay: no cancellation requested.",
+            logger.LogInformation("Message({MessageName}, {MessageId}) cancellation delay: no cancellation requested.",
                 messageName, messageId);
 
         return response;

@@ -41,7 +41,7 @@ internal sealed class MessageHandler
         var interceptor = scope.ServiceProvider.Create<DefaultCachingInterceptor>();
         var client = scope.ServiceProvider.GetRequiredService<IMessagingClient>();
 
-        logger.LogInformation("Message({MessageName}/{MessageId}) handling: begins.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}, {MessageId}) handling: begins.", messageName, messageId);
 
         try
         {
@@ -49,15 +49,15 @@ internal sealed class MessageHandler
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            logger.LogWarning("Message({MessageName}/{MessageId}) handling: cancelled.", messageName, messageId);
+            logger.LogWarning("Message({MessageName}, {MessageId}) handling: cancelled.", messageName, messageId);
             return;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Message({MessageName}/{MessageId}) handling: failed.", messageName, messageId);
+            logger.LogError(ex, "Message({MessageName}, {MessageId}) handling: failed.", messageName, messageId);
             return;
         }
 
-        logger.LogInformation("Message({MessageName}/{MessageId}) handling: succeeded.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}, {MessageId}) handling: succeeded.", messageName, messageId);
     }
 }
