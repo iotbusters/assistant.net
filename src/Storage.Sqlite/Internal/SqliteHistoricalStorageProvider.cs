@@ -209,8 +209,6 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
             ValueType = x.ValueType
         });
 
-    public void Dispose() { }
-
     private StorageDbContext CreateDbContext() => dbContextFactory.CreateDbContext();
 
     private async Task<bool> InsertValue(KeyRecord key, ValueRecord newValue, CancellationToken token)

@@ -118,7 +118,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
     public async Task<Option<TValue>> TryGet(TKey key, long index, CancellationToken token)
     {
         if (index <= 0)
-            throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {index}.", nameof(index));
+            throw new ArgumentOutOfRangeException(nameof(index), $"Value must be bigger than 0 but it was {index}.");
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
