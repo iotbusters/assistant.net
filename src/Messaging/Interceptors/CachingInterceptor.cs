@@ -26,11 +26,8 @@ public sealed class CachingInterceptor : DefaultCachingInterceptor
         INamedOptions<MessagingClientOptions> options) : base((ILogger)logger, typeEncoder, cache, options) { }
 
     /// <inheritdoc/>
-    protected override async ValueTask<object> Intercept(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
-    {
-        if(message is INonCaching)
-            return await next(message, token);
-
-        return await base.Intercept(next, message, token);
-    }
+    protected override async ValueTask<object> Intercept(SharedMessageHandler next, IAbstractMessage message, CancellationToken token) =>
+        message is INonCaching
+            ? await next(message, token)
+            : await base.Intercept(next, message, token);
 }

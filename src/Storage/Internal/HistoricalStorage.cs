@@ -198,7 +198,7 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
     public async Task<Option<TValue>> TryGet(TKey key, long version, CancellationToken token)
     {
         if (version <= 0)
-            throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {version}.", nameof(version));
+            throw new ArgumentOutOfRangeException(nameof(version), $"Value must be bigger than 0 but it was {version}.");
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
