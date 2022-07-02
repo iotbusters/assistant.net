@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net;
@@ -62,13 +64,14 @@ public static class AsyncEnumerableExtensions
     /// </summary>
     /// <param name="source"/>
     /// <param name="size">Batch size.</param>
+    /// <param name="token"/>
     /// <exception cref="IndexOutOfRangeException"/>
-    public static async IAsyncEnumerable<IEnumerable<TSource>> Batch<TSource>(this IAsyncEnumerable<TSource> source, int size)
+    public static async IAsyncEnumerable<IEnumerable<TSource>> Batch<TSource>(this IAsyncEnumerable<TSource> source, int size, [EnumeratorCancellation]CancellationToken token = default)
     {
         if (size < 1)
             throw new IndexOutOfRangeException("Invalid batch size.");
 
-        await using var enumerator = source.GetAsyncEnumerator();
+        await using var enumerator = source.GetAsyncEnumerator(token);
         while (await enumerator.MoveNextAsync())
         {
             var list = new List<TSource>(size) {enumerator.Current};
@@ -81,16 +84,16 @@ public static class AsyncEnumerableExtensions
     /// <summary>
     ///     Returns the input typed as <see cref="IEnumerable{T}"/> asynchronously.
     /// </summary>
-    public static async ValueTask<IEnumerable<TSource>> AsEnumerableAsync<TSource>(this IAsyncEnumerable<TSource> source) => await source
-        .ToImmutableArrayAsync();
+    public static async ValueTask<IEnumerable<TSource>> AsEnumerableAsync<TSource>(this IAsyncEnumerable<TSource> source, CancellationToken token = default) => await source
+        .ToImmutableArrayAsync(token);
 
     /// <summary>
     ///     Returns the input typed as <see cref="ImmutableArray{T}"/> asynchronously.
     /// </summary>
-    public static async ValueTask<ImmutableArray<TSource>> ToImmutableArrayAsync<TSource>(this IAsyncEnumerable<TSource> source)
+    public static async ValueTask<ImmutableArray<TSource>> ToImmutableArrayAsync<TSource>(this IAsyncEnumerable<TSource> source, CancellationToken token = default)
     {
         var list = new List<TSource>();
-        await using var enumerator = source.GetAsyncEnumerator();
+        await using var enumerator = source.GetAsyncEnumerator(token);
 
         while (await enumerator.MoveNextAsync())
             list.Add(enumerator.Current);
@@ -101,10 +104,10 @@ public static class AsyncEnumerableExtensions
     /// <summary>
     ///     Returns the input typed as <see cref="ImmutableList{T}"/> asynchronously.
     /// </summary>
-    public static async ValueTask<ImmutableList<TSource>> ToImmutableListAsync<TSource>(this IAsyncEnumerable<TSource> source)
+    public static async ValueTask<ImmutableList<TSource>> ToImmutableListAsync<TSource>(this IAsyncEnumerable<TSource> source, CancellationToken token = default)
     {
         var list = new List<TSource>();
-        await using var enumerator = source.GetAsyncEnumerator();
+        await using var enumerator = source.GetAsyncEnumerator(token);
 
         while (await enumerator.MoveNextAsync())
             list.Add(enumerator.Current);
@@ -115,10 +118,10 @@ public static class AsyncEnumerableExtensions
     /// <summary>
     ///     Returns the input typed as an array asynchronously.
     /// </summary>
-    public static async ValueTask<TSource[]> ToArrayAsync<TSource>(this IAsyncEnumerable<TSource> source)
+    public static async ValueTask<TSource[]> ToArrayAsync<TSource>(this IAsyncEnumerable<TSource> source, CancellationToken token = default)
     {
         var list = new List<TSource>();
-        await using var enumerator = source.GetAsyncEnumerator();
+        await using var enumerator = source.GetAsyncEnumerator(token);
 
         while (await enumerator.MoveNextAsync())
             list.Add(enumerator.Current);
@@ -129,10 +132,10 @@ public static class AsyncEnumerableExtensions
     /// <summary>
     ///     Returns the input typed as <see cref="List{T}"/> asynchronously.
     /// </summary>
-    public static async ValueTask<List<TSource>> ToListAsync<TSource>(this IAsyncEnumerable<TSource> source)
+    public static async ValueTask<List<TSource>> ToListAsync<TSource>(this IAsyncEnumerable<TSource> source, CancellationToken token = default)
     {
         var list = new List<TSource>();
-        await using var enumerator = source.GetAsyncEnumerator();
+        await using var enumerator = source.GetAsyncEnumerator(token);
 
         while (await enumerator.MoveNextAsync())
             list.Add(enumerator.Current);

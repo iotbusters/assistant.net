@@ -148,7 +148,7 @@ internal sealed class TypeEncoder : ITypeEncoder, IDisposable
     private static string GetName(Type type) => type.IsNested
         ? type.FullName!.Substring(type.Namespace!.Length)
         : type.Name;
-    
+
     private void OnAssemblyLoad(object? sender, AssemblyLoadEventArgs args) =>
         AddTypes(optionsMonitor.CurrentValue, args.LoadedAssembly);
 }
