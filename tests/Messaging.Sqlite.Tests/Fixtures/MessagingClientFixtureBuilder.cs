@@ -26,7 +26,7 @@ public class MessagingClientFixtureBuilder
                 .ClearTransientExceptions())
             .ConfigureGenericHandlerProxyOptions(o => o.ResponsePoll = new ConstantBackoff
             {
-                Interval = TimeSpan.FromSeconds(0.02), MaxAttemptNumber = 10
+                Interval = TimeSpan.FromSeconds(0.05), MaxAttemptNumber = 15
             })
             .BindOptions(clientSource);
         RemoteHostBuilder = Host.CreateDefaultBuilder()

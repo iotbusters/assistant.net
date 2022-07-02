@@ -1,4 +1,5 @@
-﻿using Assistant.Net.Utils;
+﻿using Assistant.Net.Core.Tests.Mocks;
+using Assistant.Net.Utils;
 using FluentAssertions;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -22,6 +23,8 @@ public class HashExtensionsTests
         yield return new TestCaseData((byte)1, "v4tFMNjSRt10rFOhNHG7oXlB3/c=");
         yield return new TestCaseData(Encoding.UTF8.GetBytes("123"), "QL0AFWMIX8NRZTKeof9cXsvbvu8=");
         yield return new TestCaseData(new[] {1, 2, 3}, "5CnMo/cDo5zFlUplcv7JCGE1s04=");
-        yield return new TestCaseData(new {String = "value", Int = "int", Object = new {Array = new[] {1.2, 2.3}}}, "z3Y4vBdo68DeeDEbZRTytCTkljU=");
+        yield return new TestCaseData(
+            new TestClass {Value1 = "value", Value2 = 123, Value4 = new[] {1.2, 2.3}, Value5 = new TestClass()},
+            "JRx7ZWWZPxZGpoumRf5zW+FDKso=");
     }
 }
