@@ -22,9 +22,9 @@ public static class MessagingClientOptionsExtensions
         builder.Services
             .AddStorage(builder.Name, b => b
                 .UseLocalSingleProvider()
-                .AddSingle<IAbstractMessage, CachingResult>()
-                .AddSinglePartitioned<int, IAbstractMessage>()
-                .AddSingle<int, long>())
+                .AddSingle<IAbstractMessage, CachingResult>() // CachingInterceptor's requirement
+                .AddSingle<string, CachingResult>() // GenericMessagingHandlerProxy's requirement
+                .AddSinglePartitioned<int, IAbstractMessage>()) // GenericMessagingHandlerProxy's requirement
             .ConfigureMessagingClientOptions(builder.Name, o => o.UseGenericSingleProvider());
         return builder;
     }

@@ -1,3 +1,5 @@
+using System;
+
 namespace Assistant.Net.Messaging.Exceptions;
 
 /// <summary>
@@ -10,4 +12,7 @@ public sealed class MessageDeferredException : MessageException
 
     /// <summary/>
     public MessageDeferredException(string message) : base(message) { }
+
+    /// <summary/>
+    public MessageDeferredException(string message, Exception exception) : base(message, exception) { }
 }

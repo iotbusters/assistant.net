@@ -108,9 +108,9 @@ public static class MessagingClientBuilderExtensions
     /// <param name="name">The name of the options instance.</param>
     private static void AddMongoProvider(this IServiceCollection services, string name) => services
         .AddStorage(name, b => b
-            .AddMongo<IAbstractMessage, CachingResult>()
-            .AddMongoPartitioned<int, IAbstractMessage>()
-            .AddMongo<int, long>());
+            .AddMongo<IAbstractMessage, CachingResult>() // CachingInterceptor's requirement
+            .AddMongo<string, CachingResult>() // GenericMessagingHandlerProxy's requirement
+            .AddMongoPartitioned<int, IAbstractMessage>()); // GenericMessagingHandlerProxy's requirement
 
     /// <summary>
     ///     Configures MongoDB regular provider for storage based messaging handling dependencies.
@@ -124,8 +124,8 @@ public static class MessagingClientBuilderExtensions
     private static void AddMongoSingleProvider(this IServiceCollection services, string name) => services
         .AddStorage(name, b => b
             .UseMongoSingleProvider()
-            .AddSingle<IAbstractMessage, CachingResult>()
-            .AddSinglePartitioned<int, IAbstractMessage>()
-            .AddSingle<int, long>())
+            .AddSingle<IAbstractMessage, CachingResult>() // CachingInterceptor's requirement
+            .AddSingle<string, CachingResult>() // GenericMessagingHandlerProxy's requirement
+            .AddSinglePartitioned<int, IAbstractMessage>()) // GenericMessagingHandlerProxy's requirement
         .ConfigureMessagingClientOptions(name, o => o.UseGenericSingleProvider());
 }
