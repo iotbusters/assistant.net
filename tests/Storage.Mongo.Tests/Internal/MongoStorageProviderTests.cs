@@ -173,7 +173,7 @@ public class MongoStorageProviderTests
     [TearDown]
     public void TearDown() => Provider?.Dispose();
 
-    private Mock<IMongoCollection<T>> MockCollection<T>(Mock<IMongoDatabase> mongoDatabaseMock)
+    private static Mock<IMongoCollection<T>> MockCollection<T>(Mock<IMongoDatabase> mongoDatabaseMock)
     {
         var mock = new Mock<IMongoCollection<T>> {DefaultValue = DefaultValue.Mock};
 
