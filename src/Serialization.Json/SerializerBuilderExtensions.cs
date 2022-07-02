@@ -54,6 +54,23 @@ public static class SerializerBuilderExtensions
     }
 
     /// <summary>
+    ///     Removes serialization of <typeparamref name="TValue"/> type.
+    /// </summary>
+    /// <typeparam name="TValue">Serializing value type.</typeparam>
+    public static SerializerBuilder Remove<TValue>(this SerializerBuilder builder) => builder
+        .Remove(typeof(TValue));
+
+    /// <summary>
+    ///     Removes serialization of <paramref name="serializingType"/>.
+    /// </summary>
+    /// <exception cref="ArgumentException"/>
+    public static SerializerBuilder Remove(this SerializerBuilder builder, Type serializingType)
+    {
+        builder.Services.ConfigureSerializerOptions(builder.Name, o => o.Registrations.Remove(serializingType));
+        return builder;
+    }
+
+    /// <summary>
     ///     Adds type converter for JSON serialization.
     /// </summary>
     public static SerializerBuilder AddJsonConverter<TConverter>(this SerializerBuilder builder)
