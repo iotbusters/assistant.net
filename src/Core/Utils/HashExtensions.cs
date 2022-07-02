@@ -1,5 +1,10 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
@@ -41,10 +46,78 @@ public static class HashExtensions
         if (typeof(T).IsValueType)
             return SerializeStructure(value).GetSha1();
 
-        // todo: replace JsonSerializer with custom binary serialization.
-        var typePrefix = Encoding.UTF8.GetBytes(value.GetType().Name);
-        var bodySuffix = JsonSerializer.SerializeToUtf8Bytes(value, value.GetType());
-        return typePrefix.Concat(bodySuffix).ToArray().GetSha1();
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream);
+        writer.Write(value);
+
+        return stream.ToArray().GetSha1();
+    }
+
+    private static void Write<T>(this BinaryWriter writer, T? obj)
+    {
+        switch (obj)
+        {
+            case null:
+                return;
+            case bool x:
+                writer.Write(x);
+                return;
+            case byte x:
+                writer.Write(x);
+                return;
+            case short x:
+                writer.Write(x);
+                return;
+            case int x:
+                writer.Write(x);
+                return;
+            case long x:
+                writer.Write(x);
+                return;
+            case float x:
+                writer.Write(x);
+                return;
+            case double x:
+                writer.Write(x);
+                return;
+            case decimal x:
+                writer.Write(x);
+                return;
+            case byte[] x:
+                writer.Write(x);
+                return;
+            case char[] x:
+                writer.Write(x);
+                return;
+            case string x:
+                writer.Write(x);
+                return;
+        }
+
+        var type = obj.GetType();
+        if (type.IsValueType)
+        {
+            writer.Write(SerializeStructure(obj));
+            return;
+        }
+
+        if (obj is IEnumerable seq)
+        {
+            foreach (var element in seq)
+                writer.Write(element);
+            return;
+        }
+
+        writer.Write(Encoding.UTF8.GetBytes(type.FullName!));
+        var properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        if (properties.Any())
+        {
+            foreach (var property in properties)
+                writer.Write(property.GetValue(obj));
+            return;
+        }
+
+        writer.Write(JsonSerializer.SerializeToUtf8Bytes(obj));
     }
 
     private static byte[] SerializeStructure<T>(this T value)
