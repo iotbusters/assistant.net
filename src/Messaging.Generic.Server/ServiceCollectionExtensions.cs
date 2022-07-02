@@ -28,7 +28,6 @@ public static class ServiceCollectionExtensions
     /// </remarks>
     public static IServiceCollection AddGenericMessageHandling(this IServiceCollection services) => services
         .AddHostedService<GenericMessageHandlingService>()
-        .TryAddSingleton<MessageHandler>()
         .AddSystemServicesHosted()
         .AddMessagingClient(GenericOptionsNames.DefaultName, b => b.AddConfiguration<GenericServerInterceptorConfiguration>())
         .AddOptions<GenericHandlingServerOptions>()

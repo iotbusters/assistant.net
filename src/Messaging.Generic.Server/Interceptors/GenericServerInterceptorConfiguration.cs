@@ -17,12 +17,12 @@ public sealed class GenericServerInterceptorConfiguration : IMessageConfiguratio
     {
         builder
             .AddConfiguration<DefaultInterceptorConfiguration>()
-            .RemoveInterceptor<CachingInterceptor>() // MessageHandler's responsibility
+            .RemoveInterceptor<CachingInterceptor>() // GenericMessageHandlingService's responsibility here
             .Retry(new ExponentialBackoff {MaxAttemptNumber = 5, Interval = TimeSpan.FromSeconds(1), Rate = 1.2})
             .TimeoutIn(TimeSpan.FromSeconds(3));
         builder.Services.AddStorage(builder.Name, b => b
-            .AddSingle<IAbstractMessage, CachingResult>() // MessageHandler's requirement
-            .AddSinglePartitioned<int, IAbstractMessage>()
-            .AddSingle<int, long>());
+            .AddSinglePartitioned<int, IAbstractMessage>() // GenericMessageHandlingService's requirement
+            .AddSingle<string, CachingResult>() // GenericMessageHandlingService's requirement
+            .AddSingle<int, long>()); // GenericMessageHandlingService's requirement
     }
 }
