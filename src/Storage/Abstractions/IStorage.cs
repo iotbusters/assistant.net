@@ -38,11 +38,7 @@ public interface IStorage<TKey, TValue>
     /// </param>
     /// <param name="token"/>
     /// <returns>An added or updated value.</returns>
-    Task<TValue> AddOrUpdate(
-        TKey key,
-        Func<TKey, Task<TValue>> addFactory,
-        Func<TKey, TValue, Task<TValue>> updateFactory,
-        CancellationToken token = default);
+    Task<TValue> AddOrUpdate(TKey key, Func<TKey, Task<TValue>> addFactory, Func<TKey, TValue, Task<TValue>> updateFactory, CancellationToken token = default);
 
     /// <summary>
     ///     Tries to find a value associated to the <paramref name="key"/>.

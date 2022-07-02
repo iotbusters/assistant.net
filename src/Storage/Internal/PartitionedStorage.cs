@@ -47,19 +47,67 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
         {
             var keyRecord = await CreateKeyRecord(key, token);
             var content = await valueConverter.Convert(value, token);
-            return await backedStorage.Add(
+            var valueRecord = await backedStorage.Add(
                 keyRecord,
                 addFactory: _ =>
                 {
-                    var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, 1);
+                    var audit = new Audit(1)
+                    {
+                        CorrelationId = diagnosticContext.CorrelationId,
+                        User = diagnosticContext.User,
+                        Created = clock.UtcNow
+                    };
                     return Task.FromResult(new ValueRecord(valueType, content, audit));
                 },
                 updateFactory: (_, old) =>
                 {
-                    var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, old.Audit.Version + 1);
+                    var audit = new Audit(old.Audit.Version + 1)
+                    {
+                        CorrelationId = diagnosticContext.CorrelationId,
+                        User = diagnosticContext.User,
+                        Created = clock.UtcNow
+                    };
                     return Task.FromResult(new ValueRecord(valueType, content, audit));
                 },
                 token);
+            return valueRecord.Audit.Version;
+        }
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
+        {
+            throw new StorageException(ex);
+        }
+    }
+
+    public async Task<PartitionValue<TValue>> Add(TKey key, StorageValue<TValue> value, CancellationToken token)
+    {
+        try
+        {
+            var keyRecord = await CreateKeyRecord(key, token);
+            var content = await valueConverter.Convert(value.Value, token);
+            var valueRecord = await backedStorage.Add(
+                keyRecord,
+                addFactory: _ =>
+                {
+                    var audit = new Audit(value.Details, 1)
+                    {
+                        CorrelationId = diagnosticContext.CorrelationId,
+                        User = diagnosticContext.User,
+                        Created = clock.UtcNow
+                    };
+                    return Task.FromResult(new ValueRecord(valueType, content, audit));
+                },
+                updateFactory: (_, old) =>
+                {
+                    var audit = new Audit(value.Details, old.Audit.Version + 1)
+                    {
+                        CorrelationId = diagnosticContext.CorrelationId,
+                        User = diagnosticContext.User,
+                        Created = clock.UtcNow
+                    };
+                    return Task.FromResult(new ValueRecord(valueType, content, audit));
+                },
+                token);
+            return new PartitionValue<TValue>(value.Value, valueRecord.Audit.Details, valueRecord.Audit.Version);
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
@@ -83,27 +131,29 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
         }
     }
 
-    public IAsyncEnumerable<TKey> GetKeys(CancellationToken token) =>
-        backedStorage.GetKeys()
-            .Where(x => x.Type == keyType)
-            .AsAsync()
-            .Select(x => keyConverter.Convert(x.Content, token));
-
-    public async Task<Option<Audit>> TryGetAudit(TKey key, long index, CancellationToken token)
+    public async Task<Option<PartitionValue<TValue>>> TryGetDetailed(TKey key, long index, CancellationToken token)
     {
-        if (index <= 0)
-            throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {index}.", nameof(index));
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
             var option = await backedStorage.TryGet(keyRecord, index, token);
-            return option.MapOption(x => x.Audit);
+            return await option.MapOptionAsync(async x =>
+            {
+                var value = await valueConverter.Convert(x.Content, token);
+                return new PartitionValue<TValue>(value, x.Audit.Details, x.Audit.Version);
+            });
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
             throw new StorageException(ex);
         }
     }
+
+    public IAsyncEnumerable<TKey> GetKeys(CancellationToken token) =>
+        backedStorage.GetKeys()
+            .Where(x => x.Type == keyType)
+            .AsAsync()
+            .Select(x => keyConverter.Convert(x.Content, token));
 
     public async Task<Option<TValue>> TryRemove(TKey key, CancellationToken token)
     {

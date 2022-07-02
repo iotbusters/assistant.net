@@ -27,11 +27,7 @@ internal sealed class LocalHistoricalStorageProvider<TValue> : IHistoricalStorag
         return Task.FromResult(currentVersion);
     }
 
-    public Task<ValueRecord> AddOrUpdate(
-        KeyRecord key,
-        Func<KeyRecord, Task<ValueRecord>> addFactory,
-        Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
-        CancellationToken _)
+    public Task<ValueRecord> AddOrUpdate(KeyRecord key, Func<KeyRecord, Task<ValueRecord>> addFactory, Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory, CancellationToken _)
     {
         var versions = backedStorage.GetOrAdd(key, valueFactory: _ => new());
 
@@ -91,6 +87,4 @@ internal sealed class LocalHistoricalStorageProvider<TValue> : IHistoricalStorag
     }
 
     public IQueryable<KeyRecord> GetKeys() => backedStorage.Keys.AsQueryable();
-
-    void IDisposable.Dispose() { }
 }

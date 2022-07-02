@@ -22,54 +22,45 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     private readonly string keyType;
     private readonly string valueType;
     private readonly IValueConverter<TKey> keyConverter;
-    protected readonly IValueConverter<TValue> ValueConverter;
-    protected readonly IStorageProvider<TValue> BackedStorage;
+    private readonly IValueConverter<TValue> valueConverter;
+    private readonly IStorageProvider<TValue> backedStorage;
 
     /// <exception cref="ArgumentException"/>
     public Storage(
         IServiceProvider provider,
         IDiagnosticContext diagnosticContext,
         ISystemClock clock,
-        ITypeEncoder typeEncoder) : this(
-        provider,
-        diagnosticContext,
-        clock,
-        typeEncoder,
-        GetProvider(provider)) { }
-
-    /// <exception cref="ArgumentException"/>
-    protected Storage(
-        IServiceProvider provider,
-        IDiagnosticContext diagnosticContext,
-        ISystemClock clock,
-        ITypeEncoder typeEncoder,
-        IStorageProvider<TValue> backedStorage)
+        ITypeEncoder typeEncoder)
     {
         this.diagnosticContext = diagnosticContext;
         this.clock = clock;
         this.keyType = GetTypeName<TKey>(typeEncoder);
         this.valueType = GetTypeName<TValue>(typeEncoder);
         this.keyConverter = GetConverter<TKey>(provider);
-        this.ValueConverter = GetConverter<TValue>(provider);
-        this.BackedStorage = backedStorage;
+        this.valueConverter = GetConverter<TValue>(provider);
+        this.backedStorage = GetProvider(provider);
     }
 
     public async Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory, CancellationToken token)
     {
-        var delayedToken = token;
         try
         {
-            var keyRecord = await CreateKeyRecord(key, delayedToken);
-            var valueRecord = await BackedStorage.AddOrGet(
+            var keyRecord = await CreateKeyRecord(key, token);
+            var valueRecord = await backedStorage.AddOrGet(
                 keyRecord,
                 addFactory: async _ =>
                 {
                     var value = await addFactory(key);
-                    var content = await ValueConverter.Convert(value, delayedToken);
-                    var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, 1);
+                    var content = await valueConverter.Convert(value, token);
+                    var audit = new Audit(1)
+                    {
+                        CorrelationId = diagnosticContext.CorrelationId,
+                        User = diagnosticContext.User,
+                        Created = clock.UtcNow
+                    };
                     return new ValueRecord(valueType, content, audit);
-                }, delayedToken);
-            return await ValueConverter.Convert(valueRecord.Content, delayedToken);
+                }, token);
+            return await valueConverter.Convert(valueRecord.Content, token);
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
@@ -77,34 +68,112 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
         }
     }
 
-    public async Task<TValue> AddOrUpdate(
-        TKey key,
-        Func<TKey, Task<TValue>> addFactory,
-        Func<TKey, TValue, Task<TValue>> updateFactory,
-        CancellationToken token)
+    public async Task<StorageValue<TValue>> AddOrGet(TKey key, Func<TKey, Task<StorageValue<TValue>>> addFactory, CancellationToken token)
     {
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
-            var valueRecord = await BackedStorage.AddOrUpdate(
+            var valueRecord = await backedStorage.AddOrGet(
                 keyRecord,
                 addFactory: async _ =>
                 {
                     var value = await addFactory(key);
-                    var content = await ValueConverter.Convert(value, token);
-                    var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, 1);
+                    var content = await valueConverter.Convert(value.Value, token);
+                    var audit = new Audit(value.Details, 1)
+                    {
+                        CorrelationId = diagnosticContext.CorrelationId,
+                        User = diagnosticContext.User,
+                        Created = clock.UtcNow
+                    };
+                    return new ValueRecord(valueType, content, audit);
+                }, token);
+            var value = await valueConverter.Convert(valueRecord.Content, token);
+            return new StorageValue<TValue>(value, valueRecord.Audit.Details);
+        }
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
+        {
+            throw new StorageException(ex);
+        }
+    }
+
+    public async Task<TValue> AddOrUpdate(TKey key, Func<TKey, Task<TValue>> addFactory, Func<TKey, TValue, Task<TValue>> updateFactory, CancellationToken token)
+    {
+        try
+        {
+            var keyRecord = await CreateKeyRecord(key, token);
+            var valueRecord = await backedStorage.AddOrUpdate(
+                keyRecord,
+                addFactory: async _ =>
+                {
+                    var value = await addFactory(key);
+                    var content = await valueConverter.Convert(value, token);
+                    var audit = new Audit(1)
+                    {
+                        CorrelationId = diagnosticContext.CorrelationId,
+                        User = diagnosticContext.User,
+                        Created = clock.UtcNow
+                    };
                     return new ValueRecord(valueType, content, audit);
                 },
                 updateFactory: async (_, old) =>
                 {
-                    var oldValue = await ValueConverter.Convert(old.Content, token);
+                    var oldValue = await valueConverter.Convert(old.Content, token);
                     var newValue = await updateFactory(key, oldValue);
-                    var content = await ValueConverter.Convert(newValue, token);
-                    var audit = new Audit(diagnosticContext.CorrelationId, diagnosticContext.User, clock.UtcNow, old.Audit.Version + 1);
+                    var content = await valueConverter.Convert(newValue, token);
+                    var audit = new Audit(old.Audit.Version + 1)
+                    {
+                        CorrelationId = diagnosticContext.CorrelationId,
+                        User = diagnosticContext.User,
+                        Created = clock.UtcNow
+                    };
                     return new ValueRecord(valueType, content, audit);
                 },
                 token);
-            return await ValueConverter.Convert(valueRecord.Content, token);
+            return await valueConverter.Convert(valueRecord.Content, token);
+        }
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
+        {
+            throw new StorageException(ex);
+        }
+    }
+
+    public async Task<StorageValue<TValue>> AddOrUpdate(TKey key, Func<TKey, Task<StorageValue<TValue>>> addFactory, Func<TKey, StorageValue<TValue>, Task<StorageValue<TValue>>> updateFactory, CancellationToken token)
+    {
+        try
+        {
+            var keyRecord = await CreateKeyRecord(key, token);
+            var valueRecord = await backedStorage.AddOrUpdate(
+                keyRecord,
+                addFactory: async _ =>
+                {
+                    var value = await addFactory(key);
+                    var content = await valueConverter.Convert(value.Value, token);
+                    var audit = new Audit(value.Details, 1)
+                    {
+                        CorrelationId = diagnosticContext.CorrelationId,
+                        User = diagnosticContext.User,
+                        Created = clock.UtcNow
+                    };
+                    return new ValueRecord(valueType, content, audit);
+                },
+                updateFactory: async (_, old) =>
+                {
+                    var oldValue = new StorageValue<TValue>(
+                        await valueConverter.Convert(old.Content, token),
+                        old.Audit.Details);
+                    var newValue = await updateFactory(key, oldValue);
+                    var content = await valueConverter.Convert(newValue.Value, token);
+                    var audit = new Audit(newValue.Details, old.Audit.Version + 1)
+                    {
+                        CorrelationId = diagnosticContext.CorrelationId,
+                        User = diagnosticContext.User,
+                        Created = clock.UtcNow
+                    };
+                    return new ValueRecord(valueType, content, audit);
+                },
+                token);
+            var value = await valueConverter.Convert(valueRecord.Content, token);
+            return new StorageValue<TValue>(value, valueRecord.Audit.Details);
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
@@ -117,24 +186,10 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
-            var option = await BackedStorage.TryGet(keyRecord, token);
-            return await option.MapOptionAsync(x => ValueConverter.Convert(x.Content, token));
+            var option = await backedStorage.TryGet(keyRecord, token);
+            return await option.MapOptionAsync(x => valueConverter.Convert(x.Content, token));
         }
         catch (Exception ex) when (ex is not StorageException)
-        {
-            throw new StorageException(ex);
-        }
-    }
-
-    public async Task<Option<Audit>> TryGetAudit(TKey key, CancellationToken token)
-    {
-        try
-        {
-            var keyRecord = await CreateKeyRecord(key, token);
-            var option = await BackedStorage.TryGet(keyRecord, token);
-            return option.MapOption(x => x.Audit);
-        }
-        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
             throw new StorageException(ex);
         }
@@ -145,8 +200,26 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
-            var option = await BackedStorage.TryRemove(keyRecord, token);
-            return await option.MapOptionAsync(x => ValueConverter.Convert(x.Content, token));
+            var option = await backedStorage.TryRemove(keyRecord, token);
+            return await option.MapOptionAsync(x => valueConverter.Convert(x.Content, token));
+        }
+        catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
+        {
+            throw new StorageException(ex);
+        }
+    }
+
+    public async Task<Option<StorageValue<TValue>>> TryGetDetailed(TKey key, CancellationToken token)
+    {
+        try
+        {
+            var keyRecord = await CreateKeyRecord(key, token);
+            var option = await backedStorage.TryGet(keyRecord, token);
+            return await option.MapOptionAsync(async x =>
+            {
+                var value = await valueConverter.Convert(x.Content, token);
+                return new StorageValue<TValue>(value, x.Audit.Details);
+            });
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
@@ -155,12 +228,12 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     }
 
     public IAsyncEnumerable<TKey> GetKeys(CancellationToken token) =>
-        BackedStorage.GetKeys()
+        backedStorage.GetKeys()
             .Where(x => x.Type == keyType && x.ValueType == valueType)
             .AsAsync()
             .Select(x => keyConverter.Convert(x.Content, token));
 
-    protected async Task<KeyRecord> CreateKeyRecord(TKey key, CancellationToken token)
+    private async Task<KeyRecord> CreateKeyRecord(TKey key, CancellationToken token)
     {
         var keyContent = await keyConverter.Convert(key, token);
         var keyId = keyContent.GetSha1();

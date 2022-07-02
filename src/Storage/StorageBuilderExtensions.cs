@@ -13,7 +13,7 @@ namespace Assistant.Net.Storage;
 public static class StorageBuilderExtensions
 {
     /// <summary>
-    ///     Configures storage to use a local single provider implementation.
+    ///     Configures storages to use a local single provider implementation.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered single provider.
@@ -27,7 +27,7 @@ public static class StorageBuilderExtensions
     }
 
     /// <summary>
-    ///     Adds single provider based storage of <typeparamref name="TValue"/> value type with <typeparamref name="TKey"/> key type.
+    ///     Adds a single provider based storage of <typeparamref name="TValue"/> value type with <typeparamref name="TKey"/> key type.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -36,7 +36,7 @@ public static class StorageBuilderExtensions
         .AddSingle(typeof(TKey), typeof(TValue));
 
     /// <summary>
-    ///     Adds single provider based storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
+    ///     Adds a single provider based storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -50,7 +50,7 @@ public static class StorageBuilderExtensions
     }
 
     /// <summary>
-    ///     Adds single provider based storage for any unregistered type.
+    ///     Adds a single provider based storage for any unregistered type.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -73,7 +73,7 @@ public static class StorageBuilderExtensions
         .AddSingleHistorical(typeof(TKey), typeof(TValue));
 
     /// <summary>
-    ///     Adds local storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
+    ///     Adds a local storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -87,7 +87,7 @@ public static class StorageBuilderExtensions
     }
 
     /// <summary>
-    ///     Adds local storage for any unregistered type.
+    ///     Adds a local storage for any unregistered type.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -101,7 +101,7 @@ public static class StorageBuilderExtensions
     }
 
     /// <summary>
-    ///     Adds local partitioned storage of <typeparamref name="TValue"/> value type with <typeparamref name="TKey"/> key type.
+    ///     Adds a local partitioned storage of <typeparamref name="TValue"/> value type with <typeparamref name="TKey"/> key type.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -110,7 +110,7 @@ public static class StorageBuilderExtensions
         .AddSinglePartitioned(typeof(TKey), typeof(TValue));
 
     /// <summary>
-    ///     Adds local partitioned storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
+    ///     Adds a local partitioned storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered providers.
@@ -124,7 +124,7 @@ public static class StorageBuilderExtensions
     }
 
     /// <summary>
-    ///     Adds local partitioned storage for any unregistered type.
+    ///     Adds a local partitioned storage for any unregistered type.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -138,7 +138,7 @@ public static class StorageBuilderExtensions
     }
 
     /// <summary>
-    ///     Adds local storage of <typeparamref name="TValue"/> value type with <typeparamref name="TKey"/> key type.
+    ///     Adds a local storage of <typeparamref name="TValue"/> value type with <typeparamref name="TKey"/> key type.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -147,7 +147,7 @@ public static class StorageBuilderExtensions
         .AddLocal(typeof(TKey), typeof(TValue));
 
     /// <summary>
-    ///     Adds local storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
+    ///     Adds a local storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -162,7 +162,7 @@ public static class StorageBuilderExtensions
     }
 
     /// <summary>
-    ///     Adds local storage for any unregistered type.
+    ///     Adds a local storage for any unregistered type.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -177,7 +177,7 @@ public static class StorageBuilderExtensions
     }
 
     /// <summary>
-    ///     Adds local storage of <typeparamref name="TValue"/> value type with <typeparamref name="TKey"/> key type.
+    ///     Adds a local storage of <typeparamref name="TValue"/> value type with <typeparamref name="TKey"/> key type.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -186,7 +186,7 @@ public static class StorageBuilderExtensions
         .AddLocalHistorical(typeof(TKey), typeof(TValue));
 
     /// <summary>
-    ///     Adds local storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
+    ///     Adds a local storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -201,7 +201,7 @@ public static class StorageBuilderExtensions
     }
 
     /// <summary>
-    ///     Adds local storage for any unregistered type.
+    ///     Adds a local storage for any unregistered type.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -225,7 +225,7 @@ public static class StorageBuilderExtensions
         .AddLocalPartitioned(typeof(TKey), typeof(TValue));
 
     /// <summary>
-    ///     Adds local partitioned storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
+    ///     Adds a local partitioned storage of <paramref name="valueType"/> with <paramref name="keyType"/>.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -240,7 +240,7 @@ public static class StorageBuilderExtensions
     }
 
     /// <summary>
-    ///     Adds local partitioned storage for any unregistered type.
+    ///     Adds a local partitioned storage for any unregistered type.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
@@ -251,6 +251,23 @@ public static class StorageBuilderExtensions
             .AddLocalProvider()
             .ConfigureStorageOptions(builder.Name, o => o.AddLocalPartitionedAny())
             .ConfigureSerializer(builder.Name, b => b.AddJsonTypeAny());
+        return builder;
+    }
+
+    /// <summary>
+    ///     Removes storage of <typeparamref name="TKey"/> and <typeparamref name="TValue"/> type.
+    /// </summary>
+    public static StorageBuilder Remove<TKey, TValue>(this StorageBuilder builder) => builder
+        .Remove(typeof(TKey), typeof(TValue));
+
+    /// <summary>
+    ///     Removes storage of <paramref name="keyType"/> and <paramref name="valueType"/>.
+    /// </summary>
+    public static StorageBuilder Remove(this StorageBuilder builder, Type keyType, Type valueType)
+    {
+        builder.Services
+            .ConfigureStorageOptions(builder.Name, o => o.Remove(valueType))
+            .ConfigureSerializer(builder.Name, b => b.Remove(keyType).Remove(valueType));
         return builder;
     }
 

@@ -244,4 +244,27 @@ public static class StorageOptionsExtensions
         });
         return options;
     }
+
+    /// <summary>
+    ///     Removes a storage provider of <typeparamref name="TValue"/> type.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, the method wont impart any type storage configurations.
+    /// </remarks>
+    public static StorageOptions Remove<TValue>(this StorageOptions options) => options
+        .Remove(typeof(TValue));
+
+    /// <summary>
+    ///     Removes a storage provider of <paramref name="valueType"/>.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, the method wont impart any type storage configurations.
+    /// </remarks>
+    public static StorageOptions Remove(this StorageOptions options, Type valueType)
+    {
+        options.Providers.Remove(valueType);
+        options.HistoricalProviders.Remove(valueType);
+        options.PartitionedProviders.Remove(valueType);
+        return options;
+    }
 }

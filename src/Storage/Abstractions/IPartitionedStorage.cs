@@ -17,7 +17,7 @@ public interface IPartitionedStorage<in TKey, TValue>
     /// <param name="key">A partition key object.</param>
     /// <param name="value">A value object.</param>
     /// <param name="token"/>
-    /// <returns>An added or existed value.</returns>
+    /// <returns>A partition index of added value.</returns>
     Task<long> Add(TKey key, TValue value, CancellationToken token = default);
 
     /// <summary>

@@ -19,11 +19,7 @@ internal sealed class LocalStorageProvider<TValue> : IStorageProvider<TValue>
                 key,
                 valueFactory: _ => addFactory(key).ConfigureAwait(false).GetAwaiter().GetResult()));
 
-    public Task<ValueRecord> AddOrUpdate(
-        KeyRecord key,
-        Func<KeyRecord, Task<ValueRecord>> addFactory,
-        Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
-        CancellationToken _) =>
+    public Task<ValueRecord> AddOrUpdate(KeyRecord key, Func<KeyRecord, Task<ValueRecord>> addFactory, Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory, CancellationToken _) =>
         Task.FromResult(
             backedStorage.AddOrUpdate(
                 key,
@@ -39,6 +35,4 @@ internal sealed class LocalStorageProvider<TValue> : IStorageProvider<TValue>
             backedStorage.TryRemove(key, out var value) ? Option.Some(value) : Option.None);
 
     public IQueryable<KeyRecord> GetKeys() => backedStorage.Keys.AsQueryable();
-
-    void IDisposable.Dispose() { }
 }

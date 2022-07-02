@@ -27,11 +27,8 @@ internal class MongoPartitionedStorageProvider<TValue> : IPartitionedStorageProv
     public IQueryable<KeyRecord> GetKeys() => provider
         .GetKeys();
 
-    public async Task<long> Add(KeyRecord key, Func<KeyRecord, Task<ValueRecord>> addFactory, Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory, CancellationToken token)
-    {
-        var value = await AddOrUpdate(key, addFactory, updateFactory, token);
-        return value.Audit.Version;
-    }
+    public async Task<ValueRecord> Add(KeyRecord key, Func<KeyRecord, Task<ValueRecord>> addFactory, Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory, CancellationToken token) =>
+        await AddOrUpdate(key, addFactory, updateFactory, token);
 
     public Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken token) => provider
         .TryRemove(key, token);
@@ -41,6 +38,4 @@ internal class MongoPartitionedStorageProvider<TValue> : IPartitionedStorageProv
 
     public Task<long> TryRemove(KeyRecord key, long upToVersion, CancellationToken token) => provider
         .TryRemove(key, upToVersion, token);
-
-    void IDisposable.Dispose() => ((IDisposable)provider).Dispose();
 }

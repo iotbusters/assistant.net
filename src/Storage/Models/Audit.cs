@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using static Assistant.Net.Storage.Internal.StoragePropertyNames;
 
 namespace Assistant.Net.Storage.Models;
 
@@ -16,30 +17,30 @@ public sealed class Audit
     }
 
     /// <summary/>
-    public Audit(string? correlationId, string? user, DateTimeOffset created, long version)
-        : this(new Dictionary<string, string>(), version)
-    {
-        CorrelationId = correlationId;
-        User = user;
-        Created = created;
-    }
+    public Audit(long version) : this(new Dictionary<string, string>(), version) { }
 
     /// <summary>
     ///     Value change related correlation id.
     /// </summary>
+    /// <remarks>
+    ///     Pay attention, the value would be ignored if the detail is already set.
+    /// </remarks>
     public string? CorrelationId
     {
-        get => GetString("correlationId");
-        set => SetString("correlationId", value);
+        get => Details.GetOrDefault(CorrelationIdName);
+        init => Details.TryAddUnlessDefault(CorrelationIdName, value);
     }
 
     /// <summary>
     ///     User created value.
     /// </summary>
+    /// <remarks>
+    ///     Pay attention, the value would be ignored if the detail is already set.
+    /// </remarks>
     public string? User
     {
-        get => GetString("user");
-        set => SetString("user", value);
+        get => Details.GetOrDefault(UserName);
+        init => Details.TryAddUnlessDefault(UserName, value);
     }
 
     /// <summary>
@@ -50,29 +51,17 @@ public sealed class Audit
     /// <summary>
     ///     The date when value was created.
     /// </summary>
+    /// <remarks>
+    ///     Pay attention, the value would be ignored if the detail is already set.
+    /// </remarks>
     public DateTimeOffset Created
     {
-        get => GetDate("created");
-        set => SetDate("created", value);
+        get => DateTimeOffset.Parse(Details.GetOrFail(CreatedName));
+        init => Details.TryAddUnlessDefault(CreatedName, value.ToString("O"));
     }
 
     /// <summary>
     ///     All auditing details.
     /// </summary>
-    public IDictionary<string, string> Details { get; set; }
-
-    private void SetString(string propertyName, string? propertyValue)
-    {
-        if (propertyValue != null)
-            Details[propertyName] = propertyValue;
-    }
-
-    private void SetDate(string propertyName, DateTimeOffset? propertyValue) =>
-        Details[propertyName] = propertyValue?.ToString("O") ?? throw new ArgumentNullException(nameof(propertyValue));
-
-    private string? GetString(string name) =>
-        Details.TryGetValue(name, out var value) ? value : null;
-
-    private DateTimeOffset GetDate(string name) =>
-        Details.TryGetValue(name, out var value) ? DateTimeOffset.Parse(value) : throw new NotImplementedException();
+    public IDictionary<string, string> Details { get; }
 }

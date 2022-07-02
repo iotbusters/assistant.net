@@ -10,7 +10,7 @@ namespace Assistant.Net.Storage.Abstractions;
 ///    A specific data provider abstraction over internal key based value-centric binary partitioned storage.
 /// </summary>
 /// <typeparam name="TValue">A value object type which specific partitioned storage implementation is assigned to.</typeparam>
-public interface IPartitionedStorageProvider<TValue> : IStorageProvider<ValueRecord>, IDisposable
+public interface IPartitionedStorageProvider<TValue> : IStorageProvider<ValueRecord>
 {
     /// <summary>
     ///    Adds next indexed value associated to the <paramref name="key"/>.
@@ -26,11 +26,7 @@ public interface IPartitionedStorageProvider<TValue> : IStorageProvider<ValueRec
     /// </param>
     /// <param name="token"/>
     /// <returns>An added index.</returns>
-    Task<long> Add(
-        KeyRecord key,
-        Func<KeyRecord, Task<ValueRecord>> addFactory,
-        Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
-        CancellationToken token = default);
+    Task<ValueRecord> Add(KeyRecord key, Func<KeyRecord, Task<ValueRecord>> addFactory, Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory, CancellationToken token = default);
 
     /// <summary>
     ///     Tries to find a value in partition associated to the <paramref name="key"/>.
