@@ -187,7 +187,7 @@ public class MongoStorageProviderTests
     private Mock<IMongoCollection<MongoRecord>> MongoCollectionMock { get; set; } = default!;
     private KeyRecord TestKey { get; set; } = default!;
     private ValueRecord TestValue => new(Type: "type", Content: Array.Empty<byte>(), Audit);
-    private Audit Audit => new(TestCorrelationId, TestUser, TestDate, version: 1);
+    private Audit Audit => new(version: 1) {CorrelationId = TestCorrelationId, User = TestUser, Created = TestDate};
     private string TestCorrelationId { get; set; } = Guid.NewGuid().ToString();
     private string TestUser { get; set; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; set; } = DateTimeOffset.UtcNow;

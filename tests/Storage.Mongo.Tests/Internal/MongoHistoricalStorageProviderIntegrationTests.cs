@@ -324,7 +324,7 @@ public class MongoHistoricalStorageProviderIntegrationTests
     private static CancellationToken CancellationToken => new CancellationTokenSource(200).Token;
 
     private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
-    private Audit Audit(int version) => new(TestCorrelationId, TestUser, TestDate, version);
+    private Audit Audit(int version) => new(version) {CorrelationId = TestCorrelationId, User = TestUser, Created = TestDate};
     private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: "type");
     private string TestCorrelationId { get; } = Guid.NewGuid().ToString();
     private string TestUser { get; } = Guid.NewGuid().ToString();

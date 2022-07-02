@@ -35,6 +35,26 @@ public class MongoHistoricalStorageIntegrationTests
     }
 
     [Test]
+    public async Task AddOrGet_returnsAddedHistoricalValue_notExists()
+    {
+        var value = await Storage.AddOrGet(new TestKey(true), new StorageValue<TestValue>(new TestValue(true)));
+
+        value.Should().BeOfType<HistoricalValue<TestValue>>()
+            .And.BeEquivalentTo(new { Value = new TestValue(true), Version = 1 });
+    }
+
+    [Test]
+    public async Task AddOrGet_returnsExistingHistoricalValue_exists()
+    {
+        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+
+        var value = await Storage.AddOrGet(new TestKey(true), new StorageValue<TestValue>(new TestValue(false)));
+
+        value.Should().BeOfType<HistoricalValue<TestValue>>()
+            .And.BeEquivalentTo(new { Value = new TestValue(true), Version = 1 });
+    }
+
+    [Test]
     public async Task AddOrUpdate_returnsAddedValue()
     {
         var value = await Storage.AddOrUpdate(new TestKey(true), _ => new TestValue(true), (_, _) => new TestValue(false));
@@ -53,6 +73,32 @@ public class MongoHistoricalStorageIntegrationTests
     }
 
     [Test]
+    public async Task AddOrUpdate_returnsAddedHistoricalValue()
+    {
+        var value = await Storage.AddOrUpdate(
+            new TestKey(true),
+            _ => new StorageValue<TestValue>(new TestValue(true)),
+            (_, _) => new StorageValue<TestValue>(new TestValue(false)));
+
+        value.Should().BeOfType<HistoricalValue<TestValue>>()
+            .And.BeEquivalentTo(new { Value = new TestValue(true), Version = 1 });
+    }
+
+    [Test]
+    public async Task AddOrUpdate_returnsUpdatedHistoricalValue()
+    {
+        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+
+        var value = await Storage.AddOrUpdate(
+            new TestKey(true),
+            _ => new StorageValue<TestValue>(new TestValue(true)),
+            (_, _) => new StorageValue<TestValue>(new TestValue(false)));
+
+        value.Should().BeOfType<HistoricalValue<TestValue>>()
+            .And.BeEquivalentTo(new { Value = new TestValue(false), Version = 2 });
+    }
+
+    [Test]
     public async Task TryGet_returnsNone_notExists()
     {
         var value = await Storage.TryGet(new TestKey(true));
@@ -67,7 +113,26 @@ public class MongoHistoricalStorageIntegrationTests
 
         var value = await Storage.TryGet(new TestKey(true));
 
-        value.Should().BeEquivalentTo(new {Value = new TestValue(true)}, o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(new { Value = new TestValue(true) }, o => o.ComparingByMembers<ValueRecord>());
+    }
+
+    [Test]
+    public async Task TryGetDetailed_returnsNone_notExists()
+    {
+        var value = await Storage.TryGetDetailed(new TestKey(true));
+
+        value.Should().BeEquivalentTo(new None<HistoricalValue<ValueRecord>>());
+    }
+
+    [Test]
+    public async Task TryGetDetailed_returns_exists()
+    {
+        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+
+        var value = await Storage.TryGetDetailed(new TestKey(true));
+
+        value.Should().BeOfType<Some<HistoricalValue<TestValue>>>()
+            .And.BeEquivalentTo(new { Value = new { Value = new TestValue(true), Version = 1 } });
     }
 
     [Test]
@@ -86,6 +151,25 @@ public class MongoHistoricalStorageIntegrationTests
         var value = await Storage.TryGet(new TestKey(true), version: 1);
 
         value.Should().BeEquivalentTo(new { Value = new TestValue(true) }, o => o.ComparingByMembers<ValueRecord>());
+    }
+
+    [Test]
+    public async Task TryGetDetailedByVersion_returnsNone_notExists()
+    {
+        var value = await Storage.TryGetDetailed(new TestKey(true), version: 1);
+
+        value.Should().BeEquivalentTo(new None<HistoricalValue<ValueRecord>>());
+    }
+
+    [Test]
+    public async Task TryGetDetailedByVersion_returnsSome_exists()
+    {
+        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+
+        var value = await Storage.TryGetDetailed(new TestKey(true), version: 1);
+
+        value.Should().BeOfType<Some<HistoricalValue<TestValue>>>()
+            .And.BeEquivalentTo(new { Value = new { Value = new TestValue(true), Version = 1 } });
     }
 
     [Test]

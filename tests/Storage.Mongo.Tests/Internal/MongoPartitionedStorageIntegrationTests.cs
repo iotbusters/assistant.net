@@ -1,5 +1,6 @@
 ﻿using Assistant.Net.Options;
 using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Mongo.Tests.Mocks;
 using Assistant.Net.Unions;
 using FluentAssertions;
@@ -27,9 +28,29 @@ public class MongoPartitionedStorageIntegrationTests
     {
         await Storage.Add(new TestKey(true), new TestValue(true));
 
-        var value = await Storage.Add(new TestKey(true), new TestValue(true));
+        var value = await Storage.Add(new TestKey(true), new TestValue(false));
 
         value.Should().Be(2);
+    }
+
+    [Test]
+    public async Task Add_returnsAddedPartitionValue_noKey()
+    {
+        var value = await Storage.Add(new TestKey(true), new StorageValue<TestValue>(new TestValue(true)));
+
+        value.Should().BeOfType<PartitionValue<TestValue>>()
+            .And.BeEquivalentTo(new { Value = new TestValue(true), Index = 1 });
+    }
+
+    [Test]
+    public async Task Add_returnsExistingPartitionValue_keyExists()
+    {
+        await Storage.Add(new TestKey(true), new TestValue(true));
+
+        var value = await Storage.Add(new TestKey(true), new StorageValue<TestValue>(new TestValue(false)));
+
+        value.Should().BeOfType<PartitionValue<TestValue>>()
+            .And.BeEquivalentTo(new { Value = new TestValue(false), Index = 2 });
     }
 
     [Test]
@@ -47,7 +68,7 @@ public class MongoPartitionedStorageIntegrationTests
 
         var value = await Storage.TryGet(new TestKey(true), index: 1);
 
-        value.Should().BeEquivalentTo(new {Value = new TestValue(true)});
+        value.Should().BeEquivalentTo(new { Value = new TestValue(true) });
     }
 
     [Test]

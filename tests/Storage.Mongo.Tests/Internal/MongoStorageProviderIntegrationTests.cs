@@ -9,7 +9,6 @@ using Assistant.Net.Unions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using NUnit.Framework;
 using System;
@@ -216,7 +215,7 @@ public class MongoStorageProviderIntegrationTests
     private static CancellationToken CancellationToken => new CancellationTokenSource(200).Token;
 
     private ValueRecord TestValue(int version = 1) => new(Type: nameof(Mocks.TestValue), Content: Array.Empty<byte>(), Audit(version));
-    private Audit Audit(int version) => new(TestCorrelationId, TestUser, TestDate, version);
+    private Audit Audit(int version) => new(version) {CorrelationId = TestCorrelationId, User = TestUser, Created = TestDate};
     private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: nameof(Mocks.TestValue));
     private string TestCorrelationId { get; set; } = Guid.NewGuid().ToString();
     private string TestUser { get; set; } = Guid.NewGuid().ToString();

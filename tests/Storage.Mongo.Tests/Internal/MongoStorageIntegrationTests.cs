@@ -34,6 +34,26 @@ public class MongoStorageIntegrationTests
     }
 
     [Test]
+    public async Task AddOrGet_returnsAddedStorageValue_notExists()
+    {
+        var value = await Storage.AddOrGet(new TestKey(true), new StorageValue<TestValue>(new TestValue(true)));
+
+        value.Should().BeOfType<StorageValue<TestValue>>()
+            .And.BeEquivalentTo(new { Value = new TestValue(true) });
+    }
+
+    [Test]
+    public async Task AddOrGet_returnsExistingStorageValue_exists()
+    {
+        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+
+        var value = await Storage.AddOrGet(new TestKey(true), new StorageValue<TestValue>(new TestValue(false)));
+
+        value.Should().BeOfType<StorageValue<TestValue>>()
+            .And.BeEquivalentTo(new { Value = new TestValue(true) });
+    }
+
+    [Test]
     public async Task AddOrUpdate_returnsAddedValue()
     {
         var value = await Storage.AddOrUpdate(new TestKey(true), _ => new TestValue(true), (_, _) => new TestValue(false));
@@ -52,6 +72,32 @@ public class MongoStorageIntegrationTests
     }
 
     [Test]
+    public async Task AddOrUpdate_returnsAddedStorageValue()
+    {
+        var value = await Storage.AddOrUpdate(
+            new TestKey(true),
+            _ => new StorageValue<TestValue>(new TestValue(true)),
+            (_, _) => new StorageValue<TestValue>(new TestValue(false)));
+
+        value.Should().BeOfType<StorageValue<TestValue>>()
+            .And.BeEquivalentTo(new { Value = new TestValue(true) });
+    }
+
+    [Test]
+    public async Task AddOrUpdate_returnsUpdatedStorageValue()
+    {
+        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+
+        var value = await Storage.AddOrUpdate(
+            new TestKey(true),
+            _ => new StorageValue<TestValue>(new TestValue(true)),
+            (_, _) => new StorageValue<TestValue>(new TestValue(false)));
+
+        value.Should().BeOfType<StorageValue<TestValue>>()
+            .And.BeEquivalentTo(new { Value = new TestValue(false) });
+    }
+
+    [Test]
     public async Task TryGet_returnsNone_notExists()
     {
         var value = await Storage.TryGet(new TestKey(true));
@@ -66,7 +112,26 @@ public class MongoStorageIntegrationTests
 
         var value = await Storage.TryGet(new TestKey(true));
 
-        value.Should().BeEquivalentTo(new {Value = new TestValue(true)}, o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(new { Value = new TestValue(true) }, o => o.ComparingByMembers<ValueRecord>());
+    }
+
+    [Test]
+    public async Task TryGetDetailed_returnsNone_notExists()
+    {
+        var value = await Storage.TryGetDetailed(new TestKey(true));
+
+        value.Should().BeEquivalentTo(new None<StorageValue<ValueRecord>>());
+    }
+
+    [Test]
+    public async Task TryGetDetailed_returns_exists()
+    {
+        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+
+        var value = await Storage.TryGetDetailed(new TestKey(true));
+
+        value.Should().BeOfType<Some<StorageValue<TestValue>>>()
+            .And.BeEquivalentTo(new { Value = new { Value = new TestValue(true) } });
     }
 
     [Test]

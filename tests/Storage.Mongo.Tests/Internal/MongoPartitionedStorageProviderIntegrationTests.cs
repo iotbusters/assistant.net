@@ -23,28 +23,31 @@ public class MongoPartitionedStorageProviderIntegrationTests
     [Test]
     public async Task Add_returnsAddedValue_noKey()
     {
+        var value1 = TestValue("added");
         var value = await Storage.Add(
             TestKey,
-            addFactory: _ => Task.FromResult(TestValue("added")),
+            addFactory: _ => Task.FromResult(value1),
             updateFactory: (_, _) => throw new NotImplementedException());
 
-        value.Should().Be(1);
+        value.Should().Be(value1);
     }
 
     [Test]
     public async Task Add_returnsExistingValue_keyExists()
     {
+        var value1 = TestValue("added");
+        var value20 = TestValue("added-2", version: 20);
         await Storage.Add(
             TestKey,
-            addFactory: _ => Task.FromResult(TestValue("added")),
+            addFactory: _ => Task.FromResult(value1),
             updateFactory: (_, _) => throw new NotImplementedException());
 
         var value = await Storage.Add(
             TestKey,
             addFactory: _ => throw new NotImplementedException(),
-            updateFactory: (_, _) => Task.FromResult(TestValue("added-2", version: 20)));
+            updateFactory: (_, _) => Task.FromResult(value20));
 
-        value.Should().Be(20);
+        value.Should().Be(value20);
     }
 
     [Test]
@@ -217,7 +220,7 @@ public class MongoPartitionedStorageProviderIntegrationTests
     private static CancellationToken CancellationToken => new CancellationTokenSource(200).Token;
 
     private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
-    private Audit Audit(int version) => new(TestCorrelationId, TestUser, TestDate, version);
+    private Audit Audit(int version) => new(version) {CorrelationId = TestCorrelationId, User = TestUser, Created = TestDate};
     private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: "test-value");
     private string TestCorrelationId { get; } = Guid.NewGuid().ToString();
     private string TestUser { get; } = Guid.NewGuid().ToString();

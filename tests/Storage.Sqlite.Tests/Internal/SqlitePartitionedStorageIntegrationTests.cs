@@ -26,9 +26,29 @@ public class SqlitePartitionedStorageIntegrationTests
     {
         await Storage.Add(new TestKey(true), new TestValue(true));
 
-        var value = await Storage.Add(new TestKey(true), new TestValue(true));
+        var value = await Storage.Add(new TestKey(true), new TestValue(false));
 
         value.Should().Be(2);
+    }
+
+    [Test]
+    public async Task Add_returnsAddedPartitionValue_noKey()
+    {
+        var value = await Storage.Add(new TestKey(true), new StorageValue<TestValue>(new TestValue(true)));
+
+        value.Should().BeOfType<PartitionValue<TestValue>>()
+            .And.BeEquivalentTo(new {Value = new TestValue(true), Index = 1});
+    }
+
+    [Test]
+    public async Task Add_returnsExistingPartitionValue_keyExists()
+    {
+        await Storage.Add(new TestKey(true), new TestValue(true));
+
+        var value = await Storage.Add(new TestKey(true), new StorageValue<TestValue>(new TestValue(false)));
+
+        value.Should().BeOfType<PartitionValue<TestValue>>()
+            .And.BeEquivalentTo(new {Value = new TestValue(false), Index = 2});
     }
 
     [Test]
