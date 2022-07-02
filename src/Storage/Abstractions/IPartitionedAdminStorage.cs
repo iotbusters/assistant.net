@@ -15,18 +15,27 @@ namespace Assistant.Net.Storage.Abstractions;
 public interface IPartitionedAdminStorage<TKey, TValue> : IPartitionedStorage<TKey, TValue>
 {
     /// <summary>
-    ///     Gets all keys in the storage.
+    ///    Tries to add a detailed value to partition associated to the <paramref name="key"/> if it doesn't exist.
     /// </summary>
-    IAsyncEnumerable<TKey> GetKeys(CancellationToken token = default);
+    /// <param name="key">A partition key object.</param>
+    /// <param name="value">A value object.</param>
+    /// <param name="token"/>
+    /// <returns>A partition index of added value.</returns>
+    Task<PartitionValue<TValue>> Add(TKey key, StorageValue<TValue> value, CancellationToken token = default);
 
     /// <summary>
-    ///     Tries to find a value audit in partition associated to the <paramref name="key"/>.
+    ///     Tries to find a value in partition associated to the <paramref name="key"/>.
     /// </summary>
     /// <param name="key">A partition key object.</param>
     /// <param name="index">An index of specific object under the <paramref name="key"/>.</param>
     /// <param name="token"/>
-    /// <returns>An existed value audit if it was found in partition.</returns>
-    Task<Option<Audit>> TryGetAudit(TKey key, long index, CancellationToken token = default);
+    /// <returns>An existed detailed value if it was found in partition.</returns>
+    Task<Option<PartitionValue<TValue>>> TryGetDetailed(TKey key, long index, CancellationToken token = default);
+
+    /// <summary>
+    ///     Gets all keys in the storage.
+    /// </summary>
+    IAsyncEnumerable<TKey> GetKeys(CancellationToken token = default);
 
     /// <summary>
     ///     Tries to remove the whole partition associated to the <paramref name="key"/>.
