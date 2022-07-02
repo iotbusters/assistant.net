@@ -21,28 +21,31 @@ public class SqlitePartitionedStorageProviderIntegrationTests
     [Test]
     public async Task Add_returnsAddedValue_noKey()
     {
+        var value1 = TestValue();
         var value = await Storage.Add(
             TestKey,
-            addFactory: _ => Task.FromResult(TestValue()),
+            addFactory: _ => Task.FromResult(value1),
             updateFactory: (_, _) => throw new NotImplementedException());
 
-        value.Should().Be(1);
+        value.Should().Be(value1);
     }
 
     [Test]
     public async Task Add_returnsExistingValue_keyExists()
     {
+        var value1 = TestValue();
+        var value20 = TestValue(version: 20);
         await Storage.Add(
             TestKey,
-            addFactory: _ => Task.FromResult(TestValue()),
+            addFactory: _ => Task.FromResult(value1),
             updateFactory: (_, _) => throw new NotImplementedException());
 
         var value = await Storage.Add(
             TestKey,
             addFactory: _ => throw new NotImplementedException(),
-            updateFactory: (_, _) => Task.FromResult(TestValue(version: 20)));
+            updateFactory: (_, _) => Task.FromResult(value20));
 
-        value.Should().Be(20);
+        value.Should().Be(value20);
     }
 
     [Test]
@@ -216,7 +219,7 @@ public class SqlitePartitionedStorageProviderIntegrationTests
 
     private static CancellationToken CancellationToken => new CancellationTokenSource(100).Token;
     private ValueRecord TestValue(int version = 1) => new(Type: nameof(Mocks.TestValue), Content: Array.Empty<byte>(), Audit(version));
-    private Audit Audit(int version = 1) => new(TestCorrelationId, TestUser, TestDate, version);
+    private Audit Audit(int version = 1) => new(version) {CorrelationId = TestCorrelationId, User = TestUser, Created = TestDate};
     private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: nameof(Mocks.TestValue));
     private string TestCorrelationId { get; } = Guid.NewGuid().ToString();
     private string TestUser { get; } = Guid.NewGuid().ToString();

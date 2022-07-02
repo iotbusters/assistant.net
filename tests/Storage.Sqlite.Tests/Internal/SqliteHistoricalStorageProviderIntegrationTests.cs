@@ -326,7 +326,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
 
     private static CancellationToken CancellationToken => new CancellationTokenSource(100).Token;
     private ValueRecord TestValue(int version = 1) => new(Type: nameof(Mocks.TestValue), Content: Array.Empty<byte>(), Audit(version));
-    private Audit Audit(int version = 1) => new(TestCorrelationId, TestUser, TestDate, version);
+    private Audit Audit(int version = 1) => new(version) {CorrelationId = TestCorrelationId, User = TestUser, Created = TestDate};
     private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: nameof(Mocks.TestValue));
     private string TestCorrelationId { get; } = Guid.NewGuid().ToString();
     private string TestUser { get; } = Guid.NewGuid().ToString();

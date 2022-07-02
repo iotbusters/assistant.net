@@ -20,7 +20,7 @@ namespace Assistant.Net.Messaging.Sqlite.Tests;
 public class ClientServerIntegrationTests
 {
     [TestCase(5)]
-    public async Task RequestObject_onceCallsHandler_concurrently(int concurrencyCount)
+    public async Task RequestObject_calls5TimesHandler_concurrently(int concurrencyCount)
     {
         var handler = new TestScenarioMessageHandler();
         using var fixture = new MessagingClientFixtureBuilder()
@@ -32,25 +32,7 @@ public class ClientServerIntegrationTests
             _ => fixture.Client.RequestObject(new TestScenarioMessage(0))).ToArray();
         await Task.WhenAll(tasks);
 
-        handler.CallCount.Should().Be(1);
-    }
-
-    [TestCase(5)]
-    public async Task RequestObject_neverCallsHandler_concurrently(int concurrencyCount)
-    {
-        var handler = new TestScenarioMessageHandler();
-        using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteProvider(ConnectionString)
-            .AddHandler(handler)
-            .Create();
-        await fixture.Client.RequestObject(new TestScenarioMessage(0));
-        handler.CallCount = 0;
-
-        var tasks = Enumerable.Range(1, concurrencyCount).Select(
-            _ => fixture.Client.RequestObject(new TestScenarioMessage(0))).ToArray();
-        await Task.WhenAll(tasks);
-
-        handler.CallCount.Should().Be(0);
+        handler.CallCount.Should().Be(5);
     }
 
     [Test]

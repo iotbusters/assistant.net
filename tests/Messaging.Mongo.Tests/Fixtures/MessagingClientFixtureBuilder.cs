@@ -18,7 +18,7 @@ public class MessagingClientFixtureBuilder
     public MessagingClientFixtureBuilder()
     {
         Services = new ServiceCollection()
-            .AddTypeEncoder(o => o.Exclude("NUnit"))
+            .AddTypeEncoder(o => o.Exclude("NUnit").Exclude("Newtonsoft"))
             .AddMessagingClient(b => b
                 .RemoveInterceptor<CachingInterceptor>()
                 .RemoveInterceptor<RetryingInterceptor>()
@@ -31,7 +31,7 @@ public class MessagingClientFixtureBuilder
             .BindOptions(clientSource);
         RemoteHostBuilder = Host.CreateDefaultBuilder()
             .ConfigureServices(s => s
-                .AddTypeEncoder(o => o.Exclude("NUnit"))
+                .AddTypeEncoder(o => o.Exclude("NUnit").Exclude("Newtonsoft"))
                 .AddGenericMessageHandling()
                 .ConfigureGenericMessagingClient(o => o
                     .RemoveInterceptor<CachingInterceptor>()
