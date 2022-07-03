@@ -11,7 +11,7 @@ public interface IRetryStrategy
     /// <summary>
     ///     Max allowed handling attempts before failure.
     /// </summary>
-    [Required, Range(minimum: 1, maximum: 500)]
+    [Required, Range(minimum: 1, maximum: 1000)]
     public int MaxAttemptNumber { get; set; }
 
     /// <summary>
