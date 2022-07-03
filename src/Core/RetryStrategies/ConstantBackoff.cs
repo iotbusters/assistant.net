@@ -1,4 +1,5 @@
 ﻿using Assistant.Net.Abstractions;
+using Assistant.Net.DataAnnotations;
 using System;
 using System.ComponentModel.DataAnnotations;
 
@@ -15,7 +16,7 @@ public sealed class ConstantBackoff : IRetryStrategy
     /// <summary>
     ///     Constant interval time.
     /// </summary>
-    [Required]
+    [Required, Time("00:00:00.001", "23:59:59")]
     public TimeSpan Interval { get; set; }
 
     /// <inheritdoc/>
