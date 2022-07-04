@@ -70,7 +70,7 @@ public sealed class MessagingClientOptions
     /// <remarks>
     ///     It impacts <see cref="TimeoutInterceptor"/>.
     /// </remarks>
-    [Time("00:00:00.001", "00:30:00")]
+    [Time("00:00:00.001", "00:30:00", AllowInfinite = true)]
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
 
     /// <summary>
@@ -79,6 +79,6 @@ public sealed class MessagingClientOptions
     /// <remarks>
     ///     It impacts <see cref="CancellationDelayInterceptor"/>.
     /// </remarks>
-    [Time("00:00:00", "00:30:00")]
+    [Time("00:00:00", "00:30:00", AllowInfinite = true)]
     public TimeSpan CancellationDelay { get; set; } = TimeSpan.FromSeconds(10);
 }
