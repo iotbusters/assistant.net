@@ -10,17 +10,17 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - none
 
-## [0.3.132] - 2022-07-02
+## [0.3.133] - 2022-07-04
 
-[Assistant.NET Release 0.3.132](https://github.com/iotbusters/assistant.net/releases/tag/0.3.132)
+[Assistant.NET Release 0.3.133](https://github.com/iotbusters/assistant.net/releases/tag/0.3.133)
 
-### 0.3.132 Added
+### 0.3.133 Added
 
 - async enumerable extension methods
 - operations for detailed storage values
 - operations for removing serializing types
 
-### 0.3.132 Changed
+### 0.3.133 Changed
 
 - hidden shared abstract interceptor from exception stacktrace
 - renamed intercept method of shared abstract interceptor
@@ -28,14 +28,14 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 - improved sha1 hash code calculation
 - message handling coordination mechanism
 
-### 0.3.132 Fixed
+### 0.3.133 Fixed
 
 - cancellation token based unsafe delays
 - configuration options source binding extension methods
 - debug timeout configuration method in messaging
 - implicit caching all message responses
 
-### 0.3.132 Removed
+### 0.3.133 Removed
 
 - some of task related union options extension methods
 
