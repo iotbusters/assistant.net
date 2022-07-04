@@ -31,6 +31,7 @@ public class HashExtensionsTests
     public void GetSha1_generatesInTime(object value)
     {
         var count = 1000;
+        value.GetSha1();// to avoid first run impact
 
         var watch2 = Stopwatch.StartNew();
         for (var i = 0; i < count; i++) value.GetSha1();
