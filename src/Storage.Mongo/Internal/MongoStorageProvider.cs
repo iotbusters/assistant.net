@@ -113,8 +113,6 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
     public IQueryable<KeyRecord> GetKeys() =>
         collection.AsQueryable(new AggregateOptions()).Select(x => new KeyRecord(x.Key.Id, x.KeyType, x.KeyContent, x.Key.ValueType));
 
-    public void Dispose() { /* The mongo client is DI managed. */ }
-
     private async Task<Option<ValueRecord>> FindOne(KeyRecord key, CancellationToken token)
     {
         logger.LogDebug("MongoDB({CollectionName}: {RecordId}) finding: begins.", collection.CollectionNamespace.FullName, key.Id);
