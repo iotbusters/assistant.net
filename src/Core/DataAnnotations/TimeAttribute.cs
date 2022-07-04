@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 
 namespace Assistant.Net.DataAnnotations;
 
@@ -52,6 +53,11 @@ public class TimeAttribute : ValidationAttribute
             invalidArgumentMessages.Add($"The max value {maxValue} is less than min value {minValue}.");
     }
 
+    /// <summary>
+    ///     Determines whether infinite value is allowed.
+    /// </summary>
+    public bool AllowInfinite { get; set; } = false;
+
     /// <inheritdoc />
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
@@ -65,6 +71,9 @@ public class TimeAttribute : ValidationAttribute
 
         if (value is not TimeSpan time)
             return new ValidationResult("The value isn't a TimeSpan.", memberNames);
+
+        if (AllowInfinite && time == Timeout.InfiniteTimeSpan)
+            return ValidationResult.Success;
 
         var isLessThan = time < minValue;
         var isGreaterThan = time > maxValue;

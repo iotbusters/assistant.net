@@ -6,6 +6,7 @@ using Assistant.Net.RetryStrategies;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Assistant.Net.Messaging;
 
@@ -385,7 +386,7 @@ public static class MessagingClientBuilderExtensions
         builder.Services.ConfigureMessagingClientOptions(builder.Name, o =>
         {
             if (Debugger.IsAttached)
-                o.Timeout = TimeSpan.MaxValue;
+                o.Timeout = Timeout.InfiniteTimeSpan;
         });
         return builder;
     }
