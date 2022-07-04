@@ -266,8 +266,6 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
         where kvs.Any()
         select new KeyRecord(k.Key.Id, k.Type, k.Content, k.Key.ValueType);
 
-    public void Dispose() { /* The mongo client is DI managed. */ }
-
     private async Task<Option<ValueRecord>> AddValue(
         KeyRecord key,
         ValueRecord newValue,

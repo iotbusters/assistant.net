@@ -1,7 +1,9 @@
-﻿using Assistant.Net.Messaging.Options;
+﻿using Assistant.Net.Messaging.Internal;
+using Assistant.Net.Messaging.Options;
 using Assistant.Net.Options;
 using Assistant.Net.Storage;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Messaging;
@@ -19,8 +21,9 @@ public static class GenericHandlingServerBuilderExtensions
     public static GenericHandlingServerBuilder UseSqlite(this GenericHandlingServerBuilder builder, Action<SqliteOptions> configureOptions)
     {
         builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
-            .UseSqlite(configureOptions)
-            .UseSqliteSingleProvider());
+                .UseSqlite(configureOptions)
+                .UseSqliteSingleProvider())
+            .AddHostedService<ConfigureSqliteHostedService>();
         return builder;
     }
 
@@ -32,8 +35,9 @@ public static class GenericHandlingServerBuilderExtensions
     public static GenericHandlingServerBuilder UseSqlite(this GenericHandlingServerBuilder builder, string connectionString)
     {
         builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
-            .UseSqlite(connectionString)
-            .UseSqliteSingleProvider());
+                .UseSqlite(connectionString)
+                .UseSqliteSingleProvider())
+            .AddHostedService<ConfigureSqliteHostedService>();
         return builder;
     }
 
@@ -45,8 +49,9 @@ public static class GenericHandlingServerBuilderExtensions
     public static GenericHandlingServerBuilder UseSqlite(this GenericHandlingServerBuilder builder, IConfigurationSection configuration)
     {
         builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
-            .UseSqlite(configuration)
-            .UseSqliteSingleProvider());
+                .UseSqlite(configuration)
+                .UseSqliteSingleProvider())
+            .AddHostedService<ConfigureSqliteHostedService>();
         return builder;
     }
 }

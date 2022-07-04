@@ -47,6 +47,7 @@ public sealed class StorageDbContext : DbContext
         var keyBuilder = modelBuilder.Entity<StorageKeyRecord>();
         keyBuilder.ToTable(StorageKeysTableName)
             .HasKey(x => new {x.Id, x.ValueType});
+        keyBuilder.HasIndex(x => new {x.Type, x.ValueType}).IsUnique(false);
         keyBuilder.Property(x => x.Id)
             .HasMaxLength(40);
         keyBuilder.Property(x => x.Type)
