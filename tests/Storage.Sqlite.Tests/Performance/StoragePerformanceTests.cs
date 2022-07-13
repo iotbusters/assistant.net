@@ -120,7 +120,7 @@ public class StoragePerformanceTests
             await Storage.TryRemove(new TestKey2(i), CancellationToken);
         watch.Stop();
         Console.WriteLine($"Total: {watch.Elapsed:g} (0.08) Middle: {watch.Elapsed / MeasurementCount:g}");
-        watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(0.1));
+        watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(0.2));
     }
 
     [Test]
