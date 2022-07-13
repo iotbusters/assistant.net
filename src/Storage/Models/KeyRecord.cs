@@ -11,7 +11,7 @@ public sealed class KeyRecord
     public KeyRecord() { }
 
     /// <summary/>
-    public KeyRecord(string id, string type, byte[] content, string valueType)
+    public KeyRecord(string id, string type, string valueType, byte[] content)
     {
         Id = id;
         Type = type;

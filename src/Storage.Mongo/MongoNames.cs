@@ -16,17 +16,7 @@ public sealed class MongoNames
     public const string StorageCollectionName = "Records";
 
     /// <summary>
-    ///     Historical/Partitioned storage key collection name.
+    ///     Historical/Partitioned storage collection name.
     /// </summary>
-    public const string HistoricalStorageKeyCollectionName = "Keys";
-
-    /// <summary>
-    ///     Historical/Partitioned storage key/value relation collection name.
-    /// </summary>
-    public const string HistoricalStorageKeyValueCollectionName = "KeyValues";
-
-    /// <summary>
-    ///     Historical/Partitioned storage value collection name.
-    /// </summary>
-    public const string HistoricalStorageValueCollectionName = "Values";
+    public const string HistoricalStorageCollectionName = "HistoricalRecords";
 }

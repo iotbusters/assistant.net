@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -77,7 +76,7 @@ public class SqlitePartitionedStorageProviderIntegrationTests
             addFactory: _ => Task.FromResult(TestValue()),
             updateFactory: (_, _) => throw new NotImplementedException());
 
-        var value = Storage.GetKeys().ToArray();
+        var value = await Storage.GetKeys(_ => true).ToArrayAsync();
 
         value.Should().BeEquivalentTo(new[] {TestKey});
     }
@@ -85,9 +84,9 @@ public class SqlitePartitionedStorageProviderIntegrationTests
     [Test]
     public async Task TryRemove_returnsZero_noKey()
     {
-        var count = await Storage.TryRemove(TestKey, upToIndex: 10);
+        var value = await Storage.TryRemove(TestKey, upToIndex: 10);
 
-        count.Should().Be(0);
+        value.Should().Be(new None<ValueRecord>());
     }
 
     [Test]
@@ -98,9 +97,9 @@ public class SqlitePartitionedStorageProviderIntegrationTests
             addFactory: _ => Task.FromResult(TestValue()),
             updateFactory: (_, _) => throw new NotImplementedException());
 
-        var count = await Storage.TryRemove(TestKey, upToIndex: 10);
+        var value = await Storage.TryRemove(TestKey, upToIndex: 10);
 
-        count.Should().Be(1);
+        value.Should().BeEquivalentTo(TestValue().AsOption());
     }
 
     [Test]
@@ -115,17 +114,17 @@ public class SqlitePartitionedStorageProviderIntegrationTests
             addFactory: _ => throw new NotImplementedException(),
             updateFactory: (_, _) => Task.FromResult(TestValue(version: 2)));
 
-        var count1 = await Storage.TryRemove(TestKey, upToIndex: 1);
-        count1.Should().Be(1);
+        var value = await Storage.TryRemove(TestKey, upToIndex: 1);
+        value.Should().BeEquivalentTo(TestValue(version: 1).AsOption());
 
         var value1 = await Storage.TryGet(TestKey, index: 1);
-        value1.Should().Be((Option<ValueRecord>)Option.None);
+        value1.Should().Be(new None<ValueRecord>());
 
         var value2 = await Storage.TryGet(TestKey, index: 2);
-        value2.Should().BeEquivalentTo(new {Value = TestValue(version: 2)});
+        value2.Should().BeEquivalentTo(TestValue(version: 2).AsOption());
 
-        var count2 = await Storage.TryRemove(TestKey, upToIndex: 2);
-        count2.Should().Be(1);
+        var value3 = await Storage.TryRemove(TestKey, upToIndex: 2);
+        value3.Should().BeEquivalentTo(TestValue(version: 2).AsOption());
     }
 
     [Test]
@@ -218,9 +217,9 @@ public class SqlitePartitionedStorageProviderIntegrationTests
     }
 
     private static CancellationToken CancellationToken => new CancellationTokenSource(100).Token;
-    private ValueRecord TestValue(int version = 1) => new(Type: nameof(Mocks.TestValue), Content: Array.Empty<byte>(), Audit(version));
+    private ValueRecord TestValue(int version = 1) => new(Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version = 1) => new(version) {CorrelationId = TestCorrelationId, User = TestUser, Created = TestDate};
-    private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: nameof(Mocks.TestValue));
+    private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", valueType: nameof(Mocks.TestValue), content: Array.Empty<byte>());
     private string TestCorrelationId { get; } = Guid.NewGuid().ToString();
     private string TestUser { get; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;

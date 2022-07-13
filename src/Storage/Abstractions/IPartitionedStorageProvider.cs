@@ -44,5 +44,5 @@ public interface IPartitionedStorageProvider<TValue> : IStorageProvider<ValueRec
     /// <param name="upToIndex">An index of specific object under the <paramref name="key"/>.</param>
     /// <param name="token"/>
     /// <returns>A number of removed values.</returns>
-    Task<long> TryRemove(KeyRecord key, long upToIndex, CancellationToken token = default);
+    Task<Option<ValueRecord>> TryRemove(KeyRecord key, long upToIndex, CancellationToken token = default);
 }

@@ -1,6 +1,8 @@
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
-using System.Linq;
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,9 +15,12 @@ namespace Assistant.Net.Storage.Abstractions;
 public interface IStorageProvider<TValue> : IStorage<KeyRecord, ValueRecord>
 {
     /// <summary>
-    ///     Gets all keys in the storage.
+    ///     Iterates keys of the storage.
     /// </summary>
-    IQueryable<KeyRecord> GetKeys();
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <param name="token"/>
+    /// <returns>An async iterator over keys of the storage.</returns>
+    IAsyncEnumerable<KeyRecord> GetKeys(Expression<Func<KeyRecord, bool>> predicate, CancellationToken token = default);
 
     /// <summary>
     ///     Tries to remove a value associated to the <paramref name="key"/>.

@@ -187,15 +187,15 @@ public class MongoHistoricalStorageIntegrationTests
 
         var value = await Storage.TryRemove(new TestKey(true));
 
-        value.Should().BeEquivalentTo(new {Value = new TestValue(true)}, o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(new {Value = new TestValue(true)});
     }
     
     [Test]
     public async Task TryRemoveByVersion_returnsNone_notExists()
     {
-        var count = await Storage.TryRemove(new TestKey(true), upToVersion: 1);
+        var option = await Storage.TryRemove(new TestKey(true), upToVersion: 1);
 
-        count.Should().Be(0L);
+        option.Should().Be(new None<TestValue>());
     }
 
     [Test]
@@ -204,9 +204,9 @@ public class MongoHistoricalStorageIntegrationTests
         var tasks = Enumerable.Range(1, 5).Select(_ => Storage.AddOrUpdate(new TestKey(true), new TestValue(true)));
         await Task.WhenAll(tasks);
 
-        var count = await Storage.TryRemove(new TestKey(true), upToVersion: 4);
+        var option = await Storage.TryRemove(new TestKey(true), upToVersion: 4);
 
-        count.Should().Be(4);
+        option.Should().BeEquivalentTo(new {Value = new TestValue(true)});
         var value5 = await Storage.TryGet(new TestKey(true), version: 5);
         value5.Should().BeEquivalentTo(new {Value = new TestValue(true)});
         var value4 = await Storage.TryGet(new TestKey(true), version: 4);

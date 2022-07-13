@@ -1,8 +1,8 @@
 ﻿namespace Assistant.Net.Storage.Models;
 
 /// <summary>
-///     The mapping between a specific <paramref name="Key"/> and an associated value version.
+///     Unique historical/partitioned storage key representation.
 /// </summary>
-/// <param name="Key">Unique key identifier.</param>
-/// <param name="Version">Unique index number in related partition.</param>
+/// <param name="Key">Storage key.</param>
+/// <param name="Version">Index number associated with <paramref name="Key"/>.</param>
 public record KeyVersion(Key Key, long Version);

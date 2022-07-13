@@ -74,7 +74,7 @@ public interface IHistoricalAdminStorage<TKey, TValue> : IHistoricalStorage<TKey
     /// </summary>
     /// <param name="key">A key object.</param>
     /// <param name="token"/>
-    /// <returns>A removed value if it was found.</returns>
+    /// <returns>A latest removed value if it was found.</returns>
     Task<Option<TValue>> TryRemove(TKey key, CancellationToken token = default);
 
     /// <summary>
@@ -84,6 +84,6 @@ public interface IHistoricalAdminStorage<TKey, TValue> : IHistoricalStorage<TKey
     /// <param name="key">A key object.</param>
     /// <param name="upToVersion">A specific value version.</param>
     /// <param name="token"/>
-    /// <returns>A number of removed value versions.</returns>
-    Task<long> TryRemove(TKey key, long upToVersion, CancellationToken token = default);
+    /// <returns>A latest removed value if it was found.</returns>
+    Task<Option<TValue>> TryRemove(TKey key, long upToVersion, CancellationToken token = default);
 }

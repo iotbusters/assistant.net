@@ -7,7 +7,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using System;
-using System.Linq;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,34 +37,37 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
         CancellationToken token)
     {
         var strategy = options.InsertRetry;
+        var keyId = new Key(key.Id, key.ValueType);
 
         var attempt = 1;
         while (true)
         {
-            logger.LogInformation("Storage.AddOrGet({KeyId}): {Attempt} begins.", key.Id, attempt);
+            logger.LogInformation("Storage.AddOrGet({@Key}): {Attempt} begins.", keyId, attempt);
 
-            if (await FindOne(key, token) is Some<ValueRecord>(var found))
+            if (await FindOne(keyId, token) is Some<ValueRecord>(var found))
             {
-                logger.LogInformation("Storage.AddOrGet({KeyId}, {Version}): {Attempt} found.",
-                    key.Id, found.Audit.Version, attempt);
+                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): {Attempt} found.",
+                    keyId, found.Audit.Version, attempt);
                 return found;
             }
 
-            if (await InsertOne(key, addFactory, token) is Some<ValueRecord>(var inserted))
+            var added = await addFactory(key);
+            var record = new MongoRecord(keyId, key.Type, key.Content, added.Content, added.Audit.Version, added.Audit.Details);
+            if (await InsertOne(record, token))
             {
-                logger.LogInformation("Storage.AddOrGet({KeyId}, {Version}): {Attempt} added.",
-                    key.Id, inserted.Audit.Version, attempt);
-                return inserted;
+                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): {Attempt} added.",
+                    keyId, added.Audit.Version, attempt);
+                return added;
             }
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Storage.AddOrGet({KeyId}): {Attempt} reached the limit.", key.Id, attempt);
+                logger.LogError("Storage.AddOrGet({@Key}): {Attempt} reached the limit.", keyId, attempt);
                 throw new StorageConcurrencyException();
             }
 
-            logger.LogWarning("Storage.AddOrGet({KeyId}): {Attempt} failed.", key.Id, attempt);
+            logger.LogWarning("Storage.AddOrGet({@Key}): {Attempt} failed.", keyId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
@@ -74,150 +79,157 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
         CancellationToken token)
     {
         var strategy = options.UpsertRetry;
+        var keyId = new Key(key.Id, key.ValueType);
 
         var attempt = 1;
         while (true)
         {
-            logger.LogInformation("Storage.AddOrUpdate({KeyId}): {Attempt} begins.", key.Id, attempt);
-
-            if (await FindOneAndReplace(key, updateFactory, token) is Some<ValueRecord>(var replaced))
+            logger.LogInformation("Storage.AddOrUpdate({@Key}): {Attempt} begins.", keyId, attempt);
+            if (await FindOne(keyId, token) is Some<ValueRecord>(var found))
             {
-                logger.LogInformation("Storage.AddOrUpdate({KeyId}, {Version}): {Attempt} updated.",
-                    key.Id, replaced.Audit.Version, attempt);
-                return replaced;
+                var updated = await updateFactory(key, found);
+                var replaceRecord = new MongoRecord(keyId, key.Type, key.Content, updated.Content, updated.Audit.Version, updated.Audit.Details);
+                if (await ReplaceOne(replaceRecord, found.Audit.Version, token))
+                {
+                    logger.LogInformation("Storage.AddOrUpdate({@Key}, {Version}): {Attempt} updated.",
+                        keyId, updated.Audit.Version, attempt);
+                    return updated;
+                }
             }
 
-            if (await InsertOne(key, addFactory, token) is Some<ValueRecord>(var inserted))
+            var added = await addFactory(key);
+            var insertRecord = new MongoRecord(keyId, key.Type, key.Content, added.Content, added.Audit.Version, added.Audit.Details);
+            if (await InsertOne(insertRecord, token))
             {
-                logger.LogInformation("Storage.AddOrUpdate({KeyId}, {Version}): {Attempt} added.",
-                    key.Id, inserted.Audit.Version, attempt);
-                return inserted;
+                logger.LogInformation("Storage.AddOrUpdate({@Key}, {Version}): {Attempt} added.",
+                    keyId, added.Audit.Version, attempt);
+                return added;
             }
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Storage.AddOrUpdate({KeyId}): {Attempt} reached the limit.", key.Id, attempt);
+                logger.LogError("Storage.AddOrUpdate({@Key}): {Attempt} reached the limit.", keyId, attempt);
                 throw new StorageConcurrencyException();
             }
 
-            logger.LogWarning("Storage.AddOrUpdate({KeyId}): {Attempt} failed.", key.Id, attempt);
+            logger.LogWarning("Storage.AddOrUpdate({@Key}): {Attempt} failed.", keyId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
 
-    public Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token) => FindOne(key, token);
-
-    public Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken token) => DeleteOne(key, token);
-
-    public IQueryable<KeyRecord> GetKeys() =>
-        collection.AsQueryable(new AggregateOptions()).Select(x => new KeyRecord(x.Key.Id, x.KeyType, x.KeyContent, x.Key.ValueType));
-
-    private async Task<Option<ValueRecord>> FindOne(KeyRecord key, CancellationToken token)
+    public async Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token)
     {
-        logger.LogDebug("MongoDB({CollectionName}: {RecordId}) finding: begins.", collection.CollectionNamespace.FullName, key.Id);
+        var keyId = new Key(key.Id, key.ValueType);
 
-        var found = await collection.Find(filter: x => x.Key == new Key(key.Id, key.ValueType), new FindOptions()).SingleOrDefaultAsync(token);
+        logger.LogInformation("Storage.TryGet({@Key}): begins.", keyId);
 
-        if (found != null)
-            logger.LogDebug("MongoDB({CollectionName}: {RecordId})[{Version}] finding: succeeded.",
-                collection.CollectionNamespace.FullName, key.Id, found.Version);
-        else
-            logger.LogDebug("MongoDB({CollectionName}: {RecordId}) finding: not found.",
-                collection.CollectionNamespace.FullName, key.Id);
+        if (await FindOne(keyId, token) is Some<ValueRecord>(var found) option)
+        {
+            logger.LogInformation("Storage.TryGet({@Key}, {Version}): found.", keyId, found.Audit.Version);
+            return option;
+        }
 
-        return found.AsOption().MapOption(x => new ValueRecord(key.ValueType, x.ValueContent, new Audit(x.Details, x.Version)));
+        logger.LogInformation("Storage.TryGet({@Key}): not found.", keyId);
+        return Option.None;
     }
 
-    private async Task<Option<ValueRecord>> InsertOne(KeyRecord key, Func<KeyRecord, Task<ValueRecord>> addFactory, CancellationToken token)
+    public async Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken token)
     {
-        var added = await addFactory(key);
         var keyId = new Key(key.Id, key.ValueType);
-        var addedRecord = new MongoRecord(
-            keyId,
-            key.Type,
-            key.Content,
-            added.Audit.Version,
-            added.Content,
-            added.Audit.Details);
 
-        logger.LogDebug("MongoDB({CollectionName}: {RecordId})[{Version}] inserting: begins.",
-            collection.CollectionNamespace.FullName, key.Id, added.Audit.Version);
+        logger.LogInformation("Storage.TryRemove({@Key}): begins.", keyId);
+
+        if (await FindOneAndDelete(keyId, token) is Some<ValueRecord>(var found) option)
+        {
+            logger.LogInformation("Storage.TryRemove({@Key}, {Version}): succeeded.", keyId, found.Audit.Version);
+            return option;
+        }
+
+        logger.LogInformation("Storage.TryRemove({@Key}): not found.", keyId);
+        return Option.None;
+    }
+
+    public async IAsyncEnumerable<KeyRecord> GetKeys(Expression<Func<KeyRecord, bool>> predicate, [EnumeratorCancellation] CancellationToken token)
+    {
+        logger.LogInformation("Storage.GetKeys(): begins.");
+
+        using var cursor = await collection.Aggregate(new AggregateOptions())
+            .Project(x => new KeyRecord(x.Key.Id, x.KeyType, x.Key.ValueType, x.KeyContent))
+            .Match(predicate)
+            .ToCursorAsync(token);
+        while (await cursor.MoveNextAsync(token))
+            foreach (var key in cursor.Current)
+                yield return key;
+
+        logger.LogInformation("Storage.GetKeys(): succeeded.");
+    }
+
+    private async Task<Option<ValueRecord>> FindOne(Key key, CancellationToken token)
+    {
+        logger.LogDebug("MongoDB({@Key}) finding: begins.", key);
+
+        var found = await collection.Find(filter: x => x.Key == key, new FindOptions()).SingleOrDefaultAsync(token);
+
+        if (found != null)
+            logger.LogDebug("MongoDB({@Key}, {Version}) finding: succeeded.", key, found.Version);
+        else
+            logger.LogDebug("MongoDB({@Key}) finding: not found.", key);
+
+        return found.AsOption().MapOption(x => new ValueRecord(x.ValueContent, new Audit(x.Details, x.Version)));
+    }
+
+    private async Task<bool> InsertOne(MongoRecord record, CancellationToken token)
+    {
+        logger.LogDebug("MongoDB({@Key}, {Version}) inserting: begins.", record.Key, record.Version);
 
         try
         {
-            await collection.InsertOneAsync(
-                addedRecord,
-                new InsertOneOptions(),
-                token);
+            await collection.InsertOneAsync(record, new InsertOneOptions(), token);
 
-            logger.LogDebug("MongoDB({CollectionName}: {RecordId})[{Version}] inserting : succeeded.",
-                collection.CollectionNamespace.FullName, key.Id, added.Audit.Version);
-            return Option.Some(added with {Audit = new Audit(added.Audit.Details, addedRecord.Version)});
+            logger.LogDebug("MongoDB({@Key}, {Version}) inserting : succeeded.", record.Key, record.Version);
+            return true;
         }
         catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
         {
-            logger.LogWarning(ex, "MongoDB({CollectionName}: {RecordId})[{Version}] inserting: already present.",
-                collection.CollectionNamespace.FullName, key.Id, added.Audit.Version);
-            return Option.None;
+            logger.LogWarning(ex, "MongoDB({@Key}, {Version}) inserting: already present.", record.Key, record.Version);
+            return false;
         }
     }
 
-    private async Task<Option<ValueRecord>> FindOneAndReplace(
-        KeyRecord key,
-        Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
-        CancellationToken token)
+    private async Task<bool> ReplaceOne(MongoRecord record, long version, CancellationToken token)
     {
-        if (await FindOne(key, token) is not Some<ValueRecord>(var found))
-            return Option.None;
+        logger.LogDebug("MongoDB({@Key}, {Version}) replacing: begins.", record.Key, record.Version);
 
-        var updated = await updateFactory(key, found);
-        var updatedRecord = new MongoRecord(
-            new(key.Id, key.ValueType),
-            key.Type,
-            key.Content,
-            updated.Audit.Version,
-            updated.Content,
-            updated.Audit.Details);
-
-        logger.LogDebug("MongoDB({CollectionName}: {RecordId})[{Version}] replacing: begins.",
-            collection.CollectionNamespace.FullName, key.Id, updatedRecord.Version);
-
-        var result = await collection.ReplaceOneAsync(
-            filter: x => x.Key == new Key(key.Id,key.ValueType) && x.Version == found.Audit.Version,
-            updatedRecord,
-            new ReplaceOptions(),
-            token);
-
+        var result = await collection.ReplaceOneAsync(x => x.Key == record.Key && x.Version == version, record, new ReplaceOptions(), token);
         if (result.MatchedCount != 0)
         {
-            logger.LogDebug("MongoDB({CollectionName}: {RecordId})[{Version}] replacing: succeeded.",
-                collection.CollectionNamespace.FullName, key.Id, updatedRecord.Version);
-            return Option.Some(updated with {Audit = new Audit(updated.Audit.Details, updatedRecord.Version)});
+            logger.LogDebug("MongoDB({@Key}, {Version}) replacing: succeeded.", record.Key, record.Version);
+            return true;
         }
 
-        logger.LogWarning("MongoDB({CollectionName}: {RecordId})[{Version}] replacing: outdated version.",
-            collection.CollectionNamespace.FullName, key.Id, updatedRecord.Version);
-        return Option.None;
-
+        logger.LogWarning("MongoDB({@Key}, {Version}) replacing: outdated version.", record.Key, record.Version);
+        return false;
     }
 
-    private async Task<Option<ValueRecord>> DeleteOne(KeyRecord key, CancellationToken token)
+    private async Task<Option<ValueRecord>> FindOneAndDelete(Key key, CancellationToken token)
     {
-        logger.LogDebug("MongoDB({CollectionName}: {RecordId}) deleting: begins.", collection.CollectionNamespace.FullName, key.Id);
+        logger.LogDebug("MongoDB({@Key}) deleting: begins.", key);
 
-        var deleted = await collection.FindOneAndDeleteAsync<MongoRecord>(
-            filter: x => x.Key == new Key(key.Id, key.ValueType),
-            new FindOneAndDeleteOptions<MongoRecord>(),
+        var deleted = await collection.FindOneAndDeleteAsync(
+            filter: x => x.Key == key,
+            new FindOneAndDeleteOptions<MongoRecord, ValueRecord>
+            {
+                Projection = new FindExpressionProjectionDefinition<MongoRecord, ValueRecord>(x =>
+                    new ValueRecord(x.ValueContent, new Audit(x.Details, x.Version)))
+            },
             token);
 
         if (deleted != null)
-            logger.LogDebug("MongoDB({CollectionName}: {RecordId})[{Version}] finding: succeeded.",
-                collection.CollectionNamespace.FullName, key.Id, deleted.Version);
+            logger.LogDebug("MongoDB({@Key}, {Version}) finding: succeeded.", key, deleted.Audit.Version);
         else
-            logger.LogDebug("MongoDB({CollectionName}: {RecordId}) finding: not found.",
-                collection.CollectionNamespace.FullName, key.Id);
+            logger.LogDebug("MongoDB({@Key}) finding: not found.", key);
 
-        return deleted.AsOption().MapOption(x => new ValueRecord(key.ValueType, x.ValueContent, new Audit(x.Details, x.Version)));
+        return deleted.AsOption();
     }
 }

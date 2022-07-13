@@ -42,7 +42,7 @@ public interface IPartitionedAdminStorage<TKey, TValue> : IPartitionedStorage<TK
     /// </summary>
     /// <param name="key">A partition key object.</param>
     /// <param name="token"/>
-    /// <returns>A removed value if it was found.</returns>
+    /// <returns>A latest removed value if it was found.</returns>
     Task<Option<TValue>> TryRemove(TKey key, CancellationToken token = default);
 
     /// <summary>
@@ -52,6 +52,6 @@ public interface IPartitionedAdminStorage<TKey, TValue> : IPartitionedStorage<TK
     /// <param name="key">A partition key object.</param>
     /// <param name="upToIndex">A specific index.</param>
     /// <param name="token"/>
-    /// <returns>A number of removed value versions.</returns>
-    Task<long> TryRemove(TKey key, long upToIndex, CancellationToken token = default);
+    /// <returns>A latest removed value if it was found.</returns>
+    Task<Option<TValue>> TryRemove(TKey key, long upToIndex, CancellationToken token = default);
 }

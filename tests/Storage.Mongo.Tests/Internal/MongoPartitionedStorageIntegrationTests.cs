@@ -39,7 +39,7 @@ public class MongoPartitionedStorageIntegrationTests
         var value = await Storage.Add(new TestKey(true), new StorageValue<TestValue>(new TestValue(true)));
 
         value.Should().BeOfType<PartitionValue<TestValue>>()
-            .And.BeEquivalentTo(new { Value = new TestValue(true), Index = 1 });
+            .And.BeEquivalentTo(new {Value = new TestValue(true), Index = 1});
     }
 
     [Test]
@@ -50,7 +50,7 @@ public class MongoPartitionedStorageIntegrationTests
         var value = await Storage.Add(new TestKey(true), new StorageValue<TestValue>(new TestValue(false)));
 
         value.Should().BeOfType<PartitionValue<TestValue>>()
-            .And.BeEquivalentTo(new { Value = new TestValue(false), Index = 2 });
+            .And.BeEquivalentTo(new {Value = new TestValue(false), Index = 2});
     }
 
     [Test]
@@ -58,7 +58,7 @@ public class MongoPartitionedStorageIntegrationTests
     {
         var value = await Storage.TryGet(new TestKey(true), index: 1);
 
-        value.Should().Be((Option<TestValue>)Option.None);
+        value.Should().Be(new None<TestValue>());
     }
 
     [Test]
@@ -68,7 +68,7 @@ public class MongoPartitionedStorageIntegrationTests
 
         var value = await Storage.TryGet(new TestKey(true), index: 1);
 
-        value.Should().BeEquivalentTo(new { Value = new TestValue(true) });
+        value.Should().Be(new TestValue(true).AsOption());
     }
 
     [Test]
@@ -84,9 +84,9 @@ public class MongoPartitionedStorageIntegrationTests
     [Test]
     public async Task TryRemove_returnsZero_noKey()
     {
-        var count = await Storage.TryRemove(new TestKey(true), upToIndex: 10);
+        var option = await Storage.TryRemove(new TestKey(true), upToIndex: 10);
 
-        count.Should().Be(0);
+        option.Should().Be(new None<TestValue>());
     }
 
     [Test]
@@ -94,28 +94,28 @@ public class MongoPartitionedStorageIntegrationTests
     {
         await Storage.Add(new TestKey(true), new TestValue(true));
 
-        var count = await Storage.TryRemove(new TestKey(true), upToIndex: 10);
+        var option = await Storage.TryRemove(new TestKey(true), upToIndex: 10);
 
-        count.Should().Be(1);
+        option.Should().Be(new TestValue(true).AsOption());
     }
 
     [Test]
     public async Task TryRemove_returnsOne_twoKeysExist()
     {
         await Storage.Add(new TestKey(true), new TestValue(true));
-        await Storage.Add(new TestKey(true), new TestValue(true));
+        await Storage.Add(new TestKey(true), new TestValue(false));
 
-        var count1 = await Storage.TryRemove(new TestKey(true), upToIndex: 1);
-        count1.Should().Be(1);
+        var option1 = await Storage.TryRemove(new TestKey(true), upToIndex: 1);
+        option1.Should().Be(new TestValue(true).AsOption());
 
         var value1 = await Storage.TryGet(new TestKey(true), index: 1);
         value1.Should().Be((Option<TestValue>)Option.None);
 
         var value2 = await Storage.TryGet(new TestKey(true), index: 2);
-        value2.Should().BeEquivalentTo(new {Value = new TestValue(true)});
+        value2.Should().Be(new TestValue(false).AsOption());
 
-        var count2 = await Storage.TryRemove(new TestKey(true), upToIndex: 2);
-        count2.Should().Be(1);
+        var option2 = await Storage.TryRemove(new TestKey(true), upToIndex: 2);
+        option2.Should().Be(new TestValue(false).AsOption());
     }
 
     [Test]
@@ -134,7 +134,7 @@ public class MongoPartitionedStorageIntegrationTests
         await storage1.Add(key, new TestValue(true));
         var value = await storage2.TryGet(key, 1);
 
-        value.Should().Be(Option.Some(new TestValue(true)));
+        value.Should().Be(new TestValue(true).AsOption());
     }
 
     [Test]
@@ -178,10 +178,10 @@ public class MongoPartitionedStorageIntegrationTests
         var value3 = await storage1.TryGet(key, 2);
         var value4 = await storage2.TryGet(key, 3);
 
-        value1.Should().Be(Option.Some<TestBase>(new TestValue(true)));
-        value2.Should().Be(Option.Some(new TestValue(false)));
-        value3.Should().Be((Option<TestBase>)Option.None);
-        value4.Should().Be((Option<TestValue>)Option.None);
+        value1.Should().Be(new TestValue(true).AsOption<TestBase>());
+        value2.Should().Be(new TestValue(false).AsOption());
+        value3.Should().Be(new None<TestBase>());
+        value4.Should().Be(new None<TestValue>());
     }
 
 

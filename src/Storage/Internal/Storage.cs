@@ -9,7 +9,6 @@ using Assistant.Net.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -58,7 +57,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(valueType, content, audit);
+                    return new ValueRecord(content, audit);
                 }, token);
             return await valueConverter.Convert(valueRecord.Content, token);
         }
@@ -85,7 +84,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(valueType, content, audit);
+                    return new ValueRecord(content, audit);
                 }, token);
             var value = await valueConverter.Convert(valueRecord.Content, token);
             return new StorageValue<TValue>(value, valueRecord.Audit.Details);
@@ -113,7 +112,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(valueType, content, audit);
+                    return new ValueRecord(content, audit);
                 },
                 updateFactory: async (_, old) =>
                 {
@@ -126,7 +125,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(valueType, content, audit);
+                    return new ValueRecord(content, audit);
                 },
                 token);
             return await valueConverter.Convert(valueRecord.Content, token);
@@ -154,7 +153,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(valueType, content, audit);
+                    return new ValueRecord(content, audit);
                 },
                 updateFactory: async (_, old) =>
                 {
@@ -169,7 +168,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(valueType, content, audit);
+                    return new ValueRecord(content, audit);
                 },
                 token);
             var value = await valueConverter.Convert(valueRecord.Content, token);
@@ -228,16 +227,14 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     }
 
     public IAsyncEnumerable<TKey> GetKeys(CancellationToken token) =>
-        backedStorage.GetKeys()
-            .Where(x => x.Type == keyType && x.ValueType == valueType)
-            .AsAsync()
+        backedStorage.GetKeys(x => x.Type == keyType && x.ValueType == valueType, token)
             .Select(x => keyConverter.Convert(x.Content, token));
 
     private async Task<KeyRecord> CreateKeyRecord(TKey key, CancellationToken token)
     {
         var keyContent = await keyConverter.Convert(key, token);
         var keyId = keyContent.GetSha1();
-        var keyRecord = new KeyRecord(keyId, keyType, keyContent, valueType);
+        var keyRecord = new KeyRecord(keyId, keyType, valueType, keyContent);
         return keyRecord;
     }
 

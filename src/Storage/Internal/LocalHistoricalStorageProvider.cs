@@ -3,7 +3,9 @@ using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -61,7 +63,7 @@ internal sealed class LocalHistoricalStorageProvider<TValue> : IHistoricalStorag
 
     public Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken _)
     {
-        if(!backedStorage.TryRemove(key, out var versions))
+        if (!backedStorage.TryRemove(key, out var versions))
             return Task.FromResult<Option<ValueRecord>>(Option.None);
 
         return Task.FromResult(
@@ -70,21 +72,22 @@ internal sealed class LocalHistoricalStorageProvider<TValue> : IHistoricalStorag
                 : Option.None);
     }
 
-    public Task<long> TryRemove(KeyRecord key, long upToVersion, CancellationToken _)
+    public Task<Option<ValueRecord>> TryRemove(KeyRecord key, long upToVersion, CancellationToken _)
     {
         if (!backedStorage.TryGetValue(key, out var versions))
-            return Task.FromResult(0L);
+            return Task.FromResult<Option<ValueRecord>>(Option.None);
 
-        var count = versions.Keys
-            .OrderBy(x => x)
-            .Where(x => x <= upToVersion)
-            .LongCount(version => versions.TryRemove(version, out var _));
+        var value = versions[Math.Min(upToVersion, versions.Keys.Max())];
 
-        if (!versions.Any() && backedStorage.TryRemove(key, out var latestVersions))
-            count += latestVersions.Count; // note: race condition.
+        foreach (var version in versions.Keys.Where(x => x <= upToVersion))
+            versions.TryRemove(version, out var _);
 
-        return Task.FromResult(count);
+        if (!versions.Any())
+            backedStorage.TryRemove(key, out var _);
+
+        return Task.FromResult(Option.Some(value));
     }
 
-    public IQueryable<KeyRecord> GetKeys() => backedStorage.Keys.AsQueryable();
+    public IAsyncEnumerable<KeyRecord> GetKeys(Expression<Func<KeyRecord, bool>> predicate, CancellationToken token) =>
+        backedStorage.Keys.AsQueryable().Where(predicate).AsAsync();
 }

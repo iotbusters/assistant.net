@@ -8,7 +8,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,33 +39,42 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         CancellationToken token)
     {
         var strategy = options.InsertRetry;
+        var context = CreateDbContext();
 
+        var keyId = new Key(key.Id, key.ValueType);
         var attempt = 1;
         while (true)
         {
-            logger.LogInformation("Storage.AddOrGet({KeyId}): {Attempt} begins.", key.Id, attempt);
+            logger.LogInformation("Storage.AddOrGet({@Key}): {Attempt} begins.", keyId, attempt);
 
-            if (await TryGet(key, token) is Some<ValueRecord>(var found))
+            var records = context.StorageValues.AsNoTracking();
+            if (await FindValue(records, key, token) is Some<StorageValueRecord>(var found))
             {
-                logger.LogInformation("Storage.AddOrGet({KeyId}, {Version}): {Attempt} found.",
-                    key.Id, found.Audit.Version, attempt);
-                return found;
+                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): {Attempt} found.", keyId, found.Version, attempt);
+                return ToValue(found);
             }
 
-            if (await InsertValue(key, addFactory, token) is Some<ValueRecord>(var added))
+            var value = await addFactory(key);
+            var record = new StorageValueRecord(
+                key.Id,
+                key.ValueType,
+                value.Content,
+                value.Audit.Version,
+                value.Audit.Details.ToDetailArray());
+            if (await InsertValue(context, key, record, token))
             {
-                logger.LogInformation("Storage.AddOrGet({KeyId}, {Version}): {Attempt} added.", key.Id, 1, attempt);
-                return added;
+                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): {Attempt} added.", keyId, 1, attempt);
+                return value;
             }
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Storage.AddOrGet({KeyId}, {Version}): {Attempt} reached the limit.", key.Id, 1, attempt);
+                logger.LogError("Storage.AddOrGet({@Key}, {Version}): {Attempt} reached the limit.", keyId, 1, attempt);
                 throw new StorageConcurrencyException();
             }
 
-            logger.LogWarning("Storage.AddOrGet({KeyId}, {Version}): {Attempt} failed.", key.Id, 1, attempt);
+            logger.LogWarning("Storage.AddOrGet({@Key}, {Version}): {Attempt} failed.", keyId, 1, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
@@ -74,198 +86,230 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         CancellationToken token)
     {
         var strategy = options.UpsertRetry;
-        var storageDbContext = CreateDbContext();
+        var context = CreateDbContext();
 
+        var keyId = new Key(key.Id, key.ValueType);
         var attempt = 1;
         while (true)
         {
-            logger.LogInformation("Storage.AddOrUpdate({KeyId}): {Attempt} begins.", key.Id, attempt);
-
-            if (await storageDbContext.StorageValues.AnyAsync(x => x.KeyId == key.Id && x.ValueType == key.ValueType, token))
+            logger.LogInformation("Storage.AddOrUpdate({@Key}): {Attempt} begins.", keyId, attempt);
+            if (await FindValue(context.StorageValues, key, token) is Some<StorageValueRecord>(var found))
             {
-                if (await UpdateValue(key, updateFactory, token) is Some<ValueRecord>(var updated))
+                var updated = await updateFactory(key, ToValue(found));
+                found.Version = updated.Audit.Version;
+                found.ValueContent = updated.Content;
+                found.Details = updated.Audit.Details.ToDetailArray();
+                if (await UpdateValue(context, found, token))
                 {
-                    logger.LogInformation("Storage.AddOrUpdate({KeyId}, {Version}): {Attempt} updated.",
-                        key.Id, updated.Audit.Version, attempt);
+                    logger.LogInformation("Storage.AddOrUpdate({@Key}, {Version}): {Attempt} updated.", keyId, found.Version, attempt);
                     return updated;
                 }
             }
-            else
+
+            var value = await addFactory(key);
+            var record = new StorageValueRecord(
+                key.Id,
+                key.ValueType,
+                value.Content,
+                value.Audit.Version,
+                value.Audit.Details.ToDetailArray());
+            if (await InsertValue(context, key, record, token))
             {
-                if (await InsertValue(key, addFactory, token) is Some<ValueRecord>(var added))
-                {
-                    logger.LogInformation("Storage.AddOrUpdate({KeyId}, {Version}): {Attempt} added.",
-                        key.Id, added.Audit.Version, attempt);
-                    return added;
-                }
+                logger.LogInformation("Storage.AddOrUpdate({@Key}, {Version}): {Attempt} added.", keyId, record.Version, attempt);
+                return value;
             }
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Storage.AddOrUpdate({KeyId}): {Attempt} reached the limit.", key.Id, attempt);
+                logger.LogError("Storage.AddOrUpdate({@Key}): {Attempt} reached the limit.", keyId, attempt);
                 throw new StorageConcurrencyException();
             }
 
-            logger.LogWarning("Storage.AddOrUpdate({KeyId}): {Attempt} failed.", key.Id, attempt);
+            logger.LogWarning("Storage.AddOrUpdate({@Key}): {Attempt} failed.", keyId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
 
     public async Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token)
     {
-        var option = await FindRecord(CreateDbContext().StorageValues.AsNoTracking(), key, token);
-        return option.MapOption(ToValue);
+        var keyId = new Key(key.Id, key.ValueType);
+
+        logger.LogInformation("Storage.TryGet({@Key}): begins.", keyId);
+
+        var records = CreateDbContext().StorageValues.AsNoTracking();
+        if (await FindValue(records, key, token) is Some<StorageValueRecord>(var found))
+        {
+            logger.LogInformation("Storage.TryGet({@Key}, {Version}): found.", keyId, found.Version);
+            return ToValue(found).AsOption();
+        }
+
+        logger.LogInformation("Storage.TryGet({@Key}): not found.", keyId);
+        return Option.None;
     }
 
-    public async Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken token) =>
-        await DeleteValue(key, token);
+    public async Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken token)
+    {
+        var strategy = options.DeleteRetry;
+        var context = CreateDbContext();
 
-    public IQueryable<KeyRecord> GetKeys() =>
-        CreateDbContext().StorageKeys.AsNoTracking().Select(x => new KeyRecord
+        var keyId = new Key(key.Id, key.ValueType);
+        var attempt = 1;
+        while (true)
         {
-            Id = x.Id,
-            Type = x.Type,
-            Content = x.Content,
-            ValueType = x.ValueType
-        });
+            logger.LogInformation("Storage.TryRemove({@Key}): {Attempt} begins.", keyId, attempt);
 
-    public void Dispose() { }
+            if (await FindValue(context.StorageValues, key, token) is not Some<StorageValueRecord>(var found))
+            {
+                logger.LogInformation("Storage.TryRemove({@Key}): {Attempt} not found.", keyId, attempt);
+                return Option.None;
+            }
 
-    private StorageDbContext CreateDbContext() =>
-        dbContextFactory.CreateDbContext();
+            if (await DeleteValue(context, found, token))
+            {
+                logger.LogInformation("Storage.TryRemove({@Key}, {Version}): {Attempt} deleted.", keyId, found.Version, attempt);
+                return ToValue(found).AsOption();
+            }
+
+            attempt++;
+            if (!strategy.CanRetry(attempt))
+            {
+                logger.LogError("Storage.TryRemove({@Key}): {Attempt} reached the limit.", keyId, attempt);
+                throw new StorageConcurrencyException();
+            }
+
+            logger.LogWarning("Storage.TryRemove({@Key}): {Attempt} failed.", keyId, attempt);
+            await Task.Delay(strategy.DelayTime(attempt), token);
+        }
+    }
+
+    public async IAsyncEnumerable<KeyRecord> GetKeys(Expression<Func<KeyRecord, bool>> predicate, [EnumeratorCancellation] CancellationToken token)
+    {
+        logger.LogInformation("Storage.GetKeys(): begins.");
+
+        var keys = CreateDbContext().StorageKeys.AsNoTracking()
+            .Select(x => new KeyRecord {Id = x.Id, Type = x.Type, Content = x.Content, ValueType = x.ValueType})
+            .Where(predicate)
+            .AsAsyncEnumerable()
+            .WithCancellation(token);
+
+        await foreach (var key in keys)
+            yield return key;
+
+        logger.LogInformation("Storage.GetKeys(): succeeded.");
+    }
+
+    private StorageDbContext CreateDbContext() => dbContextFactory.CreateDbContext();
 
     private ValueRecord ToValue(StorageValueRecord record) =>
-        new(record.ValueType, record.ValueContent, new Audit(record.Details.FromDetailArray(), record.Version));
+        new(record.ValueContent, new Audit(record.Details.FromDetailArray(), record.Version));
 
-    private async Task<Option<StorageValueRecord>> FindRecord(IQueryable<StorageValueRecord> values, KeyRecord key, CancellationToken token)
+    private async Task<Option<StorageValueRecord>> FindValue(IQueryable<StorageValueRecord> values, KeyRecord key, CancellationToken token)
     {
-        logger.LogDebug("SQLite({KeyId}) querying: begins.", key.Id);
+        var keyId = new Key(key.Id, key.ValueType);
+
+        logger.LogDebug("SQLite({@Key}) querying: begins.", keyId);
 
         var found = await values.SingleOrDefaultAsync(x => x.KeyId == key.Id && x.ValueType == key.ValueType, token);
         if (found != null)
-            logger.LogDebug("SQLite({KeyId})[{Version}] querying: found.", key.Id, found.Version);
+            logger.LogDebug("SQLite({@Key}, {Version}) querying: found.", keyId, found.Version);
         else
-            logger.LogDebug("SQLite({KeyId}) querying: not found.", key.Id);
+            logger.LogDebug("SQLite({@Key}) querying: not found.", keyId);
 
         return found.AsOption();
     }
 
-    private async Task<Option<ValueRecord>> InsertValue(
-        KeyRecord key,
-        Func<KeyRecord, Task<ValueRecord>> addFactory,
-        CancellationToken token)
+    private async Task<bool> InsertValue(StorageDbContext context, KeyRecord key, StorageValueRecord record, CancellationToken token)
     {
-        logger.LogDebug("SQLite({KeyId}) inserting: begins.", key.Id);
+        var keyId = new Key(key.Id, key.ValueType);
 
-        var added = await addFactory(key);
-        var valueRecord = new StorageValueRecord(
-            key.Id,
-            added.Type,
-            added.Content,
-            added.Audit.Version,
-            added.Audit.Details.ToDetailArray());
-
-        var dbContext = CreateDbContext();
-
-        if (await dbContext.StorageKeys.AnyAsync(x => x.Id == key.Id && x.ValueType == key.ValueType, token))
-            logger.LogDebug("SQLite({KeyId}, {Version}) key: found.", key.Id, added.Audit.Version);
+        logger.LogDebug("SQLite({@Key}) inserting: begins.", keyId);
+        
+        if (await context.StorageKeys.AnyAsync(x => x.Id == key.Id && x.ValueType == key.ValueType, token))
+            logger.LogDebug("SQLite({@Key}, {Version}) inserting: key found.", keyId, record.Version);
         else
         {
             var keyRecord = new StorageKeyRecord(key.Id, key.Type, key.Content, key.ValueType);
-            await dbContext.AddAsync(keyRecord, token);
+            await context.AddAsync(keyRecord, token);
 
-            logger.LogDebug("SQLite({KeyId}, {Version}) key: adding.", key.Id, added.Audit.Version);
+            logger.LogDebug("SQLite({@Key}, {Version}) inserting: key adding.", keyId, record.Version);
         }
 
         try
         {
-            await dbContext.AddAsync(valueRecord, token);
-            await dbContext.SaveChangesAsync(token);
+            await context.AddAsync(record, token);
+            await context.SaveChangesAsync(token);
         }
         catch (DbUpdateException ex) when (ex.InnerException is SqliteException {SqliteExtendedErrorCode: 1555})
         {
             // note: primary key constraint violation (https://www.sqlite.org/rescode.html#constraint_primarykey)
-            logger.LogWarning(ex, "SQLite({KeyId}, {Version}) inserting: already present.", key.Id, added.Audit.Version);
-            return Option.None;
+            logger.LogWarning(ex, "SQLite({@Key}, {Version}) inserting: already present.", keyId, record.Version);
+            context.ChangeTracker.Clear();
+            return false;
         }
         catch (DbUpdateException ex) when (ex.InnerException is SqliteException {SqliteExtendedErrorCode: 787})
         {
             // note: foreign key constraint violation (https://www.sqlite.org/rescode.html#constraint_foreignkey)
-            logger.LogWarning(ex, "SQLite({KeyId}, {Version}) inserting: key concurrently deleted.", key.Id, added.Audit.Version);
-            return Option.None;
+            logger.LogWarning(ex, "SQLite({@Key}, {Version}) inserting: key concurrently deleted.", keyId, record.Version);
+            context.ChangeTracker.Clear();
+            return false;
         }
 
-        logger.LogDebug("SQLite({KeyId}, {Version}) inserting: succeeded.", key.Id, added.Audit.Version);
-        return Option.Some(added);
+        logger.LogDebug("SQLite({@Key}, {Version}) inserting: succeeded.", keyId, record.Version);
+        return true;
     }
 
-    private async Task<Option<ValueRecord>> UpdateValue(
-        KeyRecord key,
-        Func<KeyRecord, ValueRecord, Task<ValueRecord>> updateFactory,
-        CancellationToken token)
+    private async Task<bool> UpdateValue(StorageDbContext context, StorageValueRecord found, CancellationToken token)
     {
-        var dbContext = CreateDbContext();
-        if (await FindRecord(dbContext.StorageValues, key, token) is not Some<StorageValueRecord>(var found))
-            return Option.None;
-
-        var oldValue = ToValue(found);
-        var newValue = await updateFactory(key, oldValue);
-
-        logger.LogDebug("SQLite({KeyId})[{Version}] updating: begins.",
-            key.Id, newValue.Audit.Version);
-
-        found.Version = newValue.Audit.Version;
-        found.ValueContent = newValue.Content;
-        found.Details = newValue.Audit.Details.ToDetailArray();
-
+        var keyId = new Key(found.KeyId, found.ValueType);
+        
+        logger.LogDebug("SQLite({@Key}, {Version}) updating: begins.", keyId, found.Version);
+        
         try
         {
-            dbContext.Update(found);
-            await dbContext.SaveChangesAsync(token);
+            context.Update(found);
+            await context.SaveChangesAsync(token);
         }
         catch (DbUpdateConcurrencyException ex)
         {
-            logger.LogWarning(ex, "SQLite({KeyId})[{Version}] updating: already modified concurrently.",
-                key.Id, newValue.Audit.Version);
-            return Option.None;
+            logger.LogWarning(ex, "SQLite({@Key}, {Version}) updating: already modified concurrently.", keyId, found.Version);
+            context.ChangeTracker.Clear();
+            return false;
         }
         catch (DbUpdateException ex) when (ex.InnerException is SqliteException {SqliteExtendedErrorCode: 787})
         {
             // note: foreign key constraint violation (https://www.sqlite.org/rescode.html#constraint_foreignkey)
-            logger.LogWarning(ex, "SQLite({KeyId})[{Version}] inserting: key concurrently deleted.",
-                key.Id, newValue.Audit.Version);
-            return Option.None;
+            logger.LogWarning(ex, "SQLite({@Key}, {Version}) inserting: key concurrently deleted.", keyId, found.Version);
+            context.ChangeTracker.Clear();
+            return false;
         }
 
-        logger.LogDebug("SQLite({KeyId})[{Version}] updating: succeeded.",
-            key.Id, newValue.Audit.Version);
-        return Option.Some(newValue);
+        logger.LogDebug("SQLite({@Key}, {Version}) updating: succeeded.", keyId, found.Version);
+        return true;
     }
 
-    private async Task<Option<ValueRecord>> DeleteValue(KeyRecord key, CancellationToken token)
+    private async Task<bool> DeleteValue(StorageDbContext context, StorageValueRecord record, CancellationToken token)
     {
-        logger.LogDebug("SQLite({KeyId}) deleting: begins.", key.Id);
+        var keyId = new Key(record.KeyId, record.ValueType);
 
-        var dbContext = CreateDbContext();
-        if (await FindRecord(dbContext.StorageValues, key, token) is not Some<StorageValueRecord>(var found))
-        {
-            logger.LogDebug("SQLite({KeyId}) deleting: not found.", key.Id);
-            return Option.None;
-        }
+        logger.LogDebug("SQLite({@Key}) deleting: begins.", keyId);
 
         try
         {
-            dbContext.Remove(found);
-            await dbContext.SaveChangesAsync(token);
+            var key = new StorageKeyRecord(record.KeyId, null!, null!, record.ValueType);
+            context.StorageKeys.Attach(key);
+            context.StorageKeys.Remove(key);
+            context.StorageValues.Remove(record);
+            await context.SaveChangesAsync(token);
         }
-        catch (DbUpdateConcurrencyException ex)
+        catch (DbUpdateException ex)
         {
-            logger.LogWarning(ex, "SQLite({KeyId})[{Version}] deleting: already deleted.", key.Id, found.Version);
-            return Option.None;
+            logger.LogWarning(ex, "SQLite({@Key}, {Version}) deleting: concurrently deleted.", keyId, record.Version);
+            context.ChangeTracker.Clear();
+            return false;
         }
 
-        logger.LogDebug("SQLite({KeyId})[{Version}] deleting: succeeded.", key.Id, found.Version);
-        return ToValue(found).AsOption();
+        logger.LogDebug("SQLite({@Key}, {Version}) deleting: succeeded.", keyId, record.Version);
+        return true;
     }
 }

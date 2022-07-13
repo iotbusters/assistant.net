@@ -4,27 +4,26 @@ using System.Collections.Generic;
 namespace Assistant.Net.Storage.Models;
 
 /// <summary>
-///     MongoDB storage persisting record.
+///     MongoDB historical/partitioned storage persisting record.
 /// </summary>
-public sealed class MongoRecord
+public sealed class MongoVersionedRecord
 {
     /// <summary>
     ///     Bson serialization only.
     /// </summary>
-    public MongoRecord() { }
+    public MongoVersionedRecord() { }
 
     /// <summary />
-    public MongoRecord(Key key,
+    public MongoVersionedRecord(
+        KeyVersion key,
         string keyType,
         byte[] keyContent,
         byte[] valueContent,
-        long version,
         IDictionary<string, string> details)
     {
         Key = key;
         KeyType = keyType;
         KeyContent = keyContent;
-        Version = version;
         ValueContent = valueContent;
         Details = details;
     }
@@ -33,7 +32,7 @@ public sealed class MongoRecord
     ///     Unique key identifier.
     /// </summary>
     [BsonId]
-    public Key Key { get; set; } = default!;
+    public KeyVersion Key { get; set; } = default!;
 
     /// <summary>
     ///     Key type name.
@@ -46,14 +45,14 @@ public sealed class MongoRecord
     public byte[] KeyContent { get; set; } = default!;
 
     /// <summary>
-    ///     Binary value content.
-    /// </summary>
-    public byte[] ValueContent { get; set; } = default!;
-
-    /// <summary>
     ///     <see cref="ValueContent"/> state version.
     /// </summary>
     public long Version { get; set; } = default!;
+
+    /// <summary>
+    ///     Binary value content.
+    /// </summary>
+    public byte[] ValueContent { get; set; } = default!;
 
     /// <summary>
     ///     Value content auditing details.
