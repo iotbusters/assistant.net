@@ -10,6 +10,14 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - none
 
+## [0.3.134] - 2022-07-13
+
+[Assistant.NET Release 0.3.134](https://github.com/iotbusters/assistant.net/releases/tag/0.3.134)
+
+### 0.3.134 Changed
+
+- improved performance of storage mongo and sqlite providers
+
 ## [0.3.133] - 2022-07-04
 
 [Assistant.NET Release 0.3.133](https://github.com/iotbusters/assistant.net/releases/tag/0.3.133)
