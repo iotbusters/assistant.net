@@ -23,7 +23,7 @@ public class SqliteStorageProviderIntegrationTests
     {
         var value = await Storage.AddOrGet(TestKey, TestValue(version: 2));
 
-        value.Should().BeEquivalentTo(new {Type = nameof(Mocks.TestValue), Audit = Audit(version: 2)});
+        value.Should().BeEquivalentTo(TestValue(version: 2));
     }
 
     [Test]
@@ -33,7 +33,7 @@ public class SqliteStorageProviderIntegrationTests
 
         var value = await Storage.AddOrGet(TestKey, TestValue());
 
-        value.Should().BeEquivalentTo(TestValue(), o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(TestValue());
     }
 
     [TestCase(5)]
@@ -44,8 +44,8 @@ public class SqliteStorageProviderIntegrationTests
 
         var lastValue = await Storage.TryGet(TestKey);
 
-        lastValue.Should().BeEquivalentTo(new {Value = new {Audit = Audit()}});
-        values.Select(x => x.Type).Distinct().Should().HaveCount(1);
+        lastValue.Should().BeEquivalentTo(TestValue().AsOption());
+        values.Select(x => x.Audit.Version).Distinct().Should().HaveCount(1);
     }
 
     [Test]
@@ -53,7 +53,7 @@ public class SqliteStorageProviderIntegrationTests
     {
         var value = await Storage.AddOrUpdate(TestKey, _ => TestValue(version:2), (_, _) => TestValue(version: 3));
 
-        value.Should().BeEquivalentTo(TestValue(version: 2), o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(TestValue(version: 2));
     }
 
     [Test]
@@ -63,7 +63,7 @@ public class SqliteStorageProviderIntegrationTests
 
         var value = await Storage.AddOrUpdate(TestKey, _ => TestValue(version: 2), (_, _) => TestValue(version: 3));
 
-        value.Should().BeEquivalentTo(TestValue(version: 3), o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(TestValue(version: 3));
     }
 
     [TestCase(5)]
@@ -75,7 +75,7 @@ public class SqliteStorageProviderIntegrationTests
 
         var lastValue = await Storage.TryGet(TestKey);
 
-        lastValue.Should().BeEquivalentTo(new {Value = TestValue(version: concurrencyCount) });
+        lastValue.Should().BeEquivalentTo(TestValue(version: concurrencyCount).AsOption());
         values.Should().BeEquivalentTo(Enumerable.Range(1, concurrencyCount).Select(TestValue));
     }
 
@@ -84,7 +84,7 @@ public class SqliteStorageProviderIntegrationTests
     {
         var value = await Storage.TryGet(TestKey);
 
-        value.Should().BeEquivalentTo(new None<ValueRecord>());
+        value.Should().Be(new None<ValueRecord>());
     }
 
     [Test]
@@ -94,7 +94,7 @@ public class SqliteStorageProviderIntegrationTests
 
         var value = await Storage.TryGet(TestKey);
 
-        value.Should().BeEquivalentTo(new {Value = TestValue()}, o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(TestValue().AsOption());
     }
 
     [Test]
@@ -102,7 +102,7 @@ public class SqliteStorageProviderIntegrationTests
     {
         var value = await Storage.TryRemove(TestKey);
 
-        value.Should().BeEquivalentTo(new None<ValueRecord>());
+        value.Should().Be(new None<ValueRecord>());
     }
 
     [Test]
@@ -112,7 +112,7 @@ public class SqliteStorageProviderIntegrationTests
 
         var value = await Storage.TryRemove(TestKey);
 
-        value.Should().BeEquivalentTo(new {Value = TestValue()}, o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(TestValue().AsOption());
     }
 
     [Test]
@@ -120,7 +120,7 @@ public class SqliteStorageProviderIntegrationTests
     {
         await Storage.AddOrGet(TestKey, TestValue());
 
-        var value = Storage.GetKeys().ToArray();
+        var value = await Storage.GetKeys(_ => true).ToArrayAsync();
 
         value.Should().BeEquivalentTo(new[] {TestKey});
     }
@@ -141,7 +141,7 @@ public class SqliteStorageProviderIntegrationTests
         await storage1.AddOrGet(key, new TestValue(true));
         var value = await storage2.TryGet(key);
 
-        value.Should().Be(Option.Some(new TestValue(true)));
+        value.Should().Be(new TestValue(true).AsOption());
     }
 
     [Test]
@@ -161,7 +161,7 @@ public class SqliteStorageProviderIntegrationTests
         await storage1.AddOrGet(key, new TestValue(true));
         var value = await storage2.TryGet(key);
 
-        value.Should().Be((Option<TestValue>)Option.None);
+        value.Should().Be(new None<TestValue>());
     }
 
     [Test]
@@ -183,8 +183,8 @@ public class SqliteStorageProviderIntegrationTests
         var value1 = await storage1.TryGet(key);
         var value2 = await storage2.TryGet(key);
 
-        value1.Should().Be(Option.Some<TestBase>(new TestValue(true)));
-        value2.Should().Be(Option.Some(new TestValue(false)));
+        value1.Should().Be(new TestValue(true).AsOption<TestBase>());
+        value2.Should().Be(new TestValue(false).AsOption());
     }
 
     [OneTimeSetUp]
@@ -211,9 +211,9 @@ public class SqliteStorageProviderIntegrationTests
     }
 
     private static CancellationToken CancellationToken => new CancellationTokenSource(100).Token;
-    private ValueRecord TestValue(int version = 1) => new(Type: nameof(Mocks.TestValue), Content: Array.Empty<byte>(), Audit(version));
+    private ValueRecord TestValue(int version = 1) => new(Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version = 1) => new(version) {CorrelationId = TestCorrelationId, User = TestUser, Created = TestDate};
-    private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: nameof(Mocks.TestValue));
+    private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", valueType: nameof(Mocks.TestValue), content: Array.Empty<byte>());
     private string TestCorrelationId { get; set; } = Guid.NewGuid().ToString();
     private string TestUser { get; set; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;

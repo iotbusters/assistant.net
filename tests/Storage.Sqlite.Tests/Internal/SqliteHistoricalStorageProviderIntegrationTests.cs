@@ -24,7 +24,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     {
         var value = await Storage.AddOrGet(TestKey, TestValue(version: 2));
 
-        value.Should().BeEquivalentTo(new {Type = nameof(Mocks.TestValue), Audit = Audit(version: 2)});
+        value.Should().BeEquivalentTo(TestValue(version: 2));
     }
 
     [Test]
@@ -47,7 +47,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
         var lastValue = await Storage.TryGet(TestKey);
 
         lastValue.Should().BeEquivalentTo(new {Value = new {Audit = Audit()}});
-        values.Select(x => x.Type).Distinct().Should().HaveCount(1);
+        values.Select(x => x.Audit.Version).Distinct().Should().HaveCount(1);
     }
 
     [Test]
@@ -88,7 +88,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
         // arrange: storage population
         foreach (var i in Enumerable.Range(1, count))
         {
-            var key = new KeyRecord(i.ToString(), "type", Array.Empty<byte>(), nameof(Mocks.TestValue));
+            var key = new KeyRecord(i.ToString(), "type", nameof(Mocks.TestValue), Array.Empty<byte>());
             await Storage.AddOrUpdate(key, TestValue(version: i));
             await Storage.AddOrUpdate(TestKey, TestValue(version: i));
         }
@@ -146,7 +146,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
         // arrange: storage population
         foreach (var i in Enumerable.Range(1, count))
         {
-            var key = new KeyRecord(i.ToString(), "type", Array.Empty<byte>(), nameof(Mocks.TestValue));
+            var key = new KeyRecord(i.ToString(), "type", nameof(Mocks.TestValue), Array.Empty<byte>());
             await Storage.AddOrUpdate(key, TestValue(version: i));
             await Storage.AddOrUpdate(TestKey, TestValue(version: i));
         }
@@ -205,9 +205,9 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     [Test]
     public async Task TryRemoveByVersion_returnsNone_notExists()
     {
-        var count = await Storage.TryRemove(TestKey, upToVersion: 1);
+        var value = await Storage.TryRemove(TestKey, upToVersion: 1);
 
-        count.Should().Be(0L);
+        value.Should().Be(new None<ValueRecord>());
     }
 
     [Test]
@@ -216,13 +216,11 @@ public class SqliteHistoricalStorageProviderIntegrationTests
         foreach (var i in Enumerable.Range(1, 5))
             await Storage.AddOrUpdate(TestKey, TestValue(version: i));
 
-        var count = await Storage.TryRemove(TestKey, upToVersion: 4);
+        var value = await Storage.TryRemove(TestKey, upToVersion: 4);
 
-        count.Should().Be(4);
+        value.Should().BeEquivalentTo(TestValue(version: 4).AsOption());
         var value5 = await Storage.TryGet(TestKey, version: 5);
-        value5.Should().BeEquivalentTo(
-            new {Value = TestValue(version: 5)},
-            o => o.ComparingByMembers<ValueRecord>());
+        value5.Should().BeEquivalentTo(TestValue(version: 5).AsOption());
         var value4 = await Storage.TryGet(TestKey, version: 4);
         value4.Should().BeEquivalentTo(new None<ValueRecord>());
         var value1 = await Storage.TryGet(TestKey, version: 1);
@@ -234,7 +232,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     {
         await Storage.AddOrGet(TestKey, TestValue());
 
-        var value = Storage.GetKeys().ToArray();
+        var value = await Storage.GetKeys(_ => true).ToArrayAsync();
 
         value.Should().BeEquivalentTo(new[] {TestKey});
     }
@@ -325,9 +323,9 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     }
 
     private static CancellationToken CancellationToken => new CancellationTokenSource(100).Token;
-    private ValueRecord TestValue(int version = 1) => new(Type: nameof(Mocks.TestValue), Content: Array.Empty<byte>(), Audit(version));
+    private ValueRecord TestValue(int version = 1) => new(Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version = 1) => new(version) {CorrelationId = TestCorrelationId, User = TestUser, Created = TestDate};
-    private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: nameof(Mocks.TestValue));
+    private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", valueType: nameof(Mocks.TestValue), content: Array.Empty<byte>());
     private string TestCorrelationId { get; } = Guid.NewGuid().ToString();
     private string TestUser { get; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;

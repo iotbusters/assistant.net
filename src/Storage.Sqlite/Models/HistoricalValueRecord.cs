@@ -17,7 +17,7 @@ public record HistoricalValueRecord(
 {
     /// <summary/>
     public HistoricalValueRecord(string keyId, string valueType, byte[] valueContent, long version, IEnumerable<StorageValueDetail> details)
-    :this(keyId,valueType,valueContent, version)
+        : this(keyId, valueType, valueContent, version)
     {
         Details = details;
     }

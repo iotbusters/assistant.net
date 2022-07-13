@@ -12,7 +12,6 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using NUnit.Framework;
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,7 +22,7 @@ public class MongoPartitionedStorageProviderIntegrationTests
     [Test]
     public async Task Add_returnsAddedValue_noKey()
     {
-        var value1 = TestValue("added");
+        var value1 = TestValue(version: 1);
         var value = await Storage.Add(
             TestKey,
             addFactory: _ => Task.FromResult(value1),
@@ -35,8 +34,8 @@ public class MongoPartitionedStorageProviderIntegrationTests
     [Test]
     public async Task Add_returnsExistingValue_keyExists()
     {
-        var value1 = TestValue("added");
-        var value20 = TestValue("added-2", version: 20);
+        var value1 = TestValue(version: 1);
+        var value20 = TestValue(version: 20);
         await Storage.Add(
             TestKey,
             addFactory: _ => Task.FromResult(value1),
@@ -55,7 +54,7 @@ public class MongoPartitionedStorageProviderIntegrationTests
     {
         var value = await Storage.TryGet(TestKey, index: 1);
 
-        value.Should().Be((Option<ValueRecord>)Option.None);
+        value.Should().Be(new None<ValueRecord>());
     }
 
     [Test]
@@ -63,12 +62,12 @@ public class MongoPartitionedStorageProviderIntegrationTests
     {
         await Storage.Add(
             TestKey,
-            addFactory: _ => Task.FromResult(TestValue("added")),
+            addFactory: _ => Task.FromResult(TestValue(version: 1)),
             updateFactory: (_, _) => throw new NotImplementedException());
 
         var value = await Storage.TryGet(TestKey, index: 1);
 
-        value.Should().BeEquivalentTo(new {Value = TestValue("added")}, o => o.ComparingByMembers<ValueRecord>());
+        value.Should().BeEquivalentTo(TestValue(version: 1).AsOption());
     }
 
     [Test]
@@ -76,10 +75,10 @@ public class MongoPartitionedStorageProviderIntegrationTests
     {
         await Storage.Add(
             TestKey,
-            addFactory: _ => Task.FromResult(TestValue("added")),
+            addFactory: _ => Task.FromResult(TestValue(version: 1)),
             updateFactory: (_, _) => throw new NotImplementedException());
 
-        var value = Storage.GetKeys().ToArray();
+        var value = await Storage.GetKeys(_ => true).ToArrayAsync();
 
         value.Should().BeEquivalentTo(new[] {TestKey});
     }
@@ -87,9 +86,9 @@ public class MongoPartitionedStorageProviderIntegrationTests
     [Test]
     public async Task TryRemove_returnsZero_noKey()
     {
-        var count = await Storage.TryRemove(TestKey, upToIndex: 10);
+        var option = await Storage.TryRemove(TestKey, upToIndex: 10);
 
-        count.Should().Be(0);
+        option.Should().Be(new None<ValueRecord>());
     }
 
     [Test]
@@ -97,12 +96,12 @@ public class MongoPartitionedStorageProviderIntegrationTests
     {
         await Storage.Add(
             TestKey,
-            addFactory: _ => Task.FromResult(TestValue("added")),
+            addFactory: _ => Task.FromResult(TestValue(version: 1)),
             updateFactory: (_, _) => throw new NotImplementedException());
 
-        var count = await Storage.TryRemove(TestKey, upToIndex: 10);
+        var option = await Storage.TryRemove(TestKey, upToIndex: 10);
 
-        count.Should().Be(1);
+        option.Should().BeEquivalentTo(TestValue(version: 1).AsOption());
     }
 
     [Test]
@@ -110,24 +109,27 @@ public class MongoPartitionedStorageProviderIntegrationTests
     {
         await Storage.Add(
             TestKey,
-            addFactory: _ => Task.FromResult(TestValue("value-1", version: 1)),
+            addFactory: _ => Task.FromResult(TestValue(version: 1)),
             updateFactory: (_, _) => throw new NotImplementedException());
         await Storage.Add(
             TestKey,
             addFactory: _ => throw new NotImplementedException(),
-            updateFactory: (_, _) => Task.FromResult(TestValue("value-2", version: 2)));
+            updateFactory: (_, _) => Task.FromResult(TestValue(version: 2)));
 
-        var count1 = await Storage.TryRemove(TestKey, upToIndex: 1);
-        count1.Should().Be(1);
+        var option1 = await Storage.TryGet(TestKey, index: 1);
+        option1.Should().BeEquivalentTo(TestValue(version: 1).AsOption());
 
-        var value1 = await Storage.TryGet(TestKey, index: 1);
-        value1.Should().Be((Option<ValueRecord>)Option.None);
+        var option2 = await Storage.TryRemove(TestKey, upToIndex: 1);
+        option2.Should().BeEquivalentTo(TestValue(version: 1).AsOption());
 
-        var value2 = await Storage.TryGet(TestKey, index: 2);
-        value2.Should().BeEquivalentTo(new {Value = new {Type = "value-2"}});
+        var option3 = await Storage.TryGet(TestKey, index: 1);
+        option3.Should().Be(new None<ValueRecord>());
 
-        var count2 = await Storage.TryRemove(TestKey, upToIndex: 2);
-        count2.Should().Be(1);
+        var option4 = await Storage.TryGet(TestKey, index: 2);
+        option4.Should().BeEquivalentTo(TestValue(version: 2).AsOption());
+
+        var option5 = await Storage.TryRemove(TestKey, upToIndex: 2);
+        option5.Should().BeEquivalentTo(TestValue(version: 2).AsOption());
     }
 
     [Test]
@@ -219,9 +221,9 @@ public class MongoPartitionedStorageProviderIntegrationTests
 
     private static CancellationToken CancellationToken => new CancellationTokenSource(200).Token;
 
-    private ValueRecord TestValue(string type, int version = 1) => new(Type: type, Content: Array.Empty<byte>(), Audit(version));
+    private ValueRecord TestValue(int version = 1) => new(Content: Array.Empty<byte>(), Audit(version));
     private Audit Audit(int version) => new(version) {CorrelationId = TestCorrelationId, User = TestUser, Created = TestDate};
-    private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", content: Array.Empty<byte>(), valueType: "test-value");
+    private KeyRecord TestKey { get; } = new(id: $"test-{Guid.NewGuid()}", type: "test-key", valueType: "test-value", content: Array.Empty<byte>());
     private string TestCorrelationId { get; } = Guid.NewGuid().ToString();
     private string TestUser { get; } = Guid.NewGuid().ToString();
     private DateTimeOffset TestDate { get; } = DateTimeOffset.UtcNow;

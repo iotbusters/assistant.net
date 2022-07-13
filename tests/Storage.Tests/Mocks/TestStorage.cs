@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,20 +37,19 @@ public class TestStorage<T> : IStorageProvider<T>
 
     public Task<Option<ValueRecord>> TryGet(KeyRecord key, CancellationToken token)
     {
-        if(stored.TryGetValue(key, out var value))
+        if (stored.TryGetValue(key, out var value))
             return Task.FromResult(Option.Some(value));
         return Task.FromResult<Option<ValueRecord>>(Option.None);
     }
 
     public Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken token)
     {
-        if(stored.Remove(key, out var value))
+        if (stored.Remove(key, out var value))
             return Task.FromResult(Option.Some(value));
         return Task.FromResult<Option<ValueRecord>>(Option.None);
     }
 
-    public IQueryable<KeyRecord> GetKeys() => stored.Keys.AsQueryable();
-
-    public void Dispose() { }
+    public IAsyncEnumerable<KeyRecord> GetKeys(Expression<Func<KeyRecord, bool>> predicate, CancellationToken token) =>
+        stored.Keys.AsQueryable().Where(predicate).AsAsync();
 
 }

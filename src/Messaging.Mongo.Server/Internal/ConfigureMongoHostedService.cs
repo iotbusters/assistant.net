@@ -27,10 +27,10 @@ internal class ConfigureMongoHostedService : IHostedService
         await using var scope = scopeFactory.CreateAsyncScopeWithNamedOptionContext(GenericOptionsNames.DefaultName);
         var database = scope.ServiceProvider.GetRequiredService<IMongoDatabase>();
         var storageCollection = database.GetCollection<MongoRecord>(MongoNames.StorageCollectionName);
-        var historicalCollection = database.GetCollection<MongoKeyRecord>(MongoNames.HistoricalStorageKeyCollectionName);
+        var historicalCollection = database.GetCollection<MongoVersionedRecord>(MongoNames.HistoricalStorageCollectionName);
 
-        await AddIndex(storageCollection, b => b.Ascending(x => x.KeyType).Ascending(x => x.Key.ValueType), token);
-        await AddIndex(historicalCollection, b => b.Ascending(x => x.Type).Ascending(x => x.Key.ValueType), token);
+        await AddIndex(storageCollection, b => b.Ascending(x => x.Key.Id).Ascending(x => x.Key.ValueType), token);
+        await AddIndex(historicalCollection, b => b.Ascending(x => x.Key.Key).Ascending(x => x.Key.Version), token);
     }
 
     public Task StopAsync(CancellationToken token) => Task.CompletedTask;

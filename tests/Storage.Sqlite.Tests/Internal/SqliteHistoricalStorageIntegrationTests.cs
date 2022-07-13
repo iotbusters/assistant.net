@@ -191,9 +191,9 @@ public class SqliteHistoricalStorageIntegrationTests
     [Test]
     public async Task TryRemoveByVersion_returnsNone_notExists()
     {
-        var count = await Storage.TryRemove(new TestKey(true), upToVersion: 1);
+        var value = await Storage.TryRemove(new TestKey(true), upToVersion: 1);
 
-        count.Should().Be(0L);
+        value.Should().Be(new None<TestValue>());
     }
 
     [Test]
@@ -202,11 +202,11 @@ public class SqliteHistoricalStorageIntegrationTests
         var tasks = Enumerable.Range(1, 5).Select(_ => Storage.AddOrUpdate(new TestKey(true), new TestValue(true)));
         await Task.WhenAll(tasks);
 
-        var count = await Storage.TryRemove(new TestKey(true), upToVersion: 4);
+        var value = await Storage.TryRemove(new TestKey(true), upToVersion: 4);
 
-        count.Should().Be(4);
+        value.Should().Be(new TestValue(true).AsOption());
         var value5 = await Storage.TryGet(new TestKey(true), version: 5);
-        value5.Should().BeEquivalentTo(new {Value = new TestValue(true)});
+        value5.Should().BeEquivalentTo(new TestValue(true).AsOption());
         var value4 = await Storage.TryGet(new TestKey(true), version: 4);
         value4.Should().BeEquivalentTo(new None<ValueRecord>());
         var value1 = await Storage.TryGet(new TestKey(true), version: 1);

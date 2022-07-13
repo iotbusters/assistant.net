@@ -82,9 +82,9 @@ public class SqlitePartitionedStorageIntegrationTests
     [Test]
     public async Task TryRemove_returnsZero_noKey()
     {
-        var count = await Storage.TryRemove(new TestKey(true), upToIndex: 10);
+        var value = await Storage.TryRemove(new TestKey(true), upToIndex: 10);
 
-        count.Should().Be(0);
+        value.Should().Be(new None<TestValue>());
     }
 
     [Test]
@@ -92,28 +92,28 @@ public class SqlitePartitionedStorageIntegrationTests
     {
         await Storage.Add(new TestKey(true), new TestValue(true));
 
-        var count = await Storage.TryRemove(new TestKey(true), upToIndex: 10);
+        var value = await Storage.TryRemove(new TestKey(true), upToIndex: 10);
 
-        count.Should().Be(1);
+        value.Should().Be(new TestValue(true).AsOption());
     }
 
     [Test]
     public async Task TryRemove_returnsOne_twoKeysExist()
     {
         await Storage.Add(new TestKey(true), new TestValue(true));
-        await Storage.Add(new TestKey(true), new TestValue(true));
+        await Storage.Add(new TestKey(true), new TestValue(false));
 
-        var count1 = await Storage.TryRemove(new TestKey(true), upToIndex: 1);
-        count1.Should().Be(1);
+        var value = await Storage.TryRemove(new TestKey(true), upToIndex: 1);
+        value.Should().Be(new TestValue(true).AsOption());
 
         var value1 = await Storage.TryGet(new TestKey(true), index: 1);
-        value1.Should().Be((Option<TestValue>)Option.None);
+        value1.Should().Be(new None<TestValue>());
 
         var value2 = await Storage.TryGet(new TestKey(true), index: 2);
-        value2.Should().BeEquivalentTo(new {Value = new TestValue(true)});
+        value2.Should().BeEquivalentTo(new TestValue(false).AsOption());
 
-        var count2 = await Storage.TryRemove(new TestKey(true), upToIndex: 2);
-        count2.Should().Be(1);
+        var value3 = await Storage.TryRemove(new TestKey(true), upToIndex: 2);
+        value3.Should().Be(new TestValue(false).AsOption());
     }
 
     [Test]

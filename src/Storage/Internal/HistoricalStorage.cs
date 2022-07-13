@@ -9,7 +9,6 @@ using Assistant.Net.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -58,7 +57,7 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(valueType, content, audit);
+                    return new ValueRecord(content, audit);
                 }, token);
             return await valueConverter.Convert(valueRecord.Content, token);
         }
@@ -85,7 +84,7 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(valueType, content, audit);
+                    return new ValueRecord(content, audit);
                 }, token);
             var value = await valueConverter.Convert(valueRecord.Content, token);
             return new HistoricalValue<TValue>(value, valueRecord.Audit.Details, valueRecord.Audit.Version);
@@ -113,7 +112,7 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(valueType, content, audit);
+                    return new ValueRecord(content, audit);
                 },
                 updateFactory: async (_, old) =>
                 {
@@ -126,7 +125,7 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(valueType, content, audit);
+                    return new ValueRecord(content, audit);
                 },
                 token);
             return await valueConverter.Convert(valueRecord.Content, token);
@@ -154,7 +153,7 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(valueType, content, audit);
+                    return new ValueRecord(content, audit);
                 },
                 updateFactory: async (_, old) =>
                 {
@@ -169,7 +168,7 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(valueType, content, audit);
+                    return new ValueRecord(content, audit);
                 },
                 token);
             var value = await valueConverter.Convert(valueRecord.Content, token);
@@ -247,10 +246,8 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
         }
     }
 
-    public IAsyncEnumerable<TKey> GetKeys(CancellationToken token = default) =>
-        backedStorage.GetKeys()
-            .Where(x => x.Type == keyType && x.ValueType == valueType)
-            .AsAsync()
+    public IAsyncEnumerable<TKey> GetKeys(CancellationToken token) =>
+        backedStorage.GetKeys(x => x.Type == keyType && x.ValueType == valueType, token)
             .Select(x => keyConverter.Convert(x.Content, token));
 
     public async Task<Option<TValue>> TryRemove(TKey key, CancellationToken token)
@@ -267,14 +264,15 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
         }
     }
 
-    public async Task<long> TryRemove(TKey key, long upToVersion, CancellationToken token)
+    public async Task<Option<TValue>> TryRemove(TKey key, long upToVersion, CancellationToken token)
     {
         if (upToVersion <= 0)
-            throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {upToVersion}.", nameof(upToVersion));
+            throw new ArgumentOutOfRangeException(nameof(upToVersion), $"Value must be bigger than 0 but it was {upToVersion}.");
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
-            return await backedStorage.TryRemove(keyRecord, upToVersion, token);
+            var option = await backedStorage.TryRemove(keyRecord, upToVersion, token);
+            return await option.MapOptionAsync(x => valueConverter.Convert(x.Content, token));
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
@@ -286,7 +284,7 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
     {
         var keyContent = await keyConverter.Convert(key, token);
         var keyId = keyContent.GetSha1();
-        var keyRecord = new KeyRecord(keyId, keyType, keyContent, valueType);
+        var keyRecord = new KeyRecord(keyId, keyType, valueType, keyContent);
         return keyRecord;
     }
 

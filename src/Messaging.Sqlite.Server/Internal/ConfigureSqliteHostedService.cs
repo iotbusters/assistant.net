@@ -30,7 +30,6 @@ internal class ConfigureSqliteHostedService : IHostedService
         try
         {
             await dbContext.Database.EnsureCreatedAsync(token);
-            await dbContext.Database.MigrateAsync(token);
         }
         catch (Exception ex)
         {

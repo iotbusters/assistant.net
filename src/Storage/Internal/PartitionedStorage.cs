@@ -9,7 +9,6 @@ using Assistant.Net.Utils;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -57,7 +56,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return Task.FromResult(new ValueRecord(valueType, content, audit));
+                    return Task.FromResult(new ValueRecord(content, audit));
                 },
                 updateFactory: (_, old) =>
                 {
@@ -67,7 +66,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return Task.FromResult(new ValueRecord(valueType, content, audit));
+                    return Task.FromResult(new ValueRecord(content, audit));
                 },
                 token);
             return valueRecord.Audit.Version;
@@ -94,7 +93,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return Task.FromResult(new ValueRecord(valueType, content, audit));
+                    return Task.FromResult(new ValueRecord(content, audit));
                 },
                 updateFactory: (_, old) =>
                 {
@@ -104,7 +103,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return Task.FromResult(new ValueRecord(valueType, content, audit));
+                    return Task.FromResult(new ValueRecord(content, audit));
                 },
                 token);
             return new PartitionValue<TValue>(value.Value, valueRecord.Audit.Details, valueRecord.Audit.Version);
@@ -150,9 +149,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
     }
 
     public IAsyncEnumerable<TKey> GetKeys(CancellationToken token) =>
-        backedStorage.GetKeys()
-            .Where(x => x.Type == keyType)
-            .AsAsync()
+        backedStorage.GetKeys(x => x.Type == keyType && x.ValueType == valueType, token)
             .Select(x => keyConverter.Convert(x.Content, token));
 
     public async Task<Option<TValue>> TryRemove(TKey key, CancellationToken token)
@@ -169,14 +166,15 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
         }
     }
 
-    public async Task<long> TryRemove(TKey key, long upToIndex, CancellationToken token)
+    public async Task<Option<TValue>> TryRemove(TKey key, long upToIndex, CancellationToken token)
     {
         if (upToIndex <= 0)
-            throw new ArgumentOutOfRangeException($"Value must be bigger than 0 but it was {upToIndex}.", nameof(upToIndex));
+            throw new ArgumentOutOfRangeException(nameof(upToIndex), $"Value must be bigger than 0 but it was {upToIndex}.");
         try
         {
             var keyRecord = await CreateKeyRecord(key, token);
-            return await backedStorage.TryRemove(keyRecord, upToIndex, token);
+            var option = await backedStorage.TryRemove(keyRecord, upToIndex, token);
+            return await option.MapOptionAsync(x => valueConverter.Convert(x.Content, token));
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
@@ -188,7 +186,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
     {
         var keyContent = await keyConverter.Convert(key, token);
         var keyId = keyContent.GetSha1();
-        var keyRecord = new KeyRecord(keyId, keyType, keyContent, valueType);
+        var keyRecord = new KeyRecord(keyId, keyType, valueType, keyContent);
         return keyRecord;
     }
 

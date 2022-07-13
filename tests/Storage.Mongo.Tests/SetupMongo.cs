@@ -44,5 +44,5 @@ public class SetupMongo
 
     private const string ConnectionString = "mongodb://127.0.0.1:27017";
 
-    private static CancellationToken CancellationToken => new CancellationTokenSource(100).Token;
+    private static CancellationToken CancellationToken => new CancellationTokenSource(1000).Token;
 }

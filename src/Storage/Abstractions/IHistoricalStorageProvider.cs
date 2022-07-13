@@ -27,5 +27,5 @@ public interface IHistoricalStorageProvider<TValue> : IStorageProvider<TValue>
     /// <param name="upToVersion">A specific value version.</param>
     /// <param name="token"/>
     /// <returns>A number of removed value versions.</returns>
-    Task<long> TryRemove(KeyRecord key, long upToVersion, CancellationToken token = default);
+    Task<Option<ValueRecord>> TryRemove(KeyRecord key, long upToVersion, CancellationToken token = default);
 }

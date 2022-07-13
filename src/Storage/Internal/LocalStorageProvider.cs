@@ -3,7 +3,9 @@ using Assistant.Net.Storage.Models;
 using Assistant.Net.Unions;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,5 +36,6 @@ internal sealed class LocalStorageProvider<TValue> : IStorageProvider<TValue>
         Task.FromResult(
             backedStorage.TryRemove(key, out var value) ? Option.Some(value) : Option.None);
 
-    public IQueryable<KeyRecord> GetKeys() => backedStorage.Keys.AsQueryable();
+    public IAsyncEnumerable<KeyRecord> GetKeys(Expression<Func<KeyRecord, bool>> predicate, CancellationToken token) =>
+        backedStorage.Keys.AsQueryable().Where(predicate).AsAsync();
 }
