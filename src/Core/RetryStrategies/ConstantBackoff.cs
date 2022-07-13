@@ -16,7 +16,7 @@ public sealed class ConstantBackoff : IRetryStrategy
     /// <summary>
     ///     Constant interval time.
     /// </summary>
-    [Required, Time("00:00:00.001", "1.00:00:00")]
+    [Required, Time("00:00:00.0000001", "1.00:00:00")]
     public TimeSpan Interval { get; set; }
 
     /// <inheritdoc/>
