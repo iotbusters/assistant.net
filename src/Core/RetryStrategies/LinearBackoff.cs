@@ -16,13 +16,13 @@ public sealed class LinearBackoff : IRetryStrategy
     /// <summary>
     ///     Max allowed time to delay before next handling attempt. Ignored if null.
     /// </summary>
-    [Time("00:00:00.001", "23:59:59")]
+    [Time("00:00:00.0000001", "23:59:59")]
     public TimeSpan? MaxDelayTime { get; set; }
 
     /// <summary>
     ///     Base interval time.
     /// </summary>
-    [Required, Time("00:00:00.001", "1.00:00:00")]
+    [Required, Time("00:00:00.0000001", "1.00:00:00")]
     public TimeSpan Interval { get; set; }
 
     /// <summary>

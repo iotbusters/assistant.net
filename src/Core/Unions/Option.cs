@@ -5,10 +5,13 @@ namespace Assistant.Net.Unions;
 /// </summary>
 public record Option<T>
 {
+    /// <summary/>
+    protected Option() { }
+
     /// <summary>
     ///    Whether current option has some value.
     /// </summary>
-    public virtual bool IsSome { get; }
+    public virtual bool IsSome { get; } = false;
 
     /// <summary>
     ///    Whether current option has none value.
