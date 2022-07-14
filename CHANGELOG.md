@@ -10,13 +10,21 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - none
 
-## [0.3.134] - 2022-07-13
+## [0.3.135] - 2022-07-14
 
-[Assistant.NET Release 0.3.134](https://github.com/iotbusters/assistant.net/releases/tag/0.3.134)
+[Assistant.NET Release 0.3.135](https://github.com/iotbusters/assistant.net/releases/tag/0.3.135)
 
-### 0.3.134 Changed
+### 0.3.135 Added
+
+- storage mongo and sqlite provider database initialization
+
+### 0.3.135 Changed
 
 - improved performance of storage mongo and sqlite providers
+
+### 0.3.135 Removed
+
+- hosted service based storage provider database configuration from messaging mongo and sqlite providers
 
 ## [0.3.133] - 2022-07-04
 

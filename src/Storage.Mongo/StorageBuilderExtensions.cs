@@ -4,6 +4,7 @@ using Assistant.Net.Storage.Internal;
 using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System;
 
 namespace Assistant.Net.Storage;
@@ -166,6 +167,7 @@ public static class StorageBuilderExtensions
         .TryAddScoped(typeof(MongoStorageProvider<>), typeof(MongoStorageProvider<>))
         .TryAddScoped(typeof(MongoHistoricalStorageProvider<>), typeof(MongoHistoricalStorageProvider<>))
         .TryAddScoped(typeof(MongoPartitionedStorageProvider<>), typeof(MongoPartitionedStorageProvider<>))
+        .TryAddSingleton<IPostConfigureOptions<MongoOptions>, MongoPostConfigureOptions>()
         .ConfigureMongoOptions(name, o => o.DatabaseName ??= MongoNames.DatabaseName)
         .AddMongoClient();
 

@@ -314,8 +314,8 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     [OneTimeTearDown]
     public void OneTimeTearDown() => Provider?.Dispose();
 
-    [TearDown]
-    public async Task TearDown()
+    [SetUp]
+    public async Task Cleanup()
     {
         var dbContext = await Provider!.GetRequiredService<IDbContextFactory<StorageDbContext>>().CreateDbContextAsync(CancellationToken);
         dbContext.HistoricalKeys.RemoveRange(dbContext.HistoricalKeys);

@@ -11,18 +11,32 @@ namespace Assistant.Net.Storage.Sqlite.Tests;
 [SetUpFixture]
 public class SetupSqlite
 {
+    private ServiceProvider? provider;
+
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
     {
         await MasterConnection.OpenAsync(ShortCancellationToken);
-        var provider = new ServiceCollection()
-            .AddStorage(b => b.UseSqlite(o => o.Connection(ConnectionString)))
+        provider = new ServiceCollection()
+            .AddStorage(b => b.UseSqlite(o => o.Connection(ConnectionString).EnsureCreated()))
             .BuildServiceProvider();
 
         var dbContextFactory = provider.GetRequiredService<IDbContextFactory<StorageDbContext>>();
         var dbContext = await dbContextFactory.CreateDbContextAsync(ShortCancellationToken);
-
         await dbContext.Database.EnsureCreatedAsync(LongCancellationToken);
+    }
+
+    [OneTimeTearDown]
+    public async Task OneTimeTearDown()
+    {
+        if (provider == null)
+            return;
+
+        var dbContextFactory = provider.GetRequiredService<IDbContextFactory<StorageDbContext>>();
+        var dbContext = await dbContextFactory.CreateDbContextAsync(ShortCancellationToken);
+        await dbContext.Database.EnsureDeletedAsync(LongCancellationToken);
+
+        await provider.DisposeAsync();
     }
 
     /// <summary>
