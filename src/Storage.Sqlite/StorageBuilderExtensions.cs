@@ -7,6 +7,7 @@ using Assistant.Net.Storage.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using System;
 
 namespace Assistant.Net.Storage;
@@ -160,6 +161,15 @@ public static class StorageBuilderExtensions
         return builder;
     }
 
+    internal static TBuilder UseSqlite<TBuilder>(this TBuilder builder, SqliteOptions options) where TBuilder : DbContextOptionsBuilder
+    {
+        if (options.Connection != null)
+            builder.UseSqlite(options.Connection);
+        else
+            builder.UseSqlite(options.ConnectionString);
+        return builder;
+    }
+
     /// <summary>
     ///     Configures SQLite regular provider dependencies for storages.
     /// </summary>
@@ -167,13 +177,11 @@ public static class StorageBuilderExtensions
         .TryAddScoped(typeof(SqliteStorageProvider<>), typeof(SqliteStorageProvider<>))
         .TryAddScoped(typeof(SqliteHistoricalStorageProvider<>), typeof(SqliteHistoricalStorageProvider<>))
         .TryAddScoped(typeof(SqlitePartitionedStorageProvider<>), typeof(SqlitePartitionedStorageProvider<>))
+        .TryAddSingleton<IPostConfigureOptions<SqliteOptions>, SqlitePostConfigureOptions>()
         .AddDbContextFactory<StorageDbContext>((p, b) =>
         {
             var options = p.GetRequiredService<INamedOptions<SqliteOptions>>().Value;
-            if (options.Connection != null)
-                b.UseSqlite(options.Connection);
-            else
-                b.UseSqlite(options.ConnectionString);
+            b.UseSqlite(options);
         }, lifetime: ServiceLifetime.Scoped);
 
     /// <summary>

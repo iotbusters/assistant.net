@@ -1,9 +1,7 @@
-﻿using Assistant.Net.Messaging.Internal;
-using Assistant.Net.Messaging.Options;
+﻿using Assistant.Net.Messaging.Options;
 using Assistant.Net.Options;
 using Assistant.Net.Storage;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Messaging;
@@ -21,9 +19,8 @@ public static class GenericHandlingServerBuilderExtensions
     public static GenericHandlingServerBuilder UseMongo(this GenericHandlingServerBuilder builder, Action<MongoOptions> configureOptions)
     {
         builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
-                .UseMongo(configureOptions)
-                .UseMongoSingleProvider())
-            .AddHostedService<ConfigureMongoHostedService>();
+            .UseMongo(configureOptions)
+            .UseMongoSingleProvider());
         return builder;
     }
 
@@ -35,9 +32,8 @@ public static class GenericHandlingServerBuilderExtensions
     public static GenericHandlingServerBuilder UseMongo(this GenericHandlingServerBuilder builder, string connectionString)
     {
         builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
-                .UseMongo(connectionString)
-                .UseMongoSingleProvider())
-            .AddHostedService<ConfigureMongoHostedService>();
+            .UseMongo(connectionString)
+            .UseMongoSingleProvider());
         return builder;
     }
 
@@ -49,9 +45,8 @@ public static class GenericHandlingServerBuilderExtensions
     public static GenericHandlingServerBuilder UseMongo(this GenericHandlingServerBuilder builder, IConfigurationSection configuration)
     {
         builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
-                .UseMongo(configuration)
-                .UseMongoSingleProvider())
-            .AddHostedService<ConfigureMongoHostedService>();
+            .UseMongo(configuration)
+            .UseMongoSingleProvider());
         return builder;
     }
 }

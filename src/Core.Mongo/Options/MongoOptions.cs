@@ -18,4 +18,9 @@ public sealed class MongoOptions
     /// </summary>
     [Required, MinLength(1)]
     public string DatabaseName { get; set; } = null!;
+
+    /// <summary>
+    ///     Determine if database should be configured before use.
+    /// </summary>
+    public bool EnsureDatabaseCreated { get; set; } = false;
 }

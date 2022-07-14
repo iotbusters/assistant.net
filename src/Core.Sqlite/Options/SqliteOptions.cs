@@ -21,4 +21,9 @@ public sealed class SqliteOptions
     ///     if defined the <see cref="ConnectionString"/> will be ignored.
     /// </remarks>
     public SqliteConnection? Connection { get; set; } = null!;
+
+    /// <summary>
+    ///     Determine if database should be configured before use.
+    /// </summary>
+    public bool EnsureDatabaseCreated { get; set; } = false;
 }

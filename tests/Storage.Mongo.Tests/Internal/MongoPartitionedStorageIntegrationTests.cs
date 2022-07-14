@@ -199,9 +199,8 @@ public class MongoPartitionedStorageIntegrationTests
     [SetUp]
     public async Task Cleanup()
     {
-        var provider = Provider!.CreateScope().ServiceProvider;
-        var database = provider.GetRequiredService<IOptions<MongoOptions>>().Value.DatabaseName;
-        await provider.GetRequiredService<IMongoClient>().DropDatabaseAsync(database, CancellationToken);
+        var database = Provider!.GetRequiredService<IOptions<MongoOptions>>().Value.DatabaseName;
+        await Provider!.GetRequiredService<IMongoClient>().DropDatabaseAsync(database, CancellationToken);
     }
 
     private static CancellationToken CancellationToken => new CancellationTokenSource(100).Token;

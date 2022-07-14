@@ -124,7 +124,7 @@ public class StoragePerformanceTests
             await Storage.TryRemove(new TestKey2(i), CancellationToken);
         watch.Stop();
         Console.WriteLine($"Total: {watch.Elapsed:g} (0.08) Middle: {watch.Elapsed / MeasurementCount:g}");
-        watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(0.1));
+        watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(0.2));
     }
 
     [Test]
@@ -147,15 +147,7 @@ public class StoragePerformanceTests
                 .AddMongo<TestKey2, TestValue>())
             .BuildServiceProvider();
 
-        var provider = Provider!.CreateScope().ServiceProvider;
-        var databaseName = provider.GetRequiredService<IOptions<MongoOptions>>().Value.DatabaseName;
-        var client = provider.GetRequiredService<IMongoClient>();
-        var database = client.GetDatabase(databaseName);
-
-        var storageCollection = database.GetCollection<MongoRecord>(MongoNames.StorageCollectionName);
-
-        // todo: init on startup
-        await AddIndex(storageCollection, b => b.Ascending(x => x.Key.ValueType).Ascending(x => x.KeyType));
+        Storage = Provider!.GetRequiredService<IAdminStorage<TestKey2, TestValue>>();
 
         var batchCount = 50;
         for (var i = 0; i < PrePopulatedCount / batchCount; i++)
@@ -166,31 +158,7 @@ public class StoragePerformanceTests
     }
 
     [OneTimeTearDown]
-    public async Task OneTimeTearDown()
-    {
-        if (Provider == null)
-            return;
-
-        var databaseName = Provider.GetRequiredService<IOptions<MongoOptions>>().Value.DatabaseName;
-        var client = Provider.GetRequiredService<IMongoClient>();
-        var database = client.GetDatabase(databaseName);
-
-        var storageCollection = database.GetCollection<MongoRecord>(MongoNames.StorageCollectionName);
-        await storageCollection.DeleteManyAsync(_ => true, CancellationToken);
-
-        await Provider.DisposeAsync();
-    }
-
-    private static async Task AddIndex<T>(
-        IMongoCollection<T> collection,
-        Func<IndexKeysDefinitionBuilder<T>, IndexKeysDefinition<T>> configure)
-    {
-        var indexKeysDefinition = configure(Builders<T>.IndexKeys);
-        await collection.Indexes.CreateOneAsync(
-            new CreateIndexModel<T>(indexKeysDefinition),
-            new CreateOneIndexOptions(),
-            CancellationToken);
-    }
+    public void OneTimeTearDown() => Provider?.Dispose();
 
     private const int MeasurementCount = 100;
     private const int PrePopulatedCount = 10000;
@@ -199,5 +167,5 @@ public class StoragePerformanceTests
 
     private ServiceProvider? Provider { get; set; }
 
-    private IAdminStorage<TestKey2, TestValue> Storage => Provider!.GetRequiredService<IAdminStorage<TestKey2, TestValue>>();
+    private IAdminStorage<TestKey2, TestValue> Storage { get; set; } = null!;
 }

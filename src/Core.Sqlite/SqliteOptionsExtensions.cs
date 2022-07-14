@@ -25,4 +25,13 @@ public static class SqliteOptionsExtensions
         options.ConnectionString = connection.ConnectionString;
         return options;
     }
+
+    /// <summary>
+    ///     Configures SQLite database initialization.
+    /// </summary>
+    public static SqliteOptions EnsureCreated(this SqliteOptions options, bool ensureDatabaseCreated = true)
+    {
+        options.EnsureDatabaseCreated = ensureDatabaseCreated;
+        return options;
+    }
 }

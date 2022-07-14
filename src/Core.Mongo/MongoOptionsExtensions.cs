@@ -24,4 +24,13 @@ public static class MongoOptionsExtensions
         options.DatabaseName = databaseName;
         return options;
     }
+
+    /// <summary>
+    ///     Configures MongoDB database initialization.
+    /// </summary>
+    public static MongoOptions EnsureCreated(this MongoOptions options, bool ensureDatabaseCreated = true)
+    {
+        options.EnsureDatabaseCreated = ensureDatabaseCreated;
+        return options;
+    }
 }
