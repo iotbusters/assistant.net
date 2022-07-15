@@ -6,6 +6,8 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+- logging fixes in messaging
+
 ### Changed
 
 - none
