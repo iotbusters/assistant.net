@@ -36,7 +36,7 @@ public sealed class DiagnosticsInterceptor : SharedAbstractInterceptor
         var messageName = typeEncode.Encode(message.GetType());
 
         var operation = diagnosticFactory.Start($"{messageName}-handling-local");
-        logger.LogInformation("Message({MessageName}, {MessageId}) operation: begins.", messageId, messageName);
+        logger.LogInformation("Message({MessageName}, {MessageId}) operation: begins.", messageName, messageId);
 
         object response;
         try
@@ -52,12 +52,12 @@ public sealed class DiagnosticsInterceptor : SharedAbstractInterceptor
         }
         catch (Exception ex)
         {
-            logger.LogInformation(ex, "Message({MessageName}, {MessageId}) operation: failed.", messageId, messageName);
+            logger.LogInformation(ex, "Message({MessageName}, {MessageId}) operation: failed.", messageName, messageId);
             operation.Fail();
             throw;
         }
 
-        logger.LogInformation("Message({MessageName}, {MessageId}) operation: succeeded.", messageId, messageName);
+        logger.LogInformation("Message({MessageName}, {MessageId}) operation: succeeded.", messageName, messageId);
         operation.Complete();
         return response;
     }

@@ -151,7 +151,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
 
         var client = scope.ServiceProvider.GetRequiredService<IMessagingClient>();
 
-        logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId} handling: begins.",
+        logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) handling: begins.",
             messageName, messageId, requestId);
 
         object response;
