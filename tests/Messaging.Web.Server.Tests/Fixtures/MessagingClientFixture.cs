@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Web.Server.Tests.Fixtures;
 
-public class MessagingClientFixture : IDisposable
+public sealed class MessagingClientFixture : IDisposable
 {
     public static readonly string CorrelationId = Guid.NewGuid().ToString();
 
@@ -73,7 +73,7 @@ public class MessagingClientFixture : IDisposable
     public async Task<TResponse?> ReadObject<TResponse>(HttpResponseMessage response) =>
         await response.Content.ReadFromJsonAsync<TResponse>(Options);
 
-    public virtual void Dispose()
+    public void Dispose()
     {
         provider.Dispose();
         host.Dispose();

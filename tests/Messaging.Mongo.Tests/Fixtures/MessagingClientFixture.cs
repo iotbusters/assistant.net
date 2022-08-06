@@ -1,9 +1,11 @@
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.HealthChecks;
 using Assistant.Net.Messaging.Mongo.Tests.Mocks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Linq;
+using System.Threading;
 
 namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures;
 
@@ -49,6 +51,8 @@ public class MessagingClientFixture : IDisposable
         });
         remoteSource.Reload();
         clientSource.Reload();
+
+        host.Services.GetRequiredService<MessageAcceptanceService>().Register(TimeSpan.FromSeconds(1), default).Wait();
     }
 
     public virtual void Dispose()
