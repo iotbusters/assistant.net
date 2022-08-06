@@ -1,11 +1,7 @@
-﻿using Assistant.Net.Options;
-using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Storage.Models;
+﻿using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Mongo.Tests.Mocks;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using MongoDB.Driver;
 using NUnit.Framework;
 using System;
 using System.Diagnostics;

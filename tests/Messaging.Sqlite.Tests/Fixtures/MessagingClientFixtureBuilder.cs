@@ -1,4 +1,5 @@
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.HealthChecks;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Sqlite.Tests.Mocks;
@@ -115,6 +116,9 @@ public class MessagingClientFixtureBuilder
     {
         var provider = Services.BuildServiceProvider();
         var host = RemoteHostBuilder.Start();
+
+        host.Services.GetRequiredService<MessageAcceptanceService>().Register(TimeSpan.FromSeconds(1), default).Wait();
+
         return new(remoteSource, clientSource, provider, host);
     }
 }

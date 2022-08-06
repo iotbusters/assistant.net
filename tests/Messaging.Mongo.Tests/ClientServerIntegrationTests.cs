@@ -65,7 +65,7 @@ public class ClientServerIntegrationTests
         // global arrange
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongoProvider(ConnectionString, Database)
-            .AddHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
+            .AddHandler<TestSuccessFailureMessageHandler>() // to have at least one handler configured
             .Create();
 
         // arrange 1

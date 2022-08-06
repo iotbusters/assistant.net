@@ -1,12 +1,15 @@
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.HealthChecks;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Mongo.Tests.Mocks;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.RetryStrategies;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Linq;
+using System.Threading;
 
 namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures;
 
@@ -43,7 +46,12 @@ public class MessagingClientFixtureBuilder
                     o.InactivityDelayTime = TimeSpan.FromSeconds(0.005);
                     o.NextMessageDelayTime = TimeSpan.FromSeconds(0.001);
                 })
-                .BindOptions(GenericOptionsNames.DefaultName, remoteSource));
+                .BindOptions(GenericOptionsNames.DefaultName, remoteSource)
+                .Configure<HealthCheckPublisherOptions>(o =>
+                {
+                    o.Period = TimeSpan.FromSeconds(1);
+                    o.Timeout = TimeSpan.FromSeconds(1);
+                }));
     }
 
     public IServiceCollection Services { get; init; }
@@ -110,6 +118,9 @@ public class MessagingClientFixtureBuilder
     {
         var provider = Services.BuildServiceProvider();
         var host = RemoteHostBuilder.Start();
+
+        host.Services.GetRequiredService<MessageAcceptanceService>().Register(TimeSpan.FromSeconds(1), default).Wait();
+
         return new(remoteSource, clientSource, provider, host);
     }
 }

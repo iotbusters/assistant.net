@@ -1,4 +1,5 @@
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.HealthChecks;
 using Assistant.Net.Messaging.Sqlite.Tests.Mocks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -49,6 +50,8 @@ public class MessagingClientFixture : IDisposable
         });
         remoteSource.Reload();
         clientSource.Reload();
+
+        host.Services.GetRequiredService<MessageAcceptanceService>().Register(TimeSpan.FromSeconds(1), default).Wait();
     }
 
     public virtual void Dispose()
