@@ -33,7 +33,9 @@ See [assistant.net.core](src/Core/README.md) for details.
 See also provider configuration extensions
 
 - [assistant.net.mongo](src/Core.Mongo/README.md)
-- [assistant.net.sqlite](src/Core.Sqlite/README.md).
+- [assistant.net.mongo](src/Core.Mongo.HealthCheck/README.md)
+- [assistant.net.sqlite](src/Core.Sqlite/README.md)
+- [assistant.net.sqlite](src/Core.Sqlite.HealthCheck/README.md).
 
 ### assistant.net.diagnostics
 
