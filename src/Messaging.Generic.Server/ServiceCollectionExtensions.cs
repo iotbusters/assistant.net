@@ -1,9 +1,10 @@
-﻿using Assistant.Net.Messaging.Interceptors;
+﻿using Assistant.Net.Messaging.HealthChecks;
+using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System;
 
 namespace Assistant.Net.Messaging;
@@ -13,13 +14,6 @@ namespace Assistant.Net.Messaging;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    ///     Adds system services with self-hosted service based behavior.
-    /// </summary>
-    public static IServiceCollection AddSystemServicesHosted(this IServiceCollection services) => services
-        .AddSystemServicesDefaulted()
-        .AddSystemLifetime(p => p.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping);
-
     /// <summary>
     ///     Registers storage based server message handling.
     /// </summary>
@@ -36,7 +30,16 @@ public static class ServiceCollectionExtensions
             so.MessageTypes.Clear();
             foreach (var messageType in mo.Handlers.Keys)
                 so.MessageTypes.Add(messageType);
-        }).Services;
+        }).Services
+        .AddHealthChecks().Services
+        .Configure<HealthCheckPublisherOptions>(o =>
+        {
+            o.Delay = TimeSpan.Zero;
+            o.Period = TimeSpan.FromSeconds(10);
+            o.Timeout = TimeSpan.FromSeconds(3);
+        })
+        .TryAddSingleton<IHealthCheckPublisher, GenericServerAvailabilityPublisher>()
+        .TryAddSingleton<MessageAcceptanceService>();
 
     /// <summary>
     ///     Registers storage based server message handling.

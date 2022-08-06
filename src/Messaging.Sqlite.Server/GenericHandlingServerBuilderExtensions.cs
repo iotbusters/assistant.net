@@ -2,6 +2,7 @@
 using Assistant.Net.Options;
 using Assistant.Net.Storage;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Messaging;
@@ -20,7 +21,9 @@ public static class GenericHandlingServerBuilderExtensions
     {
         builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
             .UseSqlite(configureOptions)
-            .UseSqliteSingleProvider());
+            .UseSqliteSingleProvider())
+            .AddHealthChecks()
+            .AddSqlite();
         return builder;
     }
 
@@ -29,13 +32,8 @@ public static class GenericHandlingServerBuilderExtensions
     /// </summary>
     /// <param name="builder"/>
     /// <param name="connectionString">The MongoDB connection string.</param>
-    public static GenericHandlingServerBuilder UseSqlite(this GenericHandlingServerBuilder builder, string connectionString)
-    {
-        builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
-            .UseSqlite(connectionString)
-            .UseSqliteSingleProvider());
-        return builder;
-    }
+    public static GenericHandlingServerBuilder UseSqlite(this GenericHandlingServerBuilder builder, string connectionString) => builder
+        .UseSqlite(o => o.Connection(connectionString));
 
     /// <summary>
     ///     Configures SQLite provider for storage based messaging handling.
@@ -46,7 +44,9 @@ public static class GenericHandlingServerBuilderExtensions
     {
         builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
             .UseSqlite(configuration)
-            .UseSqliteSingleProvider());
+            .UseSqliteSingleProvider())
+            .AddHealthChecks()
+            .AddSqlite();
         return builder;
     }
 }

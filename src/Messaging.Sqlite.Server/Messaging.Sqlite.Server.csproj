@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Core.Sqlite.HealthCheck\Core.Sqlite.HealthCheck.csproj" />
     <ProjectReference Include="..\Messaging.Generic.Server\Messaging.Generic.Server.csproj" />
     <ProjectReference Include="..\Storage.Sqlite\Storage.Sqlite.csproj" />
   </ItemGroup>

@@ -110,7 +110,8 @@ public static class MessagingClientBuilderExtensions
         .AddStorage(name, b => b
             .AddMongo<IAbstractMessage, CachingResult>() // CachingInterceptor's requirement
             .AddMongo<string, CachingResult>() // GenericMessagingHandlerProxy's requirement
-            .AddMongoPartitioned<int, IAbstractMessage>()); // GenericMessagingHandlerProxy's requirement
+            .AddMongoPartitioned<string, IAbstractMessage>() // GenericMessagingHandlerProxy's requirement
+            .AddMongo<string, RemoteHandlerModel>()); // GenericMessagingHandlerProxy's requirement
 
     /// <summary>
     ///     Configures MongoDB regular provider for storage based messaging handling dependencies.
@@ -126,6 +127,7 @@ public static class MessagingClientBuilderExtensions
             .UseMongoSingleProvider()
             .AddSingle<IAbstractMessage, CachingResult>() // CachingInterceptor's requirement
             .AddSingle<string, CachingResult>() // GenericMessagingHandlerProxy's requirement
-            .AddSinglePartitioned<int, IAbstractMessage>()) // GenericMessagingHandlerProxy's requirement
+            .AddSinglePartitioned<string, IAbstractMessage>() // GenericMessagingHandlerProxy's requirement
+            .AddSingle<string, RemoteHandlerModel>()) // GenericMessagingHandlerProxy's requirement
         .ConfigureMessagingClientOptions(name, o => o.UseGenericSingleProvider());
 }

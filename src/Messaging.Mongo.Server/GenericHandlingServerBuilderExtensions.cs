@@ -2,6 +2,7 @@
 using Assistant.Net.Options;
 using Assistant.Net.Storage;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Messaging;
@@ -20,7 +21,9 @@ public static class GenericHandlingServerBuilderExtensions
     {
         builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
             .UseMongo(configureOptions)
-            .UseMongoSingleProvider());
+            .UseMongoSingleProvider())
+            .AddHealthChecks()
+            .AddMongo();
         return builder;
     }
 
@@ -29,13 +32,8 @@ public static class GenericHandlingServerBuilderExtensions
     /// </summary>
     /// <param name="builder"/>
     /// <param name="connectionString">The MongoDB connection string.</param>
-    public static GenericHandlingServerBuilder UseMongo(this GenericHandlingServerBuilder builder, string connectionString)
-    {
-        builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
-            .UseMongo(connectionString)
-            .UseMongoSingleProvider());
-        return builder;
-    }
+    public static GenericHandlingServerBuilder UseMongo(this GenericHandlingServerBuilder builder, string connectionString) => builder
+        .UseMongo(o => o.Connection(connectionString));
 
     /// <summary>
     ///     Configures server message handling to use MongoDB provider.
@@ -46,7 +44,9 @@ public static class GenericHandlingServerBuilderExtensions
     {
         builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
             .UseMongo(configuration)
-            .UseMongoSingleProvider());
+            .UseMongoSingleProvider())
+            .AddHealthChecks()
+            .AddMongo();
         return builder;
     }
 }

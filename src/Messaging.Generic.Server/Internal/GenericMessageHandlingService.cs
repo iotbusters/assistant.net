@@ -24,39 +24,49 @@ namespace Assistant.Net.Messaging.Internal;
 internal sealed class GenericMessageHandlingService : BackgroundService
 {
     private readonly ILogger<GenericMessageHandlingService> logger;
+    private readonly IHostEnvironment environment;
     private readonly IOptionsMonitor<GenericHandlingServerOptions> options;
     private readonly ITypeEncoder typeEncoder;
     private readonly ISystemLifetime lifetime;
-    private readonly IDisposable disposable;
-    private readonly IPartitionedAdminStorage<int, IAbstractMessage> requestStorage;
+    private readonly IServiceScope globalScope;
+    private readonly IPartitionedAdminStorage<string, IAbstractMessage> requestStorage;
     private readonly IAdminStorage<string, CachingResult> responseStorage;
-    private readonly IStorage<int, long> processedIndexStorage;
+    private readonly IStorage<string, long> processedIndexStorage;
     private readonly IServiceScopeFactory scopeFactory;
 
     public GenericMessageHandlingService(
         ILogger<GenericMessageHandlingService> logger,
+        IHostEnvironment environment,
         IOptionsMonitor<GenericHandlingServerOptions> options,
         ITypeEncoder typeEncoder,
         ISystemLifetime lifetime,
         IServiceScopeFactory scopeFactory)
     {
         this.logger = logger;
+        this.environment = environment;
         this.options = options;
         this.typeEncoder = typeEncoder;
         this.lifetime = lifetime;
         this.scopeFactory = scopeFactory;
 
-        var scope = scopeFactory.CreateScopeWithNamedOptionContext(GenericOptionsNames.DefaultName);
-        disposable = scope;
-        requestStorage = scope.ServiceProvider.GetRequiredService<IPartitionedAdminStorage<int, IAbstractMessage>>();
-        responseStorage = scope.ServiceProvider.GetRequiredService<IAdminStorage<string, CachingResult>>();
-        processedIndexStorage = scope.ServiceProvider.GetRequiredService<IStorage<int, long>>();
+        globalScope = scopeFactory.CreateScopeWithNamedOptionContext(GenericOptionsNames.DefaultName);
+        requestStorage = globalScope.ServiceProvider.GetRequiredService<IPartitionedAdminStorage<string, IAbstractMessage>>();
+        responseStorage = globalScope.ServiceProvider.GetRequiredService<IAdminStorage<string, CachingResult>>();
+        processedIndexStorage = globalScope.ServiceProvider.GetRequiredService<IStorage<string, long>>();
+    }
+
+    public override void Dispose()
+    {
+        base.Dispose();
+        globalScope.Dispose();
     }
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
+        var instance = environment.ApplicationName;
+
         logger.LogDebug("Find processing index.");
-        var index = await processedIndexStorage.GetOrDefault(options.CurrentValue.InstanceId, token) + 1;
+        var index = await processedIndexStorage.GetOrDefault(instance, token) + 1;
         logger.LogInformation("{Index:D5} processing: begins.", index);
 
         var stoppingToken = lifetime.Stopping;
@@ -67,7 +77,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             if (!await TryHandle(index, token))
             {
                 logger.LogDebug("#{Index:D5} processing: message not found.", index);
-                await Task.WhenAny(Task.Delay(serverOptions.InactivityDelayTime, token));
+                await Task.WhenAny(Task.Delay(serverOptions.InactivityDelayTime, stoppingToken));
                 continue;
             }
 
@@ -75,7 +85,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
 
             try
             {
-                await processedIndexStorage.AddOrUpdate(serverOptions.InstanceId, index, token);
+                await processedIndexStorage.AddOrUpdate(instance, index, token);
             }
             catch (OperationCanceledException ex) when (token.IsCancellationRequested)
             {
@@ -91,17 +101,12 @@ internal sealed class GenericMessageHandlingService : BackgroundService
         logger.LogInformation("#{Index:D5} processing: cancelled.", index);
     }
 
-    public override void Dispose()
-    {
-        disposable.Dispose();
-        base.Dispose();
-    }
-
     private async Task<bool> TryHandle(long index, CancellationToken token)
     {
+        var instance = environment.ApplicationName;
         var serverOptions = options.CurrentValue;
 
-        var requestOption = await requestStorage.TryGetDetailed(serverOptions.InstanceId, index, token);
+        var requestOption = await requestStorage.TryGetDetailed(instance, index, token);
         if (requestOption is not Some<PartitionValue<IAbstractMessage>>(var requestValue))
             return false;
 

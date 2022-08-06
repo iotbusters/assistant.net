@@ -21,8 +21,9 @@ public sealed class GenericServerInterceptorConfiguration : IMessageConfiguratio
             .Retry(new ExponentialBackoff {MaxAttemptNumber = 5, Interval = TimeSpan.FromSeconds(1), Rate = 1.2})
             .TimeoutIn(TimeSpan.FromSeconds(3));
         builder.Services.AddStorage(builder.Name, b => b
-            .AddSinglePartitioned<int, IAbstractMessage>() // GenericMessageHandlingService's requirement
+            .AddSinglePartitioned<string, IAbstractMessage>() // GenericMessageHandlingService's requirement
             .AddSingle<string, CachingResult>() // GenericMessageHandlingService's requirement
-            .AddSingle<int, long>()); // GenericMessageHandlingService's requirement
+            .AddSingle<string, long>() // GenericMessageHandlingService's requirement
+            .AddSingle<string, RemoteHandlerModel>());// GenericServerAvailabilityPublisher's requirement
     }
 }

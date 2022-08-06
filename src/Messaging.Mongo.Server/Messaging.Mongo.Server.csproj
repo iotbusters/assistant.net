@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Core.Mongo.HealthCheck\Core.Mongo.HealthCheck.csproj" />
     <ProjectReference Include="..\Messaging.Generic.Server\Messaging.Generic.Server.csproj" />
     <ProjectReference Include="..\Storage.Mongo\Storage.Mongo.csproj" />
   </ItemGroup>
