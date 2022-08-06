@@ -33,6 +33,16 @@ public static class OptionExtensions
     };
 
     /// <summary>
+    ///     Filters a value wrapped in <see cref="Option{T}"/> against <paramref name="predicate"/> function.
+    /// </summary>
+    [StackTraceHidden]
+    public static Option<TSource> WhereOption<TSource>(this Option<TSource> option, Func<TSource, bool> predicate) => option switch
+    {
+        Some<TSource>(var value)    => predicate(value) ? option : Option.None,
+        _                           => Option.None
+    };
+
+    /// <summary>
     ///     Wraps nullable <typeparamref name="TSource"/> object into <see cref="Option{T}"/>.
     /// </summary>
     /// <returns>

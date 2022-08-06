@@ -11,14 +11,12 @@ internal class SystemLifetime : ISystemLifetime, IDisposable
 {
     private readonly CancellationTokenSource stopping;
 
-    public SystemLifetime(CancellationToken stopping)
-    {
+    public SystemLifetime(CancellationToken stopping) =>
         this.stopping = CancellationTokenSource.CreateLinkedTokenSource(stopping);
-    }
 
     public CancellationToken Stopping => stopping.Token;
 
-    public void RequestStopping(TimeSpan? after) => stopping.CancelAfter(after ?? TimeSpan.Zero);
+    public void RequestStopping(TimeSpan? after = null) => stopping.CancelAfter(after ?? TimeSpan.Zero);
 
     public void Dispose() => stopping.Dispose();
 }
