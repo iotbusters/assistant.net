@@ -27,6 +27,8 @@ jobs:
           echo ::set-output name=core::$(echo "$CHANGES" | grep -c src/Core/)
           echo ::set-output name=core-mongo::$(echo "$CHANGES" | grep -c src/Core.Mongo/)
           echo ::set-output name=core-sqlite::$(echo "$CHANGES" | grep -c src/Core.Sqlite/)
+          echo ::set-output name=core-mongo-healthcheck::$(echo "$CHANGES" | grep -c src/Core.Mongo.HealthCheck/)
+          echo ::set-output name=core-sqlite-healthcheck::$(echo "$CHANGES" | grep -c src/Core.Sqlite.HealthCheck/)
           echo ::set-output name=serialization-json::$(echo "$CHANGES" | grep -c src/Serialization.Json/)
           echo ::set-output name=storage::$(echo "$CHANGES" | grep -c src/Storage/)
           echo ::set-output name=storage-mongo::$(echo "$CHANGES" | grep -c src/Storage.Mongo/)
@@ -47,6 +49,8 @@ jobs:
       core: ${{ steps.change-detected.outputs.core }}
       core-mongo: ${{ steps.change-detected.outputs.core-mongo }}
       core-sqlite: ${{ steps.change-detected.outputs.core-sqlite }}
+      core-mongo-healthcheck: ${{ steps.change-detected.outputs.core-mongo-healthcheck }}
+      core-sqlite-healthcheck: ${{ steps.change-detected.outputs.core-sqlite-healthcheck }}
       serialization-json: ${{ steps.change-detected.outputs.serialization-json }}
       storage: ${{ steps.change-detected.outputs.storage }}
       storage-mongo: ${{ steps.change-detected.outputs.storage-mongo }}
@@ -172,6 +176,8 @@ jobs:
                 <li>Core: ${{ needs.change-detect.outputs.core }}</li>
                 <li>Core.Mongo: ${{ needs.change-detect.outputs.core-mongo }}</li>
                 <li>Core.Sqlite: ${{ needs.change-detect.outputs.core-sqlite }}</li>
+                <li>Core.Mongo.HealthCheck: ${{ needs.change-detect.outputs.core-mongo-healthcheck }}</li>
+                <li>Core.Sqlite.HealthCheck: ${{ needs.change-detect.outputs.core-sqlite-healthcheck }}</li>
                 <li>Serialization.Json: ${{ needs.change-detect.outputs.serialization-json }}</li>
                 <li>Storage: ${{ needs.change-detect.outputs.storage }}</li>
                 <li>Storage.Mongo: ${{ needs.change-detect.outputs.storage-mongo }}</li>
