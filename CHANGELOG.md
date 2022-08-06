@@ -10,19 +10,19 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - nothing
 
-## [0.3.136] - 2022-08-06
+## [0.3.137] - 2022-08-06
 
-[Assistant.NET Release 0.3.136](https://github.com/iotbusters/assistant.net/releases/tag/0.3.136)
-[Changes](https://github.com/iotbusters/assistant.net/compare/0.3.135...0.3.136)
+[Assistant.NET Release 0.3.137](https://github.com/iotbusters/assistant.net/releases/tag/0.3.137)
+[Changes](https://github.com/iotbusters/assistant.net/compare/0.3.135...0.3.137)
 
-### 0.3.136 Added
+### 0.3.137 Added
 
 - mongo and sqlite health check projects
 - added created/updated properties to detailed storage value
 - messaging server health checks
 - publishing server accepting messages based on health checks
 
-### 0.3.136 Changed
+### 0.3.137 Changed
 
 - core extension methods
 - remote server selection for message handling based on published servers
