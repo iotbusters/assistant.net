@@ -5,11 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Linq;
-using System.Threading;
 
 namespace Assistant.Net.Messaging.Mongo.Tests.Fixtures;
 
-public class MessagingClientFixture : IDisposable
+public sealed class MessagingClientFixture : IDisposable
 {
     private readonly TestConfigureOptionsSource remoteSource;
     private readonly TestConfigureOptionsSource clientSource;
@@ -55,7 +54,7 @@ public class MessagingClientFixture : IDisposable
         host.Services.GetRequiredService<MessageAcceptanceService>().Register(TimeSpan.FromSeconds(1), default).Wait();
     }
 
-    public virtual void Dispose()
+    public void Dispose()
     {
         provider.Dispose();
         host.Dispose();

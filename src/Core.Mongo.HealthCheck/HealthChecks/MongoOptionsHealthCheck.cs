@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.HealthChecks;
 
-internal class MongoOptionsHealthCheck : IHealthCheck
+internal sealed class MongoOptionsHealthCheck : IHealthCheck
 {
     private readonly ILogger<MongoOptionsHealthCheck> logger;
     private readonly IOptionsMonitor<MongoOptions> monitor;

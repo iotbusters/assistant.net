@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Assistant.Net.Messaging.Sqlite.Tests.Fixtures;
 
-public class MessagingClientFixture : IDisposable
+public sealed class MessagingClientFixture : IDisposable
 {
     private readonly TestConfigureOptionsSource remoteSource;
     private readonly TestConfigureOptionsSource clientSource;
@@ -54,7 +54,7 @@ public class MessagingClientFixture : IDisposable
         host.Services.GetRequiredService<MessageAcceptanceService>().Register(TimeSpan.FromSeconds(1), default).Wait();
     }
 
-    public virtual void Dispose()
+    public void Dispose()
     {
         provider.Dispose();
         host.Dispose();

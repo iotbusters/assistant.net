@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.HealthChecks;
 
-internal class SqliteOptionsHealthCheck : IHealthCheck
+internal sealed class SqliteOptionsHealthCheck : IHealthCheck
 {
     private readonly ILogger<SqliteOptionsHealthCheck> logger;
     private readonly IOptionsMonitor<SqliteOptions> monitor;

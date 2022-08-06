@@ -16,7 +16,7 @@ namespace Assistant.Net.Messaging.HealthChecks;
 /// <summary>
 ///     Message acceptance for remote handling registration service.
 /// </summary>
-public class MessageAcceptanceService : IDisposable
+public sealed class MessageAcceptanceService : IDisposable
 {
     private readonly ILogger<MessageAcceptanceService> logger;
     private readonly IOptionsMonitor<GenericHandlingServerOptions> options;
