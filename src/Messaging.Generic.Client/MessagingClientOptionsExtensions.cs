@@ -24,7 +24,8 @@ public static class MessagingClientOptionsExtensions
                 .UseLocalSingleProvider()
                 .AddSingle<IAbstractMessage, CachingResult>() // CachingInterceptor's requirement
                 .AddSingle<string, CachingResult>() // GenericMessagingHandlerProxy's requirement
-                .AddSinglePartitioned<int, IAbstractMessage>()) // GenericMessagingHandlerProxy's requirement
+                .AddSinglePartitioned<string, IAbstractMessage>() // GenericMessagingHandlerProxy's requirement
+                .AddSingle<string, RemoteHandlerModel>()) // GenericMessagingHandlerProxy's requirement
             .ConfigureMessagingClientOptions(builder.Name, o => o.UseGenericSingleProvider());
         return builder;
     }

@@ -100,7 +100,8 @@ public static class MessagingClientBuilderExtensions
         .AddStorage(name, b => b
             .AddSqlite<IAbstractMessage, CachingResult>() // CachingInterceptor's requirement
             .AddSqlite<string, CachingResult>() // GenericMessagingHandlerProxy's requirement
-            .AddSqlitePartitioned<int, IAbstractMessage>()); // GenericMessagingHandlerProxy's requirement
+            .AddSqlitePartitioned<string, IAbstractMessage>() // GenericMessagingHandlerProxy's requirement
+            .AddSqlite<string, RemoteHandlerModel>()); // GenericMessagingHandlerProxy's requirement
 
     /// <summary>
     ///     Configures SQLite single provider for storage based messaging handling dependencies.
@@ -114,6 +115,7 @@ public static class MessagingClientBuilderExtensions
             .UseSqliteSingleProvider()
             .AddSingle<IAbstractMessage, CachingResult>() // CachingInterceptor's requirement
             .AddSingle<string, CachingResult>() // GenericMessagingHandlerProxy's requirement
-            .AddSinglePartitioned<int, IAbstractMessage>()) // GenericMessagingHandlerProxy's requirement
+            .AddSinglePartitioned<string, IAbstractMessage>() // GenericMessagingHandlerProxy's requirement
+            .AddSingle<string, RemoteHandlerModel>()) // GenericMessagingHandlerProxy's requirement
         .ConfigureMessagingClientOptions(name, o => o.UseGenericSingleProvider());
 }

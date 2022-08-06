@@ -18,6 +18,7 @@ internal struct InterceptingRequestMessageHandler
         this.interceptors = interceptors.GetEnumerator();
     }
 
+    [StackTraceHidden]
     public async ValueTask<object> Request(IAbstractMessage message, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();

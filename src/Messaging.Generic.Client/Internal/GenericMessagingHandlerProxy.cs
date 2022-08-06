@@ -23,19 +23,22 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
 {
     private readonly ILogger logger;
     private readonly IOptionsSnapshot<GenericHandlerProxyOptions> options;
-    private readonly IPartitionedAdminStorage<int, IAbstractMessage> requestStorage;
+    private readonly IAdminStorage<string, RemoteHandlerModel> remoteHostRegistrationStorage;
+    private readonly IPartitionedAdminStorage<string, IAbstractMessage> requestStorage;
     private readonly IAdminStorage<string, CachingResult> responseStorage;
     private readonly ITypeEncoder typeEncoder;
 
     public GenericMessagingHandlerProxy(
         ILogger<GenericMessagingHandlerProxy> logger,
         IOptionsSnapshot<GenericHandlerProxyOptions> options,
-        IPartitionedAdminStorage<int, IAbstractMessage> requestStorage,
+        IAdminStorage<string, RemoteHandlerModel> remoteHostRegistrationStorage,
+        IPartitionedAdminStorage<string, IAbstractMessage> requestStorage,
         IAdminStorage<string, CachingResult> responseStorage,
         ITypeEncoder typeEncoder)
     {
         this.logger = logger;
         this.options = options;
+        this.remoteHostRegistrationStorage = remoteHostRegistrationStorage;
         this.requestStorage = requestStorage;
         this.responseStorage = responseStorage;
         this.typeEncoder = typeEncoder;
@@ -43,8 +46,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
 
     public async ValueTask<object> Request(IAbstractMessage message, CancellationToken token)
     {
-        var clientOptions = options.Value;
-        var strategy = clientOptions.ResponsePoll;
+        var strategy = options.Value.ResponsePoll;
         var attempt = 1;
 
         var messageName = typeEncoder.Encode(message.GetType());
@@ -63,10 +65,13 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
 
             if (await responseStorage.TryGet(requestId, token) is Some<CachingResult>(var response))
             {
-                logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) polling: {Attempt} ends with response.",
+                logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) polling: {Attempt} succeeded.",
                     messageName, messageId, requestId, attempt);
                 return response.GetValue();
             }
+
+            logger.LogWarning("Message({MessageName}, {MessageId}, {RequestId}) polling: {Attempt} ends without response.",
+                messageName, messageId, requestId, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
@@ -76,8 +81,6 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
                 throw new MessageDeferredException($"No response from server received in {watch.Elapsed}.");
             }
 
-            logger.LogWarning("Message({MessageName}, {MessageId}, {RequestId}) polling: {Attempt} ends without response.",
-                messageName, messageId, requestId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
@@ -87,17 +90,19 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
 
     private async ValueTask<string> PublishInternal(IAbstractMessage message, CancellationToken token)
     {
-        var clientOptions = options.Value;
-
         var requestId = Guid.NewGuid().ToString();
-        var messageName = typeEncoder.Encode(message.GetType());
+        var messageName = typeEncoder.Encode(message.GetType())!;
         var messageId = message.GetSha1();
+
+        if (await remoteHostRegistrationStorage.TryGet(messageName, token) is not Some<RemoteHandlerModel>({ HasRegistrations: true } model))
+            throw new MessageNotRegisteredException(message.GetType());
 
         logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) publishing: begins.",
             messageName, messageId, requestId);
 
         var request = new StorageValue<IAbstractMessage>(message) {[MessagePropertyNames.RequestIdName] = requestId};
-        await requestStorage.Add(clientOptions.InstanceId, request, token);
+        var instance = model.GetInstance()!;
+        await requestStorage.Add(instance, request, token);
 
         logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) publishing: succeeded.",
             messageName, messageId, requestId);
