@@ -17,9 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj"/>
-    <ProjectReference Include="..\Diagnostics\Diagnostics.csproj"/>
-    <ProjectReference Include="..\Serialization.Json\Serialization.Json.csproj"/>
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Diagnostics\Diagnostics.csproj" />
+    <ProjectReference Include="..\Serialization.Json\Serialization.Json.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -33,8 +33,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath=""/>
-    <None Include="README.md" Pack="true" PackagePath=""/>
+    <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
+    <None Include="README.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>

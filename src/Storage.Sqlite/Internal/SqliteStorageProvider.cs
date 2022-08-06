@@ -67,6 +67,8 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
                 return value;
             }
 
+            logger.LogWarning("Storage.AddOrGet({@Key}, {Version}): {Attempt} ends.", keyId, 1, attempt);
+
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
@@ -74,7 +76,6 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
                 throw new StorageConcurrencyException();
             }
 
-            logger.LogWarning("Storage.AddOrGet({@Key}, {Version}): {Attempt} failed.", keyId, 1, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
@@ -119,6 +120,8 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
                 return value;
             }
 
+            logger.LogWarning("Storage.AddOrUpdate({@Key}): {Attempt} ends.", keyId, attempt);
+
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
@@ -126,7 +129,6 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
                 throw new StorageConcurrencyException();
             }
 
-            logger.LogWarning("Storage.AddOrUpdate({@Key}): {Attempt} failed.", keyId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
@@ -171,6 +173,8 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
                 return ToValue(found).AsOption();
             }
 
+            logger.LogWarning("Storage.TryRemove({@Key}): {Attempt} ends.", keyId, attempt);
+
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
@@ -178,7 +182,6 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
                 throw new StorageConcurrencyException();
             }
 
-            logger.LogWarning("Storage.TryRemove({@Key}): {Attempt} failed.", keyId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
@@ -201,7 +204,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
 
     private StorageDbContext CreateDbContext() => dbContextFactory.CreateDbContext();
 
-    private ValueRecord ToValue(StorageValueRecord record) =>
+    private static ValueRecord ToValue(StorageValueRecord record) =>
         new(record.ValueContent, new Audit(record.Details.FromDetailArray(), record.Version));
 
     private async Task<Option<StorageValueRecord>> FindValue(IQueryable<StorageValueRecord> values, KeyRecord key, CancellationToken token)

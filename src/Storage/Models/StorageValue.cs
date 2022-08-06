@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using static Assistant.Net.Storage.Internal.StoragePropertyNames;
 
 namespace Assistant.Net.Storage.Models;
@@ -66,5 +67,29 @@ public abstract class StorageValue
     {
         get => Details.GetOrDefault(UserName);
         init => Details.TryAddUnlessDefault(UserName, value);
+    }
+
+    /// <summary>
+    ///     The date when value was created.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, the value would be ignored if the detail is already set.
+    /// </remarks>
+    public DateTimeOffset Created
+    {
+        get => DateTimeOffset.Parse(Details.GetOrFail(CreatedName));
+        init => Details.TryAddUnlessDefault(CreatedName, value.ToString("O"));
+    }
+
+    /// <summary>
+    ///     The date when value was updated.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, the value would be ignored if the detail is already set.
+    /// </remarks>
+    public DateTimeOffset? Updated
+    {
+        get => Details.TryGetValue(UpdatedName, out var updated) ? DateTimeOffset.Parse(updated) : null;
+        init => Details.TryAddUnlessDefault(UpdatedName, value?.ToString("O"));
     }
 }
