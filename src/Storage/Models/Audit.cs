@@ -61,6 +61,18 @@ public sealed class Audit
     }
 
     /// <summary>
+    ///     The date when value was updated.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, the value would be ignored if the detail is already set.
+    /// </remarks>
+    public DateTimeOffset? Updated
+    {
+        get => Details.TryGetValue(UpdatedName, out var updated) ? DateTimeOffset.Parse(updated) : null;
+        init => Details.TryAddUnlessDefault(UpdatedName, value?.ToString("O"));
+    }
+
+    /// <summary>
     ///     All auditing details.
     /// </summary>
     public IDictionary<string, string> Details { get; }

@@ -60,6 +60,8 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
                 return added;
             }
 
+            logger.LogWarning("Storage.AddOrGet({@Key}): {Attempt} ends.", keyId, attempt);
+
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
@@ -67,7 +69,6 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
                 throw new StorageConcurrencyException();
             }
 
-            logger.LogWarning("Storage.AddOrGet({@Key}): {Attempt} failed.", keyId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
@@ -106,6 +107,8 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
                 return added;
             }
 
+            logger.LogWarning("Storage.AddOrUpdate({@Key}): {Attempt} ends.", keyId, attempt);
+
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
@@ -113,7 +116,6 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
                 throw new StorageConcurrencyException();
             }
 
-            logger.LogWarning("Storage.AddOrUpdate({@Key}): {Attempt} failed.", keyId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }

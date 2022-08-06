@@ -61,6 +61,8 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
                 return value;
             }
 
+            logger.LogWarning("Storage.AddOrGet({@Key}): {Attempt} ends.", keyId, attempt);
+
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
@@ -68,7 +70,6 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
                 throw new StorageConcurrencyException();
             }
 
-            logger.LogWarning("Storage.AddOrGet({@Key}): {Attempt} failed.", keyId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
@@ -98,6 +99,8 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
                 return value;
             }
 
+            logger.LogWarning("Storage.AddOrUpdate({@Key}): {Attempt} ends.", keyId, attempt);
+
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
@@ -105,7 +108,6 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
                 throw new StorageConcurrencyException();
             }
 
-            logger.LogWarning("Storage.AddOrUpdate({@Key}): {Attempt} failed.", keyId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
@@ -171,6 +173,8 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
                 break;
             }
 
+            logger.LogWarning("Storage.TryRemove({@Key}, 1..latest): {Attempt} ends.", keyId, attempt);
+
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
@@ -178,7 +182,6 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
                 break;
             }
 
-            logger.LogWarning("Storage.TryRemove({@Key}, 1..latest): {Attempt} failed.", keyId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
 
@@ -221,6 +224,8 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
                 break;
             }
 
+            logger.LogWarning("Storage.TryRemove({@Key}, 1..{Version}): {Attempt} ends.", keyId, upToVersion, attempt);
+
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
@@ -228,7 +233,6 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
                 break;
             }
 
-            logger.LogWarning("Storage.TryRemove({@Key}, 1..{Version}): {Attempt} failed.", keyId, upToVersion, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
 

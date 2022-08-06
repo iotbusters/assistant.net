@@ -19,4 +19,9 @@ public static class StoragePropertyNames
     ///     Created on property name.
     /// </summary>
     public const string CreatedName = "created";
+
+    /// <summary>
+    ///     Updated on property name.
+    /// </summary>
+    public const string UpdatedName = "updated";
 }

@@ -66,6 +66,8 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
                 return added;
             }
 
+            logger.LogWarning("Storage.AddOrGet({@Key}): {Attempt} failed.", keyId, attempt);
+
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
@@ -73,7 +75,6 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
                 throw new StorageConcurrencyException();
             }
 
-            logger.LogWarning("Storage.AddOrGet({@Key}): {Attempt} failed.", keyId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
@@ -109,6 +110,8 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
                 return value;
             }
 
+            logger.LogWarning("Storage.AddOrUpdate({@Key}): {Attempt} failed.", keyId, attempt);
+
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
@@ -116,7 +119,6 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
                 throw new StorageConcurrencyException();
             }
 
-            logger.LogWarning("Storage.AddOrUpdate({@Key}): {Attempt} failed.", keyId, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
     }
@@ -169,14 +171,13 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
                 break;
 
             if (latestValue != null && found.Audit.Version < latestValue.Audit.Version)
-            {
-                logger.LogInformation("Storage.TryRemove({@Key}, 1..latest): {Attempt} succeeded.", keyId, attempt);
                 break; // note: found new value version sequence was started.
-            }
 
             latestValue = found;
 
             await DeleteMany(keyId, found.Audit.Version, token);
+
+            logger.LogWarning("Storage.TryRemove({@Key}, 1..latest): {Attempt} ends.", keyId, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
@@ -191,7 +192,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
         if (latestValue != null)
         {
             logger.LogInformation("Storage.TryRemove({@Key}, 1..{Version}): succeeded.", keyId, latestValue.Audit.Version);
-            return Option.Some(latestValue);
+            return latestValue.AsOption();
         }
 
         logger.LogInformation("Storage.TryRemove({@Key}, 1..latest): not found.", keyId);
@@ -222,6 +223,8 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
             await DeleteMany(keyId, found.Audit.Version, token);
 
+            logger.LogWarning("Storage.TryRemove({@Key}, 1..{Version}): {Attempt} ends.", keyId, upToVersion, attempt);
+
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
@@ -230,7 +233,6 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
                 break;
             }
 
-            logger.LogWarning("Storage.TryRemove({@Key}, 1..{Version}): {Attempt} failed.", keyId, upToVersion, attempt);
             await Task.Delay(strategy.DelayTime(attempt), token);
         }
 
