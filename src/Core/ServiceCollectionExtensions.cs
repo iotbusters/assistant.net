@@ -6,6 +6,7 @@ using Assistant.Net.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
@@ -25,6 +26,13 @@ public static class ServiceCollectionExtensions
         .AddLogging()
         .AddSystemClock()
         .AddSystemLifetime();
+
+    /// <summary>
+    ///     Adds system services with self-hosted service based behavior.
+    /// </summary>
+    public static IServiceCollection AddSystemServicesHosted(this IServiceCollection services) => services
+        .AddSystemServicesDefaulted()
+        .AddSystemLifetime(p => p.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping);
 
     /// <summary>
     ///     Adds <see cref="ISystemClock"/> implementation with default behavior
