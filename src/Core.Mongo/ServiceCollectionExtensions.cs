@@ -1,9 +1,7 @@
 ﻿using Assistant.Net.Abstractions;
-using Assistant.Net.Internal;
 using Assistant.Net.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using System;
 
@@ -45,7 +43,7 @@ public static class ServiceCollectionExtensions
     /// <param name="name">The name of the options instance.</param>
     /// <param name="connectionString">The MongoDB connection string.</param>
     public static IServiceCollection ConfigureMongoOptions(this IServiceCollection services, string name, string connectionString) => services
-        .Configure<MongoOptions>(name, o => o.ConnectionString = connectionString);
+        .ConfigureMongoOptions(name, o => o.ConnectionString = connectionString);
 
     /// <summary>
     ///     Registers a configuration instance which the same named <see cref="MongoOptions"/> will bind against.

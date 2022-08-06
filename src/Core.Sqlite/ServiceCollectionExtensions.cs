@@ -16,7 +16,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services"/>
     /// <param name="connectionString">The SQLite connection string.</param>
     public static IServiceCollection ConfigureSqliteOptions(this IServiceCollection services, string connectionString) => services
-        .ConfigureSqliteOptions(Microsoft.Extensions.Options.Options.DefaultName, o => o.Connection(connectionString));
+        .ConfigureSqliteOptions(Microsoft.Extensions.Options.Options.DefaultName, connectionString);
 
     /// <summary>
     ///     Registers a configuration instance which the same named <see cref="SqliteOptions"/> will bind against.
@@ -41,7 +41,7 @@ public static class ServiceCollectionExtensions
     /// <param name="name">The name of the options instance.</param>
     /// <param name="connectionString">The SQLite connection string.</param>
     public static IServiceCollection ConfigureSqliteOptions(this IServiceCollection services, string name, string connectionString) => services
-        .Configure<SqliteOptions>(name, o => o.Connection(connectionString));
+        .ConfigureSqliteOptions(name, o => o.Connection(connectionString));
 
     /// <summary>
     ///     Registers a configuration instance which the same named <see cref="SqliteOptions"/> will bind against.
