@@ -1,6 +1,7 @@
 ﻿using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage;
 using System;
+using System.Linq;
 
 namespace Assistant.Net.Messaging;
 
@@ -22,6 +23,7 @@ public static class GenericHandlingServerBuilderExtensions
     ///     Registers a server message handler type <typeparamref name="THandler"/>.
     /// </summary>
     /// <typeparam name="THandler">Message handler type.</typeparam>
+    /// <exception cref="ArgumentException"/>
     public static GenericHandlingServerBuilder AddHandler<THandler>(this GenericHandlingServerBuilder builder) => builder
         .AddHandler(typeof(THandler));
 
@@ -30,9 +32,15 @@ public static class GenericHandlingServerBuilderExtensions
     /// </summary>
     /// <param name="builder"/>
     /// <param name="handlerType">The message handler implementation type.</param>
+    /// <exception cref="ArgumentException"/>
     public static GenericHandlingServerBuilder AddHandler(this GenericHandlingServerBuilder builder, Type handlerType)
     {
-        builder.Services.ConfigureMessagingClient(GenericOptionsNames.DefaultName, o => o.AddHandler(handlerType));
+        if (!handlerType.IsMessageHandler())
+            throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
+
+        builder.Services
+            .ConfigureMessagingClient(GenericOptionsNames.DefaultName, o => o.AddHandler(handlerType))
+            .ConfigureGenericHandlingServerOptions(o => o.AcceptMessagesFromHandler(handlerType));
         return builder;
     }
 
@@ -41,9 +49,16 @@ public static class GenericHandlingServerBuilderExtensions
     /// </summary>
     /// <param name="builder"/>
     /// <param name="handlerInstance">The message handler instance.</param>
+    /// <exception cref="ArgumentException"/>
     public static GenericHandlingServerBuilder AddHandler(this GenericHandlingServerBuilder builder, object handlerInstance)
     {
-        builder.Services.ConfigureMessagingClient(GenericOptionsNames.DefaultName, o => o.AddHandler(handlerInstance));
+        var handlerType = handlerInstance.GetType();
+        if (!handlerType.IsMessageHandler())
+            throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerInstance));
+
+        builder.Services
+            .ConfigureMessagingClient(GenericOptionsNames.DefaultName, o => o.AddHandler(handlerInstance))
+            .ConfigureGenericHandlingServerOptions(o => o.AcceptMessagesFromHandler(handlerType));
         return builder;
     }
 }

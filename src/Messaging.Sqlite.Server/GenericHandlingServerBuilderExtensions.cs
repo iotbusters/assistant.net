@@ -1,4 +1,5 @@
-﻿using Assistant.Net.Messaging.Options;
+﻿using Assistant.Net.Messaging.HealthChecks;
+using Assistant.Net.Messaging.Options;
 using Assistant.Net.Options;
 using Assistant.Net.Storage;
 using Microsoft.Extensions.Configuration;
@@ -23,7 +24,7 @@ public static class GenericHandlingServerBuilderExtensions
             .UseSqlite(configureOptions)
             .UseSqliteSingleProvider())
             .AddHealthChecks()
-            .AddSqlite();
+            .ReplaceSqlite(HealthCheckNames.SingleName);
         return builder;
     }
 
@@ -46,7 +47,7 @@ public static class GenericHandlingServerBuilderExtensions
             .UseSqlite(configuration)
             .UseSqliteSingleProvider())
             .AddHealthChecks()
-            .AddSqlite();
+            .ReplaceSqlite(HealthCheckNames.SingleName);
         return builder;
     }
 }
