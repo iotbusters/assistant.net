@@ -28,6 +28,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
     private readonly IOptionsMonitor<GenericHandlingServerOptions> options;
     private readonly ITypeEncoder typeEncoder;
     private readonly ISystemLifetime lifetime;
+    private readonly ISystemClock clock;
     private readonly IServiceScope globalScope;
     private readonly IPartitionedAdminStorage<string, IAbstractMessage> requestStorage;
     private readonly IAdminStorage<string, CachingResult> responseStorage;
@@ -40,6 +41,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
         IOptionsMonitor<GenericHandlingServerOptions> options,
         ITypeEncoder typeEncoder,
         ISystemLifetime lifetime,
+        ISystemClock clock,
         IServiceScopeFactory scopeFactory)
     {
         this.logger = logger;
@@ -47,6 +49,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
         this.options = options;
         this.typeEncoder = typeEncoder;
         this.lifetime = lifetime;
+        this.clock = clock;
         this.scopeFactory = scopeFactory;
 
         globalScope = scopeFactory.CreateScopeWithNamedOptionContext(GenericOptionsNames.DefaultName);
@@ -113,6 +116,16 @@ internal sealed class GenericMessageHandlingService : BackgroundService
         var messageId = requestValue.Value.GetSha1();
         var messageType = requestValue.Value.GetType();
         var messageName = typeEncoder.Encode(messageType);
+
+        if (requestValue.Details.TryGetValue(MessagePropertyNames.ExpiredName, out var expiredString)
+            && DateTimeOffset.TryParse(expiredString, out var expired)
+            && expired <= clock.UtcNow)
+        {
+            logger.LogInformation("#{Index:D5} processing: Message({MessageName}, {MessageId}) is expired.",
+                index, messageName, messageId);
+            return true;
+        }
+
         if (!serverOptions.MessageTypes.Contains(messageType))
         {
             logger.LogInformation("#{Index:D5} processing: Message({MessageName}, {MessageId}) is unknown.",
@@ -122,7 +135,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
 
         logger.LogDebug("#{Index:D5} processing: Message({MessageName}, {MessageId}) found.", index, messageName, messageId);
 
-        var requestId = requestValue[MessagePropertyNames.RequestIdName];
+        var requestId = requestValue.Details.GetOrDefault(MessagePropertyNames.RequestIdName);
         if (requestId == null)
         {
             logger.LogCritical("#{Index:D5}: Message({MessageName}, {MessageId}, {RequestId}) processing: {PropertyName} is missing.",
