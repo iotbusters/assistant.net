@@ -13,8 +13,9 @@ namespace Assistant.Net.Messaging.Sqlite.Tests.Fixtures;
 
 public class MessagingClientFixtureBuilder
 {
-    private readonly TestConfigureOptionsSource clientSource = new();
-    private readonly TestConfigureOptionsSource remoteSource = new();
+    private readonly TestConfigureOptionsSource<GenericHandlingServerOptions> genericServerSource = new();
+    private readonly TestConfigureOptionsSource<MessagingClientOptions> remoteSource = new();
+    private readonly TestConfigureOptionsSource<MessagingClientOptions> clientSource = new();
 
     public MessagingClientFixtureBuilder()
     {
@@ -44,7 +45,8 @@ public class MessagingClientFixtureBuilder
                     o.InactivityDelayTime = TimeSpan.FromSeconds(0.05);
                     o.NextMessageDelayTime = TimeSpan.FromSeconds(0.01);
                 })
-                .BindOptions(GenericOptionsNames.DefaultName, remoteSource));
+                .BindOptions(GenericOptionsNames.DefaultName, remoteSource)
+                .BindOptions(genericServerSource));
     }
 
     public IServiceCollection Services { get; init; }
@@ -74,33 +76,40 @@ public class MessagingClientFixtureBuilder
         if (!messageTypes.Any())
             throw new ArgumentException($"Expected message handler but provided {typeof(THandler)}.", nameof(THandler));
 
-        clientSource.Configurations.Add(o =>
-        {
-            foreach (var messageType in messageTypes)
-                o.AddGeneric(messageType);
-        });
+        genericServerSource.Configurations.Add(o => o.AcceptMessages(messageTypes));
         remoteSource.Configurations.Add(o =>
         {
             if (handler != null)
                 o.AddHandler(handler);
             else
                 o.AddHandler(typeof(THandler));
+        });
+        clientSource.Configurations.Add(o =>
+        {
+            foreach (var messageType in messageTypes)
+                o.AddGeneric(messageType);
         });
         return this;
     }
 
     public MessagingClientFixtureBuilder AddSingleProviderHandler<THandler>(THandler? handler = null) where THandler : class
     {
-        var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
-                          ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
+        var messageTypes = typeof(THandler).GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
+        if (!messageTypes.Any())
+            throw new ArgumentException($"Expected message handler but provided {typeof(THandler)}.", nameof(THandler));
 
-        clientSource.Configurations.Add(o => o.AddSingle(messageType));
+        genericServerSource.Configurations.Add(o => o.AcceptMessages(messageTypes));
         remoteSource.Configurations.Add(o =>
         {
             if (handler != null)
                 o.AddHandler(handler);
             else
                 o.AddHandler(typeof(THandler));
+        });
+        clientSource.Configurations.Add(o =>
+        {
+            foreach (var messageType in messageTypes)
+                o.AddSingle(messageType);
         });
         return this;
     }
@@ -119,6 +128,6 @@ public class MessagingClientFixtureBuilder
 
         host.Services.GetRequiredService<MessageAcceptanceService>().Register(TimeSpan.FromSeconds(1), default).Wait();
 
-        return new(remoteSource, clientSource, provider, host);
+        return new(genericServerSource, remoteSource, clientSource, provider, host);
     }
 }
