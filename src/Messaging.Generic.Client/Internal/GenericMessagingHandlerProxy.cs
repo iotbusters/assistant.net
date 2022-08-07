@@ -27,6 +27,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
     private readonly IPartitionedAdminStorage<string, IAbstractMessage> requestStorage;
     private readonly IAdminStorage<string, CachingResult> responseStorage;
     private readonly ITypeEncoder typeEncoder;
+    private readonly ISystemClock clock;
 
     public GenericMessagingHandlerProxy(
         ILogger<GenericMessagingHandlerProxy> logger,
@@ -34,7 +35,8 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         IAdminStorage<string, RemoteHandlerModel> remoteHostRegistrationStorage,
         IPartitionedAdminStorage<string, IAbstractMessage> requestStorage,
         IAdminStorage<string, CachingResult> responseStorage,
-        ITypeEncoder typeEncoder)
+        ITypeEncoder typeEncoder,
+        ISystemClock clock)
     {
         this.logger = logger;
         this.options = options;
@@ -42,6 +44,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         this.requestStorage = requestStorage;
         this.responseStorage = responseStorage;
         this.typeEncoder = typeEncoder;
+        this.clock = clock;
     }
 
     public async ValueTask<object> Request(IAbstractMessage message, CancellationToken token)
@@ -52,7 +55,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         var messageName = typeEncoder.Encode(message.GetType());
         var messageId = message.GetSha1();
 
-        var requestId = await PublishInternal(message, token);
+        var requestId = await PublishInternal(message, timeToLive: strategy.TotalTime, token);
         await Task.Delay(strategy.DelayTime(attempt), token);
 
         logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) polling: {Attempt} begins.",
@@ -86,9 +89,9 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
     }
 
     public async ValueTask Publish(IAbstractMessage message, CancellationToken token) =>
-        await PublishInternal(message, token);
+        await PublishInternal(message, timeToLive: null, token);
 
-    private async ValueTask<string> PublishInternal(IAbstractMessage message, CancellationToken token)
+    private async ValueTask<string> PublishInternal(IAbstractMessage message, TimeSpan? timeToLive, CancellationToken token)
     {
         var requestId = Guid.NewGuid().ToString();
         var messageName = typeEncoder.Encode(message.GetType())!;
@@ -101,6 +104,9 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
             messageName, messageId, requestId);
 
         var request = new StorageValue<IAbstractMessage>(message) {[MessagePropertyNames.RequestIdName] = requestId};
+        if (timeToLive != null)
+            request[MessagePropertyNames.ExpiredName] = clock.UtcNow.Add(timeToLive.Value).ToString("O");
+
         var instance = model.GetInstance()!;
         await requestStorage.Add(instance, request, token);
 
