@@ -24,13 +24,6 @@ public static class ServiceCollectionExtensions
         .AddHostedService<GenericMessageHandlingService>()
         .AddSystemServicesHosted()
         .AddMessagingClient(GenericOptionsNames.DefaultName, b => b.AddConfiguration<GenericServerInterceptorConfiguration>())
-        .AddOptions<GenericHandlingServerOptions>()
-        .ChangeOn<MessagingClientOptions>(GenericOptionsNames.DefaultName, (so, mo) =>
-        {
-            so.MessageTypes.Clear();
-            foreach (var messageType in mo.Handlers.Keys)
-                so.MessageTypes.Add(messageType);
-        }).Services
         .AddHealthChecks().Services
         .Configure<HealthCheckPublisherOptions>(o =>
         {

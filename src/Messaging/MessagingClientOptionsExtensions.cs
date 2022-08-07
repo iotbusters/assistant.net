@@ -160,7 +160,7 @@ public static class MessagingClientOptionsExtensions
         var interceptorType = interceptorInstance.GetType();
         if (!interceptorType.IsRequestMessageInterceptor() && !interceptorType.IsAbstractRequestInterceptor()
             && !interceptorType.IsPublishMessageInterceptor() && !interceptorType.IsAbstractPublishInterceptor())
-            throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorType));
+            throw new ArgumentException($"Expected interceptor but provided {interceptorType}.", nameof(interceptorInstance));
 
         options.RequestInterceptors.AddAbstractInterceptor(interceptorInstance);
         options.PublishInterceptors.AddAbstractInterceptor(interceptorInstance);
@@ -201,7 +201,7 @@ public static class MessagingClientOptionsExtensions
         var  interceptorType = replacementInstance.GetType();
         if (! interceptorType.IsRequestMessageInterceptor() && ! interceptorType.IsAbstractRequestInterceptor()
             && ! interceptorType.IsPublishMessageInterceptor() && ! interceptorType.IsAbstractPublishInterceptor())
-            throw new ArgumentException($"Expected interceptor but provided { interceptorType}.", nameof( interceptorType));
+            throw new ArgumentException($"Expected interceptor but provided { interceptorType}.", nameof(replacementInstance));
 
         options.RequestInterceptors.ReplaceAbstractInterceptor(targetType, replacementInstance);
         options.PublishInterceptors.ReplaceAbstractInterceptor(targetType, replacementInstance);

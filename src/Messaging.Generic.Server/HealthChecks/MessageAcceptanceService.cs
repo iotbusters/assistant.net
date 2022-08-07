@@ -60,11 +60,8 @@ public sealed class MessageAcceptanceService : IDisposable
         var now = clock.UtcNow;
         var expired = now.Add(timeToLive);
 
-        var localRegisteredMessageTypes = registeredMessageTypes;
-        var localLatestMessageTypes = options.CurrentValue.MessageTypes.ToArray();
-        var unregisteredMessageTypes = localRegisteredMessageTypes.Except(localLatestMessageTypes);
-
-        foreach (var messageType in localLatestMessageTypes)
+        var latestMessageTypes = options.CurrentValue.MessageTypes.ToArray();
+        foreach (var messageType in latestMessageTypes)
         {
             var messageName = typeEncoder.Encode(messageType)!;
             await remoteHostRegistrationStorage.AddOrUpdate(
@@ -75,6 +72,8 @@ public sealed class MessageAcceptanceService : IDisposable
             logger.LogWarning("Message({MessageName}) acceptance at {Instance}: updated.", messageName, instance);
         }
 
+        var localRegisteredMessageTypes = registeredMessageTypes;
+        var unregisteredMessageTypes = localRegisteredMessageTypes.Except(latestMessageTypes);
         foreach (var messageType in unregisteredMessageTypes)
         {
             var messageName = typeEncoder.Encode(messageType)!;
@@ -86,7 +85,7 @@ public sealed class MessageAcceptanceService : IDisposable
             logger.LogWarning("Message({MessageName}) acceptance at {Instance}: unregistered.", messageName, instance);
         }
 
-        registeredMessageTypes = localLatestMessageTypes;
+        registeredMessageTypes = latestMessageTypes;
     }
 
     /// <summary>
