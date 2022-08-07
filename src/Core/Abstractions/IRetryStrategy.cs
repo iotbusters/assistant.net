@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace Assistant.Net.Abstractions;
 
@@ -8,6 +9,11 @@ namespace Assistant.Net.Abstractions;
 /// </summary>
 public interface IRetryStrategy
 {
+    /// <summary>
+    ///     Total time of all delays.
+    /// </summary>
+    public TimeSpan TotalTime => Enumerable.Range(1, MaxAttemptNumber).Select(DelayTime).Aggregate((x, y) => x + y);
+
     /// <summary>
     ///     Max allowed handling attempts before failure.
     /// </summary>
