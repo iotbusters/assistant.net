@@ -10,6 +10,25 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - nothing
 
+## [0.3.138] - 2022-08-07
+
+[Assistant.NET Release 0.3.138](https://github.com/iotbusters/assistant.net/releases/tag/0.3.138)
+[Changes](https://github.com/iotbusters/assistant.net/compare/0.3.137...0.3.138)
+
+### 0.3.138 Added
+
+- expiration of requested message handling
+
+### 0.3.138 Changed
+
+- extended retry strategy abstraction with total delay time
+- extended healthcheck registration methods
+
+### 0.3.138 Fixed
+
+- health check cleanup after changing messaging handling provider on a server
+- accepting not configured messages on a server
+
 ## [0.3.137] - 2022-08-06
 
 [Assistant.NET Release 0.3.137](https://github.com/iotbusters/assistant.net/releases/tag/0.3.137)
