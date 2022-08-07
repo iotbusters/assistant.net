@@ -3,6 +3,7 @@ using Assistant.Net.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System;
+using System.Linq;
 
 namespace Assistant.Net;
 
@@ -15,5 +16,38 @@ public static class HealthChecksBuilderExtensions
     ///     Adds a <see cref="MongoOptions"/> configuration based health check implementation.
     /// </summary>
     public static IHealthChecksBuilder AddMongo(this IHealthChecksBuilder builder, TimeSpan? timeout = null) => builder
-        .AddCheck<MongoOptionsHealthCheck>(nameof(MongoOptions), HealthStatus.Unhealthy, timeout: timeout);
+        .AddMongo(nameof(MongoOptions), timeout);
+
+    /// <summary>
+    ///     Adds a <see cref="MongoOptions"/> configuration based health check implementation.
+    /// </summary>
+    public static IHealthChecksBuilder AddMongo(this IHealthChecksBuilder builder, string name, TimeSpan? timeout = null) => builder
+        .AddCheck<MongoOptionsHealthCheck>(name, HealthStatus.Unhealthy, tags: null, timeout: timeout);
+
+    /// <summary>
+    ///     Replace a <see cref="MongoOptions"/> configuration based health check implementation.
+    /// </summary>
+    public static IHealthChecksBuilder ReplaceMongo(this IHealthChecksBuilder builder, TimeSpan? timeout = null) => builder
+        .ReplaceMongo(nameof(MongoOptions), timeout);
+
+    /// <summary>
+    ///     Replace a <see cref="MongoOptions"/> configuration based health check implementation.
+    /// </summary>
+    public static IHealthChecksBuilder ReplaceMongo(this IHealthChecksBuilder builder, string name, TimeSpan? timeout = null)
+    {
+        builder.Services.Configure<HealthCheckServiceOptions>(options =>
+        {
+            var registration = options.Registrations.FirstOrDefault(x => x.Name == name);
+            if (registration != null)
+                options.Registrations.Remove(registration);
+
+            options.Registrations.Add(new HealthCheckRegistration(
+                name,
+                factory: p => ActivatorUtilities.CreateInstance<MongoOptionsHealthCheck>(p),
+                failureStatus: HealthStatus.Unhealthy,
+                tags: null,
+                timeout));
+        });
+        return builder;
+    }
 }
