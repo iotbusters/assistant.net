@@ -21,7 +21,7 @@ public class StoragePerformanceTests
             await Storage.GetKeys(CancellationToken).ToArrayAsync(CancellationToken);
         watch.Stop();
         Console.WriteLine($"Total: {watch.Elapsed:g} (0.8) Middle: {watch.Elapsed / MeasurementCount:g}");
-        watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(2));
+        watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(2.5));
     }
 
     [Test]
