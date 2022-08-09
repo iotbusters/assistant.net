@@ -47,6 +47,32 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
+    public async Task RequestObject_returnsResponse_AnySingleProvider()
+    {
+        using var fixture = new MessagingClientFixtureBuilder()
+            .UseMongoSingleProvider(ConnectionString, Database)
+            .AddAnySingleProviderHandler<TestScenarioMessageHandler>()
+            .Create();
+
+        var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
+
+        response.Should().Be(new TestResponse(false));
+    }
+
+    [Test]
+    public async Task RequestObject_returnsResponse_AnyProvider()
+    {
+        using var fixture = new MessagingClientFixtureBuilder()
+            .UseMongoSingleProvider(ConnectionString, Database)
+            .AddAnyProviderHandler<TestScenarioMessageHandler>()
+            .Create();
+
+        var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
+
+        response.Should().Be(new TestResponse(false));
+    }
+
+    [Test]
     public async Task RequestObject_returnsResponse()
     {
         using var fixture = new MessagingClientFixtureBuilder()

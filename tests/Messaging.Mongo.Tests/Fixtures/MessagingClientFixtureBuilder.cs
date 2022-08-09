@@ -98,6 +98,24 @@ public class MessagingClientFixtureBuilder
         return this;
     }
 
+    public MessagingClientFixtureBuilder AddAnyProviderHandler<THandler>(THandler? handler = null) where THandler : class
+    {
+        var messageTypes = typeof(THandler).GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
+        if (!messageTypes.Any())
+            throw new ArgumentException($"Expected message handler but provided {typeof(THandler)}.", nameof(THandler));
+
+        genericServerSource.Configurations.Add(o => o.AcceptMessages(messageTypes));
+        remoteSource.Configurations.Add(o =>
+        {
+            if (handler != null)
+                o.AddHandler(handler);
+            else
+                o.AddHandler(typeof(THandler));
+        });
+        clientSource.Configurations.Add(o => o.AddGenericAny());
+        return this;
+    }
+
     public MessagingClientFixtureBuilder AddSingleProviderHandler<THandler>(THandler? handler = null) where THandler : class
     {
         var messageTypes = typeof(THandler).GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
@@ -117,6 +135,24 @@ public class MessagingClientFixtureBuilder
             foreach (var messageType in messageTypes)
                 o.AddSingle(messageType);
         });
+        return this;
+    }
+
+    public MessagingClientFixtureBuilder AddAnySingleProviderHandler<THandler>(THandler? handler = null) where THandler : class
+    {
+        var messageTypes = typeof(THandler).GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
+        if (!messageTypes.Any())
+            throw new ArgumentException($"Expected message handler but provided {typeof(THandler)}.", nameof(THandler));
+
+        genericServerSource.Configurations.Add(o => o.AcceptMessages(messageTypes));
+        remoteSource.Configurations.Add(o =>
+        {
+            if (handler != null)
+                o.AddHandler(handler);
+            else
+                o.AddHandler(typeof(THandler));
+        });
+        clientSource.Configurations.Add(o => o.AddSingleAny());
         return this;
     }
 

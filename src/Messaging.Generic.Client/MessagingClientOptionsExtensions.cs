@@ -47,6 +47,8 @@ public static class MessagingClientOptionsExtensions
     ///     Pay attention, the method overrides already registered handlers;
     ///     it has dependencies configured by <see cref="MessagingClientBuilder"/>, including storage configuration.
     /// </remarks>
+    /// <param name="options"/>
+    /// <param name="messageType">Accepting message type.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddGeneric(this MessagingClientOptions options, Type messageType)
     {
@@ -54,6 +56,21 @@ public static class MessagingClientOptionsExtensions
             throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
 
         options.Handlers[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
+            p.Create<GenericMessagingHandlerProxy>());
+
+        return options;
+    }
+
+    /// <summary>
+    ///     Registers storage based any message type handling except defined explicitly.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, the method overrides already registered handlers;
+    ///     it has dependencies configured by <see cref="MessagingClientBuilder"/>, including storage configuration.
+    /// </remarks>
+    public static MessagingClientOptions AddGenericAny(this MessagingClientOptions options)
+    {
+        options.AnyProvider = new InstanceCachingFactory<IAbstractHandler>(p =>
             p.Create<GenericMessagingHandlerProxy>());
 
         return options;
