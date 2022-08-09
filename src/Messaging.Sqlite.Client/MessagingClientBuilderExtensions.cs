@@ -28,7 +28,8 @@ public static class MessagingClientBuilderExtensions
     /// </summary>
     /// <remarks>
     ///     Pay attention, you need to call explicitly one of overloaded <see cref="UseSqlite(MessagingClientBuilder,string)"/> to configure;
-    ///     It should be added if <see cref="AddSqlite"/> wasn't configured on the start but configure <see cref="MessagingClientOptions"/> instead.
+    ///     It should be added if <see cref="AddSqlite(MessagingClientBuilder,Type)"/> wasn't configured on the start but
+    ///     configure <see cref="MessagingClientOptions"/> instead.
     /// </remarks>
     public static MessagingClientBuilder UseSqliteProvider(this MessagingClientBuilder builder)
     {
@@ -78,6 +79,8 @@ public static class MessagingClientBuilderExtensions
     ///     Pay attention, it requires calling one of <see cref="UseSqlite(MessagingClientBuilder,string)"/> method.
     /// </remarks>
     /// <exception cref="ArgumentException"/>
+    /// <param name="builder"/>
+    /// <param name="messageType">The message type to find associated handler.</param>
     public static MessagingClientBuilder AddSqlite(this MessagingClientBuilder builder, Type messageType)
     {
         if (!messageType.IsMessage())
@@ -90,11 +93,25 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
+    ///     Configures messaging client to use remote SQLite based handler of any message type except explicitly registered.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, it requires calling one of <see cref="UseSqlite(MessagingClientBuilder,string)"/> method.
+    /// </remarks>
+    public static MessagingClientBuilder AddSqlite(this MessagingClientBuilder builder)
+    {
+        builder.Services
+            .ConfigureMessagingClientOptions(builder.Name, o => o.AddGenericAny())
+            .AddSqliteProvider(builder.Name);
+        return builder;
+    }
+
+    /// <summary>
     ///     Configures SQLite regular provider for storage based messaging handling dependencies.
     /// </summary>
     /// <remarks>
     ///     Pay attention, you need to call explicitly one of overloaded <see cref="UseSqlite(MessagingClientBuilder,string)"/> to configure;
-    ///     It should be added if <see cref="AddSqlite"/> wasn't configured on the start.
+    ///     It should be added if <see cref="AddSqlite(MessagingClientBuilder,Type)"/> wasn't configured on the start.
     /// </remarks>
     private static void AddSqliteProvider(this IServiceCollection services, string name) => services
         .AddStorage(name, b => b
@@ -108,7 +125,7 @@ public static class MessagingClientBuilderExtensions
     /// </summary>
     /// <remarks>
     ///     Pay attention, you need to call explicitly one of overloaded <see cref="UseSqlite(MessagingClientBuilder,string)"/> to configure;
-    ///     It should be added if <see cref="AddSqlite"/> wasn't configured on the start.
+    ///     It should be added if <see cref="AddSqlite(MessagingClientBuilder,Type)"/> wasn't configured on the start.
     /// </remarks>
     private static void AddSqliteSingleProvider(this IServiceCollection services, string name) => services
         .AddStorage(name, b => b
