@@ -10,6 +10,15 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - nothing
 
+## [0.3.139] - 2022-08-09
+
+[Assistant.NET Release 0.3.139](https://github.com/iotbusters/assistant.net/releases/tag/0.3.139)
+[Changes](https://github.com/iotbusters/assistant.net/compare/0.3.138...0.3.139)
+
+### 0.3.139 Added
+
+- any message type support for remote handling providers
+
 ## [0.3.138] - 2022-08-07
 
 [Assistant.NET Release 0.3.138](https://github.com/iotbusters/assistant.net/releases/tag/0.3.138)
