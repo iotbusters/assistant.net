@@ -60,6 +60,23 @@ public static class MessagingClientOptionsExtensions
     }
 
     /// <summary>
+    ///     Registers single provider based handler of any message type except defined explicitly.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, it requires calling one of Use***SingleProvider method.
+    /// </remarks>
+    public static MessagingClientOptions AddSingleAny(this MessagingClientOptions options)
+    {
+        options.AnyProvider = new InstanceCachingFactory<IAbstractHandler>(p =>
+        {
+            var definition = options.SingleProvider ?? throw new ArgumentException("Single provider wasn't properly configured.");
+            return definition.Create(p);
+        });
+
+        return options;
+    }
+
+    /// <summary>
     ///     Registers a named message handler definition.
     /// </summary>
     /// <remarks>

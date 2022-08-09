@@ -27,10 +27,11 @@ internal class MessagingClient : IMessagingClient
     public async Task<object> RequestObject(IAbstractMessage message, CancellationToken token)
     {
         var messageType = message.GetType();
-        if (!options.Handlers.TryGetValue(messageType, out var factory))
+        if (!options.Handlers.TryGetValue(messageType, out var factory)
+            && options.AnyProvider == null)
             throw new MessageNotRegisteredException(messageType);
 
-        var handler = factory.Create(provider);
+        var handler = (factory ?? options.AnyProvider!).Create(provider);
         var interceptors = options.RequestInterceptors
             .Where(x => x.MessageType.IsAssignableFrom(messageType))
             .Select(x => x.Factory.Create(provider));
@@ -43,10 +44,11 @@ internal class MessagingClient : IMessagingClient
     public async Task PublishObject(IAbstractMessage message, CancellationToken token)
     {
         var messageType = message.GetType();
-        if (!options.Handlers.TryGetValue(messageType, out var factory))
+        if (!options.Handlers.TryGetValue(messageType, out var factory)
+            && options.AnyProvider == null)
             throw new MessageNotRegisteredException(messageType);
 
-        var handler = factory.Create(provider);
+        var handler = (factory ?? options.AnyProvider!).Create(provider);
         var interceptors = options.PublishInterceptors
             .Where(x => x.MessageType.IsAssignableFrom(messageType))
             .Select(x => x.Factory.Create(provider));

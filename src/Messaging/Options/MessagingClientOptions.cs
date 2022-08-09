@@ -21,6 +21,11 @@ public sealed class MessagingClientOptions
     public InstanceFactory<IAbstractHandler>? SingleProvider { get; internal set; }
 
     /// <summary>
+    ///     Provider instance used for any message type handling except defined explicitly.
+    /// </summary>
+    public InstanceFactory<IAbstractHandler>? AnyProvider { get; set; }
+
+    /// <summary>
     ///     List of registered handlers.
     /// </summary>
     public Dictionary<Type, InstanceFactory<IAbstractHandler>> Handlers { get; } = new();

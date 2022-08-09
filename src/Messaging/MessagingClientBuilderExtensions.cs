@@ -45,6 +45,19 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
+    ///     Registers single provider based handler of any message type except defined explicitly.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, it requires calling one of Use***SingleProvider method.
+    /// </remarks>
+    /// <param name="builder"/>
+    public static MessagingClientBuilder AddSingleAny(this MessagingClientBuilder builder)
+    {
+        builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.AddSingleAny());
+        return builder;
+    }
+
+    /// <summary>
     ///     Registers a local in-memory handler type <typeparamref name="THandler"/>.
     /// </summary>
     /// <exception cref="ArgumentException"/>
