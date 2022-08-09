@@ -98,6 +98,20 @@ public static class MessagingClientBuilderExtensions
     }
 
     /// <summary>
+    ///     Configures messaging client to use remote MongoDB based handler of any message type except explicitly registered.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, it requires calling one of <see cref="UseMongo(MessagingClientBuilder,string)"/> overloaded methods.
+    /// </remarks>
+    public static MessagingClientBuilder AddMongoAny(this MessagingClientBuilder builder)
+    {
+        builder.Services
+            .ConfigureMessagingClientOptions(builder.Name, o => o.AddGenericAny())
+            .AddMongoProvider(builder.Name);
+        return builder;
+    }
+
+    /// <summary>
     ///     Configures MongoDB regular provider for storage based messaging handling dependencies.
     /// </summary>
     /// <remarks>

@@ -51,6 +51,8 @@ public static class MessagingClientBuilderExtensions
     ///     Pay attention, it requires calling <see cref="UseWeb"/>.
     /// </remarks>
     /// <exception cref="ArgumentException"/>
+    /// <param name="builder"/>
+    /// <param name="messageType">The message type to find associated handler.</param>
     public static MessagingClientBuilder AddWeb(this MessagingClientBuilder builder, Type messageType)
     {
         if (!messageType.IsMessage())
@@ -59,6 +61,20 @@ public static class MessagingClientBuilderExtensions
         builder.Services
             .ConfigureJsonSerialization(builder.Name)
             .ConfigureMessagingClientOptions(builder.Name, o => o.AddWeb(messageType));
+        return builder;
+    }
+
+    /// <summary>
+    ///     Registers remote WEB handler of any message type except explicitly registered.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, it requires calling <see cref="UseWeb"/>.
+    /// </remarks>
+    public static MessagingClientBuilder AddWebAny(this MessagingClientBuilder builder)
+    {
+        builder.Services
+            .ConfigureJsonSerialization(builder.Name)
+            .ConfigureMessagingClientOptions(builder.Name, o => o.AddWebAny());
         return builder;
     }
 }
