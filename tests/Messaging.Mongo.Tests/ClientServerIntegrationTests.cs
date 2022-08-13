@@ -1,5 +1,6 @@
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.HealthChecks;
 using Assistant.Net.Messaging.Mongo.Tests.Fixtures;
 using Assistant.Net.Messaging.Mongo.Tests.Mocks;
 using FluentAssertions;
@@ -209,6 +210,49 @@ public class ClientServerIntegrationTests
             .WithMessage("3")
             .Result.WithInnerExceptionExactly<MessageFailedException>()
             .Which.InnerException?.Message.Should().Be("inner");
+    }
+
+    [Test]
+    public async Task RequestObject_throwsMessageDeferredException_inactiveServer()
+    {
+        // global arrange
+        var message = new TestScenarioMessage(0);
+        using var fixture = new MessagingClientFixtureBuilder()
+            .UseMongoSingleProvider(ConnectionString, Database)
+            .AddSingleProviderHandler<TestScenarioMessageHandler>()
+            .Create();
+
+        // assert 1
+        await fixture.Client.RequestObject(message);
+
+        // arrange 2
+        var activityService = fixture.GetServerService<ServerActivityService>();
+        activityService.Inactivate();
+
+        // assert 2
+        await fixture.Awaiting(x => x.Client.RequestObject(message))
+            .Should().ThrowAsync<MessageDeferredException>();
+    }
+
+    [Test]
+    public async Task RequestObject_throwsMessageNotRegisteredException_unavailableServer()
+    {
+        // global arrange
+        var message = new TestScenarioMessage(0);
+        using var fixture = new MessagingClientFixtureBuilder()
+            .UseMongoSingleProvider(ConnectionString, Database)
+            .AddSingleProviderHandler<TestScenarioMessageHandler>()
+            .Create();
+
+        // assert 1
+        await fixture.Client.RequestObject(message);
+
+        // arrange 2
+        await fixture.GetServerService<ServerAvailabilityService>().Unregister(default);
+
+        // assert 2
+        await fixture.Awaiting(x => x.Client.RequestObject(message))
+            .Should().ThrowAsync<MessageNotRegisteredException>();
     }
 
     [OneTimeSetUp]

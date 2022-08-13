@@ -14,11 +14,11 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.HealthChecks;
 
 /// <summary>
-///     Message acceptance for remote handling registration service.
+///     Server availability managing service required for remote message handling coordination.
 /// </summary>
-public sealed class MessageAcceptanceService : IDisposable
+public sealed class ServerAvailabilityService : IDisposable
 {
-    private readonly ILogger<MessageAcceptanceService> logger;
+    private readonly ILogger<ServerAvailabilityService> logger;
     private readonly IOptionsMonitor<GenericHandlingServerOptions> options;
     private readonly string instance;
     private readonly ITypeEncoder typeEncoder;
@@ -29,8 +29,8 @@ public sealed class MessageAcceptanceService : IDisposable
     private Type[] registeredMessageTypes;
 
     /// <summary/>
-    public MessageAcceptanceService(
-        ILogger<MessageAcceptanceService> logger,
+    public ServerAvailabilityService(
+        ILogger<ServerAvailabilityService> logger,
         IOptionsMonitor<GenericHandlingServerOptions> options,
         IServiceScopeFactory scopeFactory,
         IHostEnvironment environment,
@@ -69,7 +69,7 @@ public sealed class MessageAcceptanceService : IDisposable
                 addFactory: _ => new RemoteHandlerModel().AddInstance(instance, expired),
                 updateFactory: (_, current) => current.AddInstance(instance, expired).Skip(expiredBefore: now),
                 token);
-            logger.LogWarning("Message({MessageName}) acceptance at {Instance}: updated.", messageName, instance);
+            logger.LogDebug("Message({MessageName}) acceptance at {Instance}: updated.", messageName, instance);
         }
 
         var localRegisteredMessageTypes = registeredMessageTypes;

@@ -10,6 +10,15 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - nothing
 
+## [0.4.140] - 2022-08-13
+
+[Assistant.NET Release 0.4.140](https://github.com/iotbusters/assistant.net/releases/tag/0.4.140)
+[Changes](https://github.com/iotbusters/assistant.net/compare/0.3.139...0.4.140)
+
+### 0.4.140 Added
+
+- message handling server activation and inactivation based on health checks
+
 ## [0.3.139] - 2022-08-09
 
 [Assistant.NET Release 0.3.139](https://github.com/iotbusters/assistant.net/releases/tag/0.3.139)
