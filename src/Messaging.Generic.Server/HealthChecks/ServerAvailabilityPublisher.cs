@@ -6,14 +6,17 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.HealthChecks;
 
-internal class GenericServerAvailabilityPublisher : IHealthCheckPublisher
+/// <summary>
+///     Generic messaging server availability publisher based on the server latest health check status.
+/// </summary>
+internal class ServerAvailabilityPublisher : IHealthCheckPublisher
 {
     private readonly IOptions<HealthCheckPublisherOptions> publisherOptions;
-    private readonly MessageAcceptanceService acceptanceService;
+    private readonly ServerAvailabilityService acceptanceService;
 
-    public GenericServerAvailabilityPublisher(
+    public ServerAvailabilityPublisher(
         IOptions<HealthCheckPublisherOptions> publisherOptions,
-        MessageAcceptanceService acceptanceService)
+        ServerAvailabilityService acceptanceService)
     {
         this.publisherOptions = publisherOptions;
         this.acceptanceService = acceptanceService;

@@ -28,14 +28,14 @@ public class MessagingClientFixtureBuilder
                 .ClearTransientExceptions())
             .ConfigureGenericHandlerProxyOptions(o => o.ResponsePoll = new ConstantBackoff
             {
-                Interval = TimeSpan.FromSeconds(0.05), MaxAttemptNumber = 15
+                Interval = TimeSpan.FromSeconds(0.02), MaxAttemptNumber = 10
             })
             .BindOptions(clientSource);
         RemoteHostBuilder = Host.CreateDefaultBuilder()
             .ConfigureServices(s => s
                 .AddTypeEncoder(o => o.Exclude("NUnit").Exclude("Newtonsoft"))
                 .AddGenericMessageHandling()
-                .ConfigureGenericMessagingClient(o => o
+                .ConfigureMessagingClient(GenericOptionsNames.DefaultName, o => o
                     .RemoveInterceptor<CachingInterceptor>()
                     .RemoveInterceptor<RetryingInterceptor>()
                     .RemoveInterceptor<TimeoutInterceptor>()
@@ -162,7 +162,8 @@ public class MessagingClientFixtureBuilder
         var provider = Services.BuildServiceProvider();
         var host = RemoteHostBuilder.Start();
 
-        host.Services.GetRequiredService<MessageAcceptanceService>().Register(TimeSpan.FromSeconds(1), default).Wait();
+        host.Services.GetRequiredService<ServerAvailabilityService>().Register(TimeSpan.FromSeconds(1), default).Wait();
+        host.Services.GetRequiredService<ServerActivityService>().Activate();
 
         return new(genericServerSource, remoteSource, clientSource, provider, host);
     }

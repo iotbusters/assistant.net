@@ -1,3 +1,4 @@
+using Assistant.Net.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -14,7 +15,6 @@ public sealed class GenericHandlingServerOptions
     /// </summary>
     [MinLength(1)]
     public IList<Type> MessageTypes { get; } = new List<Type>();
-
 
     /// <summary>
     ///     Time to delay after no messages to handle were found.

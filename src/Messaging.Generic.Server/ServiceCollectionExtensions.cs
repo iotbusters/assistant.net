@@ -31,8 +31,10 @@ public static class ServiceCollectionExtensions
             o.Period = TimeSpan.FromSeconds(10);
             o.Timeout = TimeSpan.FromSeconds(3);
         })
-        .TryAddSingleton<IHealthCheckPublisher, GenericServerAvailabilityPublisher>()
-        .TryAddSingleton<MessageAcceptanceService>();
+        .TryAddSingleton<IHealthCheckPublisher, ServerAvailabilityPublisher>()
+        .TryAddSingleton<IHealthCheckPublisher, ServerActivityPublisher>()
+        .TryAddSingleton<ServerAvailabilityService>()
+        .TryAddSingleton<ServerActivityService>();
 
     /// <summary>
     ///     Registers storage based server message handling.
@@ -42,14 +44,6 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddGenericMessageHandling(this IServiceCollection services, Action<GenericHandlingServerBuilder> configure) => services
         .AddGenericMessageHandling()
         .ConfigureGenericMessageHandling(configure);
-
-    /// <summary>
-    ///     Configures the <see cref="GenericOptionsNames.DefaultName"/> named messaging client.
-    /// </summary>
-    /// <param name="services"/>
-    /// <param name="configureBuilder">The action used to configure the builder.</param>
-    public static IServiceCollection ConfigureGenericMessagingClient(this IServiceCollection services, Action<MessagingClientBuilder> configureBuilder) => services
-        .ConfigureMessagingClient(GenericOptionsNames.DefaultName, configureBuilder);
 
     /// <summary>
     ///     Configures storage based server message handling.

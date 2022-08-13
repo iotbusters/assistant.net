@@ -69,9 +69,11 @@ public sealed class MessagingClientFixture : IDisposable
         clientSource.Reload();
         Thread.Sleep(1);
 
-        var service = host.Services.GetRequiredService<MessageAcceptanceService>();
+        var service = host.Services.GetRequiredService<ServerAvailabilityService>();
         service.Register(TimeSpan.FromSeconds(1), default).Wait();
     }
+
+    public TService GetServerService<TService>() where TService : class => host.Services.GetRequiredService<TService>();
 
     public void Dispose()
     {
