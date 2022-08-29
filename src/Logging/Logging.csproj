@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Logging</RootNamespace>
+    <RootNamespace>Assistant.Net</RootNamespace>
     <AssemblyName>assistant.net.logging</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Nullable>enable</Nullable>

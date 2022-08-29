@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using static System.Reflection.BindingFlags;
 
-namespace Assistant.Net.Logging.Internal;
+namespace Assistant.Net.Internal;
 
 internal abstract class Item : IItem
 {

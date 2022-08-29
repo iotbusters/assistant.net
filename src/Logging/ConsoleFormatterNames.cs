@@ -1,4 +1,4 @@
-﻿namespace Assistant.Net.Logging;
+﻿namespace Assistant.Net;
 
 /// <summary>
 ///     Reserved console formatter names.

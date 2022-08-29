@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 
-namespace Assistant.Net.Logging.Internal;
+namespace Assistant.Net.Internal;
 
 internal sealed class ArrayItem : Item
 {
