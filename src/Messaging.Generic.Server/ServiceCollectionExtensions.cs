@@ -31,8 +31,8 @@ public static class ServiceCollectionExtensions
             o.Period = TimeSpan.FromSeconds(10);
             o.Timeout = TimeSpan.FromSeconds(3);
         })
-        .TryAddSingleton<IHealthCheckPublisher, ServerAvailabilityPublisher>()
-        .TryAddSingleton<IHealthCheckPublisher, ServerActivityPublisher>()
+        .TryAddSingletonExact<IHealthCheckPublisher, ServerActivityPublisher>()
+        .TryAddSingletonExact<IHealthCheckPublisher, ServerAvailabilityPublisher>()
         .TryAddSingleton<ServerAvailabilityService>()
         .TryAddSingleton<ServerActivityService>();
 
