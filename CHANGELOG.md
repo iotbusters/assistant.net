@@ -10,18 +10,18 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - nothing
 
-## [0.4.141] - 2022-08-29
+## [0.4.142] - 2022-08-29
 
-[Assistant.NET Release 0.4.141](https://github.com/iotbusters/assistant.net/releases/tag/0.4.141)
-[Changes](https://github.com/iotbusters/assistant.net/compare/0.3.140...0.4.141)
+[Assistant.NET Release 0.4.142](https://github.com/iotbusters/assistant.net/releases/tag/0.4.142)
+[Changes](https://github.com/iotbusters/assistant.net/compare/0.3.140...0.4.142)
 
-### 0.4.141 Added
+### 0.4.142 Added
 
 - custom data to diagnostic operations
 - service registration extension methods based on lifetime and service type pair
 - yaml console formatter as part of logging package
 
-### 0.4.141 Fixed
+### 0.4.142 Fixed
 
 - reaching timeouts on a client if message cannot be handled by a server
 - using options snapshot in the messaging client after options were refreshed
