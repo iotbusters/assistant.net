@@ -10,6 +10,24 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - nothing
 
+## [0.4.141] - 2022-08-29
+
+[Assistant.NET Release 0.4.141](https://github.com/iotbusters/assistant.net/releases/tag/0.4.141)
+[Changes](https://github.com/iotbusters/assistant.net/compare/0.3.140...0.4.141)
+
+### 0.4.141 Added
+
+- custom data to diagnostic operations
+- service registration extension methods based on lifetime and service type pair
+- yaml console formatter as part of logging package
+
+### 0.4.141 Fixed
+
+- reaching timeouts on a client if message cannot be handled by a server
+- using options snapshot in the messaging client after options were refreshed
+- round robin messaging server instance distribution on a client
+- health check publisher duplication
+
 ## [0.4.140] - 2022-08-13
 
 [Assistant.NET Release 0.4.140](https://github.com/iotbusters/assistant.net/releases/tag/0.4.140)
@@ -40,7 +58,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 ### 0.3.138 Changed
 
 - extended retry strategy abstraction with total delay time
-- extended healthcheck registration methods
+- extended health check registration methods
 
 ### 0.3.138 Fixed
 
