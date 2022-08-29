@@ -1,9 +1,9 @@
-﻿using Assistant.Net.Logging.Internal;
+﻿using Assistant.Net.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using static Microsoft.Extensions.Logging.ActivityTrackingOptions;
 
-namespace Assistant.Net.Logging;
+namespace Assistant.Net;
 
 /// <summary>
 ///     Logging builder configuring extensions.

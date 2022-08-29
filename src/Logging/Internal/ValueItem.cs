@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.IO;
 
-namespace Assistant.Net.Logging.Internal;
+namespace Assistant.Net.Internal;
 
 internal sealed class ValueItem : IItem
 {

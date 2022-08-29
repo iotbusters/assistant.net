@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Assistant.Net.Logging.Internal;
+namespace Assistant.Net.Internal;
 
 internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
 {
