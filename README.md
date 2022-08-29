@@ -43,6 +43,12 @@ Diagnostics management tools including tracking operations, correlations, event 
 
 See [assistant.net.diagnostics](src/Diagnostics/README.md) for details.
 
+### assistant.net.logging
+
+Common .net logging extension.
+
+See [assistant.net.logging](src/Logging/README.md) for details.
+
 ### assistant.net.serialization.json
 
 Generic serialization mechanism with flexible type/format configuration.
