@@ -58,7 +58,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         var requestId = await PublishInternal(message, timeToLive: strategy.TotalTime, token);
         await Task.Delay(strategy.DelayTime(attempt), token);
 
-        logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) polling: {Attempt} begins.",
+        logger.LogDebug("Message({MessageName}, {MessageId}, {RequestId}) polling response: #{Attempt} begins.",
             messageName, messageId, requestId, attempt);
 
         var watch = Stopwatch.StartNew();
@@ -68,18 +68,18 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
 
             if (await responseStorage.TryGet(requestId, token) is Some<CachingResult>(var response))
             {
-                logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) polling: {Attempt} succeeded.",
+                logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) polling response: #{Attempt} ends.",
                     messageName, messageId, requestId, attempt);
                 return response.GetValue();
             }
 
-            logger.LogWarning("Message({MessageName}, {MessageId}, {RequestId}) polling: {Attempt} ends without response.",
+            logger.LogWarning("Message({MessageName}, {MessageId}, {RequestId}) polling response: #{Attempt} ends without response.",
                 messageName, messageId, requestId, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Message({MessageName}, {MessageId}, {RequestId}) polling: {Attempt} reached the limit.",
+                logger.LogError("Message({MessageName}, {MessageId}, {RequestId}) polling response: #{Attempt} reached the limit.",
                     messageName, messageId, requestId, attempt);
                 throw new MessageDeferredException($"No response from server received in {watch.Elapsed}.");
             }
@@ -100,7 +100,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         if (await remoteHostRegistrationStorage.TryGet(messageName, token) is not Some<RemoteHandlerModel>({ HasRegistrations: true } model))
             throw new MessageNotRegisteredException(message.GetType());
 
-        logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) publishing: begins.",
+        logger.LogDebug("Message({MessageName}, {MessageId}, {RequestId}) publishing: begins.",
             messageName, messageId, requestId);
 
         var request = new StorageValue<IAbstractMessage>(message) {[MessagePropertyNames.RequestIdName] = requestId};
@@ -110,7 +110,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         var instance = model.GetInstance()!;
         await requestStorage.Add(instance, request, token);
 
-        logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) publishing: succeeded.",
+        logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) publishing: ends.",
             messageName, messageId, requestId);
 
         return requestId;

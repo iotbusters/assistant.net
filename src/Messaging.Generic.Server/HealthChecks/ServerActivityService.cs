@@ -73,13 +73,13 @@ public sealed class ServerActivityService
         if (local.IsCancellationRequested)
             return;
 
-        logger.LogWarning("The service is delaying until activated.");
+        logger.LogWarning("The service is being delayed until activated.");
         var watch = Stopwatch.StartNew();
 
         using var composedSource = CancellationTokenSource.CreateLinkedTokenSource(local.Token, token);
         await Task.WhenAny(Task.Delay(Timeout.Infinite, composedSource.Token));
 
         watch.Stop();
-        logger.LogInformation("The service was delayed for {DelayTime}.", watch.Elapsed);
+        logger.LogInformation("The service was delayed for {DelayedTime}.", watch.Elapsed);
     }
 }

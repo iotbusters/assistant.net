@@ -57,7 +57,7 @@ public sealed class DiagnosticsInterceptor : SharedAbstractInterceptor
             throw;
         }
 
-        logger.LogInformation("Message({MessageName}, {MessageId}) operation: succeeded.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}, {MessageId}) operation: ends.", messageName, messageId);
         operation.Complete();
         return response;
     }
