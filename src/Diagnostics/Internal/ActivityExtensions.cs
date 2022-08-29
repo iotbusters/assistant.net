@@ -29,23 +29,21 @@ internal static class ActivityExtensions
     ///    Gets a current correlation ID of the activity.
     /// </summary>
     /// <exception cref="ArgumentException"/>
-    public static string GetCorrelationId(this Activity activity) => activity
-                                                                         .Tags.SingleOrDefault(x => x.Key == CorrelationIdName).Value
-                                                                     ?? throw new ArgumentException($"Activity({activity.OperationName}) doesn't have {CorrelationIdName} baggage value.");
+    public static string GetCorrelationId(this Activity activity) =>
+        activity.Tags.SingleOrDefault(x => x.Key == CorrelationIdName).Value
+        ?? throw new ArgumentException($"Activity({activity.OperationName}) doesn't have {CorrelationIdName} baggage value.");
 
     /// <summary>
     ///    Gets parent correlation IDs of the activity.
     /// </summary>
     /// <exception cref="ArgumentException"/>
-    public static ItemData[] GetParentCorrelationIds(this Activity activity)
-    {
-        return activity.Baggage
+    public static ItemData[] GetParentCorrelationIds(this Activity activity) =>
+        activity.Baggage
             .Where(x => x.Key == CorrelationIdName)
             .Select(x => x.Value!)
             .Except(new[] { activity.GetCorrelationId() })
             .Select(x => new ItemData { Value = x })
             .ToArray();
-    }
 
     /// <summary>
     ///    Adds an operation status message to the activity.
@@ -57,9 +55,9 @@ internal static class ActivityExtensions
     ///    Gets an operation status message of the activity.
     /// </summary>
     /// <exception cref="ArgumentException"/>
-    public static string GetMessage(this Activity activity) => activity
-                                                                   .Tags.SingleOrDefault(x => x.Key == MessageName).Value
-                                                               ?? throw new ArgumentException($"Activity({activity.OperationName}) doesn't have {MessageName} tag value.");
+    public static string GetMessage(this Activity activity) =>
+        activity.Tags.SingleOrDefault(x => x.Key == MessageName).Value
+        ?? throw new ArgumentException($"Activity({activity.OperationName}) doesn't have {MessageName} tag value.");
 
     /// <summary>
     ///    Adds an operation status to the activity.
@@ -71,19 +69,20 @@ internal static class ActivityExtensions
     ///    Gets an operation status of the activity.
     /// </summary>
     /// <exception cref="ArgumentException"/>
-    public static string GetOperationStatus(this Activity activity) => activity
-                                                                           .Tags.SingleOrDefault(x => x.Key == StatusName).Value
-                                                                       ?? throw new ArgumentException($"Activity({activity.OperationName}) doesn't have {StatusName} tag value.");
+    public static string GetOperationStatus(this Activity activity) =>
+        activity.Tags.SingleOrDefault(x => x.Key == StatusName).Value
+        ?? throw new ArgumentException($"Activity({activity.OperationName}) doesn't have {StatusName} tag value.");
 
     /// <summary>
     ///    Gets custom user metadata of the activity.
     /// </summary>
-    public static IDictionary<string, ItemData[]> GetCustomMetadata(this Activity activity) => activity
-        .Tags.Concat(activity.Baggage)
-        .Where(x => !KnownNames.Contains(x.Key))
-        .Where(x => x.Value != null)
-        .GroupBy(x => x.Key, x => x.Value!)
-        .ToDictionary(x => x.Key, x => x.Select(y => new ItemData { Value = y }).ToArray());
+    public static IDictionary<string, ItemData[]> GetCustomMetadata(this Activity activity) =>
+        activity.Tags
+            .Concat(activity.Baggage)
+            .Where(x => !KnownNames.Contains(x.Key))
+            .Where(x => x.Value != null)
+            .GroupBy(x => x.Key, x => x.Value!)
+            .ToDictionary(x => x.Key, x => x.Select(y => new ItemData {Value = y}).ToArray());
 
     /// <summary>
     ///    Adds new value to cross-activity baggage by a key, if a value doesn't exists.
