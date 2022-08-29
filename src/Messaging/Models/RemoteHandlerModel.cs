@@ -9,7 +9,7 @@ namespace Assistant.Net.Messaging.Models;
 /// </summary>
 public class RemoteHandlerModel
 {
-    private static readonly Random random = new();
+    private static int indexer = 1;
 
     private readonly Dictionary<string, RemoteHandlerRegistration> registeredInstances;
 
@@ -67,6 +67,6 @@ public class RemoteHandlerModel
     {
         0     => null,
         1     => registeredInstances.Keys.Single(),
-        var l => registeredInstances.Keys.ElementAt(random.Next(l - 1))
+        var l => registeredInstances.Keys.ElementAt(indexer++ % l)
     };
 }
