@@ -284,6 +284,99 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Adds the specified <paramref name="serviceType"/> as a <see cref="ServiceLifetime.Transient"/> service
     ///     with the <paramref name="implementationType"/> implementation
+    ///     to the <paramref name="services"/> if the exact service type and implementation type pair
+    ///     hasn't already been registered.
+    /// </summary>
+    /// <param name="services"/>
+    /// <param name="serviceType">The type of the service to register.</param>
+    /// <param name="implementationType">The implementation type of the service.</param>
+    public static IServiceCollection TryAddTransientExact(this IServiceCollection services, Type serviceType, Type implementationType)
+    {
+        if (services.Any(x => x.ServiceType == serviceType && x.ImplementationType == implementationType))
+            return services;
+
+        services.Add(ServiceDescriptor.Transient(serviceType, implementationType));
+        return services;
+    }
+
+    /// <summary>
+    ///     Adds the specified <typeparamref name="TService"/> as a <see cref="ServiceLifetime.Transient"/> service
+    ///     implementation type specified in <typeparamref name="TImplementation"/>
+    ///     to the <paramref name="services"/> if the exact service type and implementation type pair
+    ///     hasn't already been registered.
+    /// </summary>
+    /// <typeparam name="TService">The type of the service to add.</typeparam>
+    /// <typeparam name="TImplementation">The type of the implementation to use.</typeparam>
+    public static IServiceCollection TryAddTransientExact<TService, TImplementation>(this IServiceCollection services)
+        where TImplementation : class, TService
+        where TService : class => services
+        .TryAddTransientExact(typeof(TService), typeof(TImplementation));
+
+    /// <summary>
+    ///     Adds the specified <paramref name="serviceType"/> as a <see cref="ServiceLifetime.Scoped"/> service
+    ///     with the <paramref name="implementationType"/> implementation
+    ///     to the <paramref name="services"/> if the exact service type and implementation type pair
+    ///     hasn't already been registered.
+    /// </summary>
+    /// <param name="services"/>
+    /// <param name="serviceType">The type of the service to register.</param>
+    /// <param name="implementationType">The implementation type of the service.</param>
+    public static IServiceCollection TryAddScopedExact(this IServiceCollection services, Type serviceType, Type implementationType)
+    {
+        if (services.Any(x => x.ServiceType == serviceType && x.ImplementationType == implementationType))
+            return services;
+
+        services.Add(ServiceDescriptor.Scoped(serviceType, implementationType));
+        return services;
+    }
+
+    /// <summary>
+    ///     Adds the specified <typeparamref name="TService"/> as a <see cref="ServiceLifetime.Scoped"/> service
+    ///     implementation type specified in <typeparamref name="TImplementation"/>
+    ///     to the <paramref name="services"/> if the exact service type and implementation type pair
+    ///     hasn't already been registered.
+    /// </summary>
+    /// <typeparam name="TService">The type of the service to add.</typeparam>
+    /// <typeparam name="TImplementation">The type of the implementation to use.</typeparam>
+    public static IServiceCollection TryAddScopedExact<TService, TImplementation>(this IServiceCollection services)
+        where TImplementation : class, TService
+        where TService : class => services
+        .TryAddScopedExact(typeof(TService), typeof(TImplementation));
+
+    /// <summary>
+    ///     Adds the specified <paramref name="serviceType"/> as a <see cref="ServiceLifetime.Singleton"/> service
+    ///     with the <paramref name="implementationType"/> implementation
+    ///     to the <paramref name="services"/> if the exact service type and implementation type pair
+    ///     hasn't already been registered.
+    /// </summary>
+    /// <param name="services"/>
+    /// <param name="serviceType">The type of the service to register.</param>
+    /// <param name="implementationType">The implementation type of the service.</param>
+    public static IServiceCollection TryAddSingletonExact(this IServiceCollection services, Type serviceType, Type implementationType)
+    {
+        if (services.Any(x => x.ServiceType == serviceType && x.ImplementationType == implementationType))
+            return services;
+
+        services.Add(ServiceDescriptor.Singleton(serviceType, implementationType));
+        return services;
+    }
+
+    /// <summary>
+    ///     Adds the specified <typeparamref name="TService"/> as a <see cref="ServiceLifetime.Singleton"/> service
+    ///     implementation type specified in <typeparamref name="TImplementation"/>
+    ///     to the <paramref name="services"/> if the exact service type and implementation type pair
+    ///     hasn't already been registered.
+    /// </summary>
+    /// <typeparam name="TService">The type of the service to add.</typeparam>
+    /// <typeparam name="TImplementation">The type of the implementation to use.</typeparam>
+    public static IServiceCollection TryAddSingletonExact<TService, TImplementation>(this IServiceCollection services)
+        where TImplementation : class, TService
+        where TService : class => services
+        .TryAddSingletonExact(typeof(TService), typeof(TImplementation));
+
+    /// <summary>
+    ///     Adds the specified <paramref name="serviceType"/> as a <see cref="ServiceLifetime.Transient"/> service
+    ///     with the <paramref name="implementationType"/> implementation
     ///     to the <paramref name="services"/> if the service type hasn't already been registered.
     /// </summary>
     /// <param name="services"/>
