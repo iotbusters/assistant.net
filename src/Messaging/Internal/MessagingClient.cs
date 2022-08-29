@@ -15,24 +15,26 @@ namespace Assistant.Net.Messaging.Internal;
 internal class MessagingClient : IMessagingClient
 {
     private readonly IServiceProvider provider;
-    private readonly MessagingClientOptions options;
+    private readonly INamedOptions<MessagingClientOptions> options;
 
     public MessagingClient(IServiceProvider provider, INamedOptions<MessagingClientOptions> options)
     {
         this.provider = provider;
-        this.options = options.Value;
+        this.options = options;
     }
 
     /// <exception cref="MessageNotRegisteredException"/>
     public async Task<object> RequestObject(IAbstractMessage message, CancellationToken token)
     {
+        var clientOptions = options.Value;
+
         var messageType = message.GetType();
-        if (!options.Handlers.TryGetValue(messageType, out var factory)
-            && options.AnyProvider == null)
+        if (!clientOptions.Handlers.TryGetValue(messageType, out var factory)
+            && clientOptions.AnyProvider == null)
             throw new MessageNotRegisteredException(messageType);
 
-        var handler = (factory ?? options.AnyProvider!).Create(provider);
-        var interceptors = options.RequestInterceptors
+        var handler = (factory ?? clientOptions.AnyProvider!).Create(provider);
+        var interceptors = clientOptions.RequestInterceptors
             .Where(x => x.MessageType.IsAssignableFrom(messageType))
             .Select(x => x.Factory.Create(provider));
 
@@ -43,13 +45,15 @@ internal class MessagingClient : IMessagingClient
     /// <exception cref="MessageNotRegisteredException"/>
     public async Task PublishObject(IAbstractMessage message, CancellationToken token)
     {
+        var clientOptions = options.Value;
+
         var messageType = message.GetType();
-        if (!options.Handlers.TryGetValue(messageType, out var factory)
-            && options.AnyProvider == null)
+        if (!clientOptions.Handlers.TryGetValue(messageType, out var factory)
+            && clientOptions.AnyProvider == null)
             throw new MessageNotRegisteredException(messageType);
 
-        var handler = (factory ?? options.AnyProvider!).Create(provider);
-        var interceptors = options.PublishInterceptors
+        var handler = (factory ?? clientOptions.AnyProvider!).Create(provider);
+        var interceptors = clientOptions.PublishInterceptors
             .Where(x => x.MessageType.IsAssignableFrom(messageType))
             .Select(x => x.Factory.Create(provider));
 
