@@ -26,12 +26,12 @@ namespace Assistant.Net.Logging.Tests
         {
             logger.Log(level, "Message 1 and 2.");
 
-            Thread.Sleep(5);
+            Thread.Sleep(10);
             stringBuilder.ToString().Should().Be($@"
 Timestamp: {testTime.UtcDateTime:yyyy-MM-dd hh:mm:ss.fff}
 LogLevel: {level}
 EventId: 0
-Category: Assistant.Net.Logging.Tests.Tests
+Category: Assistant.Net.Logging.Tests.YamlConsoleFormatterTests
 Message: Message 1 and 2.
 ");
         }
@@ -41,12 +41,12 @@ Message: Message 1 and 2.
         {
             logger.LogInformation("Message {Property1} and {Property2}.", "1", 2);
 
-            Thread.Sleep(5);
+            Thread.Sleep(10);
             stringBuilder.ToString().Should().Be($@"
 Timestamp: {testTime.UtcDateTime:yyyy-MM-dd hh:mm:ss.fff}
 LogLevel: Information
 EventId: 0
-Category: Assistant.Net.Logging.Tests.Tests
+Category: Assistant.Net.Logging.Tests.YamlConsoleFormatterTests
 Message: Message 1 and 2.
 State:
   Property1: 1
@@ -60,12 +60,12 @@ State:
         {
             logger.LogInformation("Message {Object}.", new TestClass {Key = "1", Value = "2"});
 
-            Thread.Sleep(5);
+            Thread.Sleep(10);
             stringBuilder.ToString().Should().Be($@"
 Timestamp: {testTime.UtcDateTime:yyyy-MM-dd hh:mm:ss.fff}
 LogLevel: Information
 EventId: 0
-Category: Assistant.Net.Logging.Tests.Tests
+Category: Assistant.Net.Logging.Tests.YamlConsoleFormatterTests
 Message: Message Assistant.Net.Logging.Tests.Mocks.TestClass.
 State:
   Object:
@@ -81,12 +81,12 @@ State:
         {
             logger.LogInformation("Messages {Array}.", (object)new[] {"1", "2"});
 
-            Thread.Sleep(5);
+            Thread.Sleep(10);
             stringBuilder.ToString().Should().Be($@"
 Timestamp: {testTime.UtcDateTime:yyyy-MM-dd hh:mm:ss.fff}
 LogLevel: Information
 EventId: 0
-Category: Assistant.Net.Logging.Tests.Tests
+Category: Assistant.Net.Logging.Tests.YamlConsoleFormatterTests
 Message: Messages 1, 2.
 State:
   Array:
@@ -103,12 +103,12 @@ State:
 
             logger.LogInformation(exception, "Message 1 and 2.");
 
-            Thread.Sleep(5);
+            Thread.Sleep(10);
             stringBuilder.ToString().Should().Be($@"
 Timestamp: {testTime.UtcDateTime:yyyy-MM-dd hh:mm:ss.fff}
 LogLevel: Information
 EventId: 0
-Category: Assistant.Net.Logging.Tests.Tests
+Category: Assistant.Net.Logging.Tests.YamlConsoleFormatterTests
 Message: Message 1 and 2.
 Exception:
   Type: System.Exception
@@ -131,12 +131,12 @@ Exception:
             using var _6 = logger.BeginScope(new TestClass {Key = "1", Value = "2"});
             logger.LogInformation("Message 1 and 2.");
 
-            Thread.Sleep(5);
+            Thread.Sleep(10);
             stringBuilder.ToString().Should().Be($@"
 Timestamp: {testTime.UtcDateTime:yyyy-MM-dd hh:mm:ss.fff}
 LogLevel: Information
 EventId: 0
-Category: Assistant.Net.Logging.Tests.Tests
+Category: Assistant.Net.Logging.Tests.YamlConsoleFormatterTests
 Message: Message 1 and 2.
 Scopes:
   - Test-Property
@@ -161,12 +161,12 @@ Scopes:
 
             logger.LogInformation("Message 1 and 2.");
 
-            Thread.Sleep(5);
+            Thread.Sleep(10);
             stringBuilder.ToString().Should().Be($@"
 Timestamp: {testTime.UtcDateTime:yyyy}
 LogLevel: Information
 EventId: 0
-Category: Assistant.Net.Logging.Tests.Tests
+Category: Assistant.Net.Logging.Tests.YamlConsoleFormatterTests
 Message: Message 1 and 2.
 ");
         }
@@ -178,12 +178,12 @@ Message: Message 1 and 2.
 
             logger.LogInformation("Message 1 and 2.");
 
-            Thread.Sleep(5);
+            Thread.Sleep(10);
             stringBuilder.ToString().Should().Be($@"
 Timestamp: {testTime.LocalDateTime:yyyy-MM-dd hh:mm:ss.fff}
 LogLevel: Information
 EventId: 0
-Category: Assistant.Net.Logging.Tests.Tests
+Category: Assistant.Net.Logging.Tests.YamlConsoleFormatterTests
 Message: Message 1 and 2.
 ");
         }
@@ -196,12 +196,12 @@ Message: Message 1 and 2.
             using var _ = logger.BeginScope(new KeyValuePair<string, string>("1", "2"));
             logger.LogInformation("Message 1 and 2.");
 
-            Thread.Sleep(5);
+            Thread.Sleep(10);
             stringBuilder.ToString().Should().Be($@"
 Timestamp: {testTime.UtcDateTime:yyyy-MM-dd hh:mm:ss.fff}
 LogLevel: Information
 EventId: 0
-Category: Assistant.Net.Logging.Tests.Tests
+Category: Assistant.Net.Logging.Tests.YamlConsoleFormatterTests
 Message: Message 1 and 2.
 ");
         }
@@ -210,7 +210,7 @@ Message: Message 1 and 2.
 
         private StringBuilder stringBuilder = null!;
         private ServiceProvider provider = null!;
-        private ILogger<Tests> logger = null!;
+        private ILogger<YamlConsoleFormatterTests> logger = null!;
 
         private ConsoleFormatterOptions options = null!;
 
@@ -233,7 +233,7 @@ Message: Message 1 and 2.
                     new TestOptionsMonitor<ConsoleFormatterOptions>(options))
                 .ReplaceSingleton<ISystemClock>(_ => new TestClock {UtcNow = testTime})
                 .BuildServiceProvider();
-            logger = provider.GetRequiredService<ILogger<Tests>>();
+            logger = provider.GetRequiredService<ILogger<YamlConsoleFormatterTests>>();
         }
 
         [TearDown]
