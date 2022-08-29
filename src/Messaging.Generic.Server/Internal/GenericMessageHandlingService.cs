@@ -174,6 +174,9 @@ internal sealed class GenericMessageHandlingService : BackgroundService
         {
             logger.LogCritical("#{Index:D5} processing: Message({MessageId}) has unsupported {MessageType}.",
                 index, messageId, messageType.FullName);
+            var exception = new MessageFailedException($"Message({messageId}) has unsupported {messageType}.");
+            var failure = CachingResult.OfException(exception);
+            await StoreMessageResponse(requestValue, failure, token);
             return true;
         }
 
@@ -181,15 +184,21 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             && DateTimeOffset.TryParse(expiredString, out var expired)
             && expired <= clock.UtcNow)
         {
-            logger.LogInformation("#{Index:D5} processing: Message({MessageName}, {MessageId}) is expired.",
+            logger.LogWarning("#{Index:D5} processing: Message({MessageName}, {MessageId}) request is expired.",
                 index, messageName, messageId);
+            var exception = new MessageFailedException($"Message({messageName}, {messageId}) request is expired.");
+            var failure = CachingResult.OfException(exception);
+            await StoreMessageResponse(requestValue, failure, token);
             return true;
         }
 
         if (!serverOptions.MessageTypes.Contains(messageType))
         {
-            logger.LogInformation("#{Index:D5} processing: Message({MessageName}, {MessageId}) is unknown.",
+            logger.LogWarning("#{Index:D5} processing: Message({MessageName}, {MessageId}) isn't registered on the server.",
                 index, messageName, messageId);
+            var exception = new MessageNotRegisteredException($"Message({messageName}, {messageId}) isn't registered on the server.");
+            var failure = CachingResult.OfException(exception);
+            await StoreMessageResponse(requestValue, failure, token);
             return true;
         }
 
@@ -200,6 +209,9 @@ internal sealed class GenericMessageHandlingService : BackgroundService
         {
             logger.LogCritical("#{Index:D5} processing: Message({MessageName}, {MessageId}) doesn't have required {PropertyName}.",
                 index, messageName, messageId, MessagePropertyNames.RequestIdName);
+            var failure = CachingResult.OfException(new MessageContractException(
+                $"Message({messageName}, {messageId}) doesn't have required {MessagePropertyNames.RequestIdName}."));
+            await StoreMessageResponse(requestValue, failure, token);
             return true;
         }
 
@@ -298,7 +310,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
 
         var client = scope.ServiceProvider.GetRequiredService<IMessagingClient>();
 
-        logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) handling: begins.",
+        logger.LogDebug("Message({MessageName}, {MessageId}, {RequestId}) handling: begins.",
             messageName, messageId, requestId);
 
         object response;
