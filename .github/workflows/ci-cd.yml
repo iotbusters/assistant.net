@@ -34,6 +34,7 @@ jobs:
           echo ::set-output name=storage-mongo::$(echo "$CHANGES" | grep -c src/Storage.Mongo/)
           echo ::set-output name=storage-sqlite::$(echo "$CHANGES" | grep -c src/Storage.Sqlite/)
           echo ::set-output name=diagnostics::$(echo "$CHANGES" | grep -c src/Diagnostics/)
+          echo ::set-output name=logging::$(echo "$CHANGES" | grep -c src/Logging/)
           echo ::set-output name=messaging::$(echo "$CHANGES" | grep -c src/Messaging/)
           echo ::set-output name=web-client::$(echo "$CHANGES" | grep -c src/Messaging.Web.Client/)
           echo ::set-output name=web-server::$(echo "$CHANGES" | grep -c src/Messaging.Web.Server/)
@@ -56,6 +57,7 @@ jobs:
       storage-mongo: ${{ steps.change-detected.outputs.storage-mongo }}
       storage-sqlite: ${{ steps.change-detected.outputs.storage-sqlite }}
       diagnostics: ${{ steps.change-detected.outputs.diagnostics }}
+      logging: ${{ steps.change-detected.outputs.logging }}
       messaging: ${{ steps.change-detected.outputs.messaging }}
       web-client: ${{ steps.change-detected.outputs.web-client }}
       web-server: ${{ steps.change-detected.outputs.web-server }}
@@ -183,6 +185,7 @@ jobs:
                 <li>Storage.Mongo: ${{ needs.change-detect.outputs.storage-mongo }}</li>
                 <li>Storage.Sqlite: ${{ needs.change-detect.outputs.storage-sqlite }}</li>
                 <li>Diagnostics: ${{ needs.change-detect.outputs.diagnostics }}</li>
+                <li>Logging: ${{ needs.change-detect.outputs.logging }}</li>
                 <li>Messaging: ${{ needs.change-detect.outputs.messaging }}</li>
                 <li>Messaging.Web.Client: ${{ needs.change-detect.outputs.web-client }}</li>
                 <li>Messaging.Web.Server: ${{ needs.change-detect.outputs.web-server }}</li>
