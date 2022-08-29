@@ -6,6 +6,13 @@
 public interface IOperation
 {
     /// <summary>
+    ///     Associates additional data to current operation.
+    /// </summary>
+    /// <param name="name">Data name.</param>
+    /// <param name="value">Data value.</param>
+    IOperation AddData(string name, string value);
+
+    /// <summary>
     ///     Successfully complete current operation.
     /// </summary>
     /// <param name="message">Operation success message. if needed.</param>

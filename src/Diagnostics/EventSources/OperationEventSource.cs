@@ -10,8 +10,19 @@ internal sealed class OperationEventSource : EventSource
 {
     public static OperationEventSource Instance { get; } = new OperationEventSource();
 
-    private EventSourceOptions startOptions = new() { Level = EventLevel.LogAlways, Opcode = EventOpcode.Start, ActivityOptions = EventActivityOptions.Recursive | EventActivityOptions.Detachable};
-    private EventSourceOptions stopOptions = new() { Level = EventLevel.LogAlways, Opcode = EventOpcode.Stop, ActivityOptions = EventActivityOptions.Recursive | EventActivityOptions.Detachable };
+    private EventSourceOptions startOptions = new()
+    {
+        Level = EventLevel.LogAlways,
+        Opcode = EventOpcode.Start,
+        ActivityOptions = EventActivityOptions.Recursive | EventActivityOptions.Detachable
+    };
+
+    private EventSourceOptions stopOptions = new()
+    {
+        Level = EventLevel.LogAlways,
+        Opcode = EventOpcode.Stop,
+        ActivityOptions = EventActivityOptions.Recursive | EventActivityOptions.Detachable
+    };
     private Guid noId;
 
     private OperationEventSource() : base(EventNames.OperationEventName) { }

@@ -35,6 +35,12 @@ internal sealed class Operation : IOperation, IDisposable
         WriteOperationStarted();
     }
 
+    public IOperation AddData(string name, string value)
+    {
+        activity.SetTag(name, value);
+        return this;
+    }
+
     void IOperation.Complete(string? message) =>
         Stop(OperationStatus.Complete, message ?? DefaultCompleteMessage);
 
@@ -44,7 +50,6 @@ internal sealed class Operation : IOperation, IDisposable
     void IDisposable.Dispose() =>
         Stop(OperationStatus.Incomplete, LostOperationMessage);
 
-    // todo: consider failing with user-data (https://github.com/iotbusters/assistant.net/issues/3)
     /// <exception cref="ArgumentException"/>
     private void Stop(string status, string message)
     {
