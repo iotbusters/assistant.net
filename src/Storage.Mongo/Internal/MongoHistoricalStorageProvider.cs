@@ -43,11 +43,11 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
         var attempt = 1;
         while (true)
         {
-            logger.LogInformation("Storage.AddOrGet({@Key}): {Attempt} begins.", keyId, attempt);
+            logger.LogInformation("Storage.AddOrGet({@Key}): #{Attempt} begins.", keyId, attempt);
 
             if (await FindLatestOne(keyId, token) is Some<ValueRecord>(var found))
             {
-                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): {Attempt} found.",
+                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): #{Attempt} found.",
                     keyId, found.Audit.Version, attempt);
                 return found;
             }
@@ -61,17 +61,17 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
                 added.Audit.Details);
             if (await InsertOne(inserted, token))
             {
-                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): {Attempt} added.",
+                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): #{Attempt} added.",
                     keyId, added.Audit.Version, attempt);
                 return added;
             }
 
-            logger.LogWarning("Storage.AddOrGet({@Key}): {Attempt} failed.", keyId, attempt);
+            logger.LogWarning("Storage.AddOrGet({@Key}): #{Attempt} failed.", keyId, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Storage.AddOrGet({@Key}): {Attempt} reached the limit.", keyId, attempt);
+                logger.LogError("Storage.AddOrGet({@Key}): #{Attempt} reached the limit.", keyId, attempt);
                 throw new StorageConcurrencyException();
             }
 
@@ -91,7 +91,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
         var attempt = 1;
         while (true)
         {
-            logger.LogInformation("Storage.AddOrUpdate({@Key}): {Attempt} begins.", keyId, attempt);
+            logger.LogInformation("Storage.AddOrUpdate({@Key}): #{Attempt} begins.", keyId, attempt);
 
             var value = await FindLatestOne(keyId, token) is not Some<ValueRecord>(var found)
                 ? await addFactory(key)
@@ -105,17 +105,17 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
                 value.Audit.Details);
             if (await InsertOne(record, token))
             {
-                logger.LogInformation("Storage.AddOrUpdate({@Key}, {Version}): {Attempt} added version.",
+                logger.LogInformation("Storage.AddOrUpdate({@Key}, {Version}): #{Attempt} added version.",
                     keyId, value.Audit.Version, attempt);
                 return value;
             }
 
-            logger.LogWarning("Storage.AddOrUpdate({@Key}): {Attempt} failed.", keyId, attempt);
+            logger.LogWarning("Storage.AddOrUpdate({@Key}): #{Attempt} failed.", keyId, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Storage.AddOrUpdate({@Key}): {Attempt} won't proceed.", keyId, attempt);
+                logger.LogError("Storage.AddOrUpdate({@Key}): #{Attempt} won't proceed.", keyId, attempt);
                 throw new StorageConcurrencyException();
             }
 
@@ -177,12 +177,12 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
             await DeleteMany(keyId, found.Audit.Version, token);
 
-            logger.LogWarning("Storage.TryRemove({@Key}, 1..latest): {Attempt} ends.", keyId, attempt);
+            logger.LogWarning("Storage.TryRemove({@Key}, 1..latest): #{Attempt} ends.", keyId, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Storage.TryRemove({@Key}, 1..latest): {Attempt} reached the limit.", keyId, attempt);
+                logger.LogError("Storage.TryRemove({@Key}, 1..latest): #{Attempt} reached the limit.", keyId, attempt);
                 break;
             }
 
@@ -191,7 +191,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
         if (latestValue != null)
         {
-            logger.LogInformation("Storage.TryRemove({@Key}, 1..{Version}): succeeded.", keyId, latestValue.Audit.Version);
+            logger.LogInformation("Storage.TryRemove({@Key}, 1..{Version}): ends.", keyId, latestValue.Audit.Version);
             return latestValue.AsOption();
         }
 
@@ -223,12 +223,12 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
             await DeleteMany(keyId, found.Audit.Version, token);
 
-            logger.LogWarning("Storage.TryRemove({@Key}, 1..{Version}): {Attempt} ends.", keyId, upToVersion, attempt);
+            logger.LogWarning("Storage.TryRemove({@Key}, 1..{Version}): #{Attempt} ends.", keyId, upToVersion, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Storage.TryRemove({@Key}, 1..{Version}): {Attempt} reached the limit.",
+                logger.LogError("Storage.TryRemove({@Key}, 1..{Version}): #{Attempt} reached the limit.",
                     keyId, upToVersion, attempt);
                 break;
             }
@@ -238,7 +238,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
         if (latestValue != null)
         {
-            logger.LogInformation("Storage.TryRemove({@Key}, 1..{Version}): succeeded.", keyId, latestValue.Audit.Version);
+            logger.LogInformation("Storage.TryRemove({@Key}, 1..{Version}): ends.", keyId, latestValue.Audit.Version);
             return Option.Some(latestValue);
         }
 
@@ -259,7 +259,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
             foreach (var key in cursor.Current)
                 yield return key;
 
-        logger.LogInformation("Storage.GetKeys(): succeeded.");
+        logger.LogInformation("Storage.GetKeys(): ends.");
     }
 
     private async Task<Option<ValueRecord>> FindLatestOne(Key key, CancellationToken token)
@@ -273,7 +273,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
         if (found != null)
         {
-            logger.LogDebug("MongoDB({@Key}, 1..latest) finding: succeeded.", found.Key);
+            logger.LogDebug("MongoDB({@Key}, 1..latest) finding: ends.", found.Key);
             return ToValue(found).AsOption();
         }
 
@@ -292,7 +292,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
         if (found != null)
         {
-            logger.LogDebug("MongoDB({@Key}, {Version}) finding: succeeded.", found.Key, found.Version);
+            logger.LogDebug("MongoDB({@Key}, {Version}) finding: ends.", found.Key, found.Version);
             return ToValue(found).AsOption();
         }
 
@@ -312,7 +312,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
         if (found != null)
         {
-            logger.LogDebug("MongoDB({@Key}, {Version}) finding: succeeded.", key, found.Version);
+            logger.LogDebug("MongoDB({@Key}, {Version}) finding: ends.", key, found.Version);
             return ToValue(found).AsOption();
         }
 
@@ -332,7 +332,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
                 record,
                 new InsertOneOptions(),
                 token);
-            logger.LogDebug("MongoDB({@Key}, {Version}) inserting: succeeded.", record.Key.Key, record.Key.Version);
+            logger.LogDebug("MongoDB({@Key}, {Version}) inserting: ends.", record.Key.Key, record.Key.Version);
             return true;
         }
         catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
@@ -349,6 +349,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
         var deleted = await collection.DeleteManyAsync(x =>
             x.Key.Key == key && x.Key.Version <= upToVersion, new DeleteOptions(), token);
 
-        logger.LogDebug("MongoDB({@Key}, 1..{Version}) deleting: found {Count}.", key, upToVersion, deleted.DeletedCount);
+        logger.LogDebug("MongoDB({@Key}, 1..{Version}) deleting: ends with {DeletedCount}.",
+            key, upToVersion, deleted.DeletedCount);
     }
 }

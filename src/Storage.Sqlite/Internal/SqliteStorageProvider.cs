@@ -45,12 +45,12 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         var attempt = 1;
         while (true)
         {
-            logger.LogInformation("Storage.AddOrGet({@Key}): {Attempt} begins.", keyId, attempt);
+            logger.LogInformation("Storage.AddOrGet({@Key}): #{Attempt} begins.", keyId, attempt);
 
             var records = context.StorageValues.AsNoTracking();
             if (await FindValue(records, key, token) is Some<StorageValueRecord>(var found))
             {
-                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): {Attempt} found.", keyId, found.Version, attempt);
+                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): #{Attempt} found.", keyId, found.Version, attempt);
                 return ToValue(found);
             }
 
@@ -63,16 +63,16 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
                 value.Audit.Details.ToDetailArray());
             if (await InsertValue(context, key, record, token))
             {
-                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): {Attempt} added.", keyId, 1, attempt);
+                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): #{Attempt} added.", keyId, 1, attempt);
                 return value;
             }
 
-            logger.LogWarning("Storage.AddOrGet({@Key}, {Version}): {Attempt} ends.", keyId, 1, attempt);
+            logger.LogWarning("Storage.AddOrGet({@Key}, {Version}): #{Attempt} ends.", keyId, 1, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Storage.AddOrGet({@Key}, {Version}): {Attempt} reached the limit.", keyId, 1, attempt);
+                logger.LogError("Storage.AddOrGet({@Key}, {Version}): #{Attempt} reached the limit.", keyId, 1, attempt);
                 throw new StorageConcurrencyException();
             }
 
@@ -93,7 +93,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         var attempt = 1;
         while (true)
         {
-            logger.LogInformation("Storage.AddOrUpdate({@Key}): {Attempt} begins.", keyId, attempt);
+            logger.LogInformation("Storage.AddOrUpdate({@Key}): #{Attempt} begins.", keyId, attempt);
             if (await FindValue(context.StorageValues, key, token) is Some<StorageValueRecord>(var found))
             {
                 var updated = await updateFactory(key, ToValue(found));
@@ -102,7 +102,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
                 found.Details = updated.Audit.Details.ToDetailArray();
                 if (await UpdateValue(context, found, token))
                 {
-                    logger.LogInformation("Storage.AddOrUpdate({@Key}, {Version}): {Attempt} updated.", keyId, found.Version, attempt);
+                    logger.LogInformation("Storage.AddOrUpdate({@Key}, {Version}): #{Attempt} updated.", keyId, found.Version, attempt);
                     return updated;
                 }
             }
@@ -116,16 +116,16 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
                 value.Audit.Details.ToDetailArray());
             if (await InsertValue(context, key, record, token))
             {
-                logger.LogInformation("Storage.AddOrUpdate({@Key}, {Version}): {Attempt} added.", keyId, record.Version, attempt);
+                logger.LogInformation("Storage.AddOrUpdate({@Key}, {Version}): #{Attempt} added.", keyId, record.Version, attempt);
                 return value;
             }
 
-            logger.LogWarning("Storage.AddOrUpdate({@Key}): {Attempt} ends.", keyId, attempt);
+            logger.LogWarning("Storage.AddOrUpdate({@Key}): #{Attempt} ends.", keyId, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Storage.AddOrUpdate({@Key}): {Attempt} reached the limit.", keyId, attempt);
+                logger.LogError("Storage.AddOrUpdate({@Key}): #{Attempt} reached the limit.", keyId, attempt);
                 throw new StorageConcurrencyException();
             }
 
@@ -159,26 +159,26 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         var attempt = 1;
         while (true)
         {
-            logger.LogInformation("Storage.TryRemove({@Key}): {Attempt} begins.", keyId, attempt);
+            logger.LogInformation("Storage.TryRemove({@Key}): #{Attempt} begins.", keyId, attempt);
 
             if (await FindValue(context.StorageValues, key, token) is not Some<StorageValueRecord>(var found))
             {
-                logger.LogInformation("Storage.TryRemove({@Key}): {Attempt} not found.", keyId, attempt);
+                logger.LogInformation("Storage.TryRemove({@Key}): #{Attempt} not found.", keyId, attempt);
                 return Option.None;
             }
 
             if (await DeleteValue(context, found, token))
             {
-                logger.LogInformation("Storage.TryRemove({@Key}, {Version}): {Attempt} deleted.", keyId, found.Version, attempt);
+                logger.LogInformation("Storage.TryRemove({@Key}, {Version}): #{Attempt} deleted.", keyId, found.Version, attempt);
                 return ToValue(found).AsOption();
             }
 
-            logger.LogWarning("Storage.TryRemove({@Key}): {Attempt} ends.", keyId, attempt);
+            logger.LogWarning("Storage.TryRemove({@Key}): #{Attempt} ends.", keyId, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Storage.TryRemove({@Key}): {Attempt} reached the limit.", keyId, attempt);
+                logger.LogError("Storage.TryRemove({@Key}): #{Attempt} reached the limit.", keyId, attempt);
                 throw new StorageConcurrencyException();
             }
 
@@ -199,7 +199,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
         await foreach (var key in keys)
             yield return key;
 
-        logger.LogInformation("Storage.GetKeys(): succeeded.");
+        logger.LogInformation("Storage.GetKeys(): ends.");
     }
 
     private StorageDbContext CreateDbContext() => dbContextFactory.CreateDbContext();
@@ -258,7 +258,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
             return false;
         }
 
-        logger.LogDebug("SQLite({@Key}, {Version}) inserting: succeeded.", keyId, record.Version);
+        logger.LogDebug("SQLite({@Key}, {Version}) inserting: ends.", keyId, record.Version);
         return true;
     }
 
@@ -287,7 +287,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
             return false;
         }
 
-        logger.LogDebug("SQLite({@Key}, {Version}) updating: succeeded.", keyId, found.Version);
+        logger.LogDebug("SQLite({@Key}, {Version}) updating: ends.", keyId, found.Version);
         return true;
     }
 
@@ -312,7 +312,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
             return false;
         }
 
-        logger.LogDebug("SQLite({@Key}, {Version}) deleting: succeeded.", keyId, record.Version);
+        logger.LogDebug("SQLite({@Key}, {Version}) deleting: ends.", keyId, record.Version);
         return true;
     }
 }

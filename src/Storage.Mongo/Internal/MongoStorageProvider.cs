@@ -42,11 +42,11 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
         var attempt = 1;
         while (true)
         {
-            logger.LogInformation("Storage.AddOrGet({@Key}): {Attempt} begins.", keyId, attempt);
+            logger.LogInformation("Storage.AddOrGet({@Key}): #{Attempt} begins.", keyId, attempt);
 
             if (await FindOne(keyId, token) is Some<ValueRecord>(var found))
             {
-                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): {Attempt} found.",
+                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): #{Attempt} found.",
                     keyId, found.Audit.Version, attempt);
                 return found;
             }
@@ -55,17 +55,17 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
             var record = new MongoRecord(keyId, key.Type, key.Content, added.Content, added.Audit.Version, added.Audit.Details);
             if (await InsertOne(record, token))
             {
-                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): {Attempt} added.",
+                logger.LogInformation("Storage.AddOrGet({@Key}, {Version}): #{Attempt} added.",
                     keyId, added.Audit.Version, attempt);
                 return added;
             }
 
-            logger.LogWarning("Storage.AddOrGet({@Key}): {Attempt} ends.", keyId, attempt);
+            logger.LogWarning("Storage.AddOrGet({@Key}): #{Attempt} ends.", keyId, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Storage.AddOrGet({@Key}): {Attempt} reached the limit.", keyId, attempt);
+                logger.LogError("Storage.AddOrGet({@Key}): #{Attempt} reached the limit.", keyId, attempt);
                 throw new StorageConcurrencyException();
             }
 
@@ -85,14 +85,14 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
         var attempt = 1;
         while (true)
         {
-            logger.LogInformation("Storage.AddOrUpdate({@Key}): {Attempt} begins.", keyId, attempt);
+            logger.LogInformation("Storage.AddOrUpdate({@Key}): #{Attempt} begins.", keyId, attempt);
             if (await FindOne(keyId, token) is Some<ValueRecord>(var found))
             {
                 var updated = await updateFactory(key, found);
                 var replaceRecord = new MongoRecord(keyId, key.Type, key.Content, updated.Content, updated.Audit.Version, updated.Audit.Details);
                 if (await ReplaceOne(replaceRecord, found.Audit.Version, token))
                 {
-                    logger.LogInformation("Storage.AddOrUpdate({@Key}, {Version}): {Attempt} updated.",
+                    logger.LogInformation("Storage.AddOrUpdate({@Key}, {Version}): #{Attempt} updated.",
                         keyId, updated.Audit.Version, attempt);
                     return updated;
                 }
@@ -102,17 +102,17 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
             var insertRecord = new MongoRecord(keyId, key.Type, key.Content, added.Content, added.Audit.Version, added.Audit.Details);
             if (await InsertOne(insertRecord, token))
             {
-                logger.LogInformation("Storage.AddOrUpdate({@Key}, {Version}): {Attempt} added.",
+                logger.LogInformation("Storage.AddOrUpdate({@Key}, {Version}): #{Attempt} added.",
                     keyId, added.Audit.Version, attempt);
                 return added;
             }
 
-            logger.LogWarning("Storage.AddOrUpdate({@Key}): {Attempt} ends.", keyId, attempt);
+            logger.LogWarning("Storage.AddOrUpdate({@Key}): #{Attempt} ends.", keyId, attempt);
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Storage.AddOrUpdate({@Key}): {Attempt} reached the limit.", keyId, attempt);
+                logger.LogError("Storage.AddOrUpdate({@Key}): #{Attempt} reached the limit.", keyId, attempt);
                 throw new StorageConcurrencyException();
             }
 
@@ -144,7 +144,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
 
         if (await FindOneAndDelete(keyId, token) is Some<ValueRecord>(var found) option)
         {
-            logger.LogInformation("Storage.TryRemove({@Key}, {Version}): succeeded.", keyId, found.Audit.Version);
+            logger.LogInformation("Storage.TryRemove({@Key}, {Version}): ends.", keyId, found.Audit.Version);
             return option;
         }
 
@@ -164,7 +164,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
             foreach (var key in cursor.Current)
                 yield return key;
 
-        logger.LogInformation("Storage.GetKeys(): succeeded.");
+        logger.LogInformation("Storage.GetKeys(): ends.");
     }
 
     private async Task<Option<ValueRecord>> FindOne(Key key, CancellationToken token)
@@ -174,7 +174,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
         var found = await collection.Find(filter: x => x.Key == key, new FindOptions()).SingleOrDefaultAsync(token);
 
         if (found != null)
-            logger.LogDebug("MongoDB({@Key}, {Version}) finding: succeeded.", key, found.Version);
+            logger.LogDebug("MongoDB({@Key}, {Version}) finding: ends.", key, found.Version);
         else
             logger.LogDebug("MongoDB({@Key}) finding: not found.", key);
 
@@ -189,7 +189,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
         {
             await collection.InsertOneAsync(record, new InsertOneOptions(), token);
 
-            logger.LogDebug("MongoDB({@Key}, {Version}) inserting : succeeded.", record.Key, record.Version);
+            logger.LogDebug("MongoDB({@Key}, {Version}) inserting: ends.", record.Key, record.Version);
             return true;
         }
         catch (MongoWriteException ex) when (ex.WriteError.Category == ServerErrorCategory.DuplicateKey)
@@ -206,7 +206,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
         var result = await collection.ReplaceOneAsync(x => x.Key == record.Key && x.Version == version, record, new ReplaceOptions(), token);
         if (result.MatchedCount != 0)
         {
-            logger.LogDebug("MongoDB({@Key}, {Version}) replacing: succeeded.", record.Key, record.Version);
+            logger.LogDebug("MongoDB({@Key}, {Version}) replacing: ends.", record.Key, record.Version);
             return true;
         }
 
@@ -228,7 +228,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
             token);
 
         if (deleted != null)
-            logger.LogDebug("MongoDB({@Key}, {Version}) finding: succeeded.", key, deleted.Audit.Version);
+            logger.LogDebug("MongoDB({@Key}, {Version}) finding: ends.", key, deleted.Audit.Version);
         else
             logger.LogDebug("MongoDB({@Key}) finding: not found.", key);
 
