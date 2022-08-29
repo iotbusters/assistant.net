@@ -75,11 +75,11 @@ public class DefaultCachingInterceptor : SharedAbstractInterceptor
                     throw;
                 }
 
-                logger.LogWarning(ex, "Message({MessageName}, {MessageId}) caching: accepts permanent failure.", messageName, messageId);
+                logger.LogWarning(ex, "Message({MessageName}, {MessageId}) caching: ends with permanent failure.", messageName, messageId);
                 result = CachingResult.OfException(ex);
             }
 
-            logger.LogInformation("Message({MessageName}, {MessageId}) caching: success.", messageName, messageId);
+            logger.LogInformation("Message({MessageName}, {MessageId}) caching: ends with success response.", messageName, messageId);
             return result;
         }, token);
 

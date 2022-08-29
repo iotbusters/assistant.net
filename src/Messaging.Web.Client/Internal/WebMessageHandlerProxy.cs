@@ -29,29 +29,31 @@ internal class WebMessageHandlerProxy : IAbstractHandler
         var messageName = message.GetType().Name;
         var messageId = message.GetSha1();
 
-        logger.LogInformation("Message({MessageName}, {MessageId}): requested.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}, {MessageId}) handling: begins.", messageName, messageId);
 
+        object response;
         try
         {
-            var response = await client.DelegateHandling(message, token);
-            logger.LogInformation("Message({MessageName}, {MessageId}): responded.", messageName, messageId);
-            return response;
+            response = await client.DelegateHandling(message, token);
         }
         catch (MessageDeferredException ex)
         {
-            logger.LogInformation(ex, "Message({MessageName}, {MessageId}): deferred.", messageName, messageId);
+            logger.LogInformation(ex, "Message({MessageName}, {MessageId}) handling: deferred.", messageName, messageId);
             throw;
         }
         catch (OperationCanceledException ex)
         {
-            logger.LogError(ex, "Message({MessageName}, {MessageId}): cancelled or exceeded timeout.", messageName, messageId);
+            logger.LogError(ex, "Message({MessageName}, {MessageId}) handling: cancelled or exceeded timeout.", messageName, messageId);
             throw;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Message({MessageName}, {MessageId}): failed.", messageName, messageId);
+            logger.LogError(ex, "Message({MessageName}, {MessageId}) handling: failed.", messageName, messageId);
             throw;
         }
+
+        logger.LogInformation("Message({MessageName}, {MessageId}) handling: ends.", messageName, messageId);
+        return response;
     }
 
     public async ValueTask Publish(IAbstractMessage message, CancellationToken token)
@@ -59,7 +61,7 @@ internal class WebMessageHandlerProxy : IAbstractHandler
         var messageName = message.GetType().Name;
         var messageId = message.GetSha1();
 
-        logger.LogInformation("Message({MessageName}, {MessageId}): publishing.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}, {MessageId}) publishing: begins.", messageName, messageId);
 
         try
         {
@@ -67,20 +69,20 @@ internal class WebMessageHandlerProxy : IAbstractHandler
         }
         catch (MessageDeferredException ex)
         {
-            logger.LogInformation(ex, "Message({MessageName}, {MessageId}): ignore deferred.", messageName, messageId);
+            logger.LogInformation(ex, "Message({MessageName}, {MessageId}) publishing: ignore deferred.", messageName, messageId);
             return;
         }
         catch (OperationCanceledException ex)
         {
-            logger.LogInformation(ex, "Message({MessageName}, {MessageId}): cancelled or exceeded timeout.", messageName, messageId);
+            logger.LogInformation(ex, "Message({MessageName}, {MessageId}) publishing: cancelled or exceeded timeout.", messageName, messageId);
             throw;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Message({MessageName}, {MessageId}): failed.", messageName, messageId);
+            logger.LogError(ex, "Message({MessageName}, {MessageId}) publishing: failed.", messageName, messageId);
             throw;
         }
 
-        logger.LogInformation("Message({MessageName}, {MessageId}): published.", messageName, messageId);
+        logger.LogInformation("Message({MessageName}, {MessageId}) publishing: ends.", messageName, messageId);
     }
 }

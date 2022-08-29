@@ -52,6 +52,7 @@ public class CancellationDelayInterceptor : SharedAbstractInterceptor
         }
         catch (OperationCanceledException ex) when (gracefulShutdownSource.IsCancellationRequested)
         {
+            timer.Stop();
             var delayedTime = timer.Elapsed;
             var delayTime = options.CancellationDelay;
             logger.LogError(ex, "Message({MessageName}, {MessageId}) cancellation delay: cancelled hardly after {DelayedTime} "
@@ -60,8 +61,9 @@ public class CancellationDelayInterceptor : SharedAbstractInterceptor
             throw new OperationCanceledException($"Operation was cancelled hardly after {delayedTime}.", ex);
         }
 
+        timer.Stop();
         if (timer.Elapsed > TimeSpan.Zero)
-            logger.LogInformation("Message({MessageName}, {MessageId}) cancellation delay: ended gracefully in {DelayedTime}.",
+            logger.LogInformation("Message({MessageName}, {MessageId}) cancellation delay: ends gracefully in {DelayedTime}.",
                 messageName, messageId, timer.Elapsed);
         else
             logger.LogInformation("Message({MessageName}, {MessageId}) cancellation delay: no cancellation requested.",
