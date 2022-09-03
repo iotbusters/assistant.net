@@ -8,7 +8,6 @@ using Microsoft.Extensions.Options;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -188,29 +187,6 @@ Scopes:
   - Property1: 1
     Property2: 2
     MessageTemplate: Scope {{Property1}} and {{Property2}}.
-");
-        }
-
-        [Test]
-        public void Write_writesToConsole_activityTagScope()
-        {
-            using var _ = new Activity("test")
-                .SetTag("Property1", 1)
-                .SetTag("Property2", "2")
-                .Start();
-
-            logger.LogInformation("Message 1 and 2.");
-
-            Thread.Sleep(10);
-            stringBuilder.ToString().Should().Be($@"
-Timestamp: {testTime.UtcDateTime:yyyy-MM-dd hh:mm:ss.fff}
-LogLevel: Information
-EventId: 0
-Category: Assistant.Net.Logging.Tests.YamlConsoleFormatterTests
-Message: Message 1 and 2.
-Scopes:
-  - Property1: 1
-    Property2: 2
 ");
         }
 

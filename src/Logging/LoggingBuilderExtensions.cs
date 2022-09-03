@@ -2,7 +2,6 @@
 using Assistant.Net.Options;
 using Microsoft.Extensions.Logging;
 using System;
-using static Microsoft.Extensions.Logging.ActivityTrackingOptions;
 
 namespace Assistant.Net;
 
@@ -31,8 +30,7 @@ public static class LoggingBuilderExtensions
                 o.UseUtcTimestamp = true;
 
                 configure?.Invoke(o);
-            })
-            .Configure(o => o.ActivityTrackingOptions = Tags);
+            });
     }
 
     /// <summary>
@@ -40,10 +38,10 @@ public static class LoggingBuilderExtensions
     /// </summary>
     /// <param name="builder"/>
     /// <param name="name">Property name.</param>
-    /// <param name="state">Property value.</param>
-    public static ILoggingBuilder AddPropertyScope(this ILoggingBuilder builder, string name, object state)
+    /// <param name="value">Property value.</param>
+    public static ILoggingBuilder AddPropertyScope(this ILoggingBuilder builder, string name, object? value)
     {
-        builder.Services.Configure<YamlConsoleFormatterOptions>(o => o.AddState(name, state));
+        builder.Services.Configure<YamlConsoleFormatterOptions>(o => o.AddScope(name, value));
         return builder;
     }
 
@@ -52,10 +50,10 @@ public static class LoggingBuilderExtensions
     /// </summary>
     /// <param name="builder"/>
     /// <param name="name">Property name.</param>
-    /// <param name="stateFactory">Property value factory.</param>
-    public static ILoggingBuilder AddPropertyScope(this ILoggingBuilder builder, string name, Func<object> stateFactory)
+    /// <param name="valueFactory">Property value factory.</param>
+    public static ILoggingBuilder AddPropertyScope(this ILoggingBuilder builder, string name, Func<object?> valueFactory)
     {
-        builder.Services.Configure<YamlConsoleFormatterOptions>(o => o.AddState(name, stateFactory));
+        builder.Services.Configure<YamlConsoleFormatterOptions>(o => o.AddScope(name, valueFactory));
         return builder;
     }
 
@@ -64,10 +62,10 @@ public static class LoggingBuilderExtensions
     /// </summary>
     /// <param name="builder"/>
     /// <param name="name">Property name.</param>
-    /// <param name="stateFactory">Property value factory.</param>
-    public static ILoggingBuilder AddPropertyScope(this ILoggingBuilder builder, string name, Func<IServiceProvider, object> stateFactory)
+    /// <param name="valueFactory">Property value factory.</param>
+    public static ILoggingBuilder AddPropertyScope(this ILoggingBuilder builder, string name, Func<IServiceProvider, object?> valueFactory)
     {
-        builder.Services.Configure<YamlConsoleFormatterOptions>(o => o.AddState(name, stateFactory));
+        builder.Services.Configure<YamlConsoleFormatterOptions>(o => o.AddScope(name, valueFactory));
         return builder;
     }
 }

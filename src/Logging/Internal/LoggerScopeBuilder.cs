@@ -18,20 +18,21 @@ internal class LoggerScopeBuilder : ILoggerScopeBuilder
         this.scope = logger.BeginScope(properties);
 
     /// <inheritdoc/>
-    public ILoggerScopeBuilder AddPropertyScope(string name, object value)
+    public ILoggerScopeBuilder AddPropertyScope(string name, object? value)
     {
         var key = name ?? throw new ArgumentNullException(nameof(name));
-        properties[key] = value ?? throw new ArgumentNullException(nameof(value));
+        if (value != null)
+            properties[key] = value;
 
         return this;
     }
 
     /// <inheritdoc/>
-    public ILoggerScopeBuilder AddPropertyScope(string name, Func<object> valueFactory) =>
+    public ILoggerScopeBuilder AddPropertyScope(string name, Func<object?> valueFactory) =>
         AddPropertyScope(name, (object)valueFactory);
 
     /// <inheritdoc/>
-    public ILoggerScopeBuilder AddPropertyScope(string name, Func<IServiceProvider, object> valueFactory) =>
+    public ILoggerScopeBuilder AddPropertyScope(string name, Func<IServiceProvider, object?> valueFactory) =>
         AddPropertyScope(name, (object)valueFactory);
 
     /// <inheritdoc />
