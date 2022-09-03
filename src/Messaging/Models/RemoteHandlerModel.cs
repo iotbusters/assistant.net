@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Assistant.Net.Messaging.Models;
 
@@ -9,7 +10,7 @@ namespace Assistant.Net.Messaging.Models;
 /// </summary>
 public class RemoteHandlerModel
 {
-    private static int indexer = 1;
+    private static volatile int indexer;
 
     private readonly Dictionary<string, RemoteHandlerRegistration> registeredInstances;
 
@@ -54,9 +55,9 @@ public class RemoteHandlerModel
     /// <param name="expiredBefore">The time to compare remote message handler expiration against.</param>
     public RemoteHandlerModel Skip(DateTimeOffset expiredBefore)
     {
-        foreach (var instance in registeredInstances.Keys)
-            if (registeredInstances[instance].Expired < expiredBefore)
-                registeredInstances.Remove(instance);
+        var expiredInstances = registeredInstances.Keys.Where(instance => registeredInstances[instance].Expired < expiredBefore);
+        foreach (var instance in expiredInstances)
+            registeredInstances.Remove(instance);
         return this;
     }
 
@@ -67,6 +68,6 @@ public class RemoteHandlerModel
     {
         0     => null,
         1     => registeredInstances.Keys.Single(),
-        var l => registeredInstances.Keys.ElementAt(indexer++ % l)
+        var l => registeredInstances.Keys.ElementAt(Interlocked.Increment(ref indexer) % l)
     };
 }
