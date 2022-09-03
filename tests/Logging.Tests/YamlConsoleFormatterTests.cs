@@ -1,13 +1,14 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Logging.Tests.Mocks;
+using Assistant.Net.Options;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Options;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -58,7 +59,7 @@ State:
         [Test]
         public void Write_writesToConsole_stateStructured()
         {
-            logger.LogInformation("Message {Object}.", new TestClass {Key = "1", Value = "2"});
+            logger.LogInformation("Message {@Object}.", new TestClass {Key = "1", Value = "2"});
 
             Thread.Sleep(10);
             stringBuilder.ToString().Should().Be($@"
@@ -68,11 +69,10 @@ EventId: 0
 Category: Assistant.Net.Logging.Tests.YamlConsoleFormatterTests
 Message: Message Assistant.Net.Logging.Tests.Mocks.TestClass.
 State:
-  Object:
-    Type: Assistant.Net.Logging.Tests.Mocks.TestClass
+  @Object:
     Key: 1
     Value: 2
-  MessageTemplate: Message {{Object}}.
+  MessageTemplate: Message {{@Object}}.
 ");
         }
 
@@ -120,6 +120,26 @@ Exception:
         }
 
         [Test]
+        public void Write_writesToConsole_multilineString()
+        {
+            logger.LogInformation(@"          Message 1
+            and 2
+              and 3.");
+
+            Thread.Sleep(10);
+            stringBuilder.ToString().Should().Be($@"
+Timestamp: {testTime.UtcDateTime:yyyy-MM-dd hh:mm:ss.fff}
+LogLevel: Information
+EventId: 0
+Category: Assistant.Net.Logging.Tests.YamlConsoleFormatterTests
+Message: |
+  Message 1
+    and 2
+      and 3.
+");
+        }
+
+        [Test]
         public void Write_writesToConsole_scopes()
         {
             using var _ = logger.BeginScope("Test-Property");
@@ -142,15 +162,55 @@ Scopes:
   - Test-Property
   - [1, 2]
   - 1.01:01:01.1110000
-  - Type: Assistant.Net.Logging.Tests.Mocks.TestStruct
-    Key: 1
-    Value: 2
+  - Assistant.Net.Logging.Tests.Mocks.TestStruct
   - - 1
     - 2
   - (1, 2)
-  - Type: Assistant.Net.Logging.Tests.Mocks.TestClass
-    Key: 1
-    Value: 2
+  - Assistant.Net.Logging.Tests.Mocks.TestClass
+");
+        }
+
+        [Test]
+        public void Write_writesToConsole_formattedScopes()
+        {
+            using var _ = logger.BeginScope("Scope {Property1} and {Property2}.", "1", "2");
+
+            logger.LogInformation("Message 1 and 2.");
+
+            Thread.Sleep(10);
+            stringBuilder.ToString().Should().Be($@"
+Timestamp: {testTime.UtcDateTime:yyyy-MM-dd hh:mm:ss.fff}
+LogLevel: Information
+EventId: 0
+Category: Assistant.Net.Logging.Tests.YamlConsoleFormatterTests
+Message: Message 1 and 2.
+Scopes:
+  - Property1: 1
+    Property2: 2
+    MessageTemplate: Scope {{Property1}} and {{Property2}}.
+");
+        }
+
+        [Test]
+        public void Write_writesToConsole_activityTagScope()
+        {
+            using var _ = new Activity("test")
+                .SetTag("Property1", 1)
+                .SetTag("Property2", "2")
+                .Start();
+
+            logger.LogInformation("Message 1 and 2.");
+
+            Thread.Sleep(10);
+            stringBuilder.ToString().Should().Be($@"
+Timestamp: {testTime.UtcDateTime:yyyy-MM-dd hh:mm:ss.fff}
+LogLevel: Information
+EventId: 0
+Category: Assistant.Net.Logging.Tests.YamlConsoleFormatterTests
+Message: Message 1 and 2.
+Scopes:
+  - Property1: 1
+    Property2: 2
 ");
         }
 
@@ -212,7 +272,7 @@ Message: Message 1 and 2.
         private ServiceProvider provider = null!;
         private ILogger<YamlConsoleFormatterTests> logger = null!;
 
-        private ConsoleFormatterOptions options = null!;
+        private YamlConsoleFormatterOptions options = null!;
 
         [SetUp]
         public void Setup()
@@ -229,8 +289,8 @@ Message: Message 1 and 2.
 
             provider = new ServiceCollection()
                 .AddLogging(b => b.AddYamlConsole().SetMinimumLevel(LogLevel.Trace))
-                .ReplaceSingleton<IOptionsMonitor<ConsoleFormatterOptions>>(_ =>
-                    new TestOptionsMonitor<ConsoleFormatterOptions>(options))
+                .ReplaceSingleton<IOptionsMonitor<YamlConsoleFormatterOptions>>(_ =>
+                    new TestOptionsMonitor<YamlConsoleFormatterOptions>(options))
                 .ReplaceSingleton<ISystemClock>(_ => new TestClock {UtcNow = testTime})
                 .BuildServiceProvider();
             logger = provider.GetRequiredService<ILogger<YamlConsoleFormatterTests>>();
