@@ -282,97 +282,130 @@ public static class ServiceCollectionExtensions
         .Services;
 
     /// <summary>
-    ///     Adds the specified <paramref name="serviceType"/> as a <see cref="ServiceLifetime.Transient"/> service
-    ///     with the <paramref name="implementationType"/> implementation
-    ///     to the <paramref name="services"/> if the exact service type and implementation type pair
-    ///     hasn't already been registered.
+    ///     Adds a <see cref="ServiceLifetime.Transient" /> descriptor if an existing one with the same service and its implementation
+    ///     that does not already exist in <paramref name="services." />.
     /// </summary>
-    /// <param name="services"/>
+    /// <remarks>
+    ///     Use <see cref="TryAddTransientEnumerable" /> when registering a service implementation of a service type
+    ///     that supports multiple registrations of the same service type.
+    ///     Using <see cref="ServiceCollectionServiceExtensions.AddTransient(IServiceCollection,Type,Type)" /> is not idempotent and
+    ///     it adds duplicate <paramref name="serviceType"/> and its <paramref name="implementationType"/> if called twice.
+    ///     Using <see cref="TryAddTransient(IServiceCollection,Type,Type)" /> is idempotent but
+    ///     it ignores a <paramref name="serviceType" /> based implementation if called twice.
+    ///     Using <see cref="TryAddTransientEnumerable" /> will prevent only registration of multiple implementation types.
+    /// </remarks>
+    /// <param name="services" />
     /// <param name="serviceType">The type of the service to register.</param>
     /// <param name="implementationType">The implementation type of the service.</param>
-    public static IServiceCollection TryAddTransientExact(this IServiceCollection services, Type serviceType, Type implementationType)
+    public static IServiceCollection TryAddTransientEnumerable(this IServiceCollection services, Type serviceType, Type implementationType)
     {
-        if (services.Any(x => x.ServiceType == serviceType && x.ImplementationType == implementationType))
-            return services;
-
-        services.Add(ServiceDescriptor.Transient(serviceType, implementationType));
+        services.TryAddEnumerable(ServiceDescriptor.Transient(serviceType, implementationType));
         return services;
     }
 
     /// <summary>
-    ///     Adds the specified <typeparamref name="TService"/> as a <see cref="ServiceLifetime.Transient"/> service
-    ///     implementation type specified in <typeparamref name="TImplementation"/>
-    ///     to the <paramref name="services"/> if the exact service type and implementation type pair
-    ///     hasn't already been registered.
+    ///     Adds a <see cref="ServiceLifetime.Transient" /> descriptor if an existing one with the same service and its implementation
+    ///     that does not already exist in <paramref name="services." />.
     /// </summary>
+    /// <remarks>
+    ///     Use <see cref="TryAddTransientEnumerable" /> when registering a service implementation of a service type
+    ///     that supports multiple registrations of the same service type.
+    ///     Using <see cref="ServiceCollectionServiceExtensions.AddTransient{TService,TImplementation}(IServiceCollection)" /> is not idempotent and
+    ///     it adds duplicate <typeparamref name="TService"/> type and its <typeparamref name="TImplementation"/> type if called twice.
+    ///     Using <see cref="TryAddTransient{TService,TImplementation}(IServiceCollection)" /> is idempotent but
+    ///     it ignores a <typeparamref name="TService"/> type based implementation if called twice.
+    ///     Using <see cref="TryAddTransientEnumerable" /> will prevent only registration of multiple implementation types.
+    /// </remarks>
     /// <typeparam name="TService">The type of the service to add.</typeparam>
     /// <typeparam name="TImplementation">The type of the implementation to use.</typeparam>
-    public static IServiceCollection TryAddTransientExact<TService, TImplementation>(this IServiceCollection services)
+    public static IServiceCollection TryAddTransientEnumerable<TService, TImplementation>(this IServiceCollection services)
         where TImplementation : class, TService
         where TService : class => services
-        .TryAddTransientExact(typeof(TService), typeof(TImplementation));
+        .TryAddTransientEnumerable(typeof(TService), typeof(TImplementation));
 
     /// <summary>
-    ///     Adds the specified <paramref name="serviceType"/> as a <see cref="ServiceLifetime.Scoped"/> service
-    ///     with the <paramref name="implementationType"/> implementation
-    ///     to the <paramref name="services"/> if the exact service type and implementation type pair
-    ///     hasn't already been registered.
+    ///     Adds a <see cref="ServiceLifetime.Scoped" /> descriptor if an existing one with the same service and its implementation
+    ///     that does not already exist in <paramref name="services." />.
     /// </summary>
+    /// <remarks>
+    ///     Use <see cref="TryAddScopedEnumerable" /> when registering a service implementation of a service type
+    ///     that supports multiple registrations of the same service type.
+    ///     Using <see cref="ServiceCollectionServiceExtensions.AddScoped(IServiceCollection,Type,Type)" /> is not idempotent and
+    ///     it adds duplicate <paramref name="serviceType"/> and its <paramref name="implementationType"/> if called twice.
+    ///     Using <see cref="TryAddScoped(IServiceCollection,Type,Type)" /> is idempotent but
+    ///     it ignores a <paramref name="serviceType" /> based implementation if called twice.
+    ///     Using <see cref="TryAddScopedEnumerable" /> will prevent only registration of multiple implementation types.
+    /// </remarks>
     /// <param name="services"/>
     /// <param name="serviceType">The type of the service to register.</param>
     /// <param name="implementationType">The implementation type of the service.</param>
-    public static IServiceCollection TryAddScopedExact(this IServiceCollection services, Type serviceType, Type implementationType)
+    public static IServiceCollection TryAddScopedEnumerable(this IServiceCollection services, Type serviceType, Type implementationType)
     {
-        if (services.Any(x => x.ServiceType == serviceType && x.ImplementationType == implementationType))
-            return services;
-
-        services.Add(ServiceDescriptor.Scoped(serviceType, implementationType));
+        services.TryAddEnumerable(ServiceDescriptor.Scoped(serviceType, implementationType));
         return services;
     }
 
     /// <summary>
-    ///     Adds the specified <typeparamref name="TService"/> as a <see cref="ServiceLifetime.Scoped"/> service
-    ///     implementation type specified in <typeparamref name="TImplementation"/>
-    ///     to the <paramref name="services"/> if the exact service type and implementation type pair
-    ///     hasn't already been registered.
+    ///     Adds a <see cref="ServiceLifetime.Scoped" /> descriptor if an existing one with the same service and its implementation
+    ///     that does not already exist in <paramref name="services." />.
     /// </summary>
+    /// <remarks>
+    ///     Use <see cref="TryAddScopedEnumerable" /> when registering a service implementation of a service type
+    ///     that supports multiple registrations of the same service type.
+    ///     Using <see cref="ServiceCollectionServiceExtensions.AddScoped{TService,TImplementation}(IServiceCollection)" /> is not idempotent and
+    ///     it adds duplicate <typeparamref name="TService"/> type and its <typeparamref name="TImplementation"/> type if called twice.
+    ///     Using <see cref="TryAddScoped{TService,TImplementation}(IServiceCollection)" /> is idempotent but
+    ///     it ignores a <typeparamref name="TService"/> type based implementation if called twice.
+    ///     Using <see cref="TryAddScopedEnumerable" /> will prevent only registration of multiple implementation types.
+    /// </remarks>
     /// <typeparam name="TService">The type of the service to add.</typeparam>
     /// <typeparam name="TImplementation">The type of the implementation to use.</typeparam>
-    public static IServiceCollection TryAddScopedExact<TService, TImplementation>(this IServiceCollection services)
+    public static IServiceCollection TryAddScopedEnumerable<TService, TImplementation>(this IServiceCollection services)
         where TImplementation : class, TService
         where TService : class => services
-        .TryAddScopedExact(typeof(TService), typeof(TImplementation));
+        .TryAddScopedEnumerable(typeof(TService), typeof(TImplementation));
 
     /// <summary>
-    ///     Adds the specified <paramref name="serviceType"/> as a <see cref="ServiceLifetime.Singleton"/> service
-    ///     with the <paramref name="implementationType"/> implementation
-    ///     to the <paramref name="services"/> if the exact service type and implementation type pair
-    ///     hasn't already been registered.
+    ///     Adds a <see cref="ServiceLifetime.Singleton" /> descriptor if an existing one with the same service and its implementation
+    ///     that does not already exist in <paramref name="services." />.
     /// </summary>
+    /// <remarks>
+    ///     Use <see cref="TryAddTransientEnumerable" /> when registering a service implementation of a service type
+    ///     that supports multiple registrations of the same service type.
+    ///     Using <see cref="ServiceCollectionServiceExtensions.AddSingleton(IServiceCollection,Type,Type)" /> is not idempotent and
+    ///     it adds duplicate <paramref name="serviceType"/> and its <paramref name="implementationType"/> if called twice.
+    ///     Using <see cref="TryAddSingleton(IServiceCollection,Type,Type)" /> is idempotent but
+    ///     it ignores a <paramref name="serviceType" /> based implementation if called twice.
+    ///     Using <see cref="TryAddSingletonEnumerable" /> will prevent only registration of multiple implementation types.
+    /// </remarks>
     /// <param name="services"/>
     /// <param name="serviceType">The type of the service to register.</param>
     /// <param name="implementationType">The implementation type of the service.</param>
-    public static IServiceCollection TryAddSingletonExact(this IServiceCollection services, Type serviceType, Type implementationType)
+    public static IServiceCollection TryAddSingletonEnumerable(this IServiceCollection services, Type serviceType, Type implementationType)
     {
-        if (services.Any(x => x.ServiceType == serviceType && x.ImplementationType == implementationType))
-            return services;
-
-        services.Add(ServiceDescriptor.Singleton(serviceType, implementationType));
+        services.TryAddEnumerable(ServiceDescriptor.Singleton(serviceType, implementationType));
         return services;
     }
 
     /// <summary>
-    ///     Adds the specified <typeparamref name="TService"/> as a <see cref="ServiceLifetime.Singleton"/> service
-    ///     implementation type specified in <typeparamref name="TImplementation"/>
-    ///     to the <paramref name="services"/> if the exact service type and implementation type pair
-    ///     hasn't already been registered.
+    ///     Adds a <see cref="ServiceLifetime.Singleton" /> descriptor if an existing one with the same service and its implementation
+    ///     that does not already exist in <paramref name="services." />.
     /// </summary>
+    /// <remarks>
+    ///     Use <see cref="TryAddSingletonEnumerable" /> when registering a service implementation of a service type
+    ///     that supports multiple registrations of the same service type.
+    ///     Using <see cref="ServiceCollectionServiceExtensions.AddSingleton{TService,TImplementation}(IServiceCollection)" /> is not idempotent and
+    ///     it adds duplicate <typeparamref name="TService"/> type and its <typeparamref name="TImplementation"/> type if called twice.
+    ///     Using <see cref="TryAddSingleton{TService,TImplementation}(IServiceCollection)" /> is idempotent but
+    ///     it ignores a <typeparamref name="TService"/> type based implementation if called twice.
+    ///     Using <see cref="TryAddSingletonEnumerable" /> will prevent only registration of multiple implementation types.
+    /// </remarks>
     /// <typeparam name="TService">The type of the service to add.</typeparam>
     /// <typeparam name="TImplementation">The type of the implementation to use.</typeparam>
-    public static IServiceCollection TryAddSingletonExact<TService, TImplementation>(this IServiceCollection services)
+    public static IServiceCollection TryAddSingletonEnumerable<TService, TImplementation>(this IServiceCollection services)
         where TImplementation : class, TService
         where TService : class => services
-        .TryAddSingletonExact(typeof(TService), typeof(TImplementation));
+        .TryAddSingletonEnumerable(typeof(TService), typeof(TImplementation));
 
     /// <summary>
     ///     Adds the specified <paramref name="serviceType"/> as a <see cref="ServiceLifetime.Transient"/> service
