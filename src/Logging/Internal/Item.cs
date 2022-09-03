@@ -20,40 +20,57 @@ internal abstract class Item : IItem
         }
     }
 
-    public static IItem Create(object? value)
+    public static IItem CreateValue(object? value)
     {
         if (value == null)
             return NullItem.Instance;
 
-        if (value is IComparable or IFormattable)
-            return new ValueItem(value);
+        // array support
+        if (value is IEnumerable enumerable && !IsValue(value))
+            return CreateArray(enumerable);
 
         if (value is IEnumerable<byte> b)
-        {
-            var base64String = Convert.ToBase64String(b.ToArray());
-            return new ValueItem(base64String);
-        }
+            return new ValueItem(Convert.ToBase64String(b.ToArray()));
 
-        if (value is IEnumerable items)
-            return new ArrayItem(items.Cast<object>().Select(Create));
-
-        var type = value.GetType();
-        var hasToStringMethod = type.GetMethod(nameof(ToString), Type.EmptyTypes)?.DeclaringType == type;
-        if (hasToStringMethod)
-            return new ValueItem(value);
-
-        var properties = new List<PropertyItem> { new("Type", new ValueItem(type.FullName!)) };
-        foreach (var property in type.GetProperties(Instance | Public | GetProperty))
-        {
-            var propertyValue = property.GetMethod!.Invoke(value, Array.Empty<object?>());
-            if (propertyValue != null)
-                properties.Add(new(property.Name, new ValueItem(propertyValue)));
-        }
-
-        return new ObjectItem(properties.ToArray());
+        return new ValueItem(value);
     }
 
-    public static IItem Create(IEnumerable<PropertyItem>? properties)
+    public static IItem CreateObject(object? value)
+    {
+        if (value == null)
+            return NullItem.Instance;
+
+        if (IsValue(value))
+            return CreateValue(value);
+
+        // array support
+        if (value is IEnumerable enumerable)
+            return CreateArray(enumerable);
+
+        try
+        {
+            var properties = new List<PropertyItem>();
+            var type = value.GetType();
+            foreach (var property in type.GetProperties(Instance | Public | GetProperty))
+            {
+                var propertyValue = property.GetMethod!.Invoke(value, Array.Empty<object?>());
+                if (propertyValue != null)
+                    properties.Add(new(property.Name, CreateObject(propertyValue)));
+            }
+
+            if (properties.Any())
+                return CreateObject(properties);
+        }
+        catch
+        {
+            // suppress
+        }
+
+        // not an object
+        return CreateValue(value);
+    }
+
+    public static IItem CreateObject(IEnumerable<PropertyItem>? properties)
     {
         if (properties == null)
             return NullItem.Instance;
@@ -65,12 +82,21 @@ internal abstract class Item : IItem
         return new ObjectItem(array);
     }
 
-    public static IItem Create(IEnumerable<IItem>? items)
+    public static IItem CreateArray(IEnumerable? enumerable)
+    {
+        if (enumerable == null)
+            return NullItem.Instance;
+
+        var items = enumerable.Cast<object>().Select(CreateValue);
+        return CreateArray(items);
+    }
+
+    public static IItem CreateArray(IEnumerable<IItem>? items)
     {
         if (items == null)
             return NullItem.Instance;
 
-        var array = items.ToArray();
+        var array = items.Where(x => x != NullItem.Instance).ToArray();
         if (!array.Any())
             return NullItem.Instance;
 
@@ -78,4 +104,6 @@ internal abstract class Item : IItem
     }
 
     protected static string Padding(int indent) => new(' ', indent * 2);
+
+    private static bool IsValue(object value) => value is IConvertible or IFormattable;
 }

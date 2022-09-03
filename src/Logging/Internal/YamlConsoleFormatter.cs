@@ -1,4 +1,5 @@
 ﻿using Assistant.Net.Abstractions;
+using Assistant.Net.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Logging.Console;
@@ -12,16 +13,21 @@ namespace Assistant.Net.Internal;
 
 internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
 {
-    private readonly ISystemClock clock;
-    private ConsoleFormatterOptions formatterOptions;
+    public const string OriginalFormatName = "{OriginalFormat}";
+
+    private YamlConsoleFormatterOptions formatterOptions;
     private readonly IDisposable disposable;
+    private readonly IServiceProvider serviceProvider;
+    private readonly ISystemClock clock;
 
     public YamlConsoleFormatter(
-        IOptionsMonitor<ConsoleFormatterOptions> options,
+        IOptionsMonitor<YamlConsoleFormatterOptions> options,
+        IServiceProvider serviceProvider,
         ISystemClock clock) : base(ConsoleFormatterNames.Yaml)
     {
         this.formatterOptions = options.CurrentValue;
         this.disposable = options.OnChange(o => formatterOptions = o);
+        this.serviceProvider = serviceProvider;
         this.clock = clock;
     }
 
@@ -68,14 +74,14 @@ internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
 
         var list = new List<IItem>
         {
-            new PropertyItem("Timestamp", dateTimeString),
-            new PropertyItem("LogLevel", logEntry.LogLevel),
-            new PropertyItem("EventId", logEntry.EventId.Id),
-            new PropertyItem("EventName", logEntry.EventId.Name),
-            new PropertyItem("Category", logEntry.Category),
-            new PropertyItem("Message", message),
+            new PropertyItem("Timestamp", Value(dateTimeString)),
+            new PropertyItem("LogLevel", Value(logEntry.LogLevel)),
+            new PropertyItem("EventId", Value(logEntry.EventId.Id)),
+            new PropertyItem("EventName", Value(logEntry.EventId.Name)),
+            new PropertyItem("Category", Value(logEntry.Category)),
+            new PropertyItem("Message", Value(message)),
             new PropertyItem("State", StateObject(logEntry.State)),
-            new PropertyItem("Scopes", ScopesObject(scopeProvider)),
+            new PropertyItem("Scopes", ScopeArray(scopeProvider)),
             new PropertyItem("Exception", ExceptionObject(logEntry.Exception))
         };
 
@@ -85,33 +91,56 @@ internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
         writer.WriteLine();
     }
 
-    private IItem StateObject(object? state)
+    private static IItem StateObject(object? state)
     {
-        // ignore message template without arguments
-        if (state is not IReadOnlyCollection<KeyValuePair<string, object>> {Count: > 1} stateProperties)
+        if (state is not IEnumerable<KeyValuePair<string, object>> pairs)
+            throw new ArgumentException("Unexpected type.", nameof(state));
+
+        var array = pairs.ToArray();
+        if (array.Length is 0 || array.Length is 1 && array[0].Key == OriginalFormatName)
             return NullItem.Instance;
 
-        var properties = stateProperties.Select(item =>
-        {
-            var name = item.Key == "{OriginalFormat}" ? "MessageTemplate" : item.Key;
-            return new PropertyItem(name, Item.Create(item.Value));
-        });
-
-        return Item.Create(properties);
+        var items = array
+            .Select(x => x.Key == OriginalFormatName
+                ? new KeyValuePair<string, object>("MessageTemplate", x.Value)
+                : x)
+            .Select(x =>
+            {
+                var value = x.Key.StartsWith("@") ? Item.CreateObject(x.Value) : Value(x.Value);
+                return new PropertyItem(x.Key, value);
+            });
+        return Item.CreateObject(items);
     }
 
-    private IItem ScopesObject(IExternalScopeProvider? scopeProvider)
+    private IItem ScopeArray(IExternalScopeProvider? scopeProvider)
     {
         if (!formatterOptions.IncludeScopes || scopeProvider == null)
             return NullItem.Instance;
 
-        var items = new List<IItem>();
-        scopeProvider.ForEachScope((scope, list) =>
+        var globalStates = formatterOptions.States.Select(x => x.Value switch
         {
-            if (scope != null) list.Add(Item.Create(scope));
-        }, items);
+            Func<object> stateFactory => new KeyValuePair<string, object>(x.Key, stateFactory()),
+            Func<IServiceProvider, object> stateFactory => new KeyValuePair<string, object>(x.Key, stateFactory(serviceProvider)),
+            _ => x
+        });
+        var scopes = new List<object?> {globalStates};
+        scopeProvider.ForEachScope((scope, list) => list.Add(scope), scopes);
 
-        return Item.Create(items);
+        var items = scopes.Select(x =>
+        {
+            if (x is not IEnumerable<KeyValuePair<string, object>> e)
+                return Value(x);
+
+            var pairs = e.Select(y => y.Value switch
+            {
+                Func<object> stateFactory => new KeyValuePair<string, object>(y.Key, stateFactory()),
+                Func<IServiceProvider, object> stateFactory => new KeyValuePair<string, object>(y.Key, stateFactory(serviceProvider)),
+                _ => y
+            });
+            return StateObject(pairs);
+        });
+
+        return Item.CreateArray(items);
     }
     
     private IItem ExceptionObject(Exception? exception)
@@ -119,12 +148,12 @@ internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
         if (exception == null)
             return NullItem.Instance;
 
-        var stackTrace = exception.StackTrace?.Split(Environment.NewLine).Select(x => new ValueItem(x));
-
         return new ObjectItem(
-            new("Type", Item.Create(exception.GetType().FullName!)),
-            new("Message", Item.Create(exception.Message)),
-            new("StackTrace", Item.Create(stackTrace)),
+            new("Type", Value(exception.GetType().FullName!)),
+            new("Message", Value(exception.Message)),
+            new("StackTrace", Value(exception.StackTrace)),
             new("InnerException", ExceptionObject(exception.InnerException)));
     }
+
+    private static IItem Value(object? value) => Item.CreateValue(value);
 }

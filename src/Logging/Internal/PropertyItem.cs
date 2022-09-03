@@ -13,8 +13,6 @@ internal sealed class PropertyItem : Item
         this.value = value;
     }
 
-    public PropertyItem(string name, object? value) : this(name, Create(value)) { }
-
     public override void WriteTo(TextWriter writer, int indent, bool tryJoin)
     {
         if (value == NullItem.Instance)

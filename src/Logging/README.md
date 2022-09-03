@@ -8,10 +8,13 @@ YAML formatter logging is an extension to .net regular console logger.
 
 ```csharp
 using var provider = new ServiceCollection()
-    .AddLogging(b => b.AddYamlConsole())
+    .AddLogging(b => b
+      .AddYamlConsole()
+      .AddPropertyScope("Thread", () => Thread.CurrentThread.ManagedThreadId))
     .BuildServiceProvider();
 
 var logger = provider.GetRequiredService<ILogger<SomeService>>();
+using var _ logger.BeginPropertyScope("RequestId", id);
 ```
 
 ## Formatting sample
@@ -29,14 +32,14 @@ State:
   TimerCount: 1
 Exception:
   Message: Invalid operation.
-  StackTrace:
-    - at ConsoleApplication1.SomeObject.OtherMethod() in C:\ConsoleApplication1\SomeObject.cs:line 24
-    - at ConsoleApplication1.SomeObject..ctor() in C:\ConsoleApplication1\SomeObject.cs:line 14
+  StackTrace: |
+    at ConsoleApplication1.SomeObject.OtherMethod() in C:\ConsoleApplication1\SomeObject.cs:line 10
+    at ConsoleApplication1.SomeObject..ctor() in C:\ConsoleApplication1\SomeObject.cs:line 20
   InnerException:
     Message: Invalid operation.
-    StackTrace:
-      - at ConsoleApplication1.SomeObject.OtherMethod() in C:\ConsoleApplication1\SomeObject.cs:line 24
-      - at ConsoleApplication1.SomeObject..ctor() in C:\ConsoleApplication1\SomeObject.cs:line 14
+    StackTrace: |
+      at ConsoleApplication1.SomeObject.OtherMethod() in C:\ConsoleApplication1\SomeObject.cs:line 10
+      at ConsoleApplication1.SomeObject..ctor() in C:\ConsoleApplication1\SomeObject.cs:line 20
 Scopes:
   - Name: ApplicationName
     Value: event-handler-1
