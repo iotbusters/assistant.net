@@ -5,7 +5,9 @@ using Assistant.Net.Messaging.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
 using System;
+using System.Threading;
 
 namespace Assistant.Net.Messaging;
 
@@ -22,6 +24,9 @@ public static class ServiceCollectionExtensions
     /// </remarks>
     public static IServiceCollection AddGenericMessageHandling(this IServiceCollection services) => services
         .AddHostedService<GenericMessageHandlingService>()
+        .AddLogging(b => b
+            .AddPropertyScope("ApplicationName", p => p.GetRequiredService<IHostEnvironment>().ApplicationName)
+            .AddPropertyScope("Thread", () => Thread.CurrentThread.ManagedThreadId))
         .AddSystemServicesHosted()
         .AddMessagingClient(GenericOptionsNames.DefaultName, b => b.AddConfiguration<GenericServerInterceptorConfiguration>())
         .AddHealthChecks().Services
@@ -31,8 +36,8 @@ public static class ServiceCollectionExtensions
             o.Period = TimeSpan.FromSeconds(10);
             o.Timeout = TimeSpan.FromSeconds(3);
         })
-        .TryAddSingletonExact<IHealthCheckPublisher, ServerActivityPublisher>()
-        .TryAddSingletonExact<IHealthCheckPublisher, ServerAvailabilityPublisher>()
+        .TryAddSingletonEnumerable<IHealthCheckPublisher, ServerActivityPublisher>()
+        .TryAddSingletonEnumerable<IHealthCheckPublisher, ServerAvailabilityPublisher>()
         .TryAddSingleton<ServerAvailabilityService>()
         .TryAddSingleton<ServerActivityService>();
 
