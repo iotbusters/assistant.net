@@ -76,7 +76,6 @@ internal sealed class GenericMessageHandlingService : BackgroundService
         var index = await FindLatestProcessedIndex(stoppingToken) + 1;
         while (!stoppingToken.IsCancellationRequested)
         {
-            using var _ = logger.BeginPropertyScope("Index", index);
             await activityService.DelayInactive(token);
 
             var serverOptions = options.CurrentValue;
@@ -132,7 +131,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
     {
         var instance = environment.ApplicationName;
 
-        logger.LogDebug("Update processing index: begins.");
+        logger.LogDebug("Update processing {Index}: begins.", index);
 
         while (!token.IsCancellationRequested)
         {
@@ -146,16 +145,16 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             }
             catch (StorageException ex)
             {
-                logger.LogError(ex, "Update processing index: failed.");
+                logger.LogError(ex, "Update processing {Index}: failed.", index);
                 await activityService.DelayInactive(token);
                 continue;
             }
 
-            logger.LogDebug("Update processing index: ends.");
+            logger.LogDebug("Update processing {Index}: ends.", index);
             return;
         }
 
-        logger.LogWarning("Update processing index: cancelled.");
+        logger.LogWarning("Update processing {Index}: cancelled.", index);
     }
 
     private async Task<bool> TryHandle(long index, CancellationToken token)
@@ -170,7 +169,10 @@ internal sealed class GenericMessageHandlingService : BackgroundService
         var messageType = requestValue.Value.GetType();
         var messageName = typeEncoder.Encode(messageType);
         using var handlingScope = logger
-            .BeginPropertyScope("RequestId", requestId!)
+            .BeginPropertyScope()
+            .AddPropertyScope("CorrelationId", requestValue.CorrelationId!)
+            .AddPropertyScope("User", requestValue.User!)
+            .AddPropertyScope("RequestId", requestId!)
             .AddPropertyScope("MessageId", messageId)
             .AddPropertyScope("MessageName", messageName!);
 

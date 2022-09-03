@@ -1,4 +1,5 @@
 ﻿using Assistant.Net.Abstractions;
+using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Models;
@@ -26,6 +27,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
     private readonly IAdminStorage<string, RemoteHandlerModel> remoteHostRegistrationStorage;
     private readonly IPartitionedAdminStorage<string, IAbstractMessage> requestStorage;
     private readonly IAdminStorage<string, CachingResult> responseStorage;
+    private readonly IDiagnosticContext context;
     private readonly ITypeEncoder typeEncoder;
     private readonly ISystemClock clock;
 
@@ -35,6 +37,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         IAdminStorage<string, RemoteHandlerModel> remoteHostRegistrationStorage,
         IPartitionedAdminStorage<string, IAbstractMessage> requestStorage,
         IAdminStorage<string, CachingResult> responseStorage,
+        IDiagnosticContext context,
         ITypeEncoder typeEncoder,
         ISystemClock clock)
     {
@@ -43,6 +46,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         this.remoteHostRegistrationStorage = remoteHostRegistrationStorage;
         this.requestStorage = requestStorage;
         this.responseStorage = responseStorage;
+        this.context = context;
         this.typeEncoder = typeEncoder;
         this.clock = clock;
     }
@@ -55,8 +59,11 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         var messageName = typeEncoder.Encode(message.GetType());
         var messageId = message.GetSha1();
         using var requestScope = logger
-            .BeginPropertyScope("MessageName", messageName!)
-            .AddPropertyScope("MessageId", messageId);
+            .BeginPropertyScope()
+            .AddPropertyScope("CorrelationId", context.CorrelationId!)
+            .AddPropertyScope("User", context.User!)
+            .AddPropertyScope("MessageId", messageId)
+            .AddPropertyScope("MessageName", messageName!);
 
         var requestId = await PublishInternal(message, timeToLive: strategy.TotalTime, token);
         requestScope.AddPropertyScope("RequestId", requestId);
