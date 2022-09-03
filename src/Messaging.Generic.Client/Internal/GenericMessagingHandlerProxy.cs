@@ -54,33 +54,35 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
 
         var messageName = typeEncoder.Encode(message.GetType());
         var messageId = message.GetSha1();
+        using var requestScope = logger
+            .BeginPropertyScope("MessageName", messageName!)
+            .AddPropertyScope("MessageId", messageId);
 
         var requestId = await PublishInternal(message, timeToLive: strategy.TotalTime, token);
-        await Task.Delay(strategy.DelayTime(attempt), token);
+        requestScope.AddPropertyScope("RequestId", requestId);
 
-        logger.LogDebug("Message({MessageName}, {MessageId}, {RequestId}) polling response: #{Attempt} begins.",
-            messageName, messageId, requestId, attempt);
+        await Task.Delay(strategy.DelayTime(attempt), token);
 
         var watch = Stopwatch.StartNew();
         while (true)
         {
             token.ThrowIfCancellationRequested();
 
+            using var attemptScope = logger.BeginPropertyScope("Attempt", attempt);
+            logger.LogDebug("Poll response: begins.");
+
             if (await responseStorage.TryGet(requestId, token) is Some<CachingResult>(var response))
             {
-                logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) polling response: #{Attempt} ends.",
-                    messageName, messageId, requestId, attempt);
+                logger.LogInformation("Poll response: ends.");
                 return response.GetValue();
             }
 
-            logger.LogWarning("Message({MessageName}, {MessageId}, {RequestId}) polling response: #{Attempt} ends without response.",
-                messageName, messageId, requestId, attempt);
+            logger.LogWarning("Poll response: ends without response.");
 
             attempt++;
             if (!strategy.CanRetry(attempt))
             {
-                logger.LogError("Message({MessageName}, {MessageId}, {RequestId}) polling response: #{Attempt} reached the limit.",
-                    messageName, messageId, requestId, attempt);
+                logger.LogError("Poll response: reached the limit.");
                 throw new MessageDeferredException($"No response from server received in {watch.Elapsed}.");
             }
 
@@ -95,13 +97,13 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
     {
         var requestId = Guid.NewGuid().ToString();
         var messageName = typeEncoder.Encode(message.GetType())!;
-        var messageId = message.GetSha1();
 
         if (await remoteHostRegistrationStorage.TryGet(messageName, token) is not Some<RemoteHandlerModel>({ HasRegistrations: true } model))
             throw new MessageNotRegisteredException(message.GetType());
 
-        logger.LogDebug("Message({MessageName}, {MessageId}, {RequestId}) publishing: begins.",
-            messageName, messageId, requestId);
+        using var scope = logger.BeginPropertyScope("RequestId", requestId);
+
+        logger.LogDebug("Publish: begins.");
 
         var request = new StorageValue<IAbstractMessage>(message) {[MessagePropertyNames.RequestIdName] = requestId};
         if (timeToLive != null)
@@ -110,8 +112,7 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         var instance = model.GetInstance()!;
         await requestStorage.Add(instance, request, token);
 
-        logger.LogInformation("Message({MessageName}, {MessageId}, {RequestId}) publishing: ends.",
-            messageName, messageId, requestId);
+        logger.LogInformation("Publish: ends.");
 
         return requestId;
     }
