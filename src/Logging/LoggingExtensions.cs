@@ -22,7 +22,7 @@ public static class LoggingExtensions
     /// <param name="logger"/>
     /// <param name="name">Property name.</param>
     /// <param name="value">Property value.</param>
-    public static ILoggerScopeBuilder BeginPropertyScope(this ILogger logger, string name, object value) =>
+    public static ILoggerScopeBuilder BeginPropertyScope(this ILogger logger, string name, object? value) =>
         logger.BeginPropertyScope().AddPropertyScope(name, value);
 
     /// <summary>
@@ -31,7 +31,7 @@ public static class LoggingExtensions
     /// <param name="logger"/>
     /// <param name="name">Property name.</param>
     /// <param name="valueFactory">Property value factory.</param>
-    public static ILoggerScopeBuilder BeginPropertyScope(this ILogger logger, string name, Func<object> valueFactory) =>
+    public static ILoggerScopeBuilder BeginPropertyScope(this ILogger logger, string name, Func<object?> valueFactory) =>
         logger.BeginPropertyScope().AddPropertyScope(name, valueFactory);
 
     /// <summary>
@@ -40,6 +40,6 @@ public static class LoggingExtensions
     /// <param name="logger"/>
     /// <param name="name">Property name.</param>
     /// <param name="valueFactory">Property value factory.</param>
-    public static ILoggerScopeBuilder BeginPropertyScope(this ILogger logger, string name, Func<IServiceProvider, object> valueFactory) =>
+    public static ILoggerScopeBuilder BeginPropertyScope(this ILogger logger, string name, Func<IServiceProvider, object?> valueFactory) =>
         logger.BeginPropertyScope().AddPropertyScope(name, valueFactory);
 }

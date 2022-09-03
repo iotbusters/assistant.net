@@ -12,19 +12,19 @@ public interface ILoggerScopeBuilder : IDisposable
     /// </summary>
     /// <param name="name">Property name.</param>
     /// <param name="value">Property value.</param>
-    ILoggerScopeBuilder AddPropertyScope(string name, object value);
+    ILoggerScopeBuilder AddPropertyScope(string name, object? value);
 
     /// <summary>
     ///     Adds a property to existing scope object.
     /// </summary>
     /// <param name="name">Property name.</param>
     /// <param name="valueFactory">Property value factory.</param>
-    ILoggerScopeBuilder AddPropertyScope(string name, Func<object> valueFactory);
+    ILoggerScopeBuilder AddPropertyScope(string name, Func<object?> valueFactory);
 
     /// <summary>
     ///     Adds a property to existing scope object.
     /// </summary>
     /// <param name="name">Property name.</param>
     /// <param name="valueFactory">Property value factory.</param>
-    ILoggerScopeBuilder AddPropertyScope(string name, Func<IServiceProvider, object> valueFactory);
+    ILoggerScopeBuilder AddPropertyScope(string name, Func<IServiceProvider, object?> valueFactory);
 }
