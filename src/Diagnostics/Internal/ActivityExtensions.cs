@@ -12,6 +12,7 @@ namespace Assistant.Net.Diagnostics.Internal;
 internal static class ActivityExtensions
 {
     public const string CorrelationIdName = "correlation-id";
+    public const string UserName = "user";
     public const string StatusName = "operation-status";
     public const string MessageName = "operation-message";
 
@@ -20,6 +21,9 @@ internal static class ActivityExtensions
         CorrelationIdName, StatusName, MessageName
     };
 
+    /// <summary>
+    ///    Adds a current correlation ID to the activity.
+    /// </summary>
     /// <exception cref="ArgumentException"/>
     public static Activity AddCorrelationId(this Activity activity, string correlationId) => activity
         .SetTag(CorrelationIdName, correlationId)
@@ -31,7 +35,23 @@ internal static class ActivityExtensions
     /// <exception cref="ArgumentException"/>
     public static string GetCorrelationId(this Activity activity) =>
         activity.Tags.SingleOrDefault(x => x.Key == CorrelationIdName).Value
-        ?? throw new ArgumentException($"Activity({activity.OperationName}) doesn't have {CorrelationIdName} baggage value.");
+        ?? throw new ArgumentException($"Activity({activity.OperationName}) doesn't have {CorrelationIdName} tag value.");
+
+    /// <summary>
+    ///    Adds a current user to the activity.
+    /// </summary>
+    /// <exception cref="ArgumentException"/>
+    public static Activity AddUser(this Activity activity, string user) => activity
+        .SetTag(UserName, user)
+        .TryAddBaggage(UserName, user);
+
+    /// <summary>
+    ///    Gets a current user of the activity.
+    /// </summary>
+    /// <exception cref="ArgumentException"/>
+    public static string GetUser(this Activity activity) =>
+        activity.Tags.SingleOrDefault(x => x.Key == UserName).Value
+        ?? throw new ArgumentException($"Activity({activity.OperationName}) doesn't have {UserName} tag value.");
 
     /// <summary>
     ///    Gets parent correlation IDs of the activity.
@@ -43,6 +63,18 @@ internal static class ActivityExtensions
             .Select(x => x.Value!)
             .Except(new[] { activity.GetCorrelationId() })
             .Select(x => new ItemData { Value = x })
+            .ToArray();
+
+    /// <summary>
+    ///    Gets parent users of the activity.
+    /// </summary>
+    /// <exception cref="ArgumentException"/>
+    public static ItemData[] GetParentUsers(this Activity activity) =>
+        activity.Baggage
+            .Where(x => x.Key == UserName)
+            .Select(x => x.Value!)
+            .Except(new[] {activity.GetUser()})
+            .Select(x => new ItemData {Value = x})
             .ToArray();
 
     /// <summary>
