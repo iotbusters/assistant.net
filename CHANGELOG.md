@@ -10,17 +10,18 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - nothing
 
-## [0.4.143] - 2022-09-03
+## [0.4.144] - 2022-09-03
 
-[Assistant.NET Release 0.4.143](https://github.com/iotbusters/assistant.net/releases/tag/0.4.143)
-[Changes](https://github.com/iotbusters/assistant.net/compare/0.3.140...0.4.143)
+[Assistant.NET Release 0.4.144](https://github.com/iotbusters/assistant.net/releases/tag/0.4.144)
+[Changes](https://github.com/iotbusters/assistant.net/compare/0.3.140...0.4.144)
 
 ### 0.4.143 Added
 
 - custom data to diagnostic operations
-- service registration extension methods based on lifetime and service type pair
-- yaml console formatter as part of logging package
-- extension methods for configuring global and runtime logging property scopes
+- service registration extension methods based on lifetime and service type
+- logging package
+  - yaml console formatter
+  - extension methods for configuring global and runtime logging property scopes
 
 ### 0.4.143 Fixed
 
