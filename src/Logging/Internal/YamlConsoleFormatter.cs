@@ -98,7 +98,7 @@ internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
 
         var array = pairs.ToArray();
         if (array.Length is 0 || array.Length is 1 && array[0].Key == OriginalFormatName)
-            return NullItem.Instance;
+            return Item.Nothing;
 
         var items = array
             .Select(x => x.Key == OriginalFormatName
@@ -115,7 +115,7 @@ internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
     private IItem ScopeArray(IExternalScopeProvider? scopeProvider)
     {
         if (!formatterOptions.IncludeScopes || scopeProvider == null)
-            return NullItem.Instance;
+            return Item.Nothing;
 
         var globalStates = formatterOptions.States.Select(x => x.Value switch
         {
@@ -146,7 +146,7 @@ internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
     private IItem ExceptionObject(Exception? exception)
     {
         if (exception == null)
-            return NullItem.Instance;
+            return Item.Nothing;
 
         return new ObjectItem(
             new("Type", Value(exception.GetType().FullName!)),
