@@ -30,7 +30,8 @@ public static class LoggingBuilderExtensions
                 o.UseUtcTimestamp = true;
 
                 configure?.Invoke(o);
-            });
+            })
+            .Configure(o => o.ActivityTrackingOptions = ActivityTrackingOptions.None);
     }
 
     /// <summary>
