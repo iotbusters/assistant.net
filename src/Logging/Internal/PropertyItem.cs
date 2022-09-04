@@ -15,7 +15,7 @@ internal sealed class PropertyItem : Item
 
     public override void WriteTo(TextWriter writer, int indent, bool tryJoin)
     {
-        if (value == NullItem.Instance)
+        if (value == Item.Nothing)
             return;
 
         base.WriteTo(writer, indent, tryJoin);

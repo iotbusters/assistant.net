@@ -9,6 +9,8 @@ namespace Assistant.Net.Internal;
 
 internal abstract class Item : IItem
 {
+    public static IItem Nothing { get; } = new NullItem();
+
     public virtual void WriteTo(TextWriter writer, int indent, bool tryJoin)
     {
         if (tryJoin)
@@ -23,7 +25,7 @@ internal abstract class Item : IItem
     public static IItem CreateValue(object? value)
     {
         if (value == null)
-            return NullItem.Instance;
+            return Item.Nothing;
 
         // array support
         if (value is IEnumerable enumerable && !IsValue(value))
@@ -38,7 +40,7 @@ internal abstract class Item : IItem
     public static IItem CreateObject(object? value)
     {
         if (value == null)
-            return NullItem.Instance;
+            return Item.Nothing;
 
         if (IsValue(value))
             return CreateValue(value);
@@ -73,11 +75,11 @@ internal abstract class Item : IItem
     public static IItem CreateObject(IEnumerable<PropertyItem>? properties)
     {
         if (properties == null)
-            return NullItem.Instance;
+            return Item.Nothing;
 
         var array = properties.ToArray();
         if (!array.Any())
-            return NullItem.Instance;
+            return Item.Nothing;
 
         return new ObjectItem(array);
     }
@@ -85,7 +87,7 @@ internal abstract class Item : IItem
     public static IItem CreateArray(IEnumerable? enumerable)
     {
         if (enumerable == null)
-            return NullItem.Instance;
+            return Item.Nothing;
 
         var items = enumerable.Cast<object>().Select(CreateValue);
         return CreateArray(items);
@@ -94,11 +96,11 @@ internal abstract class Item : IItem
     public static IItem CreateArray(IEnumerable<IItem>? items)
     {
         if (items == null)
-            return NullItem.Instance;
+            return Item.Nothing;
 
-        var array = items.Where(x => x != NullItem.Instance).ToArray();
+        var array = items.Where(x => x != Item.Nothing).ToArray();
         if (!array.Any())
-            return NullItem.Instance;
+            return Item.Nothing;
 
         return new ArrayItem(array);
     }
