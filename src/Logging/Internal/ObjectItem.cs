@@ -6,8 +6,10 @@ internal sealed class ObjectItem : IItem
 {
     private readonly PropertyItem[] properties;
 
-    public ObjectItem(params PropertyItem[] properties) =>
+    public ObjectItem(params PropertyItem[] properties)
+    {
         this.properties = properties;
+    }
 
     public void WriteTo(TextWriter writer, int indent, bool tryJoin)
     {

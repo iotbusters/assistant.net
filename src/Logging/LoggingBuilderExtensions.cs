@@ -1,6 +1,8 @@
 ﻿using Assistant.Net.Internal;
 using Assistant.Net.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Configuration;
+using Microsoft.Extensions.Logging.Console;
 using System;
 
 namespace Assistant.Net;
@@ -13,16 +15,25 @@ public static class LoggingBuilderExtensions
     /// <summary>
     ///     Add a console log formatter named 'yaml' to the factory with default properties.
     /// </summary>
-    public static ILoggingBuilder AddYamlConsole(this ILoggingBuilder builder) => builder.AddYamlConsole(null!);
+    public static ILoggingBuilder AddYamlConsole(this ILoggingBuilder builder)
+    {
+        return builder.AddYamlConsole(null!);
+    }
 
     /// <summary>
     ///     Add a console log formatter named 'yaml' to the factory with default properties.
     /// </summary>
     public static ILoggingBuilder AddYamlConsole(this ILoggingBuilder builder, Action<YamlConsoleFormatterOptions>? configure)
     {
-        builder.Services.AddSystemClock();
-        return builder
-            .AddConsole(o => o.FormatterName = ConsoleFormatterNames.Yaml)
+        builder.AddConfiguration();
+        builder.Services
+            .AddSystemClock()
+            .TryAddSingletonEnumerable<ILoggerProvider, ScopedConsoleLoggerProvider>()
+            .Configure<ConsoleLoggerOptions>(o => o.FormatterName = ConsoleFormatterNames.Yaml);
+        LoggerProviderOptions.RegisterProviderOptions<ConsoleLoggerOptions, ScopedConsoleLoggerProvider>(builder.Services);
+
+        builder
+            //.AddConsole(o => o.FormatterName = ConsoleFormatterNames.Yaml)
             .AddConsoleFormatter<YamlConsoleFormatter, YamlConsoleFormatterOptions>(o =>
             {
                 o.IncludeScopes = true;
@@ -32,6 +43,8 @@ public static class LoggingBuilderExtensions
                 configure?.Invoke(o);
             })
             .Configure(o => o.ActivityTrackingOptions = ActivityTrackingOptions.None);
+
+        return builder;
     }
 
     /// <summary>

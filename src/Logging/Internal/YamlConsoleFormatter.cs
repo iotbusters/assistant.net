@@ -31,7 +31,10 @@ internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
         this.clock = clock;
     }
 
-    void IDisposable.Dispose() => disposable.Dispose();
+    void IDisposable.Dispose()
+    {
+        disposable.Dispose();
+    }
 
     // Log sample:
     //
@@ -117,13 +120,7 @@ internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
         if (!formatterOptions.IncludeScopes || scopeProvider == null)
             return Item.Nothing;
 
-        var globalStates = formatterOptions.States.Select(x => x.Value switch
-        {
-            Func<object> stateFactory => new KeyValuePair<string, object>(x.Key, stateFactory()),
-            Func<IServiceProvider, object> stateFactory => new KeyValuePair<string, object>(x.Key, stateFactory(serviceProvider)),
-            _ => x
-        });
-        var scopes = new List<object?> {globalStates};
+        var scopes = formatterOptions.States.OfType<object?>().ToList();
         scopeProvider.ForEachScope((scope, list) => list.Add(scope), scopes);
 
         var items = scopes.Select(x =>
@@ -155,5 +152,8 @@ internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
             new("InnerException", ExceptionObject(exception.InnerException)));
     }
 
-    private static IItem Value(object? value) => Item.CreateValue(value);
+    private static IItem Value(object? value)
+    {
+        return Item.CreateValue(value);
+    }
 }

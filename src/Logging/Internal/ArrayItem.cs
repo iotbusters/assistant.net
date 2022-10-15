@@ -7,8 +7,10 @@ internal sealed class ArrayItem : Item
 {
     private readonly IEnumerable<IItem> items;
 
-    public ArrayItem(IEnumerable<IItem> items) =>
+    public ArrayItem(IEnumerable<IItem> items)
+    {
         this.items = items;
+    }
 
     public override void WriteTo(TextWriter writer, int indent, bool tryJoin)
     {

@@ -105,7 +105,13 @@ internal abstract class Item : IItem
         return new ArrayItem(array);
     }
 
-    protected static string Padding(int indent) => new(' ', indent * 2);
+    protected static string Padding(int indent)
+    {
+        return new(' ', indent * 2);
+    }
 
-    private static bool IsValue(object value) => value is IConvertible or IFormattable;
+    private static bool IsValue(object value)
+    {
+        return value is IConvertible or IFormattable;
+    }
 }

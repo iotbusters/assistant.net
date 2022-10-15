@@ -9,8 +9,10 @@ internal sealed class ValueItem : Item
 {
     private readonly object value;
 
-    public ValueItem(object? value) =>
+    public ValueItem(object? value)
+    {
         this.value = value ?? throw new ArgumentNullException(nameof(value));
+    }
 
     public override void WriteTo(TextWriter writer, int indent, bool _)
     {

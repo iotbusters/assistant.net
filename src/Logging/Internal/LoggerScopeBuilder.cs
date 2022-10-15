@@ -8,7 +8,7 @@ namespace Assistant.Net.Internal;
 /// <summary>
 ///     Logging scope builder implementation.
 /// </summary>
-internal class LoggerScopeBuilder : ILoggerScopeBuilder
+internal sealed class LoggerScopeBuilder : ILoggerScopeBuilder
 {
     private readonly Dictionary<string, object> properties = new();
     private readonly IDisposable scope;
