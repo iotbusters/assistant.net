@@ -1,4 +1,3 @@
-using Assistant.Net.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -14,7 +13,7 @@ public sealed class GenericHandlingServerOptions
     ///     List of registered messages for remote handling.
     /// </summary>
     [MinLength(1)]
-    public IList<Type> MessageTypes { get; } = new List<Type>();
+    public ISet<Type> MessageTypes { get; } = new HashSet<Type>();
 
     /// <summary>
     ///     Time to delay after no messages to handle were found.
