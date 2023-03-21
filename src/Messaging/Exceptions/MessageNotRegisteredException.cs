@@ -14,5 +14,5 @@ public sealed class MessageNotRegisteredException : MessageException
     public MessageNotRegisteredException(string errorMessage) : base(errorMessage) { }
 
     /// <summary/>
-    public MessageNotRegisteredException(Type messageType) : base($"Message '{messageType.Name}' wasn't registered.") { }
+    public MessageNotRegisteredException(Type messageType) : base($"Message '{messageType}' wasn't registered.") { }
 }
