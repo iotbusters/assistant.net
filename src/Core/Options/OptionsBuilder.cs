@@ -34,8 +34,7 @@ public sealed class OptionsBuilder<TOptions> : Microsoft.Extensions.Options.Opti
     /// <summary>
     ///     Registers a configuration options source factory which <typeparamref name="TOptions"/> will bind against.
     /// </summary>
-    public OptionsBuilder<TOptions> Bind<TConfigureOptionsSource>(Func<IServiceProvider, TConfigureOptionsSource> factory)
-        where TConfigureOptionsSource : class, IConfigureOptionsSource<TOptions>
+    public OptionsBuilder<TOptions> Bind(Func<IServiceProvider, IConfigureOptionsSource<TOptions>> factory)
     {
         Services
             .AddScoped<IOptionsChangeTokenSource<TOptions>>(p => new LambdaOptionsChangeTokenSource<TOptions>(
