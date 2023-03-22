@@ -19,7 +19,7 @@ namespace Assistant.Net.Messaging.HealthChecks;
 /// </summary>
 public sealed class ServerAvailabilityService : IDisposable
 {
-    private readonly SemaphoreSlim semaphore = new(initialCount: 0, maxCount: 1);
+    private readonly SemaphoreSlim semaphore = new(initialCount: 1, maxCount: 1);
     private readonly ISet<string> registerMessageNames = new HashSet<string>();
     private readonly ISet<string> unregisterMessageNames = new HashSet<string>();
 
@@ -47,6 +47,9 @@ public sealed class ServerAvailabilityService : IDisposable
         this.clock = clock;
         this.globalScope = scopeFactory.CreateScopeWithNamedOptionContext(GenericOptionsNames.DefaultName);
         this.remoteHostRegistrationStorage = globalScope.ServiceProvider.GetRequiredService<IStorage<string, RemoteHandlerModel>>();
+
+        // note: the order matters!
+        ReloadMessageTypes(options.CurrentValue);
     }
 
     /// <inheritdoc/>
@@ -64,6 +67,8 @@ public sealed class ServerAvailabilityService : IDisposable
     /// <param name="token"/>
     public async Task Register(TimeSpan timeToLive, CancellationToken token)
     {
+        logger.LogDebug("Service {Instance} registration: begins.", instanceName);
+
         try
         {
             await semaphore.WaitAsync(token);
@@ -99,6 +104,7 @@ public sealed class ServerAvailabilityService : IDisposable
         finally
         {
             semaphore.Release();
+            logger.LogDebug("Service {Instance} registration: ends.", instanceName);
         }
     }
 
@@ -107,6 +113,8 @@ public sealed class ServerAvailabilityService : IDisposable
     /// </summary>
     public async Task Unregister(CancellationToken token)
     {
+        logger.LogDebug("Service {Instance} un-registration: begins.", instanceName);
+
         try
         {
             await semaphore.WaitAsync(token);
@@ -128,6 +136,7 @@ public sealed class ServerAvailabilityService : IDisposable
         finally
         {
             semaphore.Release();
+            logger.LogDebug("Service {Instance} un-registration: ends.", instanceName);
         }
     }
 
