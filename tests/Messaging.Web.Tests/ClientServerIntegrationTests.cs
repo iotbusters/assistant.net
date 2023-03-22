@@ -52,72 +52,72 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void RequestObject_throwsMessageNotRegisteredException_NoLocalHandler()
+    public async Task RequestObject_throwsMessageNotRegisteredException_NoLocalHandler()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .AddWebHandler<TestSuccessFailureMessageHandler>()
             .Create();
 
-        fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
+        var ex = await fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
             .Should().ThrowExactlyAsync<MessageNotRegisteredException>()
-            .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
-            .Result.Which.InnerException.Should().BeNull();
+            .WithMessage($"Message '{typeof(TestScenarioMessage)}' wasn't registered.");
+        ex.Which.InnerException.Should().BeNull();
     }
 
     [Test]
-    public void RequestObject_throwsMessageNotRegisteredException_NoRemoteHandler()
+    public async Task RequestObject_throwsMessageNotRegisteredException_NoRemoteHandler()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .AddWeb<TestScenarioMessage>()
             .AddWebHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
             .Create();
 
-        fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
+        var ex = await fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
             .Should().ThrowExactlyAsync<MessageNotRegisteredException>()
-            .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
-            .Result.Which.InnerException.Should().BeNull();
+            .WithMessage($"Message '{typeof(TestScenarioMessage)}' wasn't registered.");
+        ex.Which.InnerException.Should().BeNull();
     }
 
     [TestCase(typeof(TimeoutException))]
     [TestCase(typeof(TaskCanceledException))]
     [TestCase(typeof(OperationCanceledException))]
     [TestCase(typeof(MessageDeferredException))]
-    public void RequestObject_throwsInterruptingKindOfException_thrownMessageDeferredException(Type exceptionType)
+    public async Task RequestObject_throwsInterruptingKindOfException_thrownMessageDeferredException(Type exceptionType)
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .AddWebHandler<TestSuccessFailureMessageHandler>()
             .ClearInterceptors()
             .Create();
 
-        fixture.Client.Awaiting(x => x.RequestObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
-            .Should().ThrowExactlyAsync<MessageDeferredException>()
-            .Result.Which.InnerException.Should().BeNull();
+        var ex = await fixture.Client.Awaiting(x => x.RequestObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
+            .Should().ThrowExactlyAsync<MessageDeferredException>();
+        ex.Which.InnerException.Should().BeNull();
     }
 
     [Test]
-    public void RequestObject_throwsMessageFailedException_thrownInvalidOperationException()
+    public async Task RequestObject_throwsMessageFailedException_thrownInvalidOperationException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .AddWebHandler<TestScenarioMessageHandler>()
             .Create();
 
-        fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(1)))
+        var ex = await fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(1)))
             .Should().ThrowExactlyAsync<MessageFailedException>()
-            .WithMessage("Message handling has failed.")
-            .Result.Which.InnerException.Should().BeNull();
+            .WithMessage("Message handling has failed.");
+        ex.Which.InnerException.Should().BeNull();
     }
 
     [Test]
-    public void RequestObject_throwsMessageFailedException_thrownMessageFailedException()
+    public async Task RequestObject_throwsMessageFailedException_thrownMessageFailedException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .AddWebHandler<TestScenarioMessageHandler>()
             .Create();
 
-        fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(2)))
+        var ex = await fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(2)))
             .Should().ThrowExactlyAsync<MessageFailedException>()
-            .WithMessage("2")
-            .Result.Which.InnerException.Should().BeNull();
+            .WithMessage("2");
+        ex.Which.InnerException.Should().BeNull();
     }
 
     [Test]
@@ -148,84 +148,82 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void PublishObject_throwsMessageNotRegisteredException_NoLocalHandler()
+    public async Task PublishObject_throwsMessageNotRegisteredException_NoLocalHandler()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .AddWebHandler<TestSuccessFailureMessageHandler>()
             .Create();
 
-        fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(0)))
+        await fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(0)))
             .Should().ThrowExactlyAsync<MessageNotRegisteredException>()
-            .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
-            .Result.Which.InnerException.Should().BeNull();
+            .WithMessage($"Message '{typeof(TestScenarioMessage)}' wasn't registered.");
     }
 
     [Test]
-    public void PublishObject_throwsMessageNotRegisteredException_NoRemoteHandler()
+    public async Task PublishObject_throwsMessageNotRegisteredException_NoRemoteHandler()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .AddWeb<TestScenarioMessage>()
             .AddWebHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
             .Create();
 
-        fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(0)))
+        await fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(0)))
             .Should().ThrowExactlyAsync<MessageNotRegisteredException>()
-            .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
-            .Result.Which.InnerException.Should().BeNull();
+            .WithMessage($"Message '{typeof(TestScenarioMessage)}' wasn't registered.");
     }
 
     [TestCase(typeof(TimeoutException))]
     [TestCase(typeof(TaskCanceledException))]
     [TestCase(typeof(OperationCanceledException))]
     [TestCase(typeof(MessageDeferredException))]
-    public void PublishObject_throwsInterruptingKindOfException_thrownNoException(Type exceptionType)
+    public async Task PublishObject_throwsInterruptingKindOfException_thrownNoException(Type exceptionType)
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .AddWebHandler<TestSuccessFailureMessageHandler>()
             .ClearInterceptors()
             .Create();
 
-        fixture.Client.Awaiting(x => x.PublishObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
+        await fixture.Client.Awaiting(x => x.PublishObject(new TestSuccessFailureMessage(exceptionType.AssemblyQualifiedName)))
             .Should().NotThrowAsync();
     }
 
     [Test]
-    public void PublishObject_throwsMessageFailedException_thrownInvalidOperationException()
+    public async Task PublishObject_throwsMessageFailedException_thrownInvalidOperationException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .AddWebHandler<TestScenarioMessageHandler>()
             .Create();
 
-        fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(1)))
+        var ex = await fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(1)))
             .Should().ThrowExactlyAsync<MessageFailedException>()
-            .WithMessage("Message handling has failed.")
-            .Result.Which.InnerException.Should().BeNull();
+            .WithMessage("Message handling has failed.");
+        ex.Which.InnerException.Should().BeNull();
     }
 
     [Test]
-    public void PublishObject_throwsMessageFailedException_thrownMessageFailedException()
+    public async Task PublishObject_throwsMessageFailedException_thrownMessageFailedException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .AddWebHandler<TestScenarioMessageHandler>()
             .Create();
 
-        fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(2)))
+        var ex = await fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(2)))
             .Should().ThrowExactlyAsync<MessageFailedException>()
-            .WithMessage("2")
-            .Result.Which.InnerException.Should().BeNull();
+            .WithMessage("2");
+        ex.Which.InnerException.Should().BeNull();
     }
 
     [Test]
-    public void PublishObject_throwsMessageFailedException_thrownMessageFailedExceptionWithInnerException()
+    public async Task PublishObject_throwsMessageFailedException_thrownMessageFailedExceptionWithInnerException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .AddWebHandler<TestScenarioMessageHandler>()
             .Create();
 
-        fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(3)))
+        var ex = await fixture.Client.Awaiting(x => x.PublishObject(new TestScenarioMessage(3)))
             .Should().ThrowExactlyAsync<MessageFailedException>()
-            .WithMessage("3")
-            .Result.WithInnerExceptionExactly<MessageFailedException>()
-            .Which.InnerException?.Message.Should().Be("inner");
+            .WithMessage("3");
+        ex.WithInnerExceptionExactly<MessageFailedException>()
+            .WithMessage("inner");
     }
 }

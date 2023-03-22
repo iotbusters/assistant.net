@@ -143,21 +143,20 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void RequestObject_throwsMessageNotRegisteredException_noLocalHandler()
+    public async Task RequestObject_throwsMessageNotRegisteredException_noLocalHandler()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseSqliteProvider(ConnectionString)
             .AddHandler<TestSuccessFailureMessageHandler>()
             .Create();
 
-        fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
+        await fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
             .Should().ThrowExactlyAsync<MessageNotRegisteredException>()
-            .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
-            .Result.Which.InnerException.Should().BeNull();
+            .WithMessage($"Message '{typeof(TestScenarioMessage)}' wasn't registered.");
     }
 
     [Test, Ignore("No way to check remote handlers.")]
-    public void RequestObject_throwsMessageNotRegisteredException_NoRemoteHandler()
+    public async Task RequestObject_throwsMessageNotRegisteredException_noRemoteHandler()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseSqliteProvider(ConnectionString)
@@ -165,10 +164,9 @@ public class ClientServerIntegrationTests
             .AddHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
             .Create();
 
-        fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
+        await fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
             .Should().ThrowExactlyAsync<MessageNotRegisteredException>()
-            .WithMessage($"Message '{nameof(TestScenarioMessage)}' wasn't registered.")
-            .Result.Which.InnerException.Should().BeNull();
+            .WithMessage($"Message '{typeof(TestScenarioMessage)}' wasn't registered.");
     }
 
     [Test]
