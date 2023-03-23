@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.commits[0].id != '' # to avoid failures if no commit push (e.g. rebasing).
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v3.4.0
         with: { fetch-depth: 100 }
 
       - name: detect code changes
@@ -74,12 +74,12 @@ jobs:
     needs: change-detect
     if: needs.change-detect.outputs.ci-changes != '0'
     steps:
-      - uses: actions/checkout@v2.3.4
-      - uses: actions/setup-dotnet@v1.7.2
+      - uses: actions/checkout@v3.4.0
+      - uses: actions/setup-dotnet@v3.0.3
         with: { dotnet-version: '7.0' }
 
       - name: restore (prepare)
-        uses: actions/cache@v2.1.5
+        uses: actions/cache@v3.3.1
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
@@ -98,13 +98,13 @@ jobs:
             **/TestResults.xml
         if: always()
       - name: publish coverage result
-        uses: codecov/codecov-action@v1.5.0
+        uses: codecov/codecov-action@v3.1.1
         with:
           files: |
             **/coverage.opencover.xml
         if: always()
       - name: upload result
-        uses: actions/upload-artifact@v2.2.3
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: ci-results
           path: |
@@ -125,7 +125,7 @@ jobs:
         id: count-changes
         run: echo ::set-output name=total-package-prepared-count::$(ls release-binaries/src | wc -l)
       - name: upload binaries
-        uses: actions/upload-artifact@v2.2.3
+        uses: actions/upload-artifact@v3.1.2
         with:
           name: release-binaries
           path: |
@@ -139,11 +139,11 @@ jobs:
             release-binaries/LICENSE
           retention-days: 7
 
-      # it duplicates actions/upload-artifact
+      # it duplicates actions/upload-artifact@v3.1.2
       # todo: remove once actions/download-artifact supports cross workflow artifacts.
       # https://github.com/actions/toolkit/pull/517
       - name: upload binaries (workaround)
-        uses: actions/cache@v2.1.5
+        uses: actions/cache@v3.3.1
         with:
           path: release-binaries
           key: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
@@ -158,7 +158,7 @@ jobs:
     if: needs.build.outputs.total-package-prepared-count != '0'
     steps:
       - name: create release (ensure binaries)
-        uses: actions/download-artifact@v2.0.9
+        uses: actions/download-artifact@v3.0.2
         with:
           name: release-binaries
 
