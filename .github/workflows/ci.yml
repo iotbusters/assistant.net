@@ -20,7 +20,7 @@ jobs:
         id: change-detected
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
-          echo ::set-output name=ci-changes::$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json)$')
+          echo "ci-changes=$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json)$')" >> $GITHUB_OUTPUT
     outputs:
       ci-changes: ${{ steps.change-detected.outputs.ci-changes }}
 

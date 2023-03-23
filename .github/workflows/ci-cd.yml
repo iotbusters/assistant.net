@@ -23,28 +23,28 @@ jobs:
         id: change-detected
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
-          echo ::set-output name=ci-changes::echo ::set-output name=ci-changes::$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json)$')
-          echo ::set-output name=core::$(echo "$CHANGES" | grep -c src/Core/)
-          echo ::set-output name=core-mongo::$(echo "$CHANGES" | grep -c src/Core.Mongo/)
-          echo ::set-output name=core-sqlite::$(echo "$CHANGES" | grep -c src/Core.Sqlite/)
-          echo ::set-output name=core-mongo-healthcheck::$(echo "$CHANGES" | grep -c src/Core.Mongo.HealthCheck/)
-          echo ::set-output name=core-sqlite-healthcheck::$(echo "$CHANGES" | grep -c src/Core.Sqlite.HealthCheck/)
-          echo ::set-output name=serialization-json::$(echo "$CHANGES" | grep -c src/Serialization.Json/)
-          echo ::set-output name=storage::$(echo "$CHANGES" | grep -c src/Storage/)
-          echo ::set-output name=storage-mongo::$(echo "$CHANGES" | grep -c src/Storage.Mongo/)
-          echo ::set-output name=storage-sqlite::$(echo "$CHANGES" | grep -c src/Storage.Sqlite/)
-          echo ::set-output name=diagnostics::$(echo "$CHANGES" | grep -c src/Diagnostics/)
-          echo ::set-output name=logging::$(echo "$CHANGES" | grep -c src/Logging/)
-          echo ::set-output name=messaging::$(echo "$CHANGES" | grep -c src/Messaging/)
-          echo ::set-output name=web-client::$(echo "$CHANGES" | grep -c src/Messaging.Web.Client/)
-          echo ::set-output name=web-server::$(echo "$CHANGES" | grep -c src/Messaging.Web.Server/)
-          echo ::set-output name=mongo-client::$(echo "$CHANGES" | grep -c src/Messaging.Mongo.Client/)
-          echo ::set-output name=mongo-server::$(echo "$CHANGES" | grep -c src/Messaging.Mongo.Server/)
-          echo ::set-output name=sqlite-client::$(echo "$CHANGES" | grep -c src/Messaging.Sqlite.Client/)
-          echo ::set-output name=sqlite-server::$(echo "$CHANGES" | grep -c src/Messaging.Sqlite.Server/)
-          echo ::set-output name=generic-client::$(echo "$CHANGES" | grep -c src/Messaging.Generic.Client/)
-          echo ::set-output name=generic-server::$(echo "$CHANGES" | grep -c src/Messaging.Generic.Server/)
-          echo ::set-output name=total::$(echo "$CHANGES" | wc -l)
+          echo "ci-changes=$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json)$')" >> $GITHUB_OUTPUT
+          echo "core=$(echo "$CHANGES" | grep -c src/Core/)" >> $GITHUB_OUTPUT
+          echo "core-mongo=$(echo "$CHANGES" | grep -c src/Core.Mongo/)" >> $GITHUB_OUTPUT
+          echo "core-sqlite=$(echo "$CHANGES" | grep -c src/Core.Sqlite/)" >> $GITHUB_OUTPUT
+          echo "core-mongo-healthcheck=$(echo "$CHANGES" | grep -c src/Core.Mongo.HealthCheck/)" >> $GITHUB_OUTPUT
+          echo "core-sqlite-healthcheck=$(echo "$CHANGES" | grep -c src/Core.Sqlite.HealthCheck/)" >> $GITHUB_OUTPUT
+          echo "serialization-json=$(echo "$CHANGES" | grep -c src/Serialization.Json/)" >> $GITHUB_OUTPUT
+          echo "storage=$(echo "$CHANGES" | grep -c src/Storage/)" >> $GITHUB_OUTPUT
+          echo "storage-mongo=$(echo "$CHANGES" | grep -c src/Storage.Mongo/)" >> $GITHUB_OUTPUT
+          echo "storage-sqlite=$(echo "$CHANGES" | grep -c src/Storage.Sqlite/)" >> $GITHUB_OUTPUT
+          echo "diagnostics=$(echo "$CHANGES" | grep -c src/Diagnostics/)" >> $GITHUB_OUTPUT
+          echo "logging=$(echo "$CHANGES" | grep -c src/Logging/)" >> $GITHUB_OUTPUT
+          echo "messaging=$(echo "$CHANGES" | grep -c src/Messaging/)" >> $GITHUB_OUTPUT
+          echo "web-client=$(echo "$CHANGES" | grep -c src/Messaging.Web.Client/)" >> $GITHUB_OUTPUT
+          echo "web-server=$(echo "$CHANGES" | grep -c src/Messaging.Web.Server/)" >> $GITHUB_OUTPUT
+          echo "mongo-client=$(echo "$CHANGES" | grep -c src/Messaging.Mongo.Client/)" >> $GITHUB_OUTPUT
+          echo "mongo-server=$(echo "$CHANGES" | grep -c src/Messaging.Mongo.Server/)" >> $GITHUB_OUTPUT
+          echo "sqlite-client=$(echo "$CHANGES" | grep -c src/Messaging.Sqlite.Client/)" >> $GITHUB_OUTPUT
+          echo "sqlite-server=$(echo "$CHANGES" | grep -c src/Messaging.Sqlite.Server/)" >> $GITHUB_OUTPUT
+          echo "generic-client=$(echo "$CHANGES" | grep -c src/Messaging.Generic.Client/)" >> $GITHUB_OUTPUT
+          echo "generic-server=$(echo "$CHANGES" | grep -c src/Messaging.Generic.Server/)" >> $GITHUB_OUTPUT
+          echo "total=$(echo "$CHANGES" | wc -l)" >> $GITHUB_OUTPUT
     outputs:
       ci-changes: ${{ steps.change-detected.outputs.ci-changes }}
       core: ${{ steps.change-detected.outputs.core }}
@@ -123,7 +123,7 @@ jobs:
         if: needs.change-detect.outputs.ci-changes != '0'
       - name: upload binaries (prepare package counter)
         id: count-changes
-        run: echo ::set-output name=total-package-prepared-count::$(ls release-binaries/src | wc -l)
+        run: echo "total-package-prepared-count=$(ls release-binaries/src | wc -l)" >> $GITHUB_OUTPUT
       - name: upload binaries
         uses: actions/upload-artifact@v3.1.2
         with:
