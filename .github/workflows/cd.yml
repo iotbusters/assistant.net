@@ -37,17 +37,18 @@ jobs:
         uses: actions/cache@v3.3.1
         with:
           path: release-binaries
-          key: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
-          restore-keys: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
+          key: ${{ env.KEY }}
+          restore-keys: ${{ env.KEY }}
         env:
           VERSION: ${{ github.event.release.tag_name }}
+          KEY: ${{ runner.os }}-release-binaries-${{ github.event.release.tag_name }}
 
       - name: create package (prepare dependencies)
         uses: actions/cache@v3.3.1
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-          restore-keys: ${{ runner.os }}-nuget-
+          key: nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: nuget-${{ hashFiles('**/*.csproj') }}
 
       - name: create package
         run: |
@@ -76,17 +77,21 @@ jobs:
         uses: actions/cache@v3.3.1
         with:
           path: packages
-          key: ${{ runner.os }}-released-packages-${{ env.VERSION }}
+          key: ${{ env.KEY }}
+          restore-keys: ${{ env.KEY }}
         env:
           VERSION: ${{ github.event.release.tag_name }}
+          KEY: ${{ runner.os }}-released-packages-${{ github.event.release.tag_name }}
         if: github.event.release.prerelease != true
       - name: upload package (prereleased workaround)
         uses: actions/cache@v3.3.1
         with:
           path: packages
-          key: ${{ runner.os }}-prereleased-packages-${{ env.VERSION }}
+          key: ${{ env.KEY }}
+          restore-keys: ${{ env.KEY }}
         env:
           VERSION: ${{ github.event.release.tag_name }}
+          KEY: ${{ runner.os }}-prereleased-packages-${{ github.event.release.tag_name }}
         if: github.event.release.prerelease == true
 
   publish-packages:
