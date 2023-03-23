@@ -37,8 +37,8 @@ jobs:
       - uses: actions/cache@v3.3.1
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
-          restore-keys: ${{ runner.os }}-nuget-
+          key: nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: nuget-${{ hashFiles('**/*.csproj') }}
 
       - run: dotnet restore assistant.net.sln -v n
       - run: dotnet build assistant.net.sln -c Release --no-restore -v n
