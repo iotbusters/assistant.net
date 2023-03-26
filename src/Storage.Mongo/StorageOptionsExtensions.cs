@@ -1,4 +1,5 @@
-﻿using Assistant.Net.Storage.Internal;
+﻿using Assistant.Net.Options;
+using Assistant.Net.Storage.Internal;
 using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -20,25 +21,22 @@ public static class StorageOptionsExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered single provider.
     /// </remarks>
-    public static StorageOptions UseMongoSingleProvider(this StorageOptions options)
-    {
-        options.SingleProvider = new((p, valueType) =>
+    public static StorageOptions UseMongoSingleProvider(this StorageOptions options) => options
+        .UseSingleProvider((p, valueType) =>
         {
             var implementationType = mongoProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
-        });
-        options.SingleHistoricalProvider = new((p, valueType) =>
+        })
+        .UseSingleHistoricalProvider((p, valueType) =>
         {
             var implementationType = mongoHistoricalProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
-        });
-        options.SinglePartitionedProvider = new((p, valueType) =>
+        })
+        .UseSinglePartitionedProvider((p, valueType) =>
         {
             var implementationType = mongoPartitionedProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
         });
-        return options;
-    }
 
     /// <summary>
     ///     Registers MongoDB storage provider of <paramref name="valueType"/>.
@@ -48,7 +46,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddMongo(this StorageOptions options, Type valueType)
     {
-        options.Providers[valueType] = new(p =>
+        options.Providers[valueType] = new InstanceCachingFactory<object>(p =>
         {
             var implementationType = mongoProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
@@ -62,15 +60,12 @@ public static class StorageOptionsExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
-    public static StorageOptions AddMongoAny(this StorageOptions options)
-    {
-        options.ProviderAny = new((p, valueType) =>
+    public static StorageOptions AddMongoAny(this StorageOptions options) => options
+        .AddAny((p, valueType) =>
         {
             var implementationType = mongoProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
         });
-        return options;
-    }
 
     /// <summary>
     ///     Registers MongoDB historical storage provider of <paramref name="valueType"/>.
@@ -80,7 +75,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddMongoHistorical(this StorageOptions options, Type valueType)
     {
-        options.HistoricalProviders[valueType] = new(p =>
+        options.HistoricalProviders[valueType] = new InstanceCachingFactory<object>(p =>
         {
             var implementationType = mongoHistoricalProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
@@ -94,15 +89,12 @@ public static class StorageOptionsExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
-    public static StorageOptions AddMongoHistoricalAny(this StorageOptions options)
-    {
-        options.HistoricalProviderAny = new((p, valueType) =>
+    public static StorageOptions AddMongoHistoricalAny(this StorageOptions options) => options
+        .AddHistoricalAny((p, valueType) =>
         {
             var implementationType = mongoHistoricalProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
         });
-        return options;
-    }
 
     /// <summary>
     ///     Registers MongoDB partitioned storage provider of <paramref name="valueType"/>.
@@ -112,7 +104,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddMongoPartitioned(this StorageOptions options, Type valueType)
     {
-        options.PartitionedProviders[valueType] = new(p =>
+        options.PartitionedProviders[valueType] = new InstanceCachingFactory<object>(p =>
         {
             var implementationType = mongoPartitionedProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
@@ -126,13 +118,10 @@ public static class StorageOptionsExtensions
     /// <remarks>
     ///     Pay attention, the method overrides already registered provider.
     /// </remarks>
-    public static StorageOptions AddMongoPartitionedAny(this StorageOptions options)
-    {
-        options.PartitionedProviderAny = new((p, valueType) =>
+    public static StorageOptions AddMongoPartitionedAny(this StorageOptions options) => options
+        .AddPartitionedAny((p, valueType) =>
         {
             var implementationType = mongoPartitionedProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
         });
-        return options;
-    }
 }

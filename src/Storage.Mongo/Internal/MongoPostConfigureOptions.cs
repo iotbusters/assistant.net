@@ -16,9 +16,11 @@ internal class MongoPostConfigureOptions : IPostConfigureOptions<MongoOptions>
     public MongoPostConfigureOptions(ILogger<MongoPostConfigureOptions> logger) =>
         this.logger = logger;
 
-    public void PostConfigure(string name, MongoOptions options)
+    public void PostConfigure(string? name, MongoOptions options)
     {
-        if(created.Contains(name) || !options.EnsureDatabaseCreated)
+        name ??= Microsoft.Extensions.Options.Options.DefaultName;
+
+        if (created.Contains(name) || !options.EnsureDatabaseCreated)
             return;
 
         logger.LogInformation("Ensure database is created.");
