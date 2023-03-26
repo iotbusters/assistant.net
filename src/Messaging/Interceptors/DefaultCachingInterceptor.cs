@@ -52,7 +52,11 @@ public class DefaultCachingInterceptor : SharedAbstractInterceptor
         var messageId = message.GetSha1();
         var messageName = typeEncoder.Encode(message.GetType());
 
-        logger.LogInformation("Message({MessageName}, {MessageId}) caching: begins.", messageName, messageId);
+        using var scope = logger.BeginPropertyScope()
+            .AddPropertyScope("MessageId", messageId)
+            .AddPropertyScope("MessageName", messageName);
+
+        logger.LogInformation("Message caching: begins.");
 
         var result = await cache.AddOrGet(message, async _ =>
         {
@@ -64,26 +68,26 @@ public class DefaultCachingInterceptor : SharedAbstractInterceptor
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
-                logger.LogWarning("Message({MessageName}, {MessageId}) caching: cancelled.", messageName, messageId);
+                logger.LogWarning("Message caching: cancelled.");
                 throw;
             }
             catch (Exception ex)
             {
                 if (ex is MessageDeferredException || options.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
                 {
-                    logger.LogError(ex, "Message({MessageName}, {MessageId}) caching: rethrows transient failure.", messageName, messageId);
+                    logger.LogError(ex, "Message caching: rethrows transient failure.");
                     throw;
                 }
 
-                logger.LogWarning(ex, "Message({MessageName}, {MessageId}) caching: ends with permanent failure.", messageName, messageId);
+                logger.LogWarning(ex, "Message caching: ends with permanent failure.");
                 result = CachingResult.OfException(ex);
             }
 
-            logger.LogInformation("Message({MessageName}, {MessageId}) caching: ends with success response.", messageName, messageId);
+            logger.LogInformation("Message caching: ends with success response.");
             return result;
         }, token);
 
-        logger.LogInformation("Message({MessageName}, {MessageId}) caching: ends.", messageName, messageId);
+        logger.LogInformation("Message caching: ends.");
         return result.GetValue();
     }
 }

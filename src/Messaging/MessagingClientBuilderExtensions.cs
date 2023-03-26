@@ -367,9 +367,9 @@ public static class MessagingClientBuilderExtensions
     {
         IRetryStrategy strategy = configuration["type"] switch
         {
-            "Exponential" => configuration.Get<ExponentialBackoff>(),
-            "Linear" => configuration.Get<LinearBackoff>(),
-            "Constant" => configuration.Get<ConstantBackoff>(),
+            "Exponential" => configuration.Get<ExponentialBackoff>()!,
+            "Linear" => configuration.Get<LinearBackoff>()!,
+            "Constant" => configuration.Get<ConstantBackoff>()!,
             _ => throw new ArgumentException($"Key 'type' at {configuration.Path} is expected to be: "
                                              + $"'Exponential', 'Linear' or 'Constant' but was '{configuration["type"]}'.")
         };
@@ -385,34 +385,6 @@ public static class MessagingClientBuilderExtensions
     public static MessagingClientBuilder TimeoutIn(this MessagingClientBuilder builder, TimeSpan timeout)
     {
         builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.Timeout = timeout);
-        return builder;
-    }
-
-    /// <summary>
-    ///     Overrides message handling timeout to infinite if debugger is attached.
-    /// </summary>
-    /// <remarks>
-    ///     It impacts <see cref="TimeoutInterceptor"/>.
-    /// </remarks>
-    public static MessagingClientBuilder DebuggerTimeout(this MessagingClientBuilder builder)
-    {
-        builder.Services.ConfigureMessagingClientOptions(builder.Name, o =>
-        {
-            if (Debugger.IsAttached)
-                o.Timeout = Timeout.InfiniteTimeSpan;
-        });
-        return builder;
-    }
-
-    /// <summary>
-    ///     Overrides message handling cancellation delay.
-    /// </summary>
-    /// <remarks>
-    ///     It impacts <see cref="CancellationDelayInterceptor"/>.
-    /// </remarks>
-    public static MessagingClientBuilder DelayCancellation(this MessagingClientBuilder builder, TimeSpan delay)
-    {
-        builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.CancellationDelay = delay);
         return builder;
     }
 }

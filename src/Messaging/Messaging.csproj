@@ -17,7 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" /> 
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Logging\Logging.csproj" /> 
     <ProjectReference Include="..\Storage\Storage.csproj" />
     <ProjectReference Include="..\Diagnostics\Diagnostics.csproj" />
     <ProjectReference Include="..\Serialization.Json\Serialization.Json.csproj" />

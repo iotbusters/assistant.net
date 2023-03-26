@@ -45,11 +45,15 @@ public sealed class RetryingInterceptor : SharedAbstractInterceptor
         var messageId = message.GetSha1();
         var messageName = typeEncoder.Encode(message.GetType());
 
+        using var scope = logger.BeginPropertyScope()
+            .AddPropertyScope("MessageId", messageId)
+            .AddPropertyScope("MessageName", messageName);
+
         var attempt = 1;
         while (true)
         {
             var operation = diagnosticFactory.Start($"{messageName}-handling-attempt-{attempt}");
-            logger.LogInformation("Message({MessageName}, {MessageId}) retrying: #{Attempt} begins.", messageName, messageId, attempt);
+            logger.LogInformation("Message retrying: #{Attempt} begins.", attempt);
 
             object response;
             try
@@ -58,28 +62,24 @@ public sealed class RetryingInterceptor : SharedAbstractInterceptor
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
-                logger.LogWarning("Message({MessageName}, {MessageId}) retrying: #{Attempt} cancelled.",
-                    messageName, messageId, attempt);
+                logger.LogWarning("Message retrying: #{Attempt} cancelled.", attempt);
                 throw;
             }
             catch (Exception ex) when (!options.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
             {
-                logger.LogError(ex, "Message({MessageName}, {MessageId}) retrying: #{Attempt} rethrows permanent error.",
-                    messageName, messageId, attempt);
+                logger.LogError(ex, "Message retrying: #{Attempt} rethrows permanent error.", attempt);
                 operation.Fail();
                 throw;
             }
             catch (Exception ex) when (!options.Retry.CanRetry(attempt + 1))
             {
-                logger.LogError(ex, "Message({MessageName}, {MessageId}) retrying: #{Attempt} reached the limit.",
-                    messageName, messageId, attempt);
+                logger.LogError(ex, "Message retrying: #{Attempt} reached the limit.", attempt);
                 operation.Fail();
                 throw new MessageRetryLimitExceededException();
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Message({MessageName}, {MessageId}) retrying: #{Attempt} failed on transient error.",
-                    messageName, messageId, attempt);
+                logger.LogWarning(ex, "Message retrying: #{Attempt} failed on transient error.", attempt);
 
                 operation.Fail();
                 await Task.WhenAny(Task.Delay(options.Retry.DelayTime(attempt), token));
@@ -87,7 +87,7 @@ public sealed class RetryingInterceptor : SharedAbstractInterceptor
                 continue;
             }
 
-            logger.LogInformation("Message({MessageName}, {MessageId}) retrying: #{Attempt} ends.", messageName, messageId, attempt);
+            logger.LogInformation("Message retrying: #{Attempt} ends.", attempt);
             operation.Complete();
             return response;
         }

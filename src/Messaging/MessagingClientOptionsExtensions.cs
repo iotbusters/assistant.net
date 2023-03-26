@@ -17,7 +17,10 @@ public static class MessagingClientOptionsExtensions
     ///     Configures the messaging client to use a single provider feature.
     /// </summary>
     /// <param name="options"/>
-    /// <param name="factory">Single provider factory.</param>
+    /// <param name="factory">Remote single provider factory.</param>
+    /// <remarks>
+    ///     The provider accepts all message types registered by calling one of <see cref="AddSingle"/> extension methods.
+    /// </remarks>
     public static MessagingClientOptions UseSingleProvider(this MessagingClientOptions options, Func<IServiceProvider, IAbstractHandler> factory)
     {
         options.SingleProvider = new InstanceCachingFactory<IAbstractHandler>(factory);
@@ -65,14 +68,29 @@ public static class MessagingClientOptionsExtensions
     /// <remarks>
     ///     Pay attention, it requires calling one of Use***SingleProvider method.
     /// </remarks>
-    public static MessagingClientOptions AddSingleAny(this MessagingClientOptions options)
-    {
-        options.AnyProvider = new InstanceCachingFactory<IAbstractHandler>(p =>
+    public static MessagingClientOptions AddSingleAny(this MessagingClientOptions options) => options
+        .AddDefaultHandler(p =>
         {
             var definition = options.SingleProvider ?? throw new ArgumentException("Single provider wasn't properly configured.");
             return definition.Create(p);
         });
 
+    /// <summary>
+    ///     Registers a handler of any message type if none defined explicitly.
+    /// </summary>
+    /// <param name="options"/>
+    /// <param name="defaultHandler">A message handler instance.</param>
+    public static MessagingClientOptions AddDefaultHandler(this MessagingClientOptions options, IAbstractHandler defaultHandler) => options
+        .AddDefaultHandler(_ => defaultHandler);
+
+    /// <summary>
+    ///     Registers a handler of any message type if none defined explicitly.
+    /// </summary>
+    /// <param name="options"/>
+    /// <param name="factory">A message handler factory.</param>
+    public static MessagingClientOptions AddDefaultHandler(this MessagingClientOptions options, Func<IServiceProvider, IAbstractHandler> factory)
+    {
+        options.DefaultHandler = new InstanceCachingFactory<IAbstractHandler>(factory);
         return options;
     }
 

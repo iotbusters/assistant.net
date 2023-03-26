@@ -21,9 +21,9 @@ public sealed class MessagingClientOptions
     public InstanceFactory<IAbstractHandler>? SingleProvider { get; internal set; }
 
     /// <summary>
-    ///     Provider instance used for any message type handling except defined explicitly.
+    ///     A handler instance used for any message type except defined explicitly.
     /// </summary>
-    public InstanceFactory<IAbstractHandler>? AnyProvider { get; set; }
+    public InstanceFactory<IAbstractHandler>? DefaultHandler { get; internal set; }
 
     /// <summary>
     ///     List of registered handlers.
@@ -75,15 +75,6 @@ public sealed class MessagingClientOptions
     /// <remarks>
     ///     It impacts <see cref="TimeoutInterceptor"/>.
     /// </remarks>
-    [Time("00:00:00.0000001", "00:30:00", AllowInfinite = true)]
+    [Time("00:00:00.000001", "00:30:00", AllowInfinite = true)]
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
-
-    /// <summary>
-    ///     Delay between cancellation was requested and actually called.
-    /// </summary>
-    /// <remarks>
-    ///     It impacts <see cref="CancellationDelayInterceptor"/>.
-    /// </remarks>
-    [Time("00:00:00", "00:30:00", AllowInfinite = true)]
-    public TimeSpan CancellationDelay { get; set; } = TimeSpan.FromSeconds(10);
 }
