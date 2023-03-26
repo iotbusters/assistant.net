@@ -3,6 +3,7 @@ using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.HealthChecks;
 using Assistant.Net.Messaging.Mongo.Tests.Fixtures;
 using Assistant.Net.Messaging.Mongo.Tests.Mocks;
+using Assistant.Net.Storage;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;

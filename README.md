@@ -30,12 +30,6 @@ at [nuget.org](https://nuget.org). Each of them has own responsibility and solve
 Abstractions, basic implementations, useful tools and extensions which are commonly used across the solution.
 
 See [assistant.net.core](src/Core/README.md) for details.
-See also provider configuration extensions
-
-- [assistant.net.mongo](src/Core.Mongo/README.md)
-- [assistant.net.mongo.HealthCheck](src/Core.Mongo.HealthCheck/README.md)
-- [assistant.net.sqlite](src/Core.Sqlite/README.md)
-- [assistant.net.sqlite.HealthCheck](src/Core.Sqlite.HealthCheck/README.md).
 
 ### assistant.net.diagnostics
 

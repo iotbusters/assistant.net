@@ -1,5 +1,6 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Options;
+using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Driver;

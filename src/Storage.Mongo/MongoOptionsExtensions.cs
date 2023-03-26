@@ -1,6 +1,6 @@
-﻿using Assistant.Net.Options;
+﻿using Assistant.Net.Storage.Options;
 
-namespace Assistant.Net;
+namespace Assistant.Net.Storage;
 
 /// <summary>
 ///     MongoDB options extensions.

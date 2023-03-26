@@ -1,7 +1,7 @@
-﻿using Assistant.Net.Options;
+﻿using Assistant.Net.Storage.Options;
 using Microsoft.Data.Sqlite;
 
-namespace Assistant.Net;
+namespace Assistant.Net.Storage;
 
 /// <summary>
 ///     SQLite options extensions.
