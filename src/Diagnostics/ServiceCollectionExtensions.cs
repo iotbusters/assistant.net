@@ -22,7 +22,7 @@ public static class ServiceCollectionExtensions
     /// </summary>
     /// <param name="services"/>
     /// <param name="getCorrelationId">The correlation ID generation factory.</param>
-    /// <param name="getUser">The user ID generation factory</param>
+    /// <param name="getUser">The user ID generation factory.</param>
     public static IServiceCollection AddDiagnosticContext(this IServiceCollection services, Func<IServiceProvider, string> getCorrelationId, Func<IServiceProvider, string>? getUser = null) => services
         .AddDiagnosticContext((p, ctx) =>
         {
