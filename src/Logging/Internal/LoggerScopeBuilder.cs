@@ -15,7 +15,7 @@ internal class LoggerScopeBuilder : ILoggerScopeBuilder
 
     /// <summary/>
     public LoggerScopeBuilder(ILogger logger) =>
-        this.scope = logger.BeginScope(properties);
+        this.scope = logger.BeginScope(properties)!;
 
     /// <inheritdoc/>
     public ILoggerScopeBuilder AddPropertyScope(string name, object? value)
