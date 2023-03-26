@@ -17,21 +17,21 @@ public class LoggerExtensionsTests
     public void BeginPropertyScope_addsPropertyScopeValueToLoggerWithinContext()
     {
         var stringBuilder = new StringBuilder();
-        var writer = new StringWriter(stringBuilder);
-        Console.SetOut(writer);
-
-        using(writer)
+        using (var writer = new StringWriter(stringBuilder))
         using (var provider = new ServiceCollection()
                    .AddLogging(b => b.AddYamlConsole().SetMinimumLevel(LogLevel.Trace))
                    .ReplaceSingleton<ISystemClock>(_ => new TestClock {UtcNow = testTime})
                    .BuildServiceProvider())
         {
+            Console.SetOut(writer);
             var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("1");
 
             using (logger.BeginPropertyScope("Property1", 1).AddPropertyScope("Property2", 2))
                 logger.LogInformation("Test1");
 
             logger.LogInformation("Test2");
+            Thread.Sleep(10);
+            writer.Flush();
         }
 
         stringBuilder.ToString().Should().BeEquivalentTo(@$"
@@ -56,15 +56,13 @@ Message: Test2
     public void BeginPropertyScope_addsPropertyScopeRuntimeValueToLoggerWithinContext()
     {
         var stringBuilder = new StringBuilder();
-        var writer = new StringWriter(stringBuilder);
-        Console.SetOut(writer);
-
-        using (writer)
+        using (var writer = new StringWriter(stringBuilder))
         using (var provider = new ServiceCollection()
                    .AddLogging(b => b.AddYamlConsole().SetMinimumLevel(LogLevel.Trace))
                    .ReplaceSingleton<ISystemClock>(_ => new TestClock {UtcNow = testTime})
                    .BuildServiceProvider())
         {
+            Console.SetOut(writer);
             var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("1");
 
             var i = 1;
@@ -73,6 +71,8 @@ Message: Test2
                 logger.LogInformation("Test1");
                 logger.LogInformation("Test2");
             }
+            Thread.Sleep(10);
+            writer.Flush();
         }
 
         stringBuilder.ToString().Should().BeEquivalentTo(@$"
