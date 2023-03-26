@@ -48,11 +48,6 @@ public static class MessagingClientOptionsExtensions
     ///     Pay attention, the method overrides already registered handlers;
     ///     it has dependencies configured by <see cref="MessagingClientBuilder"/>.
     /// </remarks>
-    public static MessagingClientOptions AddWebAny(this MessagingClientOptions options)
-    {
-        options.AnyProvider = new InstanceCachingFactory<IAbstractHandler>(p =>
-            p.Create<WebMessageHandlerProxy>());
-
-        return options;
-    }
+    public static MessagingClientOptions AddWebAny(this MessagingClientOptions options) => options
+        .AddDefaultHandler(p => p.Create<WebMessageHandlerProxy>());
 }
