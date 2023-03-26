@@ -1,3 +1,4 @@
+using Assistant.Net.Options;
 using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Configuration;
 using Assistant.Net.Serialization.Converters;
@@ -32,7 +33,7 @@ public static class SerializerBuilderExtensions
             .ConfigureSerializerOptions(builder.Name, o =>
             {
                 var implementationType = typeof(TypedJsonSerializer<>).MakeGenericType(serializingType);
-                o.Registrations[serializingType] = new(p => (IAbstractSerializer)p.GetRequiredService(implementationType));
+                o.Registrations[serializingType] = new InstanceCachingFactory<IAbstractSerializer>(p => (IAbstractSerializer)p.GetRequiredService(implementationType));
             });
         return builder;
     }
