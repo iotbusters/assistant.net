@@ -41,7 +41,11 @@ public sealed class ErrorHandlingInterceptor : SharedAbstractInterceptor
         var messageId = message.GetSha1();
         var messageName = typeEncode.Encode(message.GetType());
 
-        logger.LogInformation("Message({MessageName}, {MessageId}) error handling: begins.", messageName, messageId);
+        using var scope = logger.BeginPropertyScope()
+            .AddPropertyScope("MessageId", messageId)
+            .AddPropertyScope("MessageName", messageName);
+
+        logger.LogInformation("Message error handling: begins.");
 
         object response;
         try
@@ -50,22 +54,22 @@ public sealed class ErrorHandlingInterceptor : SharedAbstractInterceptor
         }
         catch (OperationCanceledException ex) when (token.IsCancellationRequested)
         {
-            logger.LogWarning(ex, "Message({MessageName}, {MessageId}) error handling: cancelled.", messageName, messageId);
+            logger.LogWarning(ex, "Message error handling: cancelled.");
             throw;
         }
         catch (Exception ex)
         {
             if (options.ExposedExceptions.Any(x => x.IsInstanceOfType(ex)))
             {
-                logger.LogError(ex, "Message({MessageName}, {MessageId}) error handling: rethrow to expose.", messageName, messageId);
+                logger.LogError(ex, "Message error handling: rethrow to expose.");
                 throw;
             }
 
-            logger.LogError(ex, "Message({MessageName}, {MessageId}) error handling: wraps internal to hide.", messageName, messageId);
+            logger.LogError(ex, "Message error handling: wraps internal to hide.");
             throw new MessageFailedException(ex);
         }
 
-        logger.LogInformation("Message({MessageName}, {MessageId}) error handling: ends.", messageName, messageId);
+        logger.LogInformation("Message error handling: ends.");
         return response;
     }
 }

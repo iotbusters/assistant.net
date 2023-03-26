@@ -29,11 +29,16 @@ internal class LocalMessageHandlingProxy<TMessage, TResponse> : IAbstractHandler
         var messageName = typeEncoder.Encode(message.GetType());
         var messageId = message.GetSha1();
 
-        logger.LogDebug("Message({MessageName}, {MessageId}) handling: begins.", messageName, messageId);
+        using var scope = logger.BeginPropertyScope()
+            .AddPropertyScope("MessageId", messageId)
+            .AddPropertyScope("MessageName", messageName);
+
+        logger.LogDebug("Message handling: begins.");
 
         var response = (await handler.Handle((TMessage)message, token))!;
 
-        logger.LogDebug("Message({MessageName}, {MessageId}) handling: ends.", messageName, messageId);
+        logger.LogDebug("Message handling: ends.");
+
         return response;
     }
 
@@ -42,10 +47,14 @@ internal class LocalMessageHandlingProxy<TMessage, TResponse> : IAbstractHandler
         var messageName = typeEncoder.Encode(message.GetType());
         var messageId = message.GetSha1();
 
-        logger.LogDebug("Message({MessageName}, {MessageId}) publishing: begins.", messageName, messageId);
+        using var scope = logger.BeginPropertyScope()
+            .AddPropertyScope("MessageId", messageId)
+            .AddPropertyScope("MessageName", messageName);
+
+        logger.LogDebug("Message publishing: begins.");
 
         await handler.Handle((TMessage)message, token);
 
-        logger.LogInformation("Message({MessageName}, {MessageId}) publishing: ends.", messageName, messageId);
+        logger.LogInformation("Message publishing: ends.");
     }
 }

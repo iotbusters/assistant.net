@@ -35,8 +35,12 @@ public sealed class DiagnosticsInterceptor : SharedAbstractInterceptor
         var messageId = message.GetSha1();
         var messageName = typeEncode.Encode(message.GetType());
 
+        using var scope = logger.BeginPropertyScope()
+            .AddPropertyScope("MessageId", messageId)
+            .AddPropertyScope("MessageName", messageName);
+
         var operation = diagnosticFactory.Start($"{messageName}-handling-local");
-        logger.LogInformation("Message({MessageName}, {MessageId}) operation: begins.", messageName, messageId);
+        logger.LogInformation("Message handling operation: begins.");
 
         object response;
         try
@@ -45,19 +49,18 @@ public sealed class DiagnosticsInterceptor : SharedAbstractInterceptor
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            logger.LogWarning("Message({MessageName}, {MessageId}) operation: cancelled.",
-                messageName, messageId);
+            logger.LogWarning("Message handling operation: cancelled.");
             operation.Fail();
             throw;
         }
         catch (Exception ex)
         {
-            logger.LogInformation(ex, "Message({MessageName}, {MessageId}) operation: failed.", messageName, messageId);
+            logger.LogInformation(ex, "Message handling operation: failed.");
             operation.Fail();
             throw;
         }
 
-        logger.LogInformation("Message({MessageName}, {MessageId}) operation: ends.", messageName, messageId);
+        logger.LogInformation("Message handling operation: ends.");
         operation.Complete();
         return response;
     }

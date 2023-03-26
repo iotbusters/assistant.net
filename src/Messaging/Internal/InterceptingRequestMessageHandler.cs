@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.Internal;
 
 [StackTraceHidden]
-internal struct InterceptingRequestMessageHandler
+internal readonly struct InterceptingRequestMessageHandler
 {
     private readonly IAbstractHandler handler;
     private readonly IEnumerator<IAbstractRequestInterceptor> interceptors;

@@ -40,9 +40,16 @@ public sealed class TimeoutInterceptor : SharedAbstractInterceptor
         var messageId = message.GetSha1();
         var messageName = typeEncode.Encode(message.GetType());
 
-        logger.LogInformation("Message({MessageName}, {MessageId}) timeout counter: begins.", messageName, messageId);
+        using var scope = logger.BeginPropertyScope()
+            .AddPropertyScope("MessageId", messageId)
+            .AddPropertyScope("MessageName", messageName);
 
-        using var timeoutSource = new CancellationTokenSource(options.Timeout);
+        logger.LogInformation("Message timeout counter: begins.");
+
+        var timeout = Debugger.IsAttached
+            ? Timeout.InfiniteTimeSpan
+            : options.Timeout;
+        using var timeoutSource = new CancellationTokenSource(timeout);
         using var compositeSource = CancellationTokenSource.CreateLinkedTokenSource(timeoutSource.Token, token);
 
         var watch = Stopwatch.StartNew();
@@ -54,20 +61,17 @@ public sealed class TimeoutInterceptor : SharedAbstractInterceptor
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            logger.LogWarning("Message({MessageName}, {MessageId}) timeout counter: cancelled in {RunTime}.",
-                messageName, messageId, watch.Elapsed);
+            logger.LogWarning("Message timeout counter: cancelled in {RunTime}.", watch.Elapsed);
             throw;
         }
         catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested)
         {
             var runtime = watch.Elapsed;
-            logger.LogError("Message({MessageName}, {MessageId}) timeout counter: {RunTime} exceeded the {Timeout} limit.",
-                messageName, messageId, runtime, options.Timeout);
-            throw new TimeoutException($"Operation run for {runtime} and exceeded the {options.Timeout} limit.");
+            logger.LogError("Message timeout counter: {RunTime} exceeded the {Timeout} limit.", runtime, timeout);
+            throw new TimeoutException($"Operation run for {runtime} and exceeded the {timeout} limit.");
         }
 
-        logger.LogInformation("Message({MessageName}, {MessageId}) timeout counter: ends in {RunTime}.",
-            messageName, messageId, watch.Elapsed);
+        logger.LogInformation("Message timeout counter: ends in {RunTime}.", watch.Elapsed);
         return response;
     }
 }
