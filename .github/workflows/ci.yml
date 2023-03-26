@@ -30,7 +30,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3.4.0
         with: { fetch-depth: 100 }
-      - uses: actions/dependency-review-action@v2
+      # todo: configure base-ref and head-ref: https://github.com/actions/dependency-review-action#configuration-options
+      #- uses: actions/dependency-review-action@v3.0.4
       - uses: actions/setup-dotnet@v3.0.3
         with: { dotnet-version: '7.0' }
 
