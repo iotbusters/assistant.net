@@ -41,7 +41,7 @@ public sealed class ServerAvailabilityService : IDisposable
         ISystemClock clock)
     {
         this.logger = logger;
-        this.disposable = options.OnChange(ReloadMessageTypes);
+        this.disposable = options.OnChange(ReloadMessageTypes)!;
         this.instanceName = environment.ApplicationName;
         this.typeEncoder = typeEncoder;
         this.clock = clock;

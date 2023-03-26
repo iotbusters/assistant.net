@@ -17,6 +17,9 @@ public static class MessagingClientOptionsExtensions
     /// <summary>
     ///     Configures messaging client to use local single provider.
     /// </summary>
+    /// <remarks>
+    ///     Pay attention, the method overrides already registered single provider.
+    /// </remarks>
     public static MessagingClientBuilder UseLocalSingleProvider(this MessagingClientBuilder builder)
     {
         builder.Services
@@ -36,6 +39,7 @@ public static class MessagingClientOptionsExtensions
     /// <remarks>
     ///     Pay attention, it has storage dependencies configured separately in <see cref="StorageBuilder"/>
     ///     or specific provider extension like <see cref="UseLocalSingleProvider"/>.
+    ///     The method overrides already registered single provider.
     /// </remarks>
     public static MessagingClientOptions UseGenericSingleProvider(this MessagingClientOptions options) => options
         .UseSingleProvider(p => p.Create<GenericMessagingHandlerProxy>());
@@ -68,11 +72,6 @@ public static class MessagingClientOptionsExtensions
     ///     Pay attention, the method overrides already registered handlers;
     ///     it has dependencies configured by <see cref="MessagingClientBuilder"/>, including storage configuration.
     /// </remarks>
-    public static MessagingClientOptions AddGenericAny(this MessagingClientOptions options)
-    {
-        options.AnyProvider = new InstanceCachingFactory<IAbstractHandler>(p =>
-            p.Create<GenericMessagingHandlerProxy>());
-
-        return options;
-    }
+    public static MessagingClientOptions AddGenericAny(this MessagingClientOptions options) => options
+        .AddDefaultHandler(p => p.Create<GenericMessagingHandlerProxy>());
 }
