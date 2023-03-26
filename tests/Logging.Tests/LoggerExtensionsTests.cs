@@ -17,18 +17,23 @@ public class LoggerExtensionsTests
     public void BeginPropertyScope_addsPropertyScopeValueToLoggerWithinContext()
     {
         var stringBuilder = new StringBuilder();
-        Console.SetOut(new StringWriter(stringBuilder));
-        using var provider = new ServiceCollection()
-            .AddLogging(b => b.AddYamlConsole().SetMinimumLevel(LogLevel.Trace))
-            .ReplaceSingleton<ISystemClock>(_ => new TestClock {UtcNow = testTime})
-            .BuildServiceProvider();
-        var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("1");
+        var writer = new StringWriter(stringBuilder);
+        Console.SetOut(writer);
 
-        using (logger.BeginPropertyScope("Property1", 1).AddPropertyScope("Property2", 2))
-            logger.LogInformation("Test1");
-        logger.LogInformation("Test2");
+        using(writer)
+        using (var provider = new ServiceCollection()
+                   .AddLogging(b => b.AddYamlConsole().SetMinimumLevel(LogLevel.Trace))
+                   .ReplaceSingleton<ISystemClock>(_ => new TestClock {UtcNow = testTime})
+                   .BuildServiceProvider())
+        {
+            var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("1");
 
-        Thread.Sleep(10);
+            using (logger.BeginPropertyScope("Property1", 1).AddPropertyScope("Property2", 2))
+                logger.LogInformation("Test1");
+
+            logger.LogInformation("Test2");
+        }
+
         stringBuilder.ToString().Should().BeEquivalentTo(@$"
 Timestamp: {testTime.UtcDateTime:yyyy-MM-dd hh:mm:ss.fff}
 LogLevel: Information
@@ -51,21 +56,25 @@ Message: Test2
     public void BeginPropertyScope_addsPropertyScopeRuntimeValueToLoggerWithinContext()
     {
         var stringBuilder = new StringBuilder();
-        Console.SetOut(new StringWriter(stringBuilder));
-        using var provider = new ServiceCollection()
-            .AddLogging(b => b.AddYamlConsole().SetMinimumLevel(LogLevel.Trace))
-            .ReplaceSingleton<ISystemClock>(_ => new TestClock {UtcNow = testTime})
-            .BuildServiceProvider();
-        var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("1");
+        var writer = new StringWriter(stringBuilder);
+        Console.SetOut(writer);
 
-        var i = 1;
-        using (logger.BeginPropertyScope("Property1", () => i++).AddPropertyScope("Property2", () => i++))
+        using (writer)
+        using (var provider = new ServiceCollection()
+                   .AddLogging(b => b.AddYamlConsole().SetMinimumLevel(LogLevel.Trace))
+                   .ReplaceSingleton<ISystemClock>(_ => new TestClock {UtcNow = testTime})
+                   .BuildServiceProvider())
         {
-            logger.LogInformation("Test1");
-            logger.LogInformation("Test2");
+            var logger = provider.GetRequiredService<ILoggerFactory>().CreateLogger("1");
+
+            var i = 1;
+            using (logger.BeginPropertyScope("Property1", () => i++).AddPropertyScope("Property2", () => i++))
+            {
+                logger.LogInformation("Test1");
+                logger.LogInformation("Test2");
+            }
         }
 
-        Thread.Sleep(10);
         stringBuilder.ToString().Should().BeEquivalentTo(@$"
 Timestamp: {testTime.UtcDateTime:yyyy-MM-dd hh:mm:ss.fff}
 LogLevel: Information
