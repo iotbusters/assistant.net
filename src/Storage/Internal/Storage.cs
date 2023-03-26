@@ -240,13 +240,16 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
 
     private static string GetTypeName<T>(ITypeEncoder typeEncoder) =>
         typeEncoder.Encode(typeof(T)) ?? throw new ArgumentException($"Type({typeof(T).Name}) isn't supported.");
-
+    
     private static IStorageProvider<TValue> GetProvider(IServiceProvider provider)
     {
         var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
-        return options.Providers.TryGetValue(typeof(TValue), out var factory)
-            ? (IStorageProvider<TValue>)factory.Create(provider)
-            : throw new ArgumentException($"Storage({typeof(TValue).Name}) wasn't properly configured.");
+        if (!options.Providers.TryGetValue(typeof(TValue), out var factory)
+            && options.AnyProvider == null)
+            throw new ArgumentException($"Storage({typeof(TValue).Name}) wasn't properly configured.");
+
+        var storageProvider = factory?.Create(provider) ?? options.AnyProvider!.Create(provider, typeof(TValue));
+        return (IStorageProvider<TValue>)storageProvider;
     }
 
     private static IValueConverter<T> GetConverter<T>(IServiceProvider provider)

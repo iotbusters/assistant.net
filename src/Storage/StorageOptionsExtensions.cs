@@ -16,28 +16,109 @@ public static class StorageOptionsExtensions
     private static readonly Type localPartitionedProviderType = typeof(LocalPartitionedStorageProvider<>);
 
     /// <summary>
+    ///     Configures storage to use single storage provider implementation.
+    /// </summary>
+    /// <param name="options"/>
+    /// <param name="factory">Single storage provider factory.</param>
+    /// <remarks>
+    ///     Pay attention, the method overrides already registered single provider.
+    /// </remarks>
+    public static StorageOptions UseSingleProvider(this StorageOptions options, Func<IServiceProvider, Type, object> factory)
+    {
+        options.SingleProvider = new InstanceCachingFactory<object, Type>(factory);
+        return options;
+    }
+
+    /// <summary>
+    ///     Configures storage to use single historical storage provider implementation.
+    /// </summary>
+    /// <param name="options"/>
+    /// <param name="factory">Single historical storage provider factory.</param>
+    /// <remarks>
+    ///     Pay attention, the method overrides already registered single provider.
+    /// </remarks>
+    public static StorageOptions UseSingleHistoricalProvider(this StorageOptions options, Func<IServiceProvider, Type, object> factory)
+    {
+        options.SingleHistoricalProvider = new InstanceCachingFactory<object, Type>(factory);
+        return options;
+    }
+
+    /// <summary>
+    ///     Configures storage to use single partitioned storage provider implementation.
+    /// </summary>
+    /// <param name="options"/>
+    /// <param name="factory">single partitioned storage provider factory.</param>
+    /// <remarks>
+    ///     Pay attention, the method overrides already registered single provider.
+    /// </remarks>
+    public static StorageOptions UseSinglePartitionedProvider(this StorageOptions options, Func<IServiceProvider, Type, object> factory)
+    {
+        options.SinglePartitionedProvider = new InstanceCachingFactory<object, Type>(factory);
+        return options;
+    }
+
+    /// <summary>
     ///     Configures storage to use a local single provider implementation.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered single provider.
     /// </remarks>
-    public static StorageOptions UseLocalSingleProvider(this StorageOptions options)
-    {
-        options.SingleProvider = new((p, valueType) =>
+    public static StorageOptions UseLocalSingleProvider(this StorageOptions options) => options
+        .UseSingleProvider((p, valueType) =>
         {
             var implementationType = localProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
-        });
-        options.SingleHistoricalProvider = new((p, valueType) =>
+        })
+        .UseSingleHistoricalProvider((p, valueType) =>
         {
             var implementationType = localHistoricalProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
-        });
-        options.SinglePartitionedProvider = new((p, valueType) =>
+        })
+        .UseSinglePartitionedProvider((p, valueType) =>
         {
             var implementationType = localPartitionedProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
         });
+
+    /// <summary>
+    ///     Registers storage provider of any type if none defined explicitly.
+    /// </summary>
+    /// <param name="options"/>
+    /// <param name="factory">Storage provider factory.</param>
+    /// <remarks>
+    ///     Pay attention, the method overrides already registered provider.
+    /// </remarks>
+    public static StorageOptions AddAny(this StorageOptions options, Func<IServiceProvider, Type, object> factory)
+    {
+        options.AnyProvider = new InstanceCachingFactory<object, Type>(factory);
+        return options;
+    }
+
+    /// <summary>
+    ///     Registers historical storage provider of any type if none defined explicitly.
+    /// </summary>
+    /// <param name="options"/>
+    /// <param name="factory">Historical storage provider factory.</param>
+    /// <remarks>
+    ///     Pay attention, the method overrides already registered provider.
+    /// </remarks>
+    public static StorageOptions AddHistoricalAny(this StorageOptions options, Func<IServiceProvider, Type, object> factory)
+    {
+        options.AnyHistoricalProvider = new InstanceCachingFactory<object, Type>(factory);
+        return options;
+    }
+
+    /// <summary>
+    ///     Registers partitioned storage provider of any type if none defined explicitly.
+    /// </summary>
+    /// <param name="options"/>
+    /// <param name="factory">Partitioned storage provider factory.</param>
+    /// <remarks>
+    ///     Pay attention, the method overrides already registered provider.
+    /// </remarks>
+    public static StorageOptions AddPartitionedAny(this StorageOptions options, Func<IServiceProvider, Type, object> factory)
+    {
+        options.AnyPartitionedProvider = new InstanceCachingFactory<object, Type>(factory);
         return options;
     }
 
@@ -50,7 +131,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddSingle(this StorageOptions options, Type valueType)
     {
-        options.Providers[valueType] = new InstanceCachingFactory<object>(p =>
+        options.Providers[valueType] = new(p =>
         {
             var factory = options.SingleProvider
                           ?? throw new ArgumentException("Single storage provider wasn't properly configured.");
@@ -68,7 +149,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddSingleAny(this StorageOptions options)
     {
-        options.ProviderAny = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.AnyProvider = new((p, valueType) =>
         {
             var factory = options.SingleProvider
                           ?? throw new ArgumentException("Single storage provider wasn't properly configured.");
@@ -86,7 +167,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddSingleHistorical(this StorageOptions options, Type valueType)
     {
-        options.HistoricalProviders[valueType] = new InstanceCachingFactory<object>(p =>
+        options.HistoricalProviders[valueType] = new(p =>
         {
             var factory = options.SingleHistoricalProvider
                           ?? throw new ArgumentException("Single historical storage provider wasn't properly configured.");
@@ -104,7 +185,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddSingleHistoricalAny(this StorageOptions options)
     {
-        options.HistoricalProviderAny = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.AnyHistoricalProvider = new((p, valueType) =>
         {
             var factory = options.SingleHistoricalProvider
                           ?? throw new ArgumentException("Single historical storage provider wasn't properly configured.");
@@ -122,7 +203,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddSinglePartitioned(this StorageOptions options, Type valueType)
     {
-        options.PartitionedProviders[valueType] = new InstanceCachingFactory<object>(p =>
+        options.PartitionedProviders[valueType] = new(p =>
         {
             var factory = options.SinglePartitionedProvider
                           ?? throw new ArgumentException("Single partitioned storage provider wasn't properly configured.");
@@ -140,7 +221,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddSinglePartitionedAny(this StorageOptions options)
     {
-        options.PartitionedProviderAny = new InstanceCachingFactory<object, Type>((p, valueType) =>
+        options.AnyPartitionedProvider = new((p, valueType) =>
         {
             var factory = options.SinglePartitionedProvider
                           ?? throw new ArgumentException("Single partitioned storage provider wasn't properly configured.");
@@ -157,7 +238,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddLocal(this StorageOptions options, Type valueType)
     {
-        options.Providers[valueType] = new(p =>
+        options.Providers[valueType] = new InstanceCachingFactory<object>(p =>
         {
             var implementationType = localProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
@@ -173,7 +254,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddLocalAny(this StorageOptions options)
     {
-        options.ProviderAny = new((p, valueType) =>
+        options.AnyProvider = new((p, valueType) =>
         {
             var implementationType = localProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
@@ -189,7 +270,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddLocalHistorical(this StorageOptions options, Type valueType)
     {
-        options.HistoricalProviders[valueType] = new(p =>
+        options.HistoricalProviders[valueType] = new InstanceCachingFactory<object>(p =>
         {
             var implementationType = localHistoricalProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
@@ -205,7 +286,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddLocalHistoricalAny(this StorageOptions options)
     {
-        options.HistoricalProviderAny = new((p, valueType) =>
+        options.AnyHistoricalProvider = new((p, valueType) =>
         {
             var implementationType = localHistoricalProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
@@ -221,7 +302,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddLocalPartitioned(this StorageOptions options, Type valueType)
     {
-        options.PartitionedProviders[valueType] = new(p =>
+        options.PartitionedProviders[valueType] = new InstanceCachingFactory<object>(p =>
         {
             var implementationType = localPartitionedProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
@@ -237,7 +318,7 @@ public static class StorageOptionsExtensions
     /// </remarks>
     public static StorageOptions AddLocalPartitionedAny(this StorageOptions options)
     {
-        options.PartitionedProviderAny = new((p, valueType) =>
+        options.AnyPartitionedProvider = new((p, valueType) =>
         {
             var implementationType = localPartitionedProviderType.MakeGenericType(valueType);
             return p.GetRequiredService(implementationType);
