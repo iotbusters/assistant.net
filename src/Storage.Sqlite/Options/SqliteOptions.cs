@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.Sqlite;
 using System.ComponentModel.DataAnnotations;
 
-namespace Assistant.Net.Options;
+namespace Assistant.Net.Storage.Options;
 
 /// <summary>
 ///     SQLite client configuration for specific provider usage.

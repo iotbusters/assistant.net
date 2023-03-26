@@ -1,4 +1,4 @@
-using Assistant.Net.Options;
+using Assistant.Net.Storage.Options;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -6,7 +6,7 @@ using NUnit.Framework;
 using System;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Core.Mongo.HealthCheck.Tests
+namespace Assistant.Net.Storage.Mongo.Tests
 {
     public class MongoOptionsHealthCheckTests
     {

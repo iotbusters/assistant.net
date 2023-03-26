@@ -14,8 +14,10 @@ using var provider = new ServiceCollection()
         .AddSqliteHistoricalAny()
         .AddSqlitePartitioned<SomeModel>()
         .AddSqlitePartitionedAny())
+    .AddHealthChecks().AddSqlite().Services
     .BuildStorageProvider();
-    
+
+var options = provider.GetRequiredService<INamedOptions<SqliteOptions>>().Value;
 var regularStorage = provider.GetRequiredService<IStorage<Key, SomeModel>>();
 var partitionedStorage = provider.GetRequiredService<IHistoricalStorage<Key, SomeModel>>();
 var partitionedStorage = provider.GetRequiredService<IPartitionedStorage<Key, SomeModel>>();

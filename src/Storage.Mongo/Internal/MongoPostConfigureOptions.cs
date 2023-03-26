@@ -1,5 +1,6 @@
 ﻿using Assistant.Net.Options;
 using Assistant.Net.Storage.Models;
+using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;

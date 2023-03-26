@@ -1,4 +1,4 @@
-using Assistant.Net.Options;
+using Assistant.Net.Storage.Options;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using NUnit.Framework;
 using System.Linq;
 
-namespace Assistant.Net.Core.Mongo.HealthCheck.Tests
+namespace Assistant.Net.Storage.Sqlite.Tests
 {
     public class HealthCheckBuilderExtensionsTests
     {
@@ -15,17 +15,17 @@ namespace Assistant.Net.Core.Mongo.HealthCheck.Tests
         {
             var provider = new ServiceCollection()
                 .AddLogging()
-                .ConfigureMongoOptions("mongodb://localhost")
+                .ConfigureSqliteOptions(":memory:")
                 .AddHealthChecks()
-                .AddMongo()
+                .AddSqlite()
                 .Services
                 .BuildServiceProvider();
 
             var options = provider.GetRequiredService<IOptions<HealthCheckServiceOptions>>().Value;
-            options.Registrations.Should().BeEquivalentTo(new[] {new {Name = nameof(MongoOptions)}});
+            options.Registrations.Should().BeEquivalentTo(new[] {new {Name = nameof(SqliteOptions)}});
 
             var registration = options.Registrations.Single();
-            registration.Factory(provider).GetType().Name.Should().Be("MongoOptionsHealthCheck");
+            registration.Factory(provider).GetType().Name.Should().Be("SqliteOptionsHealthCheck");
         }
     }
 }

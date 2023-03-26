@@ -1,11 +1,11 @@
-﻿using Assistant.Net.HealthChecks;
-using Assistant.Net.Options;
+﻿using Assistant.Net.Storage.HealthChecks;
+using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System;
 using System.Linq;
 
-namespace Assistant.Net;
+namespace Assistant.Net.Storage;
 
 /// <summary>
 ///     MongoDB health check builder extensions.

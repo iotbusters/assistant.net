@@ -1,5 +1,6 @@
 ﻿using Assistant.Net.Options;
 using Assistant.Net.Storage.Models;
+using Assistant.Net.Storage.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;

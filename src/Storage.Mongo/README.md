@@ -14,8 +14,10 @@ using var provider = new ServiceCollection()
         .AddMongoHistoricalAny()
         .AddMongoPartitioned<SomeModel>()
         .AddMongoPartitionedAny())
+    .AddHealthChecks().AddMongo().Services
     .BuildStorageProvider();
-    
+
+var options = provider.GetRequiredService<INamedOptions<MongoOptions>>().Value;
 var regularStorage = provider.GetRequiredService<IStorage<Key, SomeModel>>();
 var partitionedStorage = provider.GetRequiredService<IHistoricalStorage<Key, SomeModel>>();
 var partitionedStorage = provider.GetRequiredService<IPartitionedStorage<Key, SomeModel>>();

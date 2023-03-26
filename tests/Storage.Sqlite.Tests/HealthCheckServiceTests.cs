@@ -1,4 +1,4 @@
-using Assistant.Net.Options;
+using Assistant.Net.Storage.Options;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,7 +8,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Core.Sqlite.HealthCheck.Tests
+namespace Assistant.Net.Storage.Sqlite.Tests
 {
     public class HealthCheckServiceTests
     {
