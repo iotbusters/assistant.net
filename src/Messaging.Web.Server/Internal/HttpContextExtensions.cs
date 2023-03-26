@@ -26,7 +26,7 @@ internal static class HttpContextExtensions
         if (!httpContext.Request.Headers.TryGetValue(name, out var values))
             throw new MessageContractException($"Header '{name}' is required.");
 
-        return values.First();
+        return values.First()!;
     }
 
     /// <summary>
