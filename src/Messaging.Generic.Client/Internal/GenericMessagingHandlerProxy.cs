@@ -11,7 +11,6 @@ using Assistant.Net.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -54,7 +53,6 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
     public async ValueTask<object> Request(IAbstractMessage message, CancellationToken token)
     {
         var strategy = options.Value.ResponsePoll;
-        var attempt = 1;
 
         var messageName = typeEncoder.Encode(message.GetType());
         var messageId = message.GetSha1();
@@ -68,12 +66,10 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         var requestId = await PublishInternal(message, timeToLive: strategy.TotalTime, token);
         requestScope.AddPropertyScope("RequestId", requestId);
 
-        await Task.Delay(strategy.DelayTime(attempt), token);
-
-        var watch = Stopwatch.StartNew();
-        while (true)
+        var attempt = 1;
+        while (strategy.CanRetry(attempt))
         {
-            token.ThrowIfCancellationRequested();
+            await Task.Delay(strategy.DelayTime(attempt), token);
 
             using var attemptScope = logger.BeginPropertyScope("Attempt", attempt);
             logger.LogDebug("Poll response: begins.");
@@ -85,16 +81,11 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
             }
 
             logger.LogWarning("Poll response: ends without response.");
-
             attempt++;
-            if (!strategy.CanRetry(attempt))
-            {
-                logger.LogError("Poll response: reached the limit.");
-                throw new MessageDeferredException($"No response from server received in {watch.Elapsed}.");
-            }
-
-            await Task.Delay(strategy.DelayTime(attempt), token);
         }
+
+        logger.LogError("Poll response: reached the limit.");
+        throw new MessageDeferredException("No response from server received.");
     }
 
     public async ValueTask Publish(IAbstractMessage message, CancellationToken token) =>
@@ -109,7 +100,6 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
             throw new MessageNotRegisteredException(message.GetType());
 
         using var scope = logger.BeginPropertyScope("RequestId", requestId);
-
         logger.LogDebug("Publish: begins.");
 
         var request = new StorageValue<IAbstractMessage>(message) {[MessagePropertyNames.RequestIdName] = requestId};
@@ -120,7 +110,6 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
         await requestStorage.Add(instance, request, token);
 
         logger.LogInformation("Publish: ends.");
-
         return requestId;
     }
 }
