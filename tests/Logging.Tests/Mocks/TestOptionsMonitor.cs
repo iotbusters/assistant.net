@@ -10,7 +10,7 @@ public sealed class TestOptionsMonitor<T> : IOptionsMonitor<T>
 
     public TestOptionsMonitor(T options) => this.options = options;
 
-    public T Get(string name) => options;
+    public T Get(string? name) => options;
 
     public IDisposable OnChange(Action<T, string> listener) => new StringReader(string.Empty);
 
