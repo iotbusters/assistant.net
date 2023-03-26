@@ -27,7 +27,7 @@ internal sealed class MongoOptionsHealthCheck : IHealthCheck
         this.monitor = monitor;
         this.names = configureNamedOptions
             .OfType<ConfigureNamedOptions<MongoOptions>>()
-            .Select(x => x.Name)
+            .Select(x => x.Name ?? Microsoft.Extensions.Options.Options.DefaultName)
             .Distinct()
             .ToArray();
     }

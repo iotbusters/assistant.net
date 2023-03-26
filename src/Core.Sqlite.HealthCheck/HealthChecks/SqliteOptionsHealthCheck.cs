@@ -26,7 +26,7 @@ internal sealed class SqliteOptionsHealthCheck : IHealthCheck
         this.monitor = monitor;
         this.names = configureNamedOptions
             .OfType<ConfigureNamedOptions<SqliteOptions>>()
-            .Select(x => x.Name)
+            .Select(x => x.Name ?? Microsoft.Extensions.Options.Options.DefaultName)
             .Distinct()
             .ToArray();
     }

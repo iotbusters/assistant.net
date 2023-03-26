@@ -26,7 +26,7 @@ internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
         ISystemClock clock) : base(ConsoleFormatterNames.Yaml)
     {
         this.formatterOptions = options.CurrentValue;
-        this.disposable = options.OnChange(o => formatterOptions = o);
+        this.disposable = options.OnChange(o => formatterOptions = o)!;
         this.serviceProvider = serviceProvider;
         this.clock = clock;
     }
@@ -62,12 +62,9 @@ internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
     //     Value: 5793e715-6e50-4f84-9c9e-85be62de689c
     //   - Name: User
     //     Value: ababaga@gmail.com
-    public override void Write<TState>(in LogEntry<TState> logEntry, IExternalScopeProvider scopeProvider, TextWriter writer)
+    public override void Write<TState>(in LogEntry<TState> logEntry, IExternalScopeProvider? scopeProvider, TextWriter writer)
     {
-        var message = logEntry.Formatter?.Invoke(logEntry.State, logEntry.Exception);
-        if (logEntry.Exception == null && message == null)
-            return;
-
+        var message = logEntry.Formatter.Invoke(logEntry.State, logEntry.Exception);
         var dateTimeOffset = clock.UtcNow;
         var dateTime = formatterOptions.UseUtcTimestamp ? dateTimeOffset.DateTime : dateTimeOffset.LocalDateTime;
         var dateTimeString = dateTime.ToString(formatterOptions.TimestampFormat);
