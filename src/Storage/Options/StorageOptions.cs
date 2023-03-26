@@ -30,32 +30,32 @@ public sealed class StorageOptions
     public Dictionary<Type, InstanceFactory<object>> PartitionedProviders { get; } = new();
 
     /// <summary>
-    ///     Any other type (except defined in <see cref="Providers"/>) regular storage provider factories.
+    ///     Any other type regular storage provider factories except defined in <see cref="Providers"/>.
     /// </summary>
-    public InstanceFactory<object, Type>? ProviderAny { get; set; }
+    public InstanceFactory<object, Type>? AnyProvider { get; internal set; }
 
     /// <summary>
-    ///     Any other type (except defined in <see cref="HistoricalProviders"/>) historical storage provider factories.
+    ///     Any other type historical storage provider factories except defined in <see cref="HistoricalProviders"/>.
     /// </summary>
-    public InstanceFactory<object, Type>? HistoricalProviderAny { get; set; }
+    public InstanceFactory<object, Type>? AnyHistoricalProvider { get; internal set; }
 
     /// <summary>
-    ///     Any other type (except defined in <see cref="PartitionedProviders"/>) partitioned storage provider factories.
+    ///     Any other type partitioned storage provider factories except defined in <see cref="PartitionedProviders"/>.
     /// </summary>
-    public InstanceFactory<object, Type>? PartitionedProviderAny { get; set; }
+    public InstanceFactory<object, Type>? AnyPartitionedProvider { get; internal set; }
 
     /// <summary>
     ///     Single regular storage provider factory.
     /// </summary>
-    public InstanceFactory<object, Type>? SingleProvider { get; set; }
+    public InstanceFactory<object, Type>? SingleProvider { get; internal set; }
 
     /// <summary>
     ///     Single historical storage provider factory.
     /// </summary>
-    public InstanceFactory<object, Type>? SingleHistoricalProvider { get; set; }
+    public InstanceFactory<object, Type>? SingleHistoricalProvider { get; internal set; }
 
     /// <summary>
     ///     Single partitioned storage provider factory.
     /// </summary>
-    public InstanceFactory<object, Type>? SinglePartitionedProvider { get; set; }
+    public InstanceFactory<object, Type>? SinglePartitionedProvider { get; internal set; }
 }

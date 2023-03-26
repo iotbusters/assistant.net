@@ -294,9 +294,12 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
     private static IHistoricalStorageProvider<TValue> GetProvider(IServiceProvider provider)
     {
         var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
-        return options.HistoricalProviders.TryGetValue(typeof(TValue), out var factory)
-            ? (IHistoricalStorageProvider<TValue>)factory.Create(provider)
-            : throw new ArgumentException($"HistoricalStorage({typeof(TValue).Name}) wasn't properly configured.");
+        if (!options.HistoricalProviders.TryGetValue(typeof(TValue), out var factory)
+            && options.AnyHistoricalProvider == null)
+            throw new ArgumentException($"HistoricalStorage({typeof(TValue).Name}) wasn't properly configured.");
+
+        var storageProvider = factory?.Create(provider) ?? options.AnyHistoricalProvider!.Create(provider, typeof(TValue));
+        return (IHistoricalStorageProvider<TValue>)storageProvider;
     }
 
     private static IValueConverter<T> GetConverter<T>(IServiceProvider provider)

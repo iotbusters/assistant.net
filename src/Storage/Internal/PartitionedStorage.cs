@@ -196,9 +196,12 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
     private static IPartitionedStorageProvider<TValue> GetProvider(IServiceProvider provider)
     {
         var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
-        return options.PartitionedProviders.TryGetValue(typeof(TValue), out var factory)
-            ? (IPartitionedStorageProvider<TValue>)factory.Create(provider)
-            : throw new ArgumentException($"PartitionedStorage({typeof(TValue).Name}) wasn't properly configured.");
+        if(!options.PartitionedProviders.TryGetValue(typeof(TValue), out var factory)
+           && options.AnyPartitionedProvider == null)
+            throw new ArgumentException($"PartitionedStorage({typeof(TValue).Name}) wasn't properly configured.");
+
+        var storageProvider = factory?.Create(provider) ?? options.AnyPartitionedProvider!.Create(provider, typeof(TValue));
+        return (IPartitionedStorageProvider<TValue>)storageProvider;
     }
 
     private static IValueConverter<T> GetConverter<T>(IServiceProvider provider)
