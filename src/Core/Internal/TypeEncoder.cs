@@ -31,7 +31,7 @@ internal sealed class TypeEncoder : ITypeEncoder, IDisposable
     {
         this.logger = logger;
         this.optionsMonitor = optionsMonitor;
-        this.optionsChangeOnSubscription = optionsMonitor.OnChange(Configure);
+        this.optionsChangeOnSubscription = optionsMonitor.OnChange(Configure)!;
 
         Configure(optionsMonitor.CurrentValue);
         AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;

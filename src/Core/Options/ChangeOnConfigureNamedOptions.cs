@@ -32,7 +32,7 @@ public sealed class ChangeOnConfigureNamedOptions<TOptions, TOptionsDependency> 
     }
 
     /// <inheritdoc/>
-    public void Configure(string name, TOptionsDependency options)
+    public void Configure(string? name, TOptionsDependency options)
     {
         if (name != dependentOptionsName)
             return;
