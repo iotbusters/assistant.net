@@ -23,7 +23,7 @@ jobs:
         id: change-detected
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
-          echo "ci-changes=$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json)$')" >> $GITHUB_OUTPUT
+          echo "ci-changes=$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json|yml)$')" >> $GITHUB_OUTPUT
           echo "core=$(echo "$CHANGES" | grep -c src/Core/)" >> $GITHUB_OUTPUT
           echo "serialization-json=$(echo "$CHANGES" | grep -c src/Serialization.Json/)" >> $GITHUB_OUTPUT
           echo "storage=$(echo "$CHANGES" | grep -c src/Storage/)" >> $GITHUB_OUTPUT
