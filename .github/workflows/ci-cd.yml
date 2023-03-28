@@ -19,10 +19,14 @@ jobs:
       - uses: actions/checkout@v3.4.0
         with: { fetch-depth: 100 }
 
+      - name: Fetch latest release version
+        id: release-fetched
+        uses: reloc8/action-latest-release-version@1.0.0
+
       - name: detect code changes
         id: change-detected
         run: |
-          CHANGES=$(git diff --name-only ${{ github.event.commits[0].id }}~1..${{ github.event.after }})
+          CHANGES=$(git diff --name-only ${{ steps.release-fetched.outputs.latest-release }}..${{ github.event.after }})
           echo "ci-changes=$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json|yml)$')" >> $GITHUB_OUTPUT
           echo "core=$(echo "$CHANGES" | grep -c src/Core/)" >> $GITHUB_OUTPUT
           echo "serialization-json=$(echo "$CHANGES" | grep -c src/Serialization.Json/)" >> $GITHUB_OUTPUT
@@ -165,7 +169,7 @@ jobs:
           prerelease: true
           draft: true # published event isn't triggered automatically, so release is created as draft to publish manually.
           body: |
-            Changed files: ${{ needs.change-detect.outputs.total }}
+            Changed files: ${{ needs.change-detect.outputs.total }} ([see changes](https://github.com/iotbusters/assistant.net/compare/${{ steps.release-fetched.outputs.latest-release }}..${{ github.event.after }}))
             Packed projects: ${{ needs.build.outputs.total-package-prepared-count }}
             <details>
               <summary>Package changes</summary>
