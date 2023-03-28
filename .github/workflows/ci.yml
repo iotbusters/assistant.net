@@ -35,13 +35,21 @@ jobs:
       - uses: actions/setup-dotnet@v3.0.3
         with: { dotnet-version: '7.0' }
 
-      - uses: actions/cache@v3.3.1
+      - name: restore packages from cache
+        uses: actions/cache/restore@v3.3.1
         with:
           path: ~/.nuget/packages
-          key: nuget-${{ hashFiles('**/*.csproj') }}
-          restore-keys: nuget-${{ hashFiles('**/*.csproj') }}
+          key: nuget-${{ hashFiles('src/**/*.csproj') }}
+          restore-keys: nuget-${{ hashFiles('src/**/*.csproj') }}
 
       - run: dotnet restore assistant.net.sln -v n
+
+      - name: store packages to cache
+        uses: actions/cache/save@v3.3.1
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ hashFiles('src/**/*.csproj') }}
+
       - run: dotnet build assistant.net.sln -c Release --no-restore -v n
       - run: dotnet test assistant.net.sln -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
       - uses: EnricoMi/publish-unit-test-result-action@v1

@@ -34,7 +34,7 @@ jobs:
       # todo: remove once actions/download-artifact supports cross workflow artifacts.
       # https://github.com/actions/toolkit/pull/517
       - name: create package (prepare binaries workaround)
-        uses: actions/cache@v3.3.1
+        uses: actions/cache/restore@v3.3.1
         with:
           path: release-binaries
           key: ${{ env.KEY }}
@@ -44,11 +44,11 @@ jobs:
           KEY: ${{ runner.os }}-release-binaries-${{ github.event.release.tag_name }}
 
       - name: create package (prepare dependencies)
-        uses: actions/cache@v3.3.1
+        uses: actions/cache/restore@v3.3.1
         with:
           path: ~/.nuget/packages
-          key: nuget-${{ hashFiles('**/*.csproj') }}
-          restore-keys: nuget-${{ hashFiles('**/*.csproj') }}
+          key: nuget-${{ hashFiles('src/**/*.csproj') }}
+          restore-keys: nuget-${{ hashFiles('src/**/*.csproj') }}
 
       - name: create package
         run: |
@@ -74,21 +74,19 @@ jobs:
       # todo: remove once actions/download-artifact supports cross workflow artifacts.
       # https://github.com/actions/toolkit/pull/517
       - name: upload package (released workaround)
-        uses: actions/cache@v3.3.1
+        uses: actions/cache/save@v3.3.1
         with:
           path: packages
           key: ${{ env.KEY }}
-          restore-keys: ${{ env.KEY }}
         env:
           VERSION: ${{ github.event.release.tag_name }}
           KEY: ${{ runner.os }}-released-packages-${{ github.event.release.tag_name }}
         if: github.event.release.prerelease != true
       - name: upload package (prereleased workaround)
-        uses: actions/cache@v3.3.1
+        uses: actions/cache/save@v3.3.1
         with:
           path: packages
           key: ${{ env.KEY }}
-          restore-keys: ${{ env.KEY }}
         env:
           VERSION: ${{ github.event.release.tag_name }}
           KEY: ${{ runner.os }}-prereleased-packages-${{ github.event.release.tag_name }}
@@ -124,7 +122,7 @@ jobs:
       # todo: remove once actions/download-artifact supports cross workflow artifacts.
       # https://github.com/actions/toolkit/pull/517
       - name: delete packages (prepare released workaround)
-        uses: actions/cache@v3.3.1
+        uses: actions/cache/restore@v3.3.1
         with:
           path: packages
           key: ${{ env.KEY }}
@@ -135,7 +133,7 @@ jobs:
       # todo: remove once actions/download-artifact supports cross workflow artifacts.
       # https://github.com/actions/toolkit/pull/517
       - name: delete packages (prepare prereleased workaround)
-        uses: actions/cache@v3.3.1
+        uses: actions/cache/restore@v3.3.1
         with:
           path: packages
           key: ${{ env.KEY }}

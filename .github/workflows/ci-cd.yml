@@ -71,11 +71,11 @@ jobs:
         with: { dotnet-version: '7.0' }
 
       - name: restore (prepare)
-        uses: actions/cache@v3.3.1
+        uses: actions/cache/restore@v3.3.1
         with:
           path: ~/.nuget/packages
-          key: nuget-${{ hashFiles('**/*.csproj') }}
-          restore-keys: nuget-${{ hashFiles('**/*.csproj') }}
+          key: nuget-${{ hashFiles('src/**/*.csproj') }}
+          restore-keys: nuget-${{ hashFiles('src/**/*.csproj') }}
 
       - name: restore
         run: dotnet restore assistant.net.sln -v n
@@ -135,11 +135,10 @@ jobs:
       # todo: remove once actions/download-artifact supports cross workflow artifacts.
       # https://github.com/actions/toolkit/pull/517
       - name: upload binaries (workaround)
-        uses: actions/cache@v3.3.1
+        uses: actions/cache/save@v3.3.1
         with:
           path: release-binaries
           key: ${{ env.KEY }}
-          restore-keys: ${{ env.KEY }}
         env:
           KEY: ${{ runner.os }}-release-binaries-${{ env.VERSION }}
 
