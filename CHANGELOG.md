@@ -10,22 +10,22 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - nothing
 
-## [0.4.148] - 2023-03-26
+## [0.4.151] - 2023-03-26
 
-[Assistant.NET Release 0.4.148](https://github.com/iotbusters/assistant.net/releases/tag/0.4.148)
-[Changes](https://github.com/iotbusters/assistant.net/compare/0.3.145...0.4.148)
+[Assistant.NET Release 0.4.151](https://github.com/iotbusters/assistant.net/releases/tag/0.4.151)
+[Changes](https://github.com/iotbusters/assistant.net/compare/0.3.145...0.4.151)
 
-### 0.4.148 Changed
+### 0.4.151 Changed
 
 - storage and messaging client extension methods
 - messaging interceptor logging improvements
 - message server handling
 
-### 0.4.148 Fixed
+### 0.4.151 Fixed
 
 - scoped instance caching in messaging client
 
-### 0.4.148 Removed
+### 0.4.151 Removed
 
 - Core.Mongo project
 - Core.Mongo.HealthCheck project

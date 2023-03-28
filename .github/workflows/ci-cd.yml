@@ -83,8 +83,9 @@ jobs:
         run: dotnet build assistant.net.sln -p:Version=${{ env.VERSION }} -c Release --no-restore -v n
       - name: test
         run: dotnet test assistant.net.sln -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
+
       - name: publish test result
-        uses: EnricoMi/publish-unit-test-result-action@v1
+        uses: EnricoMi/publish-unit-test-result-action@v2.6.1
         with:
           files: |
             **/TestResults.xml
