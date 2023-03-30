@@ -72,13 +72,13 @@ public static class TypeExtensions
     ///     Verifies if provided <paramref name="messageType"/> is the <see cref="IMessage{TResponse}"/>.
     /// </summary>
     public static bool IsMessageInterface(this Type messageType) =>
-        messageType.IsInterface && messageType.IsGenericType && messageType.GetGenericTypeDefinition() == typeof(IMessage<>);
+        messageType is {IsInterface: true, IsGenericType: true} && messageType.GetGenericTypeDefinition() == typeof(IMessage<>);
 
     /// <summary>
     ///     Verifies if provided <paramref name="handlerType"/> is the <see cref="IMessageHandler{TMessage,TResponse}"/>.
     /// </summary>
     private static bool IsMessageHandlerInterface(this Type handlerType) =>
-        handlerType.IsInterface && handlerType.IsGenericType && handlerType.GetGenericTypeDefinition() == typeof(IMessageHandler<,>);
+        handlerType is {IsInterface: true, IsGenericType: true} && handlerType.GetGenericTypeDefinition() == typeof(IMessageHandler<,>);
 
     /// <summary>
     ///     Gets all implemented the <see cref="IMessageRequestInterceptor{TMessage,TResponse}"/> types.
