@@ -1,4 +1,3 @@
-using Assistant.Net.Options;
 using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Configuration;
 using Assistant.Net.Serialization.Converters;
@@ -28,14 +27,9 @@ public static class SerializerBuilderExtensions
     /// <exception cref="ArgumentException"/>
     public static SerializerBuilder AddJsonType(this SerializerBuilder builder, Type serializingType)
     {
-        builder.Services
-            .AddJsonSerializer(builder.Name)
-            .ConfigureSerializerOptions(builder.Name, o =>
-            {
-                var implementationType = typeof(TypedJsonSerializer<>).MakeGenericType(serializingType);
-                o.Registrations[serializingType] = new InstanceCachingFactory<IAbstractSerializer>(p => (IAbstractSerializer)p.GetRequiredService(implementationType));
-            });
-        return builder;
+        builder.Services.AddJsonSerializer(builder.Name);
+        var implementationType = typeof(TypedJsonSerializer<>).MakeGenericType(serializingType);
+        return builder.AddType(serializingType, implementationType);
     }
 
     /// <summary>
@@ -43,32 +37,12 @@ public static class SerializerBuilderExtensions
     /// </summary>
     public static SerializerBuilder AddJsonTypeAny(this SerializerBuilder builder)
     {
-        builder.Services
-            .AddJsonSerializer(builder.Name)
-            .ConfigureSerializerOptions(builder.Name, o =>
-                o.AnyTypeRegistration = new((p, serializingType) =>
-                {
-                    var implementationType = typeof(TypedJsonSerializer<>).MakeGenericType(serializingType);
-                    return (IAbstractSerializer)p.GetRequiredService(implementationType);
-                }));
-        return builder;
-    }
-
-    /// <summary>
-    ///     Removes serialization of <typeparamref name="TValue"/> type.
-    /// </summary>
-    /// <typeparam name="TValue">Serializing value type.</typeparam>
-    public static SerializerBuilder Remove<TValue>(this SerializerBuilder builder) => builder
-        .Remove(typeof(TValue));
-
-    /// <summary>
-    ///     Removes serialization of <paramref name="serializingType"/>.
-    /// </summary>
-    /// <exception cref="ArgumentException"/>
-    public static SerializerBuilder Remove(this SerializerBuilder builder, Type serializingType)
-    {
-        builder.Services.ConfigureSerializerOptions(builder.Name, o => o.Registrations.Remove(serializingType));
-        return builder;
+        builder.Services.AddJsonSerializer(builder.Name);
+        return builder.AddTypeAny((p, serializingType) =>
+        {
+            var implementationType = typeof(TypedJsonSerializer<>).MakeGenericType(serializingType);
+            return (IAbstractSerializer)p.GetRequiredService(implementationType);
+        });
     }
 
     /// <summary>
@@ -89,7 +63,7 @@ public static class SerializerBuilderExtensions
     /// </summary>
     /// <param name="services"/>
     /// <param name="name">The name of the options instance.</param>
-    private static IServiceCollection AddJsonSerializer(this IServiceCollection services, string name) => services
+    private static void AddJsonSerializer(this IServiceCollection services, string name) => services
         .AddTypeEncoder()
         .TryAddScoped(typeof(TypedJsonSerializer<>), typeof(TypedJsonSerializer<>))
         .TryAddScoped<IJsonSerializer, DefaultJsonSerializer>()
