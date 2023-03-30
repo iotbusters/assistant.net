@@ -90,6 +90,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logging", "src\Logging\Logg
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logging.Tests", "tests\Logging.Tests\Logging.Tests.csproj", "{CE75701A-E229-4B57-A41B-9DEE92F07A30}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serialization", "src\Serialization\Serialization.csproj", "{8C021DCC-CDDF-44A3-A054-3A41B33D8C14}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -448,6 +450,18 @@ Global
 		{CE75701A-E229-4B57-A41B-9DEE92F07A30}.Release|x64.Build.0 = Release|Any CPU
 		{CE75701A-E229-4B57-A41B-9DEE92F07A30}.Release|x86.ActiveCfg = Release|Any CPU
 		{CE75701A-E229-4B57-A41B-9DEE92F07A30}.Release|x86.Build.0 = Release|Any CPU
+		{8C021DCC-CDDF-44A3-A054-3A41B33D8C14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C021DCC-CDDF-44A3-A054-3A41B33D8C14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C021DCC-CDDF-44A3-A054-3A41B33D8C14}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8C021DCC-CDDF-44A3-A054-3A41B33D8C14}.Debug|x64.Build.0 = Debug|Any CPU
+		{8C021DCC-CDDF-44A3-A054-3A41B33D8C14}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8C021DCC-CDDF-44A3-A054-3A41B33D8C14}.Debug|x86.Build.0 = Debug|Any CPU
+		{8C021DCC-CDDF-44A3-A054-3A41B33D8C14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C021DCC-CDDF-44A3-A054-3A41B33D8C14}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C021DCC-CDDF-44A3-A054-3A41B33D8C14}.Release|x64.ActiveCfg = Release|Any CPU
+		{8C021DCC-CDDF-44A3-A054-3A41B33D8C14}.Release|x64.Build.0 = Release|Any CPU
+		{8C021DCC-CDDF-44A3-A054-3A41B33D8C14}.Release|x86.ActiveCfg = Release|Any CPU
+		{8C021DCC-CDDF-44A3-A054-3A41B33D8C14}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -483,6 +497,7 @@ Global
 		{4667B7A7-A042-4434-81DB-32FB198E3C1F} = {16267B81-E515-4C2E-8BE9-671F5E6DE6E6}
 		{1BE0A21C-CFA8-43AE-9D1D-851E81A719B8} = {16267B81-E515-4C2E-8BE9-671F5E6DE6E6}
 		{CE75701A-E229-4B57-A41B-9DEE92F07A30} = {B61F8903-EF78-4C57-9CCC-0758D49B4C48}
+		{8C021DCC-CDDF-44A3-A054-3A41B33D8C14} = {16267B81-E515-4C2E-8BE9-671F5E6DE6E6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {785A054B-D40C-486E-9A4F-1A7CA8F4FCD7}
