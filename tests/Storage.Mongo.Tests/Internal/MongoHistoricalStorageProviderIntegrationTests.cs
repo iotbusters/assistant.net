@@ -141,7 +141,8 @@ public class MongoHistoricalStorageProviderIntegrationTests
         var value = await Storage.TryGet(TestKey);
         var version1 = removeTask.Result.GetValueOrDefault()?.Audit.Version ?? 0;
         var version2 = value.GetValueOrDefault()?.Audit.Version ?? 0;
-        (version1 + version2).Should().Be(5);
+        version1.Should().BeLessOrEqualTo(4);
+        version2.Should().Be(5);
     }
 
     [Test]
