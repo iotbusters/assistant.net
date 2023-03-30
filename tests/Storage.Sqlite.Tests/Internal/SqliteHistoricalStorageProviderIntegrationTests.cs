@@ -184,7 +184,7 @@ public class SqliteHistoricalStorageProviderIntegrationTests
     [Test]
     public async Task TryRemove_doesNotLostVersions_AddOrUpdateConcurrently()
     {
-        var requestedValues = Enumerable.Range(1, 5).Select(i => TestValue(version: i)).ToArray();
+        var requestedValues = Enumerable.Range(1, 5).Select(TestValue).ToArray();
         await Storage.AddOrGet(TestKey, requestedValues[0]);
 
         var removeTask = Storage.TryRemove(TestKey);
