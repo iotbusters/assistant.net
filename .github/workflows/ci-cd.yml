@@ -23,10 +23,21 @@ jobs:
         id: change-detected
         run: |
           LATEST_RELEASE=$(git describe --abbrev=0 --tags)
+          COMMITS=$(git rev-list $LATEST_RELEASE..${{ github.event.after }})
+          COMMIT_SUBJECTS=()
+          for COMMIT in $COMMITS
+          do
+            COMMIT_MESSAGE=$(git show -s --format=%s -1 $COMMIT)
+            COMMIT_SUBJECTS+=$(echo "[${COMMIT:0:7}](https://github.com/iotbusters/assistant.net/commit/$COMMIT) $COMMIT_MESSAGE")
+          done
           CHANGES=$(git diff --name-only "$LATEST_RELEASE"..${{ github.event.after }})
+          echo "latest-release=$LATEST_RELEASE" >> $GITHUB_OUTPUT
+          echo "commit-subjects=$COMMIT_SUBJECTS" >> $GITHUB_OUTPUT
           echo "ci-changes=$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json|yml)$')" >> $GITHUB_OUTPUT
           echo "core=$(echo "$CHANGES" | grep -c src/Core/)" >> $GITHUB_OUTPUT
+          echo "serialization=$(echo "$CHANGES" | grep -c src/Serialization/)" >> $GITHUB_OUTPUT
           echo "serialization-json=$(echo "$CHANGES" | grep -c src/Serialization.Json/)" >> $GITHUB_OUTPUT
+          echo "serialization-proto=$(echo "$CHANGES" | grep -c src/Serialization.ProtoBuf/)" >> $GITHUB_OUTPUT
           echo "storage=$(echo "$CHANGES" | grep -c src/Storage/)" >> $GITHUB_OUTPUT
           echo "storage-mongo=$(echo "$CHANGES" | grep -c src/Storage.Mongo/)" >> $GITHUB_OUTPUT
           echo "storage-sqlite=$(echo "$CHANGES" | grep -c src/Storage.Sqlite/)" >> $GITHUB_OUTPUT
@@ -43,9 +54,13 @@ jobs:
           echo "generic-server=$(echo "$CHANGES" | grep -c src/Messaging.Generic.Server/)" >> $GITHUB_OUTPUT
           echo "total=$(echo "$CHANGES" | wc -l)" >> $GITHUB_OUTPUT
     outputs:
+      latest-release: ${{ steps.change-detected.outputs.latest-release }}
+      commit_subjects: ${{ steps.change-detected.outputs.commit-subjects }}
       ci-changes: ${{ steps.change-detected.outputs.ci-changes }}
       core: ${{ steps.change-detected.outputs.core }}
+      serialization: ${{ steps.change-detected.outputs.serialization }}
       serialization-json: ${{ steps.change-detected.outputs.serialization-json }}
+      serialization-proto: ${{ steps.change-detected.outputs.serialization-proto }}
       storage: ${{ steps.change-detected.outputs.storage }}
       storage-mongo: ${{ steps.change-detected.outputs.storage-mongo }}
       storage-sqlite: ${{ steps.change-detected.outputs.storage-sqlite }}
@@ -166,13 +181,15 @@ jobs:
           prerelease: true
           draft: true # published event isn't triggered automatically, so release is created as draft to publish manually.
           body: |
-            Changed files: ${{ needs.change-detect.outputs.total }} ([see changes](https://github.com/iotbusters/assistant.net/compare/${{ steps.release-fetched.outputs.latest-release }}..${{ github.event.after }}))
+            Changed files: ${{ needs.change-detect.outputs.total }} ([see changes](https://github.com/iotbusters/assistant.net/compare/${{ needs.change-detect.outputs.latest-release }}..${{ github.event.after }}))
             Packed projects: ${{ needs.build.outputs.total-package-prepared-count }}
             <details>
               <summary>Package changes</summary>
               <ul>
                 <li>Core: ${{ needs.change-detect.outputs.core }}</li>
+                <li>Serialization: ${{ needs.change-detect.outputs.serialization-json }}</li>
                 <li>Serialization.Json: ${{ needs.change-detect.outputs.serialization-json }}</li>
+                <li>Serialization.Proto: ${{ needs.change-detect.outputs.serialization-proto }}</li>
                 <li>Storage: ${{ needs.change-detect.outputs.storage }}</li>
                 <li>Storage.Mongo: ${{ needs.change-detect.outputs.storage-mongo }}</li>
                 <li>Storage.Sqlite: ${{ needs.change-detect.outputs.storage-sqlite }}</li>
@@ -192,7 +209,7 @@ jobs:
             <details>
               <summary>Commits</summary>
               <ul>
-                <li>${{ join(github.event.commits.*.message, '</li><li>') }}</li>
+                <li>${{ join(needs.change-detect.outputs.commit_subjects.*, '</li><li>') }}</li>
               </ul>
             </details>
         env:
