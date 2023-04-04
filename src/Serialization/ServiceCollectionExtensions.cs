@@ -26,7 +26,7 @@ public static class ServiceCollectionExtensions
         .AddTypeEncoder()
         .AddNamedOptionsContext()
         .TryAddScoped<ISerializerFactory, SerializerFactory>()
-        .TryAddScoped(typeof(ISerializer<>), typeof(DefaultSerializer<>));
+        .TryAddScoped(typeof(ISerializer<>), typeof(SerializerFactoryAdapter<>));
 
     /// <summary>
     ///     Adds default <see cref="ISerializer{TValue}"/> implementation configured for specific values.
@@ -65,7 +65,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configure">The action used to configure the builder.</param>
     public static IServiceCollection ConfigureSerializer(this IServiceCollection services, string name, Action<SerializerBuilder> configure)
     {
-        configure(new SerializerBuilder(services, name));
+        configure(new(services, name));
         return services;
     }
 

@@ -9,11 +9,11 @@ namespace Assistant.Net.Serialization.Internal;
 internal class UnknownSerializer<TValue> : ISerializer<TValue>
     where TValue : class
 {
-    /// <exception cref="SerializerTypeNotRegisteredException"/>
+    /// <exception cref="SerializingTypeNotRegisteredException"/>
     public Task Serialize(Stream stream, TValue value, CancellationToken token) =>
-        throw new SerializerTypeNotRegisteredException(typeof(TValue));
+        throw new SerializingTypeNotRegisteredException(typeof(TValue));
 
-    /// <exception cref="SerializerTypeNotRegisteredException"/>
+    /// <exception cref="SerializingTypeNotRegisteredException"/>
     public Task<TValue> Deserialize(Stream stream, CancellationToken token) =>
-        throw new SerializerTypeNotRegisteredException(typeof(TValue));
+        throw new SerializingTypeNotRegisteredException(typeof(TValue));
 }

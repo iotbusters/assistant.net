@@ -11,12 +11,17 @@ namespace Assistant.Net.Serialization.Options;
 public sealed class SerializerOptions
 {
     /// <summary>
-    ///     Specific type serializer factories.
+    ///     Specific type serializer registrations.
     /// </summary>
-    public Dictionary<Type, InstanceFactory<IAbstractSerializer>> Registrations { get; } = new();
+    public HashSet<Type> Registrations { get; } = new();
 
     /// <summary>
-    ///     Any other type (except explicitly registered in <see cref="Registrations"/>) serializer factory.
+    ///     Single format serializer instance used for serialization under the scope.
     /// </summary>
-    public InstanceFactory<IAbstractSerializer, Type>? AnyTypeRegistration { get; set; }
+    public InstanceFactory<IAbstractSerializer, Type>? SingleSerializer { get; internal set; }
+
+    /// <summary>
+    ///     Determine if any serializing type is allowed despite configured <see cref="Registrations"/>.
+    /// </summary>
+    public bool IsAnyTypeAllowed { get; internal set; }
 }

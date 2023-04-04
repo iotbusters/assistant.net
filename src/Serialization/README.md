@@ -1,45 +1,49 @@
 ﻿# assistant.net.serialization
 
 Generic serialization mechanism with flexible type/format configuration.
-The only implementation for JSON for now. Further it will be extended with other formats, e.g. protobuf.
+See specific format implementation packages like [assistant.net.serialization.*](https://www.nuget.org/packages?q=assistant.net.serialization.).
 
-## Typed serializer
+## Configuration
+
+Serialization can be configured by calling one of methods:
 
 ```csharp
-using var provider = new ServiceCollection()
-    .AddSerializer(b => b
-        .AddJsonType<SomeModel>()
-        .AddJsonTypeAny())
-    .BuildServiceProvider();
+var services = new ServiceCollection()
+    .AddSerializer(b => ...)
+    .ConfigureSerializer(b => ...);
+```
 
+which can select a format to serialize with
+
+```csharp
+services.ConfigureSerializer(b => b.UseJson()); // or other.
+
+```
+and types allowed for serialization
+
+```csharp
+
+services.ConfigureSerializer(b => b
+    .AddType<SomeModel>() // by registering specific types
+    .AllowAnyType()); // or allowing any type
+
+```
+
+## Serializer resolving
+
+Once seralization was properly configured a typed serializer can be resolved directly
+
+```csharp
 var serializer1 = provider.GetRequiredService<ISerializer<SomeModel>>();
 var serializer2 = provider.GetRequiredService<ISerializer<AnotherModel>>();
 ```
 
-## Serializer factory
+or via serialization factory
 
 ```csharp
-using var provider = new ServiceCollection()
-    .AddSerializer(b => b
-        .AddJsonType<SomeModel>()
-        .AddJsonTypeAny())
-    .BuildServiceProvider();
-
 var factory = provider.GetRequiredService<ISerializerFactory>();
-var objectSerializer1 = factory.Create(typeof(SomeModel));
-var objectSerializer1 = factory.Create(typeof(AnotherModel));
+var serializer1 = factory.Create(typeof(SomeModel));
+var serializer2 = factory.Create<AnotherModel>();
 ```
 
-## Configuration
-
-```csharp
-using var provider = new ServiceCollection()
-    .AddSerializer(delegate { })
-    .ConfigureSerializer(delegate { })
-    .ConfigureJsonOptions(delegate { })
-    .BuildServiceProvider();
-
-var factory = provider.GetRequiredService<ISerializerFactory>();
-var objectSerializer1 = factory.Create(typeof(SomeModel));
-var objectSerializer1 = factory.Create(typeof(AnotherModel));
-```
+Pay attention, if serialization of a type wasn't configured, serializer resolving will throw an exception.

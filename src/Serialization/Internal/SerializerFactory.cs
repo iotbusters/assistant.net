@@ -22,19 +22,20 @@ public sealed class SerializerFactory : ISerializerFactory
     }
 
     /// <inheritdoc/>
-    /// <exception cref="SerializerTypeNotRegisteredException"/>
+    /// <exception cref="SerializerNotRegisteredException"/>
+    /// <exception cref="SerializingTypeNotRegisteredException"/>
     public IAbstractSerializer Create(Type serializingType)
     {
-        if (options.Registrations.TryGetValue(serializingType, out var factory))
-            return factory.Create(provider);
+        if (options.SingleSerializer == null)
+            throw new SerializerNotRegisteredException();
 
-        if (options.AnyTypeRegistration != null)
-            return options.AnyTypeRegistration.Create(provider, serializingType);
+        if(options.IsAnyTypeAllowed || options.Registrations.Contains(serializingType))
+            return options.SingleSerializer.Create(provider, serializingType);
 
-        throw new SerializerTypeNotRegisteredException(serializingType);
+        throw new SerializingTypeNotRegisteredException(serializingType);
     }
 
     /// <inheritdoc/>
-    /// <exception cref="SerializerTypeNotRegisteredException"/>
+    /// <exception cref="SerializingTypeNotRegisteredException"/>
     public ISerializer<T> Create<T>() => (ISerializer<T>)Create(typeof(T));
 }
