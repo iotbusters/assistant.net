@@ -5,7 +5,7 @@ based on `System.Text.Json`.
 
 ## Configuration
 
-JSON configuratino sample
+JSON configuration sample
 
 ```csharp
 services.AddSerializer(b => b
