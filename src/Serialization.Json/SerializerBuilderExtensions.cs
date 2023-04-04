@@ -15,33 +15,21 @@ namespace Assistant.Net.Serialization;
 public static class SerializerBuilderExtensions
 {
     /// <summary>
-    ///     Configures JSON serialization of <typeparamref name="TValue"/> type.
+    ///     Configures single JSON serializer.
     /// </summary>
-    /// <typeparam name="TValue">Serializing value type.</typeparam>
-    public static SerializerBuilder AddJsonType<TValue>(this SerializerBuilder builder) => builder
-        .AddJsonType(typeof(TValue));
+    public static SerializerBuilder UseJson(this SerializerBuilder builder) => builder
+        .UseJson(delegate{});
 
     /// <summary>
-    ///     Configures JSON serialization of <paramref name="serializingType"/>.
+    ///     Configures single JSON serializer.
     /// </summary>
-    /// <exception cref="ArgumentException"/>
-    public static SerializerBuilder AddJsonType(this SerializerBuilder builder, Type serializingType)
+    public static SerializerBuilder UseJson(this SerializerBuilder builder, Action<JsonSerializerOptions> configureOptions)
     {
-        builder.Services.AddJsonSerializer(builder.Name);
-        var implementationType = typeof(TypedJsonSerializer<>).MakeGenericType(serializingType);
-        return builder.AddType(serializingType, implementationType);
-    }
-
-    /// <summary>
-    ///     Configures JSON serialization of all types which weren't configured explicitly.
-    /// </summary>
-    public static SerializerBuilder AddJsonTypeAny(this SerializerBuilder builder)
-    {
-        builder.Services.AddJsonSerializer(builder.Name);
-        return builder.AddTypeAny((p, serializingType) =>
+        builder.Services.ConfigureJsonSerializer(builder.Name, configureOptions);
+        return builder.UseFormat((provider, serializingType) =>
         {
-            var implementationType = typeof(TypedJsonSerializer<>).MakeGenericType(serializingType);
-            return (IAbstractSerializer)p.GetRequiredService(implementationType);
+            var implementationType = typeof(DefaultJsonSerializer<>).MakeGenericType(serializingType);
+            return (IAbstractSerializer)provider.Create(implementationType);
         });
     }
 
@@ -59,14 +47,13 @@ public static class SerializerBuilderExtensions
     }
 
     /// <summary>
-    ///     Registers named <see cref="IJsonSerializer"/>, default configuration and its dependencies.
+    ///     Registers named default JSON configuration and dependencies.
     /// </summary>
     /// <param name="services"/>
     /// <param name="name">The name of the options instance.</param>
-    private static void AddJsonSerializer(this IServiceCollection services, string name) => services
+    /// <param name="configureOptions">The action to configure options.</param>
+    private static void ConfigureJsonSerializer(this IServiceCollection services, string name, Action<JsonSerializerOptions> configureOptions) => services
         .AddTypeEncoder()
-        .TryAddScoped(typeof(TypedJsonSerializer<>), typeof(TypedJsonSerializer<>))
-        .TryAddScoped<IJsonSerializer, DefaultJsonSerializer>()
         .TryAddScoped<AdvancedJsonConverterFactory>()
         .TryAddSingleton(typeof(ExceptionJsonConverter<>), typeof(ExceptionJsonConverter<>))
         .TryAddSingleton(typeof(EnumerableJsonConverter<>), typeof(EnumerableJsonConverter<>))
@@ -79,5 +66,6 @@ public static class SerializerBuilderExtensions
             options.Converters.TryAdd(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, false));
         })
         .Configure<JsonSerializerOptions, AdvancedJsonConverterFactory>(name, (options, converter) =>
-            options.Converters.TryAdd(converter));
+            options.Converters.TryAdd(converter))
+        .Configure(name, configureOptions);
 }
