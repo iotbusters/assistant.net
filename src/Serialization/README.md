@@ -16,7 +16,7 @@ var services = new ServiceCollection()
 which can select a format to serialize with
 
 ```csharp
-services.ConfigureSerializer(b => b.UseJson()); // or other.
+services.ConfigureSerializer(b => b.UseFormat()); // e.g. Json or others
 
 ```
 and types allowed for serialization

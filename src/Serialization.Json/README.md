@@ -1,45 +1,20 @@
 ﻿# assistant.net.serialization.json
 
-Generic serialization mechanism with flexible type/format configuration.
-The only implementation for JSON for now. Further it will be extended with other formats, e.g. protobuf.
-
-## Typed serializer
-
-```csharp
-using var provider = new ServiceCollection()
-    .AddSerializer(b => b
-        .AddJsonType<SomeModel>()
-        .AddJsonTypeAny())
-    .BuildServiceProvider();
-
-var serializer1 = provider.GetRequiredService<ISerializer<SomeModel>>();
-var serializer2 = provider.GetRequiredService<ISerializer<AnotherModel>>();
-```
-
-## Serializer factory
-
-```csharp
-using var provider = new ServiceCollection()
-    .AddSerializer(b => b
-        .AddJsonType<SomeModel>()
-        .AddJsonTypeAny())
-    .BuildServiceProvider();
-
-var factory = provider.GetRequiredService<ISerializerFactory>();
-var objectSerializer1 = factory.Create(typeof(SomeModel));
-var objectSerializer1 = factory.Create(typeof(AnotherModel));
-```
+JSON format serializer implementation of [assistant.net.serialization](https://github.com/iotbusters/assistant.net/tree/master/src/Serialization)
+based on `System.Text.Json`.
 
 ## Configuration
 
-```csharp
-using var provider = new ServiceCollection()
-    .AddSerializer(delegate { })
-    .ConfigureSerializer(delegate { })
-    .ConfigureJsonOptions(delegate { })
-    .BuildServiceProvider();
+JSON configuratino sample
 
-var factory = provider.GetRequiredService<ISerializerFactory>();
-var objectSerializer1 = factory.Create(typeof(SomeModel));
-var objectSerializer1 = factory.Create(typeof(AnotherModel));
+```csharp
+services.AddSerializer(b => b
+    .UseJson() // required
+    .AddJsonConverter<CustomJsonConverter>()); // optional
+```
+
+`System.Text.Json` backed serializer can be configured separately
+
+```csharp
+services.ConfigureJsonSerializerOptions(o => o.Converters.TryAdd(new CustomJsonConverter()));
 ```
