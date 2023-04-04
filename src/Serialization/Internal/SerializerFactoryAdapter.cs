@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Serialization.Internal;
 
 /// <summary>
-///     Default typed serializer implementation.
+///     Serializer factory adapter default implementation.
 /// </summary>
-public sealed class DefaultSerializer<T> : ISerializer<T>
+internal sealed class SerializerFactoryAdapter<T> : ISerializer<T>
 {
     private readonly ISerializer<T> serializer;
 
     /// <summary/>
-    public DefaultSerializer(ISerializerFactory factory) =>
+    public SerializerFactoryAdapter(ISerializerFactory factory) =>
         this.serializer = factory.Create<T>();
 
     /// <inheritdoc/>

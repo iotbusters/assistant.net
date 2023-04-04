@@ -20,8 +20,8 @@ public interface ISerializer<TValue> : IAbstractSerializer
     /// </summary>
     Task<TValue> Deserialize(Stream stream, CancellationToken token = default);
 
-    Task IAbstractSerializer.SerializeObject(Stream stream, object value, CancellationToken token) => 
-        Serialize(stream, (TValue) value, token);
+    Task IAbstractSerializer.SerializeObject(Stream stream, object value, CancellationToken token) =>
+        Serialize(stream, (TValue)value, token);
 
     async Task<object> IAbstractSerializer.DeserializeObject(Stream stream, CancellationToken token) =>
         (await Deserialize(stream, token))!;
