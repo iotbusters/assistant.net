@@ -52,7 +52,7 @@ public class AdvancedJsonConverterTests
 
     private static IEnumerable<TestCaseData> SupportedObjects()
     {
-        yield return new TestCaseData(
+        yield return new(
                 new TestObjectWithCtorInitialization(
                     TestEnum.A,
                     "test",
@@ -65,7 +65,7 @@ public class AdvancedJsonConverterTests
                     new[] {new TestClass(DateTime.Now)}))
             {TestName = "DeserializeObject(Initialize+Ctor)"};
 
-        yield return new TestCaseData(
+        yield return new(
                 new TestObjectWithCtorInitialization(
                     null,
                     null,
@@ -78,7 +78,7 @@ public class AdvancedJsonConverterTests
                     new[] {new TestClass(DateTime.Now)}))
             {TestName = "DeserializeObject(Initialize+Ctor+Nullable)"};
 
-        yield return new TestCaseData(
+        yield return new(
                 new TestObjectWithCtorInitialization(
                     TestEnum.A,
                     "test",
@@ -91,7 +91,7 @@ public class AdvancedJsonConverterTests
                     new[] {null, new TestClass(DateTime.Now)}))
             {TestName = "DeserializeObject(Initialize+Ctor+NullableArrays)"};
 
-        yield return new TestCaseData(
+        yield return new(
                 new TestObjectWithPropertyInitialization
                 {
                     Enum = TestEnum.A,
@@ -105,7 +105,7 @@ public class AdvancedJsonConverterTests
                 })
             {TestName = "DeserializeObject(Initialize+Setters)"};
 
-        yield return new TestCaseData(
+        yield return new(
                 new TestObjectWithPropertyInitialization
                 {
                     StringArray = new[] {"test"}.AsEnumerable(),
@@ -113,7 +113,7 @@ public class AdvancedJsonConverterTests
                 })
             {TestName = "DeserializeObject(Initialize+Setters+Nullable)"};
 
-        yield return new TestCaseData(
+        yield return new(
                 new TestObjectWithPropertyInitialization
                 {
                     Enum = TestEnum.A,
@@ -128,29 +128,29 @@ public class AdvancedJsonConverterTests
                 })
             {TestName = "DeserializeObject(Initialize+Setters+NullableArrays)"};
 
-        yield return new TestCaseData(
+        yield return new(
                 new TestObjectWithMixedInitialization(TestEnum.A)
                 {
                     String = "test"
                 })
             {TestName = "DeserializeObject(Initialize)"};
 
-        yield return new TestCaseData(
+        yield return new(
                 new TestObjectWithMixedInitialization(null)
                 {
                     String = "test"
                 })
             {TestName = "DeserializeObject(Initialize+DefaultValue)"};
 
-        yield return new TestCaseData(
+        yield return new(
                 new TestObjectWithTypeCastingInitialization(TestEnum.A, 11, 12, new[] {"test"}))
             {TestName = "DeserializeObject(Initialize+TypeCasting)"};
 
-        yield return new TestCaseData(
+        yield return new(
                 new TestObjectWithTypeCastingInitialization(TestEnum.A, null, 12, new[] {"test"}))
             {TestName = "DeserializeObject(Initialize+TypeCasting+DefaultValue)"};
 
-        yield return new TestCaseData(
+        yield return new(
                 TestObjectWithPrivateCtor.New(TestEnum.A, "A", 12, 12f, 12m, DateTime.UtcNow))
             {TestName = "DeserializeObject(Initialize+PrivateCtor)"};
     }

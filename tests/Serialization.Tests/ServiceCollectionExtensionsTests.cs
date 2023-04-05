@@ -2,19 +2,20 @@ using Assistant.Net.Abstractions;
 using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Exceptions;
 using Assistant.Net.Serialization.Options;
+using Assistant.Net.Serialization.Tests.Mocks;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using NUnit.Framework;
 
-namespace Assistant.Net.Serialization.Json.Tests;
+namespace Assistant.Net.Serialization.Tests;
 
 public class ServiceCollectionExtensionsTests
 {
     [Test]
     public void GetServiceOfTypeEncoder_resolvesObject()
     {
-        var provider = new ServiceCollection()
+        using var provider = new ServiceCollection()
             .AddSerializer(_ => {})
             .BuildServiceProvider();
 
@@ -25,7 +26,7 @@ public class ServiceCollectionExtensionsTests
     [Test]
     public void GetServiceOfSerializerFactory_resolvesObject()
     {
-        var provider = new ServiceCollection()
+        using var provider = new ServiceCollection()
             .AddSerializer(_ => {})
             .BuildServiceProvider();
 
@@ -34,46 +35,58 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Test]
-    public void GetServiceOfSerializer_resolvesObject_configuredWithAddJsonType()
+    public void GetServiceOfSerializer_resolvesObject_configuredWithAddType()
     {
-        var provider = new ServiceCollection()
-            .AddSerializer(b => b.AddJsonType<object>())
+        using var provider = new ServiceCollection()
+            .AddSerializer(b => b.UseFormat((_, _) => new TestSerializer<TestClass>()).AddType<TestClass>())
             .BuildServiceProvider();
 
-        provider.GetService<ISerializer<object>>()
+        provider.GetService<ISerializer<TestClass>>()
             .Should().NotBeNull();
     }
 
     [Test]
-    public void GetServiceOfSerializer_resolvesObject_configuredWithAddJsonTypeAny()
+    public void GetServiceOfSerializer_resolvesObject_configuredWithAddTypeAny()
     {
-        var provider = new ServiceCollection()
-            .AddSerializer(b => b.AddJsonTypeAny())
+        using var provider = new ServiceCollection()
+            .AddSerializer(b => b.UseFormat((_, _) => new TestSerializer<TestClass>()).AllowAnyType())
             .BuildServiceProvider();
 
-        provider.GetService<ISerializer<object>>()
+        provider.GetService<ISerializer<TestClass>>()
             .Should().NotBeNull();
     }
 
     [Test]
     public void GetServiceOfSerializer_throwsException_notConfigured()
     {
-        var provider = new ServiceCollection()
-            .AddSerializer(delegate { })
+        using var provider = new ServiceCollection()
+            .AddSerializer(b => b.UseFormat((_, _) => new TestSerializer<TestClass>()).AddType<TestClass>())
             .BuildServiceProvider();
 
         provider.Invoking(x => x.GetService<ISerializer<object>>())
-            .Should().Throw<SerializerTypeNotRegisteredException>();
+            .Should().Throw<SerializingTypeNotRegisteredException>();
     }
 
     [Test]
     public void GetServiceOfSerializerOptions_resolvesObject()
     {
-        var provider = new ServiceCollection()
+        using var provider = new ServiceCollection()
             .AddSerializer(delegate { })
             .BuildServiceProvider();
 
         provider.GetService<IOptions<SerializerOptions>>()
             .Should().NotBeNull();
+    }
+
+    [Test]
+    public void GetServiceOfSerializer_throwsException_formatNotConfigured()
+    {
+        using var provider = new ServiceCollection()
+            .AddSerializer(b => b.AddType<TestClass>())
+            .BuildServiceProvider();
+
+        provider
+            .Invoking(p => p.GetRequiredService<ISerializer<TestClass>>())
+            .Should().Throw<SerializerNotRegisteredException>();
     }
 }

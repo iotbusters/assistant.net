@@ -7,21 +7,20 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Serialization.Json.Tests.Internal;
+namespace Assistant.Net.Serialization.Proto.Tests.Internal;
 
-public class DefaultJsonSerializerTests
+public class DefaultProtoSerializerTests
 {
     [Test]
     public async Task SerializeAndDeserialize()
     {
         await using var provider = new ServiceCollection()
-            .AddSerializer(b => b.UseJson().AddType<TestClass>())
+            .AddSerializer(b => b.UseProto().AddType<TestClass>())
             .BuildServiceProvider();
         var serializer = provider.GetRequiredService<ISerializer<TestClass>>();
 
         var stream = new MemoryStream();
         var value = new TestClass(DateTime.UtcNow);
-
         await serializer.Serialize(stream, value);
         stream.Position = 0;
         var result = await serializer.Deserialize(stream);
