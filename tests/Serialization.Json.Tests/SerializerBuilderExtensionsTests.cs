@@ -1,5 +1,6 @@
-﻿using Assistant.Net.Serialization.Abstractions;
+﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Serialization.Configuration;
+using Assistant.Net.Serialization.Converters;
 using Assistant.Net.Serialization.Options;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,52 +14,30 @@ namespace Assistant.Net.Serialization.Json.Tests;
 public class SerializerBuilderExtensionsTests
 {
     [Test]
-    public void AddJsonTypeAny_registersSerializers()
+    public void UseJson_registersFormatAndConfiguresOptions()
     {
         var services = new ServiceCollection();
         var builder = new SerializerBuilder(services, "");
 
-        builder.AddJsonTypeAny();
+        builder.UseJson();
 
+        services.Should().ContainEquivalentOf(new { ServiceType = typeof(ITypeEncoder) });
         services.Should().ContainEquivalentOf(
-            new {ServiceType = typeof(IJsonSerializer), ImplementationType = new {Name = "DefaultJsonSerializer"}});
-        var options = services.BuildServiceProvider().GetService<IOptionsSnapshot<SerializerOptions>>()?.Get("");
-        options?.Registrations.Should().BeEmpty();
-        options?.AnyTypeRegistration.Should().NotBeNull();
+            new {ServiceType = typeof(AdvancedJsonConverterFactory), ImplementationType = typeof(AdvancedJsonConverterFactory) });
+        services.Should().ContainEquivalentOf(
+            new {ServiceType = typeof(ExceptionJsonConverter<>), ImplementationType = typeof(ExceptionJsonConverter<>) });
+        services.Should().ContainEquivalentOf(
+            new {ServiceType = typeof(EnumerableJsonConverter<>), ImplementationType = typeof(EnumerableJsonConverter<>)});
+        services.Should().ContainEquivalentOf(
+            new {ServiceType = typeof(AdvancedJsonConverter<>), ImplementationType = typeof(AdvancedJsonConverter<>) });
+        services.BuildServiceProvider().GetService<IOptionsSnapshot<JsonSerializerOptions>>()?.Get("").Converters
+            .Should().Contain(x => x is AdvancedJsonConverterFactory);
+        services.BuildServiceProvider().GetService<INamedOptions<SerializerOptions>>()?.Value.Format
+            .Should().NotBeNull();
     }
 
     [Test]
-    public void AddJsonType_registersSerializers()
-    {
-        var services = new ServiceCollection();
-        var builder = new SerializerBuilder(services, "");
-
-        builder.AddJsonType(typeof(object));
-
-        services.Should().ContainEquivalentOf(
-            new {ServiceType = typeof(IJsonSerializer), ImplementationType = new {Name = "DefaultJsonSerializer"}});
-        var options = services.BuildServiceProvider().GetService<IOptionsSnapshot<SerializerOptions>>()?.Get("");
-        options?.Registrations.Keys.Should().BeEquivalentTo(new[] {typeof(object)});
-        options?.AnyTypeRegistration.Should().BeNull();
-    }
-
-    [Test]
-    public void AddJsonTypeOfType_registersSerializersAndSerializerOptions()
-    {
-        var services = new ServiceCollection();
-        var builder = new SerializerBuilder(services, "");
-
-        builder.AddJsonType<object>();
-
-        services.Should().ContainEquivalentOf(
-            new {ServiceType = typeof(IJsonSerializer), ImplementationType = new {Name = "DefaultJsonSerializer"}});
-        var options = services.BuildServiceProvider().GetService<IOptionsSnapshot<SerializerOptions>>()?.Get("");
-        options?.Registrations.Keys.Should().BeEquivalentTo(new[] {typeof(object)});
-        options?.AnyTypeRegistration.Should().BeNull();
-    }
-        
-    [Test]
-    public void AddJsonConverter_registersJsonSerializerOptionsAndJsonSerializerOptions()
+    public void AddJsonConverter_registersJsonConverterAndConfiguresSerializerOptions()
     {
         var services = new ServiceCollection();
         var builder = new SerializerBuilder(services, "");
@@ -68,29 +47,11 @@ public class SerializerBuilderExtensionsTests
         services.Should().ContainEquivalentOf(
             new {ServiceType = typeof(JsonStringEnumConverter), ImplementationType = typeof(JsonStringEnumConverter)});
         services.BuildServiceProvider().GetService<IOptionsSnapshot<JsonSerializerOptions>>()?.Get("")
-            .Should().BeEquivalentTo(new JsonSerializerOptions
-            {
-                Converters = { new JsonStringEnumConverter() }
-            });
+            .Should().BeEquivalentTo(new JsonSerializerOptions {Converters = {new JsonStringEnumConverter()}});
     }
 
     [Test]
-    public void AddJsonTypeOfType_registersSerializersAndEmptySerializerOptions_anotherOptionsName()
-    {
-        var services = new ServiceCollection();
-        var builder = new SerializerBuilder(services, "");
-
-        builder.AddJsonType<object>();
-
-        services.Should().ContainEquivalentOf(
-            new {ServiceType = typeof(IJsonSerializer), ImplementationType = new {Name = "DefaultJsonSerializer"}});
-        services.BuildServiceProvider()
-            .GetService<IOptionsSnapshot<SerializerOptions>>()?.Get("another")
-            .Should().BeEquivalentTo(new SerializerOptions());
-    }
-        
-    [Test]
-    public void AddJsonConverter_registersJsonSerializerOptionsAndEmptyJsonSerializerOptions_anotherOptionsName()
+    public void AddJsonConverter_registersJsonConverterButDoesNotConfigureAnotherJsonSerializerOptions()
     {
         var services = new ServiceCollection();
         var builder = new SerializerBuilder(services, "");
