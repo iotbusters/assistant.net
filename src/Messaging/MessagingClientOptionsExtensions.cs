@@ -284,7 +284,7 @@ public static class MessagingClientOptionsExtensions
         {
             var factory = new InstanceCachingFactory<IAbstractRequestInterceptor>(p =>
                 CreateAbstractRequestInterceptor(p, messageType, p.Create(interceptorType)));
-            list.Add(new InterceptorDefinition<IAbstractRequestInterceptor>(messageType, interceptorType, factory));
+            list.Add(new(messageType, interceptorType, factory));
         }
     }
 
@@ -295,7 +295,7 @@ public static class MessagingClientOptionsExtensions
         {
             var factory = new InstanceCachingFactory<IAbstractPublishInterceptor>(p =>
                 CreateAbstractPublishInterceptor(p, messageType, p.Create(interceptorType)));
-            list.Add(new InterceptorDefinition<IAbstractPublishInterceptor>(messageType, interceptorType, factory));
+            list.Add(new(messageType, interceptorType, factory));
         }
     }
 
@@ -307,7 +307,7 @@ public static class MessagingClientOptionsExtensions
         {
             var factory = new InstanceCachingFactory<IAbstractRequestInterceptor>(p =>
                 CreateAbstractRequestInterceptor(p, messageType, interceptorInstance));
-            list.Add(new InterceptorDefinition<IAbstractRequestInterceptor>(messageType, interceptorType, factory));
+            list.Add(new(messageType, interceptorType, factory));
         }
     }
 
@@ -319,7 +319,7 @@ public static class MessagingClientOptionsExtensions
         {
             var factory = new InstanceCachingFactory<IAbstractPublishInterceptor>(p =>
                 CreateAbstractPublishInterceptor(p, messageType, interceptorInstance));
-            list.Add(new InterceptorDefinition<IAbstractPublishInterceptor>(messageType, interceptorType, factory));
+            list.Add(new(messageType, interceptorType, factory));
         }
     }
 
@@ -407,7 +407,7 @@ public static class MessagingClientOptionsExtensions
         list.RemoveAt(index);
 
         var factory = new InstanceCachingFactory<T>(p => (T)p.Create(interceptorType));
-        list.Add(new InterceptorDefinition<T>(definition.MessageType, interceptorType, factory));
+        list.Add(new(definition.MessageType, interceptorType, factory));
     }
 
     private static void ReplaceDefinition<T>(this IList<InterceptorDefinition<T>> list, InterceptorDefinition<T> definition, object replacementInstance)
@@ -418,6 +418,6 @@ public static class MessagingClientOptionsExtensions
         list.RemoveAt(index);
 
         var factory = new InstanceCachingFactory<T>(_ => (T)replacementInstance);
-        list.Add(new InterceptorDefinition<T>(definition.MessageType, interceptorType, factory));
+        list.Add(new(definition.MessageType, interceptorType, factory));
     }
 }

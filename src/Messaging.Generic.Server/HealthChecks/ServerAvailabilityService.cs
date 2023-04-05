@@ -93,7 +93,7 @@ public sealed class ServerAvailabilityService : IDisposable
             {
                 await remoteHostRegistrationStorage.AddOrUpdate(
                     key: messageName,
-                    addFactory: _ => new RemoteHandlerModel(),
+                    addFactory: _ => new(),
                     updateFactory: (_, current) => current.RemoveInstance(instanceName).Skip(expiredBefore: now),
                     token);
                 logger.LogWarning("Message({MessageName}) acceptance at {Instance}: unregistered.", messageName, instanceName);
@@ -125,7 +125,7 @@ public sealed class ServerAvailabilityService : IDisposable
             {
                 await remoteHostRegistrationStorage.AddOrUpdate(
                     key: messageName,
-                    addFactory: _ => new RemoteHandlerModel(),
+                    addFactory: _ => new(),
                     updateFactory: (_, current) => current.RemoveInstance(instanceName).Skip(expiredBefore: now),
                     token);
                 logger.LogWarning("Message({MessageName}) acceptance at {Instance}: unregister.", messageName, instanceName);

@@ -35,7 +35,7 @@ public class RemoteHandlerModel
     /// <param name="expired">The time when current record can be abandoned.</param>
     public RemoteHandlerModel AddInstance(string instance, DateTimeOffset expired)
     {
-        registeredInstances[instance] = new RemoteHandlerRegistration(instance, expired);
+        registeredInstances[instance] = new(instance, expired);
         return this;
     }
 

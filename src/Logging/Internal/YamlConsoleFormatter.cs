@@ -99,7 +99,7 @@ internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
 
         var items = array
             .Select(x => x.Key == OriginalFormatName
-                ? new KeyValuePair<string, object>("MessageTemplate", x.Value)
+                ? new("MessageTemplate", x.Value)
                 : x)
             .Select(x =>
             {
@@ -116,8 +116,8 @@ internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
 
         var globalStates = formatterOptions.States.Select(x => x.Value switch
         {
-            Func<object> stateFactory => new KeyValuePair<string, object>(x.Key, stateFactory()),
-            Func<IServiceProvider, object> stateFactory => new KeyValuePair<string, object>(x.Key, stateFactory(serviceProvider)),
+            Func<object> stateFactory => new(x.Key, stateFactory()),
+            Func<IServiceProvider, object> stateFactory => new(x.Key, stateFactory(serviceProvider)),
             _ => x
         });
         var scopes = new List<object?> {globalStates};
@@ -130,8 +130,8 @@ internal sealed class YamlConsoleFormatter : ConsoleFormatter, IDisposable
 
             var pairs = e.Select(y => y.Value switch
             {
-                Func<object> stateFactory => new KeyValuePair<string, object>(y.Key, stateFactory()),
-                Func<IServiceProvider, object> stateFactory => new KeyValuePair<string, object>(y.Key, stateFactory(serviceProvider)),
+                Func<object> stateFactory => new(y.Key, stateFactory()),
+                Func<IServiceProvider, object> stateFactory => new(y.Key, stateFactory(serviceProvider)),
                 _ => y
             });
             return StateObject(pairs);

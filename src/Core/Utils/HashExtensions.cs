@@ -102,7 +102,7 @@ public static class HashExtensions
                 return;
             case ISerializable x:
                 var info = new SerializationInfo(x.GetType(), new FormatterConverter());
-                x.GetObjectData(info, new StreamingContext(StreamingContextStates.Clone));
+                x.GetObjectData(info, new(StreamingContextStates.Clone));
                 foreach (var entry in info) stream.Write(entry.Value);
                 return;
             case IEnumerable<byte> x:
