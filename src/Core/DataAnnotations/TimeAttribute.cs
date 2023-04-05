@@ -64,13 +64,13 @@ public class TimeAttribute : ValidationAttribute
         var memberNames = new[] {validationContext.MemberName!};
 
         if (invalidArgumentMessages.Any())
-            return new ValidationResult(string.Join(Environment.NewLine, invalidArgumentMessages), memberNames);
+            return new(string.Join(Environment.NewLine, invalidArgumentMessages), memberNames);
 
         if (value == null)
             return ValidationResult.Success;
 
         if (value is not TimeSpan time)
-            return new ValidationResult("The value isn't a TimeSpan.", memberNames);
+            return new("The value isn't a TimeSpan.", memberNames);
 
         if (AllowInfinite && time == Timeout.InfiniteTimeSpan)
             return ValidationResult.Success;
@@ -85,7 +85,7 @@ public class TimeAttribute : ValidationAttribute
             if (isGreaterThan)
                 messages.Add($"greater than {maxValue}");
             var message = $"The value {time} is " + string.Join(" and ", messages) + ".";
-            return new ValidationResult(message, memberNames);
+            return new(message, memberNames);
         }
 
         return ValidationResult.Success;

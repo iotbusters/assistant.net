@@ -67,7 +67,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configure">The action used to configure the named option instances.</param>
     public static IServiceCollection ConfigureMessagingClient(this IServiceCollection services, string name, Action<MessagingClientBuilder> configure)
     {
-        configure(new MessagingClientBuilder(services, name));
+        configure(new(services, name));
         return services;
     }
 
@@ -106,5 +106,5 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection ConfigureJsonSerialization(this IServiceCollection services, string name) => services
         .AddSerializer(name, b => b
             .AddJsonConverter<MessageExceptionJsonConverter>()
-            .AddJsonTypeAny());
+            .AllowAnyType());
 }

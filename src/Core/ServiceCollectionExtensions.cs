@@ -100,7 +100,7 @@ public static class ServiceCollectionExtensions
         }
 
         services.AddOptions();
-        return new Options.OptionsBuilder<TOptions>(services, Microsoft.Extensions.Options.Options.DefaultName);
+        return new(services, Microsoft.Extensions.Options.Options.DefaultName);
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public static class ServiceCollectionExtensions
             .AddOptions()
             .TryAddScoped(typeof(IOptionsSnapshotCache<>), typeof(OptionsSnapshotCache<>))
             .ReplaceScoped(typeof(IOptionsSnapshot<>), typeof(Options.OptionsManager<>));
-        return new Options.OptionsBuilder<TOptions>(services, name);
+        return new(services, name);
     }
 
     /// <summary>
@@ -736,9 +736,9 @@ public static class ServiceCollectionExtensions
         var updatedDescriptor = existingDescriptor switch
         {
             {ImplementationType: var it, ImplementationFactory: null, ImplementationInstance: null} =>
-                new ServiceDescriptor(existingDescriptor.ServiceType, DecoratingFactory(it!, configureProxy), existingDescriptor.Lifetime),
+                new(existingDescriptor.ServiceType, DecoratingFactory(it!, configureProxy), existingDescriptor.Lifetime),
             { ImplementationType: null, ImplementationFactory: var f, ImplementationInstance: null} =>
-                new ServiceDescriptor(existingDescriptor.ServiceType, DecoratingFactory(f, configureProxy), existingDescriptor.Lifetime),
+                new(existingDescriptor.ServiceType, DecoratingFactory(f, configureProxy), existingDescriptor.Lifetime),
             {ImplementationType: null, ImplementationFactory: null, ImplementationInstance: var ii} =>
                 new ServiceDescriptor(existingDescriptor.ServiceType, DecoratingFactory(ii!, configureProxy), existingDescriptor.Lifetime),
             _ => throw new NotSupportedException("Unexpected service descriptor.")
@@ -766,9 +766,9 @@ public static class ServiceCollectionExtensions
         var updatedDescriptor = existingDescriptor switch
         {
             {ImplementationType: var it, ImplementationFactory: null, ImplementationInstance: null} =>
-                new ServiceDescriptor(existingDescriptor.ServiceType, DecoratingFactory(it!, configureProxy), existingDescriptor.Lifetime),
+                new(existingDescriptor.ServiceType, DecoratingFactory(it!, configureProxy), existingDescriptor.Lifetime),
             { ImplementationType: null, ImplementationFactory: var f, ImplementationInstance: null} =>
-                new ServiceDescriptor(existingDescriptor.ServiceType, DecoratingFactory(f, configureProxy), existingDescriptor.Lifetime),
+                new(existingDescriptor.ServiceType, DecoratingFactory(f, configureProxy), existingDescriptor.Lifetime),
             {ImplementationType: null, ImplementationFactory: null, ImplementationInstance: var ii} =>
                 new ServiceDescriptor(existingDescriptor.ServiceType, DecoratingFactory(ii!, configureProxy), existingDescriptor.Lifetime),
             _ => throw new NotSupportedException("Unexpected service descriptor.")

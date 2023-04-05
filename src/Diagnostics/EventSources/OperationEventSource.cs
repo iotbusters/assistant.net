@@ -8,7 +8,7 @@ namespace Assistant.Net.Diagnostics.EventSources;
 /// </summary>
 internal sealed class OperationEventSource : EventSource
 {
-    public static OperationEventSource Instance { get; } = new OperationEventSource();
+    public static OperationEventSource Instance { get; } = new();
 
     private EventSourceOptions startOptions = new()
     {
