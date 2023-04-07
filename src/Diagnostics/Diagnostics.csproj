@@ -26,7 +26,7 @@
     <PackageTags>diagnostics eventsource tracing</PackageTags>
     <Description>Common diagnostic services.</Description>
     <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetdiagnostics</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/tree/master/src/Diagnostics</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
