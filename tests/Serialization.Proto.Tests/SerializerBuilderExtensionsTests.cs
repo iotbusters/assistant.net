@@ -18,7 +18,7 @@ public class SerializerBuilderExtensionsTests
 
         builder.UseProto();
 
-        services.BuildServiceProvider().GetService<INamedOptions<SerializerOptions>>()?.Value.Format
+        services.BuildServiceProvider().GetService<INamedOptions<SerializerOptions>>()?.Value.FormatSerializerFactory
             .Should().NotBeNull();
     }
 

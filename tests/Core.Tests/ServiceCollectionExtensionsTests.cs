@@ -13,7 +13,7 @@ public class ServiceCollectionExtensionsTests
     [Test]
     public void Decorate_interceptsOriginalCall_factorySetup()
     {
-        var time = new DateTimeOffset(new DateTime(2001, 1, 1));
+        var time = new DateTimeOffset(new(2001, 1, 1));
         var decoratedClock = new ServiceCollection()
             .AddSingleton<ISystemClock>(_ => new TestClock())
             .Decorate<ISystemClock>(proxy => proxy.Intercept(x => x.UtcNow, _ => time))
@@ -26,7 +26,7 @@ public class ServiceCollectionExtensionsTests
     [Test]
     public void Decorate_interceptsOriginalCall_typeSetup()
     {
-        var time = new DateTimeOffset(new DateTime(2001, 1, 1));
+        var time = new DateTimeOffset(new(2001, 1, 1));
         var decoratedClock = new ServiceCollection()
             .AddSingleton<ISystemClock, TestClock>()
             .Decorate<ISystemClock>(proxy => proxy.Intercept(x => x.UtcNow, _ => time))
@@ -39,7 +39,7 @@ public class ServiceCollectionExtensionsTests
     [Test]
     public void Decorate_interceptsOriginalCall_instanceSetup()
     {
-        var time = new DateTimeOffset(new DateTime(2001, 1, 1));
+        var time = new DateTimeOffset(new(2001, 1, 1));
         var decoratedClock = new ServiceCollection()
             .AddSingleton<ISystemClock>(new TestClock())
             .Decorate<ISystemClock>(proxy => proxy.Intercept(x => x.UtcNow, _ => time))

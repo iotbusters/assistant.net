@@ -1,6 +1,5 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics;
-using Assistant.Net.Options;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Mongo.Tests.Mocks;
@@ -133,7 +132,7 @@ public class MongoStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongo<TestKey, TestValue>())
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IStorage<TestKey, TestValue>>();
@@ -152,8 +151,8 @@ public class MongoStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongo<TestKey, TestBase>()
-                .AddMongo<TestKey, TestValue>())
+                .Add<TestKey, TestBase>()
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IStorage<TestKey, TestBase>>();
@@ -172,8 +171,8 @@ public class MongoStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongo<TestKey, TestBase>()
-                .AddMongo<TestKey, TestValue>())
+                .Add<TestKey, TestBase>()
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IStorage<TestKey, TestBase>>();
@@ -195,7 +194,7 @@ public class MongoStorageProviderIntegrationTests
         Provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongo<TestKey, TestValue>())
+                .Add<TestKey, TestValue>())
             .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
             .AddSystemClock(_ => TestDate)
             .BuildServiceProvider();
@@ -223,5 +222,5 @@ public class MongoStorageProviderIntegrationTests
     private ServiceProvider? Provider { get; set; }
 
     private IStorageProvider<TestValue> Storage => (IStorageProvider<TestValue>)
-        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value.Providers[typeof(TestValue)].Create(Provider!);
+        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value.StorageProviderFactory!.Create(Provider!, typeof(TestValue));
 }

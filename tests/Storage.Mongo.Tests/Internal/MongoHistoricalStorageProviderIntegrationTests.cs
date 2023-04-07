@@ -1,6 +1,5 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics;
-using Assistant.Net.Options;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Mongo.Tests.Mocks;
@@ -139,10 +138,10 @@ public class MongoHistoricalStorageProviderIntegrationTests
             Storage.AddOrUpdate(TestKey, requestedValues[4]));
 
         var value = await Storage.TryGet(TestKey);
-        var version1 = removeTask.Result.GetValueOrDefault()?.Audit.Version ?? 0;
-        var version2 = value.GetValueOrDefault()?.Audit.Version ?? 0;
-        version1.Should().BeLessOrEqualTo(4);
-        version2.Should().Be(5);
+        var removedVersion = removeTask.Result.GetValueOrDefault()?.Audit.Version ?? 0;
+        var storedVersion = value.GetValueOrDefault()?.Audit.Version ?? 0;
+        (removedVersion + storedVersion)
+            .Should().Be(5, $"5 add/update operations should have number 5 ({removedVersion}+{storedVersion}) in total");
     }
 
     [Test]
@@ -188,7 +187,7 @@ public class MongoHistoricalStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongoHistorical<TestKey, TestValue>())
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestValue>>();
@@ -207,8 +206,8 @@ public class MongoHistoricalStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongoHistorical<TestKey, TestBase>()
-                .AddMongoHistorical<TestKey, TestValue>())
+                .Add<TestKey, TestBase>()
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestBase>>();
@@ -227,8 +226,8 @@ public class MongoHistoricalStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongoHistorical<TestKey, TestBase>()
-                .AddMongoHistorical<TestKey, TestValue>())
+                .Add<TestKey, TestBase>()
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestBase>>();
@@ -249,7 +248,7 @@ public class MongoHistoricalStorageProviderIntegrationTests
         Provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongoHistorical<TestKey, TestValue>())
+                .Add<TestKey, TestValue>())
             .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
             .AddSystemClock(_ => TestDate)
             .BuildServiceProvider();
@@ -275,5 +274,5 @@ public class MongoHistoricalStorageProviderIntegrationTests
     private ServiceProvider? Provider { get; set; }
 
     private IHistoricalStorageProvider<TestValue> Storage => (IHistoricalStorageProvider<TestValue>)
-        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value.HistoricalProviders[typeof(TestValue)].Create(Provider!);
+        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value.HistoricalStorageProviderFactory!.Create(Provider!, typeof(TestValue));
 }

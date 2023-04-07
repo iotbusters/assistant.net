@@ -1,4 +1,3 @@
-using Assistant.Net.Options;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Mongo.Tests.Mocks;
@@ -20,7 +19,7 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task AddOrGet_returnsAddedValue_notExists()
     {
-        var value = await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+        var value = await Storage.AddOrGet(new(true), new TestValue(true));
 
         value.Should().BeEquivalentTo(new TestValue(true));
     }
@@ -28,9 +27,9 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task AddOrGet_returnsExistingValue_exists()
     {
-        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+        await Storage.AddOrGet(new(true), new TestValue(true));
 
-        var value = await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+        var value = await Storage.AddOrGet(new(true), new TestValue(true));
 
         value.Should().BeEquivalentTo(new TestValue(true));
     }
@@ -38,7 +37,7 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task AddOrGet_returnsAddedHistoricalValue_notExists()
     {
-        var value = await Storage.AddOrGet(new TestKey(true), new StorageValue<TestValue>(new TestValue(true)));
+        var value = await Storage.AddOrGet(new(true), new StorageValue<TestValue>(new(true)));
 
         value.Should().BeOfType<HistoricalValue<TestValue>>()
             .And.BeEquivalentTo(new { Value = new TestValue(true), Version = 1 });
@@ -47,9 +46,9 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task AddOrGet_returnsExistingHistoricalValue_exists()
     {
-        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+        await Storage.AddOrGet(new(true), new TestValue(true));
 
-        var value = await Storage.AddOrGet(new TestKey(true), new StorageValue<TestValue>(new TestValue(false)));
+        var value = await Storage.AddOrGet(new(true), new StorageValue<TestValue>(new(false)));
 
         value.Should().BeOfType<HistoricalValue<TestValue>>()
             .And.BeEquivalentTo(new { Value = new TestValue(true), Version = 1 });
@@ -58,7 +57,7 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task AddOrUpdate_returnsAddedValue()
     {
-        var value = await Storage.AddOrUpdate(new TestKey(true), _ => new TestValue(true), (_, _) => new TestValue(false));
+        var value = await Storage.AddOrUpdate(new(true), _ => new(true), (_, _) => new(false));
 
         value.Should().BeEquivalentTo(new TestValue(true));
     }
@@ -66,9 +65,9 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task AddOrUpdate_returnsUpdatedValue()
     {
-        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+        await Storage.AddOrGet(new(true), new TestValue(true));
 
-        var value = await Storage.AddOrUpdate(new TestKey(true), _ => new TestValue(true), (_, _) => new TestValue(false));
+        var value = await Storage.AddOrUpdate(new(true), _ => new(true), (_, _) => new(false));
 
         value.Should().BeEquivalentTo(new TestValue(false));
     }
@@ -77,9 +76,9 @@ public class MongoHistoricalStorageIntegrationTests
     public async Task AddOrUpdate_returnsAddedHistoricalValue()
     {
         var value = await Storage.AddOrUpdate(
-            new TestKey(true),
-            _ => new StorageValue<TestValue>(new TestValue(true)),
-            (_, _) => new StorageValue<TestValue>(new TestValue(false)));
+            new(true),
+            _ => new(new(true)),
+            (_, _) => new(new(false)));
 
         value.Should().BeOfType<HistoricalValue<TestValue>>()
             .And.BeEquivalentTo(new { Value = new TestValue(true), Version = 1 });
@@ -88,12 +87,12 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task AddOrUpdate_returnsUpdatedHistoricalValue()
     {
-        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+        await Storage.AddOrGet(new(true), new TestValue(true));
 
         var value = await Storage.AddOrUpdate(
-            new TestKey(true),
-            _ => new StorageValue<TestValue>(new TestValue(true)),
-            (_, _) => new StorageValue<TestValue>(new TestValue(false)));
+            new(true),
+            _ => new(new(true)),
+            (_, _) => new(new(false)));
 
         value.Should().BeOfType<HistoricalValue<TestValue>>()
             .And.BeEquivalentTo(new { Value = new TestValue(false), Version = 2 });
@@ -102,7 +101,7 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task TryGet_returnsNone_notExists()
     {
-        var value = await Storage.TryGet(new TestKey(true));
+        var value = await Storage.TryGet(new(true));
 
         value.Should().BeEquivalentTo(new None<ValueRecord>());
     }
@@ -110,9 +109,9 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task TryGet_returnsSome_exists()
     {
-        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+        await Storage.AddOrGet(new(true), new TestValue(true));
 
-        var value = await Storage.TryGet(new TestKey(true));
+        var value = await Storage.TryGet(new(true));
 
         value.Should().BeEquivalentTo(new { Value = new TestValue(true) }, o => o.ComparingByMembers<ValueRecord>());
     }
@@ -120,7 +119,7 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task TryGetDetailed_returnsNone_notExists()
     {
-        var value = await Storage.TryGetDetailed(new TestKey(true));
+        var value = await Storage.TryGetDetailed(new(true));
 
         value.Should().BeEquivalentTo(new None<HistoricalValue<ValueRecord>>());
     }
@@ -128,9 +127,9 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task TryGetDetailed_returns_exists()
     {
-        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+        await Storage.AddOrGet(new(true), new TestValue(true));
 
-        var value = await Storage.TryGetDetailed(new TestKey(true));
+        var value = await Storage.TryGetDetailed(new(true));
 
         value.Should().BeOfType<Some<HistoricalValue<TestValue>>>()
             .And.BeEquivalentTo(new { Value = new { Value = new TestValue(true), Version = 1 } });
@@ -139,7 +138,7 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task TryGetByVersion_returnsNone_notExists()
     {
-        var value = await Storage.TryGet(new TestKey(true), version: 1);
+        var value = await Storage.TryGet(new(true), version: 1);
 
         value.Should().BeEquivalentTo(new None<ValueRecord>());
     }
@@ -147,9 +146,9 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task TryGetByVersion_returnsSome_exists()
     {
-        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+        await Storage.AddOrGet(new(true), new TestValue(true));
 
-        var value = await Storage.TryGet(new TestKey(true), version: 1);
+        var value = await Storage.TryGet(new(true), version: 1);
 
         value.Should().BeEquivalentTo(new { Value = new TestValue(true) }, o => o.ComparingByMembers<ValueRecord>());
     }
@@ -157,7 +156,7 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task TryGetDetailedByVersion_returnsNone_notExists()
     {
-        var value = await Storage.TryGetDetailed(new TestKey(true), version: 1);
+        var value = await Storage.TryGetDetailed(new(true), version: 1);
 
         value.Should().BeEquivalentTo(new None<HistoricalValue<ValueRecord>>());
     }
@@ -165,9 +164,9 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task TryGetDetailedByVersion_returnsSome_exists()
     {
-        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+        await Storage.AddOrGet(new(true), new TestValue(true));
 
-        var value = await Storage.TryGetDetailed(new TestKey(true), version: 1);
+        var value = await Storage.TryGetDetailed(new(true), version: 1);
 
         value.Should().BeOfType<Some<HistoricalValue<TestValue>>>()
             .And.BeEquivalentTo(new { Value = new { Value = new TestValue(true), Version = 1 } });
@@ -176,7 +175,7 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task TryRemove_returnsNone_notExists()
     {
-        var value = await Storage.TryRemove(new TestKey(true));
+        var value = await Storage.TryRemove(new(true));
 
         value.Should().BeEquivalentTo(new None<ValueRecord>());
     }
@@ -184,9 +183,9 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task TryRemove_returnsSome_exists()
     {
-        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+        await Storage.AddOrGet(new(true), new TestValue(true));
 
-        var value = await Storage.TryRemove(new TestKey(true));
+        var value = await Storage.TryRemove(new(true));
 
         value.Should().BeEquivalentTo(new {Value = new TestValue(true)});
     }
@@ -194,7 +193,7 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task TryRemoveByVersion_returnsNone_notExists()
     {
-        var option = await Storage.TryRemove(new TestKey(true), upToVersion: 1);
+        var option = await Storage.TryRemove(new(true), upToVersion: 1);
 
         option.Should().Be(new None<TestValue>());
     }
@@ -202,24 +201,24 @@ public class MongoHistoricalStorageIntegrationTests
     [Test]
     public async Task TryRemoveByVersion_returnsSome_exists()
     {
-        var tasks = Enumerable.Range(1, 5).Select(_ => Storage.AddOrUpdate(new TestKey(true), new TestValue(true)));
+        var tasks = Enumerable.Range(1, 5).Select(_ => Storage.AddOrUpdate(new(true), new TestValue(true)));
         await Task.WhenAll(tasks);
 
-        var option = await Storage.TryRemove(new TestKey(true), upToVersion: 4);
+        var option = await Storage.TryRemove(new(true), upToVersion: 4);
 
         option.Should().BeEquivalentTo(new {Value = new TestValue(true)});
-        var value5 = await Storage.TryGet(new TestKey(true), version: 5);
+        var value5 = await Storage.TryGet(new(true), version: 5);
         value5.Should().BeEquivalentTo(new {Value = new TestValue(true)});
-        var value4 = await Storage.TryGet(new TestKey(true), version: 4);
+        var value4 = await Storage.TryGet(new(true), version: 4);
         value4.Should().BeEquivalentTo(new None<ValueRecord>());
-        var value1 = await Storage.TryGet(new TestKey(true), version: 1);
+        var value1 = await Storage.TryGet(new(true), version: 1);
         value1.Should().BeEquivalentTo(new None<ValueRecord>()); 
     }
 
     [Test]
     public async Task GetKeys_returnsKeys()
     {
-        await Storage.AddOrGet(new TestKey(true), new TestValue(true));
+        await Storage.AddOrGet(new(true), new TestValue(true));
 
         var value = await Storage.GetKeys().AsEnumerableAsync();
 
@@ -232,7 +231,7 @@ public class MongoHistoricalStorageIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongoHistorical<TestKey, TestValue>())
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestValue>>();
@@ -251,8 +250,8 @@ public class MongoHistoricalStorageIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongoHistorical<TestKey, TestBase>()
-                .AddMongoHistorical<TestKey, TestValue>())
+                .Add<TestKey, TestBase>()
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestBase>>();
@@ -271,8 +270,8 @@ public class MongoHistoricalStorageIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongoHistorical<TestKey, TestBase>()
-                .AddMongoHistorical<TestKey, TestValue>())
+                .Add<TestKey, TestBase>()
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IHistoricalStorage<TestKey, TestBase>>();
@@ -293,7 +292,7 @@ public class MongoHistoricalStorageIntegrationTests
         Provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongoHistorical<TestKey, TestValue>())
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
     [OneTimeTearDown]

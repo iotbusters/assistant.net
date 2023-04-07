@@ -98,7 +98,7 @@ State:
         [Test]
         public void Write_writesToConsole_exception()
         {
-            var exception = new Exception("Error.", new Exception("Inner error."));
+            var exception = new Exception("Error.", new("Inner error."));
 
             logger.LogInformation(exception, "Message 1 and 2.");
 
@@ -253,7 +253,7 @@ Message: Message 1 and 2.
         [SetUp]
         public void Setup()
         {
-            stringBuilder = new StringBuilder();
+            stringBuilder = new();
             Console.SetOut(new StringWriter(stringBuilder));
 
             options = new()

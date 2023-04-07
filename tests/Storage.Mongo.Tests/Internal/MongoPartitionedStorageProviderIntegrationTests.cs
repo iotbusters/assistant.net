@@ -1,6 +1,5 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics;
-using Assistant.Net.Options;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Models;
 using Assistant.Net.Storage.Mongo.Tests.Mocks;
@@ -138,14 +137,14 @@ public class MongoPartitionedStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongoPartitioned<TestKey, TestValue>())
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IPartitionedStorage<TestKey, TestValue>>();
         var storage2 = provider.GetRequiredService<IPartitionedStorage<TestKey, TestValue>>();
 
         var key = new TestKey(true);
-        await storage1.Add(key, new TestValue(true));
+        await storage1.Add(key, new(true));
         var value = await storage2.TryGet(key, 1);
 
         value.Should().Be(Option.Some(new TestValue(true)));
@@ -157,8 +156,8 @@ public class MongoPartitionedStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongoPartitioned<TestKey, TestBase>()
-                .AddMongoPartitioned<TestKey, TestValue>())
+                .Add<TestKey, TestBase>()
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IPartitionedStorage<TestKey, TestBase>>();
@@ -177,8 +176,8 @@ public class MongoPartitionedStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongoPartitioned<TestKey, TestBase>()
-                .AddMongoPartitioned<TestKey, TestValue>())
+                .Add<TestKey, TestBase>()
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IPartitionedStorage<TestKey, TestBase>>();
@@ -186,7 +185,7 @@ public class MongoPartitionedStorageProviderIntegrationTests
 
         var key = new TestKey(true);
         await storage1.Add(key, new TestValue(true));
-        await storage2.Add(key, new TestValue(false));
+        await storage2.Add(key, new(false));
         var value1 = await storage1.TryGet(key, 1);
         var value2 = await storage2.TryGet(key, 1);
         var value3 = await storage1.TryGet(key, 2);
@@ -203,7 +202,7 @@ public class MongoPartitionedStorageProviderIntegrationTests
         Provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongoPartitioned<TestKey, TestValue>())
+                .Add<TestKey, TestValue>())
             .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
             .AddSystemClock(_ => TestDate)
             .BuildServiceProvider();
@@ -230,5 +229,5 @@ public class MongoPartitionedStorageProviderIntegrationTests
     private ServiceProvider? Provider { get; set; }
 
     private IPartitionedStorageProvider<TestValue> Storage => (IPartitionedStorageProvider<TestValue>)
-        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value.PartitionedProviders[typeof(TestValue)].Create(Provider!);
+        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value.PartitionedStorageProviderFactory!.Create(Provider!, typeof(TestValue));
 }
