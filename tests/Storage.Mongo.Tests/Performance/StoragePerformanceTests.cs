@@ -29,7 +29,7 @@ public class StoragePerformanceTests
     {
         var watch = Stopwatch.StartNew();
         for (var i = 0; i < MeasurementCount; i++)
-            await Storage.TryGet(new TestKey2(i), CancellationToken);
+            await Storage.TryGet(new(i), CancellationToken);
         watch.Stop();
         Console.WriteLine($"Total: {watch.Elapsed:g} (0.04) Middle: {watch.Elapsed / MeasurementCount:g}");
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(0.1));
@@ -40,7 +40,7 @@ public class StoragePerformanceTests
     {
         var watch = Stopwatch.StartNew();
         for (var i = 0; i < MeasurementCount; i++)
-            await Storage.TryGet(new TestKey2(-1), CancellationToken);
+            await Storage.TryGet(new(-1), CancellationToken);
         watch.Stop();
         Console.WriteLine($"Total: {watch.Elapsed:g} (0.02) Middle: {watch.Elapsed / MeasurementCount:g}");
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(0.1));
@@ -51,7 +51,7 @@ public class StoragePerformanceTests
     {
         var watch = Stopwatch.StartNew();
         for (var i = 0; i < MeasurementCount; i++)
-            await Storage.TryGetDetailed(new TestKey2(i), CancellationToken);
+            await Storage.TryGetDetailed(new(i), CancellationToken);
         watch.Stop();
         Console.WriteLine($"Total: {watch.Elapsed:g} (0.03) Middle: {watch.Elapsed / MeasurementCount:g}");
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(0.1));
@@ -62,7 +62,7 @@ public class StoragePerformanceTests
     {
         var watch = Stopwatch.StartNew();
         for (var i = 0; i < MeasurementCount; i++)
-            await Storage.TryGetDetailed(new TestKey2(-1), CancellationToken);
+            await Storage.TryGetDetailed(new(-1), CancellationToken);
         watch.Stop();
         Console.WriteLine($"Total: {watch.Elapsed:g} (0.02) Middle: {watch.Elapsed / MeasurementCount:g}");
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(1));
@@ -73,7 +73,7 @@ public class StoragePerformanceTests
     {
         var watch = Stopwatch.StartNew();
         for (var i = 0; i < MeasurementCount; i++)
-            await Storage.AddOrGet(new TestKey2(i), new TestValue(false), CancellationToken);
+            await Storage.AddOrGet(new(i), new TestValue(false), CancellationToken);
         watch.Stop();
         Console.WriteLine($"Total: {watch.Elapsed:g} (0.03) Middle: {watch.Elapsed / MeasurementCount:g}");
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(1));
@@ -84,7 +84,7 @@ public class StoragePerformanceTests
     {
         var watch = Stopwatch.StartNew();
         for (var i = 0; i < MeasurementCount; i++)
-            await Storage.AddOrGet(new TestKey2(PrePopulatedCount + i), new TestValue(false), CancellationToken);
+            await Storage.AddOrGet(new(PrePopulatedCount + i), new TestValue(false), CancellationToken);
         watch.Stop();
         Console.WriteLine($"Total: {watch.Elapsed:g} (0.04) Middle: {watch.Elapsed / MeasurementCount:g}");
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(0.5));
@@ -95,7 +95,7 @@ public class StoragePerformanceTests
     {
         var watch = Stopwatch.StartNew();
         for (var i = 0; i < MeasurementCount; i++)
-            await Storage.AddOrUpdate(new TestKey2(i), new TestValue(false), CancellationToken);
+            await Storage.AddOrUpdate(new(i), new TestValue(false), CancellationToken);
         watch.Stop();
         Console.WriteLine($"Total: {watch.Elapsed:g} (0.06) Middle: {watch.Elapsed / MeasurementCount:g}");
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(0.5));
@@ -106,7 +106,7 @@ public class StoragePerformanceTests
     {
         var watch = Stopwatch.StartNew();
         for (var i = 0; i < MeasurementCount; i++)
-            await Storage.AddOrUpdate(new TestKey2(PrePopulatedCount + i), new TestValue(false), CancellationToken);
+            await Storage.AddOrUpdate(new(PrePopulatedCount + i), new TestValue(false), CancellationToken);
         watch.Stop();
         Console.WriteLine($"Total: {watch.Elapsed:g} (0.07) Middle: {watch.Elapsed / MeasurementCount:g}");
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(0.5));
@@ -117,7 +117,7 @@ public class StoragePerformanceTests
     {
         var watch = Stopwatch.StartNew();
         for (var i = 0; i < MeasurementCount; i++)
-            await Storage.TryRemove(new TestKey2(i), CancellationToken);
+            await Storage.TryRemove(new(i), CancellationToken);
         watch.Stop();
         Console.WriteLine($"Total: {watch.Elapsed:g} (0.08) Middle: {watch.Elapsed / MeasurementCount:g}");
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(0.2));
@@ -128,7 +128,7 @@ public class StoragePerformanceTests
     {
         var watch = Stopwatch.StartNew();
         for (var i = 0; i < MeasurementCount; i++)
-            await Storage.TryRemove(new TestKey2(-1), CancellationToken);
+            await Storage.TryRemove(new(-1), CancellationToken);
         watch.Stop();
         Console.WriteLine($"Total: {watch.Elapsed:g} (0.07) Middle: {watch.Elapsed / MeasurementCount:g}");
         watch.Elapsed.Should().BeLessThan(TimeSpan.FromSeconds(1));
@@ -140,7 +140,7 @@ public class StoragePerformanceTests
         Provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseMongo(SetupMongo.ConfigureMongo)
-                .AddMongo<TestKey2, TestValue>())
+                .Add<TestKey2, TestValue>())
             .BuildServiceProvider();
 
         Storage = Provider!.GetRequiredService<IAdminStorage<TestKey2, TestValue>>();
@@ -149,7 +149,7 @@ public class StoragePerformanceTests
         for (var i = 0; i < PrePopulatedCount / batchCount; i++)
         {
             var y = i;
-            await Task.WhenAll(Enumerable.Range(1, batchCount).Select(x => Storage.AddOrGet(new TestKey2(x + y), new TestValue(true))));
+            await Task.WhenAll(Enumerable.Range(1, batchCount).Select(x => Storage.AddOrGet(new(x + y), new TestValue(true))));
         }
     }
 

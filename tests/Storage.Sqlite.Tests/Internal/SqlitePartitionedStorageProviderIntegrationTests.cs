@@ -133,14 +133,14 @@ public class SqlitePartitionedStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseSqlite(SetupSqlite.ConnectionString)
-                .AddSqlitePartitioned<TestKey, TestValue>())
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IPartitionedStorage<TestKey, TestValue>>();
         var storage2 = provider.GetRequiredService<IPartitionedStorage<TestKey, TestValue>>();
 
         var key = new TestKey(true);
-        await storage1.Add(key, new TestValue(true));
+        await storage1.Add(key, new(true));
         var value = await storage2.TryGet(key, 1);
 
         value.Should().Be(Option.Some(new TestValue(true)));
@@ -152,8 +152,8 @@ public class SqlitePartitionedStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseSqlite(SetupSqlite.ConnectionString)
-                .AddSqlitePartitioned<TestKey, TestBase>()
-                .AddSqlitePartitioned<TestKey, TestValue>())
+                .Add<TestKey, TestBase>()
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IPartitionedStorage<TestKey, TestBase>>();
@@ -172,8 +172,8 @@ public class SqlitePartitionedStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseSqlite(SetupSqlite.ConnectionString)
-                .AddSqlitePartitioned<TestKey, TestBase>()
-                .AddSqlitePartitioned<TestKey, TestValue>())
+                .Add<TestKey, TestBase>()
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IPartitionedStorage<TestKey, TestBase>>();
@@ -181,7 +181,7 @@ public class SqlitePartitionedStorageProviderIntegrationTests
 
         var key = new TestKey(true);
         await storage1.Add(key, new TestValue(true));
-        await storage2.Add(key, new TestValue(false));
+        await storage2.Add(key, new(false));
         var value1 = await storage1.TryGet(key, 1);
         var value2 = await storage2.TryGet(key, 1);
         var value3 = await storage1.TryGet(key, 2);
@@ -199,7 +199,7 @@ public class SqlitePartitionedStorageProviderIntegrationTests
         Provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseSqlite(SetupSqlite.ConnectionString)
-                .AddSqlitePartitioned<TestKey, TestValue>())
+                .Add<TestKey, TestValue>())
             .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
             .AddSystemClock(_ => TestDate)
             .BuildServiceProvider();
@@ -226,5 +226,6 @@ public class SqlitePartitionedStorageProviderIntegrationTests
     private ServiceProvider? Provider { get; set; }
 
     private IPartitionedStorageProvider<TestValue> Storage => (IPartitionedStorageProvider<TestValue>)
-        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value.PartitionedProviders[typeof(TestValue)].Create(Provider!);
+        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value
+            .PartitionedStorageProviderFactory!.Create(Provider!, typeof(TestValue));
 }

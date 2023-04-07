@@ -32,7 +32,7 @@ public class SerializerBuilderExtensionsTests
             new {ServiceType = typeof(AdvancedJsonConverter<>), ImplementationType = typeof(AdvancedJsonConverter<>) });
         services.BuildServiceProvider().GetService<IOptionsSnapshot<JsonSerializerOptions>>()?.Get("").Converters
             .Should().Contain(x => x is AdvancedJsonConverterFactory);
-        services.BuildServiceProvider().GetService<INamedOptions<SerializerOptions>>()?.Value.Format
+        services.BuildServiceProvider().GetService<INamedOptions<SerializerOptions>>()?.Value.FormatSerializerFactory
             .Should().NotBeNull();
     }
 

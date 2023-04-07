@@ -14,59 +14,59 @@ public class LocalStorageTests
     [Test]
     public async Task AddOrGet_addsAndGets()
     {
-        var addedValue = await Storage.AddOrGet(new TestKey("key"), new TestValue("value-1"));
+        var addedValue = await Storage.AddOrGet(new("key"), new TestValue("value-1"));
         addedValue.Should().Be(new TestValue("value-1"));
 
-        var existingValue = await Storage.AddOrGet(new TestKey("key"), new TestValue("value-2"));
+        var existingValue = await Storage.AddOrGet(new("key"), new TestValue("value-2"));
         existingValue.Should().Be(new TestValue("value-1"));
     }
 
     [Test]
     public async Task AddOrUpdate_addsAndUpdates()
     {
-        var addedValue = await Storage.AddOrUpdate(new TestKey("key"), new TestValue("value-1"));
+        var addedValue = await Storage.AddOrUpdate(new("key"), new TestValue("value-1"));
         addedValue.Should().Be(new TestValue("value-1"));
 
-        var existingValue = await Storage.AddOrUpdate(new TestKey("key"), new TestValue("value-2"));
+        var existingValue = await Storage.AddOrUpdate(new("key"), new TestValue("value-2"));
         existingValue.Should().Be(new TestValue("value-2"));
     }
 
     [Test]
     public async Task TryGet_returnsNone_notExists()
     {
-        var value = await Storage.TryGet(new TestKey("key"));
+        var value = await Storage.TryGet(new("key"));
         value.Should().Be(new None<TestValue>());
     }
 
     [Test]
     public async Task TryGet_returnsSome_exists()
     {
-        await Storage.AddOrGet(new TestKey("key"), new TestValue("value"));
+        await Storage.AddOrGet(new("key"), new TestValue("value"));
 
-        var value = await Storage.TryGet(new TestKey("key"));
-        value.Should().Be(new Some<TestValue>(new TestValue("value")));
+        var value = await Storage.TryGet(new("key"));
+        value.Should().Be(new Some<TestValue>(new("value")));
     }
 
     [Test]
     public async Task TryRemove_returnsNone_notExists()
     {
-        var value = await Storage.TryRemove(new TestKey("key"));
+        var value = await Storage.TryRemove(new("key"));
         value.Should().Be(new None<TestValue>());
     }
 
     [Test]
     public async Task TryRemove_returnsSome_exists()
     {
-        await Storage.AddOrGet(new TestKey("key"), new TestValue("value"));
+        await Storage.AddOrGet(new("key"), new TestValue("value"));
 
-        var value = await Storage.TryRemove(new TestKey("key"));
-        value.Should().Be(new Some<TestValue>(new TestValue("value")));
+        var value = await Storage.TryRemove(new("key"));
+        value.Should().Be(new Some<TestValue>(new("value")));
     }
 
     [Test]
     public async Task GetKeys_returnsListOfKeys()
     {
-        await Storage.AddOrGet(new TestKey("key"), new TestValue("value"));
+        await Storage.AddOrGet(new("key"), new TestValue("value"));
 
         var value = await Storage.GetKeys().AsEnumerableAsync();
         value.Should().BeEquivalentTo(new[] {new TestKey("key")});
@@ -76,7 +76,7 @@ public class LocalStorageTests
     public async Task TryGet_returnsSome_FromStorageProviderOfTheSameValue()
     {
         var provider = new ServiceCollection()
-            .AddStorage(b => b.AddLocal<TestKey, TestValue>())
+            .AddStorage(b => b.UseLocal().Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IStorage<TestKey, TestValue>>();
@@ -93,7 +93,7 @@ public class LocalStorageTests
     public async Task TryGet_returnsNone_FromStorageOfAnotherValue()
     {
         var provider = new ServiceCollection()
-            .AddStorage(b => b.AddLocal<TestKey, object>().AddLocal<TestKey, string>())
+            .AddStorage(b => b.UseLocal().Add<TestKey, object>().Add<TestKey, string>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IStorage<TestKey, object>>();
@@ -109,8 +109,7 @@ public class LocalStorageTests
     [SetUp]
     public void Setup() =>
         Provider = new ServiceCollection()
-            .AddSystemClock()
-            .AddStorage(b => b.AddLocal<TestKey, TestValue>())
+            .AddStorage(b => b.UseLocal().Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
     private IServiceProvider Provider { get; set; } = null!;

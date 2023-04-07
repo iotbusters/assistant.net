@@ -75,10 +75,10 @@ public class EnumerableJsonConverterTests
     private static IEnumerable<TestCaseData> SupportedObjects()
     {
         var values = new[] {new TestClass(DateTime.UtcNow)};
-        yield return new TestCaseData((object)values){TestName = "DeserializeObject(Array)" };
-        yield return new TestCaseData(values.ToList()) { TestName = "DeserializeObject(List)" };
-        yield return new TestCaseData(values.ToHashSet()) { TestName = "DeserializeObject(HashSet)" };
-        yield return new TestCaseData(new Stack<TestClass>(values)) { TestName = "DeserializeObject(Stack)" };
-        yield return new TestCaseData(new Queue<TestClass>(values)) { TestName = "DeserializeObject(Queue)" };
+        yield return new((object)values){TestName = "DeserializeObject(Array)" };
+        yield return new(values.ToList()) { TestName = "DeserializeObject(List)" };
+        yield return new(values.ToHashSet()) { TestName = "DeserializeObject(HashSet)" };
+        yield return new(new Stack<TestClass>(values)) { TestName = "DeserializeObject(Stack)" };
+        yield return new(new Queue<TestClass>(values)) { TestName = "DeserializeObject(Queue)" };
     }
 }

@@ -131,7 +131,7 @@ public class SqliteStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseSqlite(SetupSqlite.ConnectionString)
-                .AddSqlite<TestKey, TestValue>())
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IStorage<TestKey, TestValue>>();
@@ -150,8 +150,8 @@ public class SqliteStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseSqlite(SetupSqlite.ConnectionString)
-                .AddSqlite<TestKey, TestBase>()
-                .AddSqlite<TestKey, TestValue>())
+                .Add<TestKey, TestBase>()
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IStorage<TestKey, TestBase>>();
@@ -170,8 +170,8 @@ public class SqliteStorageProviderIntegrationTests
         var provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseSqlite(SetupSqlite.ConnectionString)
-                .AddSqlite<TestKey, TestBase>()
-                .AddSqlite<TestKey, TestValue>())
+                .Add<TestKey, TestBase>()
+                .Add<TestKey, TestValue>())
             .BuildServiceProvider();
 
         var storage1 = provider.GetRequiredService<IStorage<TestKey, TestBase>>();
@@ -193,7 +193,7 @@ public class SqliteStorageProviderIntegrationTests
         Provider = new ServiceCollection()
             .AddStorage(b => b
                 .UseSqlite(SetupSqlite.ConnectionString)
-                .AddSqlite<TestKey, TestValue>())
+                .Add<TestKey, TestValue>())
             .AddDiagnosticContext(getCorrelationId: _ => TestCorrelationId, getUser: _ => TestUser)
             .AddSystemClock(_ => TestDate)
             .BuildServiceProvider();
@@ -220,5 +220,6 @@ public class SqliteStorageProviderIntegrationTests
     private ServiceProvider? Provider { get; set; }
 
     private IStorageProvider<TestValue> Storage => (IStorageProvider<TestValue>)
-        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value.Providers[typeof(TestValue)].Create(Provider!);
+        Provider!.GetRequiredService<INamedOptions<StorageOptions>>().Value
+            .StorageProviderFactory!.Create(Provider!, typeof(TestValue));
 }

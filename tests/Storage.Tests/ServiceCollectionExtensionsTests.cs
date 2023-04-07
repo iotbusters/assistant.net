@@ -1,5 +1,6 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Storage.Exceptions;
 using Assistant.Net.Storage.Options;
 using Assistant.Net.Storage.Tests.Mocks;
 using FluentAssertions;
@@ -12,67 +13,53 @@ namespace Assistant.Net.Storage.Tests;
 public class ServiceCollectionExtensionsTests
 {
     private static IServiceProvider Provider => new ServiceCollection()
-        .AddSystemClock()
-        .AddStorage(b => b
-            .AddLocal<TestKey, object>()
-            .AddLocalPartitioned<TestKey, object>()
-            .AddLocalHistorical<TestKey, object>())
+        .AddStorage(b => b.UseLocal().Add<TestKey, object>())
         .BuildServiceProvider();
-    private static IServiceProvider SingleProvider => new ServiceCollection()
-        .AddSystemClock()
-        .AddStorage(b => b
-            .UseLocalSingleProvider()
-            .AddSingle<TestKey, object>()
-            .AddSinglePartitioned<TestKey, object>()
-            .AddSingleHistorical<TestKey, object>())
+    private static IServiceProvider LocalProvider => new ServiceCollection()
+        .AddStorage(b => b.UseLocal().Add<TestKey, object>())
         .BuildServiceProvider();
-    private static IServiceProvider UnknownSingleProvider => new ServiceCollection()
-        .AddSystemClock()
-        .AddStorage(b => b
-            .AddSingle<TestKey, object>()
-            .AddSinglePartitioned<TestKey, object>()
-            .AddSingleHistorical<TestKey, object>())
+    private static IServiceProvider UnknownProvider => new ServiceCollection()
+        .AddStorage(b => b.Add<TestKey, object>())
         .BuildServiceProvider();
     private static IServiceProvider NamedProvider => new ServiceCollection()
-        .AddSystemClock()
-        .AddStorage(b => b.AddLocal<TestKey, object>())
-        .AddStorage("1", b => b.AddLocalPartitioned<TestKey, object>())
-        .AddStorage("2", b => b.AddLocalHistorical<TestKey, object>())
+        .AddStorage(b => b.UseLocal().Add<TestKey, object>())
+        .AddStorage("1", b => b.UseLocal())
+        .AddStorage("2", b => b.Add<TestKey, object>())
         .BuildServiceProvider();
 
     [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithSingleProviderDefined_UsingSingleStorageProvider() =>
-        SingleProvider.GetService<INamedOptions<StorageOptions>>()?.Value.SingleProvider
+    public void GetServiceOfStorageOptions_returnsInstanceWithStorageProviderFactoryDefined_UsingLocal() =>
+        LocalProvider.GetService<INamedOptions<StorageOptions>>()?.Value.StorageProviderFactory
             .Should().NotBeNull();
 
     [Test]
-    public void GetServiceOfIStorage_returnsInstance_UsingSingleStorageProvider() =>
-        SingleProvider.GetService<IStorage<TestKey, object>>()
+    public void GetServiceOfIStorage_returnsInstance_UsingLocal() =>
+        LocalProvider.GetService<IStorage<TestKey, object>>()
             .Should().NotBeNull();
 
     [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithSinglePartitionedProviderDefined_UsingSingleStorageProvider() =>
-        SingleProvider.GetService<INamedOptions<StorageOptions>>()?.Value.SinglePartitionedProvider
+    public void GetServiceOfStorageOptions_returnsInstanceWithPartitionedStorageProviderFactoryDefined_UsingLocal() =>
+        LocalProvider.GetService<INamedOptions<StorageOptions>>()?.Value.PartitionedStorageProviderFactory
             .Should().NotBeNull();
 
     [Test]
-    public void GetServiceOfIPartitionedStorage_returnsInstance_UsingSingleStorageProvider() =>
-        SingleProvider.GetService<IPartitionedStorage<TestKey, object>>()
+    public void GetServiceOfIPartitionedStorage_returnsInstance_UsingLocal() =>
+        LocalProvider.GetService<IPartitionedStorage<TestKey, object>>()
             .Should().NotBeNull();
 
     [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithSingleHistoricalProviderDefined_UsingSingleStorageProvider() =>
-        SingleProvider.GetService<INamedOptions<StorageOptions>>()?.Value.SingleHistoricalProvider
+    public void GetServiceOfStorageOptions_returnsInstanceWithHistoricalStorageProviderFactoryDefined_UsingLocal() =>
+        LocalProvider.GetService<INamedOptions<StorageOptions>>()?.Value.HistoricalStorageProviderFactory
             .Should().NotBeNull();
 
     [Test]
-    public void GetServiceOfIHistoricalStorage_returnsInstance_UsingSingleStorageProvider() =>
-        SingleProvider.GetService<IHistoricalStorage<TestKey, object>>()
+    public void GetServiceOfIHistoricalStorage_returnsInstance_UsingLocal() =>
+        LocalProvider.GetService<IHistoricalStorage<TestKey, object>>()
             .Should().NotBeNull();
 
     [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithProviderPopulated_Registered() =>
-        Provider.GetService<INamedOptions<StorageOptions>>()?.Value.Providers.Keys
+    public void GetServiceOfStorageOptions_returnsInstanceWithRegistrationsPopulated_Registered() =>
+        Provider.GetService<INamedOptions<StorageOptions>>()?.Value.Registrations
             .Should().BeEquivalentTo(new[] {typeof(object)});
 
     [Test]
@@ -81,20 +68,10 @@ public class ServiceCollectionExtensionsTests
             .Should().NotBeNull();
 
     [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithPartitionedProviderPopulated_Registered() =>
-        Provider.GetService<INamedOptions<StorageOptions>>()?.Value.PartitionedProviders.Keys
-            .Should().BeEquivalentTo(new[] {typeof(object)});
-
-    [Test]
     public void GetServiceOfIPartitionedStorage_returnsInstance_Registered() =>
         Provider.GetService<IPartitionedStorage<TestKey, object>>()
             .Should().NotBeNull();
-
-    [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithHistoricalProviderPopulated_Registered() =>
-        Provider.GetService<INamedOptions<StorageOptions>>()?.Value.HistoricalProviders.Keys
-            .Should().BeEquivalentTo(new[] {typeof(object)});
-
+    
     [Test]
     public void GetServiceOfIHistoricalStorage_returnsInstance_Registered() =>
         Provider.GetService<IHistoricalStorage<TestKey, object>>()
@@ -103,78 +80,72 @@ public class ServiceCollectionExtensionsTests
     [Test]
     public void GetServiceOfIStorage_throwsException_Unregistered() =>
         Provider.Invoking(x => x.GetService<IStorage<object, DateTime>>())
-            .Should().Throw<ArgumentException>()
-            .WithMessage("Storage(DateTime) wasn't properly configured.");
+            .Should().Throw<StoringTypeNotRegisteredException>();
 
     [Test]
     public void GetServiceOfIPartitionedStorage_throwsException_Unregistered() =>
         Provider.Invoking(x => x.GetService<IPartitionedStorage<object, DateTime>>())
-            .Should().Throw<ArgumentException>()
-            .WithMessage("PartitionedStorage(DateTime) wasn't properly configured.");
+            .Should().Throw<StoringTypeNotRegisteredException>();
 
     [Test]
     public void GetServiceOfIHistoricalStorage_throwsException_Unregistered() =>
         Provider.Invoking(x => x.GetService<IHistoricalStorage<object, DateTime>>())
-            .Should().Throw<ArgumentException>()
-            .WithMessage("HistoricalStorage(DateTime) wasn't properly configured.");
+            .Should().Throw<StoringTypeNotRegisteredException>();
 
     [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithSingleProviderUndefined_NotUsingSingleProvider() =>
-        UnknownSingleProvider.GetService<INamedOptions<StorageOptions>>()?.Value.SingleProvider
+    public void GetServiceOfStorageOptions_returnsInstanceWithStorageProviderFactoryUndefined_NotUsingLocal() =>
+        UnknownProvider.GetService<INamedOptions<StorageOptions>>()?.Value.StorageProviderFactory
             .Should().BeNull();
 
     [Test]
     public void GetServiceOfIStorage_throwsException_NotUsingSingleProvider() =>
-        UnknownSingleProvider.Invoking(x => x.GetService<IStorage<TestKey, object>>())
-            .Should().Throw<ArgumentException>()
-            .WithMessage("Single storage provider wasn't properly configured.");
+        UnknownProvider.Invoking(x => x.GetService<IStorage<TestKey, object>>())
+            .Should().Throw<StorageProviderNotRegisteredException>();
 
     [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithSinglePartitionedProviderUndefined_NotUsingSingleProvider() =>
-        UnknownSingleProvider.GetService<INamedOptions<StorageOptions>>()?.Value.SinglePartitionedProvider
+    public void GetServiceOfStorageOptions_returnsInstanceWithPartitionedStorageProviderFactoryUndefined_NotUsingLocal() =>
+        UnknownProvider.GetService<INamedOptions<StorageOptions>>()?.Value.PartitionedStorageProviderFactory
             .Should().BeNull();
 
     [Test]
     public void GetServiceOfIPartitionedStorage_throwsException_NotUsingSingleProvider() =>
-        UnknownSingleProvider.Invoking(x => x.GetService<IPartitionedStorage<TestKey, object>>())
-            .Should().Throw<ArgumentException>()
-            .WithMessage("Single partitioned storage provider wasn't properly configured.");
+        UnknownProvider.Invoking(x => x.GetService<IPartitionedStorage<TestKey, object>>())
+            .Should().Throw<StorageProviderNotRegisteredException>();
 
     [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithSingleHistoricalProviderUndefined_NotUsingSingleProvider() =>
-        UnknownSingleProvider.GetService<INamedOptions<StorageOptions>>()?.Value.SingleHistoricalProvider
+    public void GetServiceOfStorageOptions_returnsInstanceWithHistoricalStorageProviderFactoryUndefined_NotUsingLocal() =>
+        UnknownProvider.GetService<INamedOptions<StorageOptions>>()?.Value.HistoricalStorageProviderFactory
             .Should().BeNull();
 
     [Test]
-    public void GetServiceOfIHistoricalStorage_throwsException_NotUsingSingleProvider() =>
-        UnknownSingleProvider.Invoking(x => x.GetService<IHistoricalStorage<TestKey, object>>())
-            .Should().Throw<ArgumentException>()
-            .WithMessage("Single historical storage provider wasn't properly configured.");
+    public void GetServiceOfIHistoricalStorage_throwsException_NotUsingLocal() =>
+        UnknownProvider.Invoking(x => x.GetService<IHistoricalStorage<TestKey, object>>())
+            .Should().Throw<StorageProviderNotRegisteredException>();
 
     [Test]
-    public void GetServiceOfStorages_returnsIHistoricalStorageInstanceAndThrowsTheRest_namedScopeDefault()
+    public void GetServiceOfStorages_throwsException_unnamedScope()
     {
         var provider = NamedProvider.CreateAsyncScope().ServiceProvider;
         provider.GetService<IStorage<TestKey, object>>().Should().NotBeNull();
-        provider.Invoking(x => x.GetService<IPartitionedStorage<TestKey, object>>()).Should().Throw<ArgumentException>();
-        provider.Invoking(x => x.GetService<IHistoricalStorage<TestKey, object>>()).Should().Throw<ArgumentException>();
+        provider.GetService<IPartitionedStorage<TestKey, object>>().Should().NotBeNull();
+        provider.GetService<IHistoricalStorage<TestKey, object>>().Should().NotBeNull();
     }
 
     [Test]
-    public void GetServiceOfStorages_returnsIPartitionedStorageInstanceAndThrowsTheRest_namedScope1()
+    public void GetServiceOfStorages_throwsException_namedScope1()
     {
         var provider = NamedProvider.CreateAsyncScopeWithNamedOptionContext("1").ServiceProvider;
-        provider.Invoking(x => x.GetService<IStorage<TestKey, object>>()).Should().Throw<ArgumentException>();
-        provider.GetService<IPartitionedStorage<TestKey, object>>().Should().NotBeNull();
-        provider.Invoking(x => x.GetService<IHistoricalStorage<TestKey, object>>()).Should().Throw<ArgumentException>();
+        provider.Invoking(x => x.GetService<IStorage<TestKey, object>>()).Should().Throw<StoringTypeNotRegisteredException>();
+        provider.Invoking(x => x.GetService<IPartitionedStorage<TestKey, object>>()).Should().Throw<StoringTypeNotRegisteredException>();
+        provider.Invoking(x => x.GetService<IHistoricalStorage<TestKey, object>>()).Should().Throw<StoringTypeNotRegisteredException>();
     }
 
     [Test]
-    public void GetServiceOfStorages_returnsIStorageInstanceAndThrowsTheRest_namedScope2()
+    public void GetServiceOfStorages_throwsException_namedScope2()
     {
         var provider = NamedProvider.CreateAsyncScopeWithNamedOptionContext("2").ServiceProvider;
-        provider.Invoking(x => x.GetService<IStorage<TestKey, object>>()).Should().Throw<ArgumentException>();
-        provider.Invoking(x => x.GetService<IPartitionedStorage<TestKey, object>>()).Should().Throw<ArgumentException>();
-        provider.GetService<IHistoricalStorage<TestKey, object>>().Should().NotBeNull();
+        provider.Invoking(x => x.GetService<IStorage<TestKey, object>>()).Should().Throw<StorageProviderNotRegisteredException>();
+        provider.Invoking(x => x.GetService<IPartitionedStorage<TestKey, object>>()).Should().Throw<StorageProviderNotRegisteredException>();
+        provider.Invoking(x => x.GetService<IHistoricalStorage<TestKey, object>>()).Should().Throw<StorageProviderNotRegisteredException>();
     }
 }
