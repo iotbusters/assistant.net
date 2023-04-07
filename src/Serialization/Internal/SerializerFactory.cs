@@ -26,13 +26,13 @@ public sealed class SerializerFactory : ISerializerFactory
     /// <exception cref="SerializingTypeNotRegisteredException"/>
     public IAbstractSerializer Create(Type serializingType)
     {
-        if (options.SingleSerializer == null)
+        if (options.FormatSerializerFactory == null)
             throw new SerializerNotRegisteredException();
 
-        if(options.IsAnyTypeAllowed || options.Registrations.Contains(serializingType))
-            return options.SingleSerializer.Create(provider, serializingType);
+        if (!options.IsAnyTypeAllowed && !options.Registrations.Contains(serializingType))
+            throw new SerializingTypeNotRegisteredException(serializingType);
 
-        throw new SerializingTypeNotRegisteredException(serializingType);
+        return options.FormatSerializerFactory.Create(provider, serializingType);
     }
 
     /// <inheritdoc/>
