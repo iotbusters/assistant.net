@@ -27,7 +27,7 @@
     <PackageTags>logging logger</PackageTags>
     <Description>Common logging configuration.</Description>
     <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetlogging</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/tree/master/src/Logging</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
