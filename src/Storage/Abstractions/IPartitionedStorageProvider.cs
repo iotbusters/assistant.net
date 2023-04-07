@@ -9,8 +9,7 @@ namespace Assistant.Net.Storage.Abstractions;
 /// <summary>
 ///    A specific data provider abstraction over internal key based value-centric binary partitioned storage.
 /// </summary>
-/// <typeparam name="TValue">A value object type which specific partitioned storage implementation is assigned to.</typeparam>
-public interface IPartitionedStorageProvider<TValue> : IStorageProvider<ValueRecord>
+public interface IPartitionedStorageProvider : IStorageProvider
 {
     /// <summary>
     ///    Adds next indexed value associated to the <paramref name="key"/>.
@@ -46,3 +45,7 @@ public interface IPartitionedStorageProvider<TValue> : IStorageProvider<ValueRec
     /// <returns>A number of removed values.</returns>
     Task<Option<ValueRecord>> TryRemove(KeyRecord key, long upToIndex, CancellationToken token = default);
 }
+
+/// <inheritdoc/>
+/// <typeparam name="TValue">A value object type which specific partitioned storage implementation is assigned to.</typeparam>
+public interface IPartitionedStorageProvider<TValue> : IPartitionedStorageProvider { }

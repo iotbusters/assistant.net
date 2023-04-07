@@ -1,5 +1,4 @@
 ﻿using Assistant.Net.Abstractions;
-using Assistant.Net.Options;
 using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

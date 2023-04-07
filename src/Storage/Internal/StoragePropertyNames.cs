@@ -16,12 +16,12 @@ public static class StoragePropertyNames
     public const string UserName = "user";
 
     /// <summary>
-    ///     Created on property name.
+    ///     Created on date property name.
     /// </summary>
     public const string CreatedName = "created";
 
     /// <summary>
-    ///     Updated on property name.
+    ///     Updated on date property name.
     /// </summary>
     public const string UpdatedName = "updated";
 }

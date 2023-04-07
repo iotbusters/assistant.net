@@ -20,9 +20,9 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
     private readonly ISystemClock clock;
     private readonly string keyType;
     private readonly string valueType;
+    private readonly IHistoricalStorageProvider<TValue> backedStorage;
     private readonly IValueConverter<TKey> keyConverter;
     private readonly IValueConverter<TValue> valueConverter;
-    private readonly IHistoricalStorageProvider<TValue> backedStorage;
 
     /// <exception cref="ArgumentException"/>
     public HistoricalStorage(
@@ -35,9 +35,9 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
         this.clock = clock;
         this.keyType = GetTypeName<TKey>(typeEncoder);
         this.valueType = GetTypeName<TValue>(typeEncoder);
+        this.backedStorage = GetProvider(provider);
         this.keyConverter = GetConverter<TKey>(provider);
         this.valueConverter = GetConverter<TValue>(provider);
-        this.backedStorage = GetProvider(provider);
     }
 
     public async Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory, CancellationToken token)
@@ -57,7 +57,7 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(content, audit);
+                    return new(content, audit);
                 }, token);
             return await valueConverter.Convert(valueRecord.Content, token);
         }
@@ -84,10 +84,10 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(content, audit);
+                    return new(content, audit);
                 }, token);
             var value = await valueConverter.Convert(valueRecord.Content, token);
-            return new HistoricalValue<TValue>(value, valueRecord.Audit.Details, valueRecord.Audit.Version);
+            return new(value, valueRecord.Audit.Details, valueRecord.Audit.Version);
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
@@ -112,7 +112,7 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(content, audit);
+                    return new(content, audit);
                 },
                 updateFactory: async (_, old) =>
                 {
@@ -125,7 +125,7 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(content, audit);
+                    return new(content, audit);
                 },
                 token);
             return await valueConverter.Convert(valueRecord.Content, token);
@@ -153,7 +153,7 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(content, audit);
+                    return new(content, audit);
                 },
                 updateFactory: async (_, old) =>
                 {
@@ -168,11 +168,11 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(content, audit);
+                    return new(content, audit);
                 },
                 token);
             var value = await valueConverter.Convert(valueRecord.Content, token);
-            return new HistoricalValue<TValue>(value, valueRecord.Audit.Details, valueRecord.Audit.Version);
+            return new(value, valueRecord.Audit.Details, valueRecord.Audit.Version);
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
@@ -289,27 +289,28 @@ internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, T
     }
 
     private static string GetTypeName<T>(ITypeEncoder typeEncoder) =>
-        typeEncoder.Encode(typeof(T)) ?? throw new ArgumentException($"Type({typeof(T).Name}) isn't supported.");
+        typeEncoder.Encode(typeof(T)) ?? throw new StorageException($"Type({typeof(T)}) isn't supported.");
 
     private static IHistoricalStorageProvider<TValue> GetProvider(IServiceProvider provider)
     {
         var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
-        if (!options.HistoricalProviders.TryGetValue(typeof(TValue), out var factory)
-            && options.AnyHistoricalProvider == null)
-            throw new ArgumentException($"HistoricalStorage({typeof(TValue).Name}) wasn't properly configured.");
 
-        var storageProvider = factory?.Create(provider) ?? options.AnyHistoricalProvider!.Create(provider, typeof(TValue));
-        return (IHistoricalStorageProvider<TValue>)storageProvider;
+        if (options.HistoricalStorageProviderFactory == null)
+            throw new StorageProviderNotRegisteredException();
+
+        if (!options.IsAnyTypeAllowed && !options.Registrations.Contains(typeof(TValue)))
+            throw new StoringTypeNotRegisteredException(typeof(TValue));
+
+        return (IHistoricalStorageProvider<TValue>)options.HistoricalStorageProviderFactory.Create(provider, typeof(TValue));
     }
 
     private static IValueConverter<T> GetConverter<T>(IServiceProvider provider)
     {
         var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
 
-        if (options.DefaultConverters.TryGetValue(typeof(T), out var defaultFactory))
-            return (IValueConverter<T>)defaultFactory.Create(provider);
+        if (options.Converters.TryGetValue(typeof(T), out var factory))
+            return (IValueConverter<T>)factory.Create(provider);
 
-        return provider.GetService<IValueConverter<T>>()
-               ?? throw new ArgumentException($"ValueConverter({typeof(T).Name}) wasn't properly configured.");
+        return provider.GetService<IValueConverter<T>>() ?? throw new ConverterNotRegisteredException(typeof(T));
     }
 }

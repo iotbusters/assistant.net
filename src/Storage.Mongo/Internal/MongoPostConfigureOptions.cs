@@ -45,7 +45,7 @@ internal class MongoPostConfigureOptions : IPostConfigureOptions<MongoOptions>
         {
             var indexKeysDefinition = configure(Builders<T>.IndexKeys);
             collection.Indexes.CreateOne(
-                new CreateIndexModel<T>(indexKeysDefinition),
+                new(indexKeysDefinition),
                 new CreateOneIndexOptions());
         }
         catch (Exception ex)

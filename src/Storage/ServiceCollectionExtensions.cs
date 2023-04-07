@@ -21,19 +21,7 @@ public static class ServiceCollectionExtensions
     ///     Adds storage implementation, required services and defaults.
     /// </summary>
     public static IServiceCollection AddStorage(this IServiceCollection services) => services
-        .AddLogging()
-        .AddSystemClock()
-        .AddDiagnostics()
-        .AddTypeEncoder()
-        .AddSerializer()
-        .AddNamedOptionsContext()
-        .TryAddScoped(typeof(IStorage<,>), typeof(Storage<,>))
-        .TryAddScoped(typeof(IAdminStorage<,>), typeof(Storage<,>))
-        .TryAddScoped(typeof(IHistoricalStorage<,>), typeof(HistoricalStorage<,>))
-        .TryAddScoped(typeof(IHistoricalAdminStorage<,>), typeof(HistoricalStorage<,>))
-        .TryAddScoped(typeof(IPartitionedStorage<,>), typeof(PartitionedStorage<,>))
-        .TryAddScoped(typeof(IPartitionedAdminStorage<,>), typeof(PartitionedStorage<,>))
-        .TryAddScoped(typeof(IValueConverter<>), typeof(TypedValueConverter<>));
+        .AddStorage(delegate { });
 
     /// <summary>
     ///     Adds common services required by storage implementation.
@@ -44,9 +32,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services"/>
     /// <param name="configure">The action used to configure default option instances.</param>
     public static IServiceCollection AddStorage(this IServiceCollection services, Action<StorageBuilder> configure) => services
-        .AddStorage()
-        .ConfigureStorage(b => b.AddConfiguration<DefaultConverterConfiguration>())
-        .ConfigureStorage(configure);
+        .AddStorage(Microsoft.Extensions.Options.Options.DefaultName, configure);
 
     /// <summary>
     ///     Adds common services required by storage implementation.
@@ -58,8 +44,19 @@ public static class ServiceCollectionExtensions
     /// <param name="name">The name of the options instance.</param>
     /// <param name="configure">The action used to configure option instances.</param>
     public static IServiceCollection AddStorage(this IServiceCollection services, string name, Action<StorageBuilder> configure) => services
-        .AddSerializer(name, delegate { })
-        .AddStorage()
+        .AddLogging()
+        .AddSystemClock()
+        .AddDiagnostics()
+        .AddTypeEncoder()
+        .AddNamedOptionsContext()
+        .TryAddScoped(typeof(IStorage<,>), typeof(Storage<,>))
+        .TryAddScoped(typeof(IAdminStorage<,>), typeof(Storage<,>))
+        .TryAddScoped(typeof(IHistoricalStorage<,>), typeof(HistoricalStorage<,>))
+        .TryAddScoped(typeof(IHistoricalAdminStorage<,>), typeof(HistoricalStorage<,>))
+        .TryAddScoped(typeof(IPartitionedStorage<,>), typeof(PartitionedStorage<,>))
+        .TryAddScoped(typeof(IPartitionedAdminStorage<,>), typeof(PartitionedStorage<,>))
+        .TryAddScoped(typeof(IValueConverter<>), typeof(TypedValueConverter<>))
+        .AddSerializer(name, b => b.UseJson())
         .ConfigureStorage(name, b => b.AddConfiguration<DefaultConverterConfiguration>())
         .ConfigureStorage(name, configure);
 
@@ -79,7 +76,7 @@ public static class ServiceCollectionExtensions
     /// <param name="configure">The action used to configure option instances.</param>
     public static IServiceCollection ConfigureStorage(this IServiceCollection services, string name, Action<StorageBuilder> configure)
     {
-        configure(new StorageBuilder(services, name));
+        configure(new(services, name));
         return services;
     }
 

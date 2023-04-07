@@ -106,7 +106,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
                     return Task.FromResult(new ValueRecord(content, audit));
                 },
                 token);
-            return new PartitionValue<TValue>(value.Value, valueRecord.Audit.Details, valueRecord.Audit.Version);
+            return new(value.Value, valueRecord.Audit.Details, valueRecord.Audit.Version);
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
@@ -191,27 +191,28 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
     }
 
     private static string GetTypeName<T>(ITypeEncoder typeEncoder) =>
-        typeEncoder.Encode(typeof(T)) ?? throw new ArgumentException($"Type({typeof(T).Name}) isn't supported.");
+        typeEncoder.Encode(typeof(T)) ?? throw new StorageException($"Type({typeof(T)}) isn't supported.");
 
     private static IPartitionedStorageProvider<TValue> GetProvider(IServiceProvider provider)
     {
         var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
-        if(!options.PartitionedProviders.TryGetValue(typeof(TValue), out var factory)
-           && options.AnyPartitionedProvider == null)
-            throw new ArgumentException($"PartitionedStorage({typeof(TValue).Name}) wasn't properly configured.");
 
-        var storageProvider = factory?.Create(provider) ?? options.AnyPartitionedProvider!.Create(provider, typeof(TValue));
-        return (IPartitionedStorageProvider<TValue>)storageProvider;
+        if (options.PartitionedStorageProviderFactory == null)
+            throw new StorageProviderNotRegisteredException();
+
+        if (!options.IsAnyTypeAllowed && !options.Registrations.Contains(typeof(TValue)))
+            throw new StoringTypeNotRegisteredException(typeof(TValue));
+
+        return (IPartitionedStorageProvider<TValue>)options.PartitionedStorageProviderFactory.Create(provider, typeof(TValue));
     }
 
     private static IValueConverter<T> GetConverter<T>(IServiceProvider provider)
     {
         var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
 
-        if (options.DefaultConverters.TryGetValue(typeof(T), out var defaultFactory))
-            return (IValueConverter<T>)defaultFactory.Create(provider);
+        if (options.Converters.TryGetValue(typeof(T), out var factory))
+            return (IValueConverter<T>)factory.Create(provider);
 
-        return provider.GetService<IValueConverter<T>>()
-               ?? throw new ArgumentException($"ValueConverter({typeof(T).Name}) wasn't properly configured.");
+        return provider.GetService<IValueConverter<T>>() ?? throw new ConverterNotRegisteredException(typeof(T));
     }
 }

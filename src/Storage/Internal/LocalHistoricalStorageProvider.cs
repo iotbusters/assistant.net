@@ -23,7 +23,7 @@ internal sealed class LocalHistoricalStorageProvider<TValue> : IHistoricalStorag
         while (!versions.TryGetValue(versions.Keys.DefaultIfEmpty(0).Max(), out currentVersion))
         {
             var added = addFactory(key).ConfigureAwait(false).GetAwaiter().GetResult();
-            versions.TryAdd(1, added with { Audit = new Audit(added.Audit.Details, version: 1) });
+            versions.TryAdd(1, added with { Audit = new(added.Audit.Details, version: 1) });
         }
 
         return Task.FromResult(currentVersion);

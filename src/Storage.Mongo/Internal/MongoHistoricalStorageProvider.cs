@@ -54,7 +54,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
             var added = await addFactory(key);
             var inserted = new MongoVersionedRecord(
-                new KeyVersion(keyId, added.Audit.Version),
+                new(keyId, added.Audit.Version),
                 key.Type,
                 key.Content,
                 added.Content,
@@ -98,7 +98,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
                 : await updateFactory(key, found);
 
             var record = new MongoVersionedRecord(
-                new KeyVersion(keyId, value.Audit.Version),
+                new(keyId, value.Audit.Version),
                 key.Type,
                 key.Content,
                 value.Content,
@@ -250,7 +250,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
     {
         logger.LogInformation("Storage.GetKeys(): begins.");
 
-        using var cursor = await collection.AsQueryable(new AggregateOptions())
+        using var cursor = await collection.AsQueryable(new())
             .Select(x => new KeyRecord(x.Key.Key.Id, x.KeyType, x.Key.Key.ValueType, x.KeyContent))
             .Where(predicate)
             .Distinct()
@@ -266,7 +266,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
     {
         logger.LogDebug("MongoDB({@Key}, 1..latest) finding: begins.", key);
 
-        var found = await collection.Find(x => x.Key.Key == key, new FindOptions())
+        var found = await collection.Find(x => x.Key.Key == key, new())
             .Limit(1)
             .Sort(new SortDefinitionBuilder<MongoVersionedRecord>().Descending(x => x.Key.Version))
             .SingleOrDefaultAsync(token);
@@ -285,7 +285,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
     {
         logger.LogDebug("MongoDB({@Key}, 1..{Version}) finding: begins.", key, upToVersion);
 
-        var found = await collection.Find(x => x.Key.Key == key && x.Key.Version <= upToVersion, new FindOptions())
+        var found = await collection.Find(x => x.Key.Key == key && x.Key.Version <= upToVersion, new())
             .Sort(new SortDefinitionBuilder<MongoVersionedRecord>().Descending(x => x.Key.Version))
             .Limit(1)
             .SingleOrDefaultAsync(token);
@@ -306,7 +306,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
 
         logger.LogDebug("MongoDB({@Key}, {Version}) finding: begins.", key, version);
 
-        var found = await collection.Find(x => x.Key == keyVersion, new FindOptions())
+        var found = await collection.Find(x => x.Key == keyVersion, new())
             .Limit(1)
             .SingleOrDefaultAsync(token);
 
@@ -321,7 +321,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
     }
 
     private static ValueRecord ToValue(MongoVersionedRecord record) =>
-        new(record.ValueContent, new Audit(record.Details, record.Key.Version));
+        new(record.ValueContent, new(record.Details, record.Key.Version));
 
     private async Task<bool> InsertOne(MongoVersionedRecord record, CancellationToken token)
     {
@@ -330,7 +330,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
         {
             await collection.InsertOneAsync(
                 record,
-                new InsertOneOptions(),
+                new(),
                 token);
             logger.LogDebug("MongoDB({@Key}, {Version}) inserting: ends.", record.Key.Key, record.Key.Version);
             return true;
@@ -347,7 +347,7 @@ internal class MongoHistoricalStorageProvider<TValue> : IHistoricalStorageProvid
         logger.LogDebug("MongoDB({@Key}, 1..{Version}) deleting: begins.", key, upToVersion);
 
         var deleted = await collection.DeleteManyAsync(x =>
-            x.Key.Key == key && x.Key.Version <= upToVersion, new DeleteOptions(), token);
+            x.Key.Key == key && x.Key.Version <= upToVersion, new(), token);
 
         logger.LogDebug("MongoDB({@Key}, 1..{Version}) deleting: ends with {DeletedCount}.",
             key, upToVersion, deleted.DeletedCount);

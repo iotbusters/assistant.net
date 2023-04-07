@@ -1,4 +1,5 @@
 ﻿using Assistant.Net.Options;
+using Assistant.Net.Storage.Abstractions;
 using System;
 using System.Collections.Generic;
 
@@ -12,50 +13,30 @@ public sealed class StorageOptions
     /// <summary>
     ///     Default type value converter factories.
     /// </summary>
-    public Dictionary<Type, InstanceFactory<object>> DefaultConverters { get; } = new();
+    public Dictionary<Type, InstanceFactory<object>> Converters { get; } = new();
 
     /// <summary>
-    ///     Specific type regular storage provider factories.
+    ///     Specific storing type registrations.
     /// </summary>
-    public Dictionary<Type, InstanceFactory<object>> Providers { get; } = new();
+    public HashSet<Type> Registrations { get; } = new();
 
     /// <summary>
-    ///     Specific type historical storage provider factories.
+    ///     Determine if any type is allowed despite configured <see cref="Registrations"/>.
     /// </summary>
-    public Dictionary<Type, InstanceFactory<object>> HistoricalProviders { get; } = new();
+    public bool IsAnyTypeAllowed { get; internal set; }
 
     /// <summary>
-    ///     Specific type partitioned storage provider factories.
+    ///     Specific type regular storage provider factory.
     /// </summary>
-    public Dictionary<Type, InstanceFactory<object>> PartitionedProviders { get; } = new();
+    public InstanceFactory<IStorageProvider, Type>? StorageProviderFactory { get; internal set; } = null!;
 
     /// <summary>
-    ///     Any other type regular storage provider factories except defined in <see cref="Providers"/>.
+    ///     Specific type historical storage provider factory.
     /// </summary>
-    public InstanceFactory<object, Type>? AnyProvider { get; internal set; }
+    public InstanceFactory<IHistoricalStorageProvider, Type>? HistoricalStorageProviderFactory { get; internal set; } = null!;
 
     /// <summary>
-    ///     Any other type historical storage provider factories except defined in <see cref="HistoricalProviders"/>.
+    ///     Specific type partitioned storage provider factory.
     /// </summary>
-    public InstanceFactory<object, Type>? AnyHistoricalProvider { get; internal set; }
-
-    /// <summary>
-    ///     Any other type partitioned storage provider factories except defined in <see cref="PartitionedProviders"/>.
-    /// </summary>
-    public InstanceFactory<object, Type>? AnyPartitionedProvider { get; internal set; }
-
-    /// <summary>
-    ///     Single regular storage provider factory.
-    /// </summary>
-    public InstanceFactory<object, Type>? SingleProvider { get; internal set; }
-
-    /// <summary>
-    ///     Single historical storage provider factory.
-    /// </summary>
-    public InstanceFactory<object, Type>? SingleHistoricalProvider { get; internal set; }
-
-    /// <summary>
-    ///     Single partitioned storage provider factory.
-    /// </summary>
-    public InstanceFactory<object, Type>? SinglePartitionedProvider { get; internal set; }
+    public InstanceFactory<IPartitionedStorageProvider, Type>? PartitionedStorageProviderFactory { get; internal set; } = null!;
 }

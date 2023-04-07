@@ -11,8 +11,7 @@ namespace Assistant.Net.Storage.Abstractions;
 /// <summary>
 ///    An abstraction over internal key based value-centric binary storage provider.
 /// </summary>
-/// <typeparam name="TValue">A value object type which specific storage implementation is assigned to.</typeparam>
-public interface IStorageProvider<TValue> : IStorage<KeyRecord, ValueRecord>
+public interface IStorageProvider : IStorage<KeyRecord, ValueRecord>
 {
     /// <summary>
     ///     Iterates keys of the storage.
@@ -30,3 +29,7 @@ public interface IStorageProvider<TValue> : IStorage<KeyRecord, ValueRecord>
     /// <returns>A removed value if it was found.</returns>
     Task<Option<ValueRecord>> TryRemove(KeyRecord key, CancellationToken token = default);
 }
+
+/// <inheritdoc/>
+/// <typeparam name="TValue">A value object type which specific storage implementation is assigned to.</typeparam>
+public interface IStorageProvider<TValue> : IStorageProvider { }
