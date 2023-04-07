@@ -1,7 +1,7 @@
 ﻿# assistant.net.serialization
 
-Generic serialization mechanism with flexible type/format configuration.
-See specific format implementation packages like [assistant.net.serialization.*](https://www.nuget.org/packages?q=assistant.net.serialization.).
+Common serializer implementation regardless using specific type/format.
+See currently implemented format packages like [assistant.net.serialization.*](https://www.nuget.org/packages?q=assistant.net.serialization.).
 
 ## Configuration
 

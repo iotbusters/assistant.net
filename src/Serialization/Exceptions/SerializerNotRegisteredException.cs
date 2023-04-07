@@ -11,5 +11,5 @@ public class SerializerNotRegisteredException : Exception
     public SerializerNotRegisteredException(string message) : base(message) { }
 
     /// <summary/>
-    public SerializerNotRegisteredException() : base("Single format serializer wasn't registered.") { }
+    public SerializerNotRegisteredException() : base("Specific format serializer wasn't registered.") { }
 }

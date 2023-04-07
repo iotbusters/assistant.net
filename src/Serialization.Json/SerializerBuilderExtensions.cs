@@ -18,7 +18,7 @@ public static class SerializerBuilderExtensions
     ///     Configures single JSON serializer.
     /// </summary>
     public static SerializerBuilder UseJson(this SerializerBuilder builder) => builder
-        .UseJson(delegate{});
+        .UseJson(delegate { });
 
     /// <summary>
     ///     Configures single JSON serializer.
@@ -26,11 +26,12 @@ public static class SerializerBuilderExtensions
     public static SerializerBuilder UseJson(this SerializerBuilder builder, Action<JsonSerializerOptions> configureOptions)
     {
         builder.Services.ConfigureJsonSerializer(builder.Name, configureOptions);
-        return builder.UseFormat((provider, serializingType) =>
-        {
-            var implementationType = typeof(DefaultJsonSerializer<>).MakeGenericType(serializingType);
-            return (IAbstractSerializer)provider.Create(implementationType);
-        });
+        return builder
+            .UseFormat((provider, serializingType) =>
+            {
+                var implementationType = typeof(DefaultJsonSerializer<>).MakeGenericType(serializingType);
+                return (IAbstractSerializer)provider.Create(implementationType);
+            });
     }
 
     /// <summary>

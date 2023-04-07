@@ -16,9 +16,9 @@ public sealed class SerializerOptions
     public HashSet<Type> Registrations { get; } = new();
 
     /// <summary>
-    ///     Single format serializer instance used for serialization under the scope.
+    ///     Format serializer instance factory used for serialization under the scope.
     /// </summary>
-    public InstanceFactory<IAbstractSerializer, Type>? SingleSerializer { get; internal set; }
+    public InstanceFactory<IAbstractSerializer, Type>? FormatSerializerFactory { get; internal set; }
 
     /// <summary>
     ///     Determine if any serializing type is allowed despite configured <see cref="Registrations"/>.

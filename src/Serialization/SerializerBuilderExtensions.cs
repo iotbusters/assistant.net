@@ -22,7 +22,7 @@ public static class SerializerBuilderExtensions
         builder.Services.ConfigureSerializerOptions(builder.Name, o =>
         {
             var factory = new InstanceCachingFactory<IAbstractSerializer, Type>(serializerFactory);
-            o.SingleSerializer = factory;
+            o.FormatSerializerFactory = factory;
         });
         return builder;
     }
@@ -69,7 +69,6 @@ public static class SerializerBuilderExtensions
     /// <summary>
     ///     Removes <typeparamref name="TValue"/> type serialization.
     /// </summary>
-    /// <typeparam name="TValue">Serializing value type.</typeparam>
     public static SerializerBuilder RemoveType<TValue>(this SerializerBuilder builder) => builder
         .RemoveType(typeof(TValue));
 
