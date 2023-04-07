@@ -17,6 +17,10 @@ namespace Assistant.Net.Utils;
 /// </summary>
 public static class HashExtensions
 {
+    private static readonly Lazy<SHA1> sha1 = new(SHA1.Create, isThreadSafe: true);
+    private static readonly Lazy<SHA256> sha256 = new(SHA256.Create, isThreadSafe: true);
+    private static readonly Lazy<MD5> md5 = new(MD5.Create, isThreadSafe: true);
+
     /// <summary>
     ///     Generates <see cref="SHA1"/> hash code from <paramref name="stream"/>.
     /// </summary>
@@ -26,9 +30,8 @@ public static class HashExtensions
         if (stream == null)
             throw new ArgumentNullException(nameof(stream));
 
-        using var sha = SHA1.Create();
         stream.Position = 0;
-        var hash = sha.ComputeHash(stream);
+        var hash = sha1.Value.ComputeHash(stream);
         return Convert.ToBase64String(hash);
     }
 
@@ -41,8 +44,7 @@ public static class HashExtensions
         if (bytes == null)
             throw new ArgumentNullException(nameof(bytes));
 
-        using var sha = SHA1.Create();
-        var hash = sha.ComputeHash(bytes);
+        var hash = sha1.Value.ComputeHash(bytes);
         return Convert.ToBase64String(hash);
     }
 
@@ -67,6 +69,106 @@ public static class HashExtensions
         using Stream stream = new MemoryStream();
         stream.Write(value);
         return stream.GetSha1();
+    }
+
+    /// <summary>
+    ///     Generates <see cref="SHA256"/> hash code from <paramref name="stream"/>.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
+    public static string GetSha256(this Stream stream)
+    {
+        if (stream == null)
+            throw new ArgumentNullException(nameof(stream));
+
+        stream.Position = 0;
+        var hash = sha256.Value.ComputeHash(stream);
+        return Convert.ToBase64String(hash);
+    }
+
+    /// <summary>
+    ///     Generates <see cref="SHA256"/> hash code from <paramref name="bytes"/>.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
+    public static string GetSha256(this byte[] bytes)
+    {
+        if (bytes == null)
+            throw new ArgumentNullException(nameof(bytes));
+
+        var hash = sha256.Value.ComputeHash(bytes);
+        return Convert.ToBase64String(hash);
+    }
+
+    /// <summary>
+    ///     Generates <see cref="SHA256"/> hash code from <paramref name="text"/>.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
+    public static string GetSha256(this string text) =>
+        text != null
+            ? Encoding.UTF8.GetBytes(text).GetSha256()
+            : throw new ArgumentNullException(nameof(text));
+
+    /// <summary>
+    ///     Generates <see cref="SHA256"/> hash code from <paramref name="value"/>.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
+    public static string GetSha256<T>(this T value)
+    {
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
+
+        using Stream stream = new MemoryStream();
+        stream.Write(value);
+        return stream.GetSha256();
+    }
+
+    /// <summary>
+    ///     Generates <see cref="MD5"/> hash code from <paramref name="stream"/>.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
+    public static string GetMd5(this Stream stream)
+    {
+        if (stream == null)
+            throw new ArgumentNullException(nameof(stream));
+
+        stream.Position = 0;
+        var hash = md5.Value.ComputeHash(stream);
+        return Convert.ToBase64String(hash);
+    }
+
+    /// <summary>
+    ///     Generates <see cref="MD5"/> hash code from <paramref name="bytes"/>.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
+    public static string GetMd5(this byte[] bytes)
+    {
+        if (bytes == null)
+            throw new ArgumentNullException(nameof(bytes));
+
+        var hash = md5.Value.ComputeHash(bytes);
+        return Convert.ToBase64String(hash);
+    }
+
+    /// <summary>
+    ///     Generates <see cref="MD5"/> hash code from <paramref name="text"/>.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
+    public static string GetMd5(this string text) =>
+        text != null
+            ? Encoding.UTF8.GetBytes(text).GetMd5()
+            : throw new ArgumentNullException(nameof(text));
+
+    /// <summary>
+    ///     Generates <see cref="MD5"/> hash code from <paramref name="value"/>.
+    /// </summary>
+    /// <exception cref="ArgumentNullException"/>
+    public static string GetMd5<T>(this T value)
+    {
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
+
+        using Stream stream = new MemoryStream();
+        stream.Write(value);
+        return stream.GetMd5();
     }
 
     private static void Write<T>(this Stream stream, T value)

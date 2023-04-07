@@ -38,7 +38,7 @@
     <PackageTags>common</PackageTags>
     <Description>Common system tools.</Description>
     <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetcore</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/tree/master/src/Core</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
