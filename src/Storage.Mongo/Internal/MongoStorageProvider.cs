@@ -156,7 +156,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
     {
         logger.LogInformation("Storage.GetKeys(): begins.");
 
-        using var cursor = await collection.Aggregate(new AggregateOptions())
+        using var cursor = await collection.Aggregate(new())
             .Project(x => new KeyRecord(x.Key.Id, x.KeyType, x.Key.ValueType, x.KeyContent))
             .Match(predicate)
             .ToCursorAsync(token);
@@ -171,14 +171,14 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
     {
         logger.LogDebug("MongoDB({@Key}) finding: begins.", key);
 
-        var found = await collection.Find(filter: x => x.Key == key, new FindOptions()).SingleOrDefaultAsync(token);
+        var found = await collection.Find(filter: x => x.Key == key, new()).SingleOrDefaultAsync(token);
 
         if (found != null)
             logger.LogDebug("MongoDB({@Key}, {Version}) finding: ends.", key, found.Version);
         else
             logger.LogDebug("MongoDB({@Key}) finding: not found.", key);
 
-        return found.AsOption().MapOption(x => new ValueRecord(x.ValueContent, new Audit(x.Details, x.Version)));
+        return found.AsOption().MapOption(x => new ValueRecord(x.ValueContent, new(x.Details, x.Version)));
     }
 
     private async Task<bool> InsertOne(MongoRecord record, CancellationToken token)
@@ -187,7 +187,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
 
         try
         {
-            await collection.InsertOneAsync(record, new InsertOneOptions(), token);
+            await collection.InsertOneAsync(record, new(), token);
 
             logger.LogDebug("MongoDB({@Key}, {Version}) inserting: ends.", record.Key, record.Version);
             return true;
@@ -223,7 +223,7 @@ internal class MongoStorageProvider<TValue> : IStorageProvider<TValue>
             new FindOneAndDeleteOptions<MongoRecord, ValueRecord>
             {
                 Projection = new FindExpressionProjectionDefinition<MongoRecord, ValueRecord>(x =>
-                    new ValueRecord(x.ValueContent, new Audit(x.Details, x.Version)))
+                    new(x.ValueContent, new(x.Details, x.Version)))
             },
             token);
 

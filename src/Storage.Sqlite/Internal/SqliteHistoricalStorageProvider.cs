@@ -317,7 +317,7 @@ internal class SqliteHistoricalStorageProvider<TValue> : IHistoricalStorageProvi
     }
 
     private static ValueRecord ToValue(HistoricalValueRecord record) =>
-        new(record.ValueContent, new Audit(record.Details.FromDetailArray(), record.Version));
+        new(record.ValueContent, new(record.Details.FromDetailArray(), record.Version));
 
     private async Task<bool> InsertValue(StorageDbContext context, KeyRecord key, ValueRecord value, CancellationToken token)
     {

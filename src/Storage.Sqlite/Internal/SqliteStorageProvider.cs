@@ -205,7 +205,7 @@ internal class SqliteStorageProvider<TValue> : IStorageProvider<TValue>
     private StorageDbContext CreateDbContext() => dbContextFactory.CreateDbContext();
 
     private static ValueRecord ToValue(StorageValueRecord record) =>
-        new(record.ValueContent, new Audit(record.Details.FromDetailArray(), record.Version));
+        new(record.ValueContent, new(record.Details.FromDetailArray(), record.Version));
 
     private async Task<Option<StorageValueRecord>> FindValue(IQueryable<StorageValueRecord> values, KeyRecord key, CancellationToken token)
     {

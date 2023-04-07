@@ -9,7 +9,7 @@ internal class TypedValueConverter<TValue> : IValueConverter<TValue>
 {
     private readonly ISerializer<TValue> serializer;
 
-    public TypedValueConverter(ISerializer<TValue> serializer) => this.serializer = serializer;
+    public TypedValueConverter(ISerializerFactory factory) => this.serializer = factory.Create<TValue>();
 
     public Task<byte[]> Convert(TValue value, CancellationToken token) => serializer.Serialize(value, token);
 

@@ -20,9 +20,9 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     private readonly ISystemClock clock;
     private readonly string keyType;
     private readonly string valueType;
+    private readonly IStorageProvider<TValue> backedStorage;
     private readonly IValueConverter<TKey> keyConverter;
     private readonly IValueConverter<TValue> valueConverter;
-    private readonly IStorageProvider<TValue> backedStorage;
 
     /// <exception cref="ArgumentException"/>
     public Storage(
@@ -35,9 +35,9 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
         this.clock = clock;
         this.keyType = GetTypeName<TKey>(typeEncoder);
         this.valueType = GetTypeName<TValue>(typeEncoder);
+        this.backedStorage = GetProvider(provider);
         this.keyConverter = GetConverter<TKey>(provider);
         this.valueConverter = GetConverter<TValue>(provider);
-        this.backedStorage = GetProvider(provider);
     }
 
     public async Task<TValue> AddOrGet(TKey key, Func<TKey, Task<TValue>> addFactory, CancellationToken token)
@@ -57,7 +57,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(content, audit);
+                    return new(content, audit);
                 }, token);
             return await valueConverter.Convert(valueRecord.Content, token);
         }
@@ -84,10 +84,10 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(content, audit);
+                    return new(content, audit);
                 }, token);
             var value = await valueConverter.Convert(valueRecord.Content, token);
-            return new StorageValue<TValue>(value, valueRecord.Audit.Details);
+            return new(value, valueRecord.Audit.Details);
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
@@ -112,7 +112,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(content, audit);
+                    return new(content, audit);
                 },
                 updateFactory: async (_, old) =>
                 {
@@ -125,7 +125,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(content, audit);
+                    return new(content, audit);
                 },
                 token);
             return await valueConverter.Convert(valueRecord.Content, token);
@@ -153,7 +153,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(content, audit);
+                    return new(content, audit);
                 },
                 updateFactory: async (_, old) =>
                 {
@@ -168,11 +168,11 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
                         User = diagnosticContext.User,
                         Created = clock.UtcNow
                     };
-                    return new ValueRecord(content, audit);
+                    return new(content, audit);
                 },
                 token);
             var value = await valueConverter.Convert(valueRecord.Content, token);
-            return new StorageValue<TValue>(value, valueRecord.Audit.Details);
+            return new(value, valueRecord.Audit.Details);
         }
         catch (Exception ex) when (ex is not StorageException and not OperationCanceledException)
         {
@@ -239,27 +239,28 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     }
 
     private static string GetTypeName<T>(ITypeEncoder typeEncoder) =>
-        typeEncoder.Encode(typeof(T)) ?? throw new ArgumentException($"Type({typeof(T).Name}) isn't supported.");
-    
+        typeEncoder.Encode(typeof(T)) ?? throw new StorageException($"Type({typeof(T).Name}) isn't supported.");
+
     private static IStorageProvider<TValue> GetProvider(IServiceProvider provider)
     {
         var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
-        if (!options.Providers.TryGetValue(typeof(TValue), out var factory)
-            && options.AnyProvider == null)
-            throw new ArgumentException($"Storage({typeof(TValue).Name}) wasn't properly configured.");
 
-        var storageProvider = factory?.Create(provider) ?? options.AnyProvider!.Create(provider, typeof(TValue));
-        return (IStorageProvider<TValue>)storageProvider;
+        if (options.StorageProviderFactory == null)
+            throw new StorageProviderNotRegisteredException();
+
+        if (!options.IsAnyTypeAllowed && !options.Registrations.Contains(typeof(TValue)))
+            throw new StoringTypeNotRegisteredException(typeof(TValue));
+
+        return (IStorageProvider<TValue>)options.StorageProviderFactory.Create(provider, typeof(TValue));
     }
 
     private static IValueConverter<T> GetConverter<T>(IServiceProvider provider)
     {
         var options = provider.GetRequiredService<INamedOptions<StorageOptions>>().Value;
 
-        if (options.DefaultConverters.TryGetValue(typeof(T), out var defaultFactory))
-            return (IValueConverter<T>)defaultFactory.Create(provider);
+        if (options.Converters.TryGetValue(typeof(T), out var factory))
+            return (IValueConverter<T>)factory.Create(provider);
 
-        return provider.GetService<IValueConverter<T>>()
-               ?? throw new ArgumentException($"ValueConverter({typeof(T).Name}) wasn't properly configured.");
+        return provider.GetService<IValueConverter<T>>() ?? throw new ConverterNotRegisteredException(typeof(T));
     }
 }

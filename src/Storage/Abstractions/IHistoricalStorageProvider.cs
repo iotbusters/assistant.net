@@ -8,8 +8,7 @@ namespace Assistant.Net.Storage.Abstractions;
 /// <summary>
 ///    A specific data provider abstraction over internal key based value-centric binary storage.
 /// </summary>
-/// <typeparam name="TValue">A value object type which specific storage implementation is assigned to.</typeparam>
-public interface IHistoricalStorageProvider<TValue> : IStorageProvider<TValue>
+public interface IHistoricalStorageProvider : IStorageProvider
 {
     /// <summary>
     ///     Tries to find a value associated to the <paramref name="key"/>.
@@ -29,3 +28,7 @@ public interface IHistoricalStorageProvider<TValue> : IStorageProvider<TValue>
     /// <returns>A number of removed value versions.</returns>
     Task<Option<ValueRecord>> TryRemove(KeyRecord key, long upToVersion, CancellationToken token = default);
 }
+
+/// <inheritdoc/>
+/// <typeparam name="TValue">A value object type which specific storage implementation is assigned to.</typeparam>
+public interface IHistoricalStorageProvider<TValue> : IHistoricalStorageProvider { }

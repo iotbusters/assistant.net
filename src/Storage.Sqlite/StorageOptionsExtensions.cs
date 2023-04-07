@@ -1,8 +1,7 @@
-﻿using Assistant.Net.Options;
+﻿using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Internal;
 using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace Assistant.Net.Storage;
 
@@ -11,115 +10,26 @@ namespace Assistant.Net.Storage;
 /// </summary>
 public static class StorageOptionsExtensions
 {
-    private static readonly Type sqliteProviderType = typeof(SqliteStorageProvider<>);
-    private static readonly Type sqliteHistoricalProviderType = typeof(SqliteHistoricalStorageProvider<>);
-    private static readonly Type sqlitePartitionedProviderType = typeof(SqlitePartitionedStorageProvider<>);
-
     /// <summary>
-    ///     Configures storage to use a SQLite single provider implementation.
+    ///     Configures storage to use a SQLite storage provider implementation factories.
     /// </summary>
     /// <remarks>
-    ///     Pay attention, the method overrides already registered single provider.
+    ///     Pay attention, the method overrides already registered storage provider factories.
     /// </remarks>
-    public static StorageOptions UseSqliteSingleProvider(this StorageOptions options) => options
-        .UseSingleProvider((p, valueType) =>
+    public static StorageOptions UseSqlite(this StorageOptions options) => options
+        .UseStorage((p, valueType) =>
         {
-            var implementationType = sqliteProviderType.MakeGenericType(valueType);
-            return p.GetRequiredService(implementationType);
-        }).UseSingleHistoricalProvider((p, valueType) =>
+            var implementationType = typeof(SqliteStorageProvider<>).MakeGenericType(valueType);
+            return (IStorageProvider)p.GetRequiredService(implementationType);
+        })
+        .UseHistoricalStorage((p, valueType) =>
         {
-            var implementationType = sqliteHistoricalProviderType.MakeGenericType(valueType);
-            return p.GetRequiredService(implementationType);
-        }).UseSinglePartitionedProvider((p, valueType) =>
+            var implementationType = typeof(SqliteHistoricalStorageProvider<>).MakeGenericType(valueType);
+            return (IHistoricalStorageProvider)p.GetRequiredService(implementationType);
+        })
+        .UsePartitionedStorage((p, valueType) =>
         {
-            var implementationType = sqlitePartitionedProviderType.MakeGenericType(valueType);
-            return p.GetRequiredService(implementationType);
-        });
-
-    /// <summary>
-    ///     Registers SQLite storage provider of <paramref name="valueType"/>.
-    /// </summary>
-    /// <remarks>
-    ///     Pay attention, the method overrides already registered provider.
-    /// </remarks>
-    public static StorageOptions AddSqlite(this StorageOptions options, Type valueType)
-    {
-        options.Providers[valueType] = new InstanceCachingFactory<object>(p =>
-        {
-            var implementationType = sqliteProviderType.MakeGenericType(valueType);
-            return p.GetRequiredService(implementationType);
-        });
-        return options;
-    }
-
-    /// <summary>
-    ///     Registers SQLite storage provider of any type.
-    /// </summary>
-    /// <remarks>
-    ///     Pay attention, the method overrides already registered provider.
-    /// </remarks>
-    public static StorageOptions AddSqliteAny(this StorageOptions options) => options
-        .AddAny((p, valueType) =>
-        {
-            var implementationType = sqliteProviderType.MakeGenericType(valueType);
-            return p.GetRequiredService(implementationType);
-        });
-
-    /// <summary>
-    ///     Registers SQLite historical storage provider of <paramref name="valueType"/>.
-    /// </summary>
-    /// <remarks>
-    ///     Pay attention, the method overrides already registered provider.
-    /// </remarks>
-    public static StorageOptions AddSqliteHistorical(this StorageOptions options, Type valueType)
-    {
-        options.HistoricalProviders[valueType] = new InstanceCachingFactory<object>(p =>
-        {
-            var implementationType = sqliteHistoricalProviderType.MakeGenericType(valueType);
-            return p.GetRequiredService(implementationType);
-        });
-        return options;
-    }
-
-    /// <summary>
-    ///     Registers SQLite historical storage provider of any type.
-    /// </summary>
-    /// <remarks>
-    ///     Pay attention, the method overrides already registered provider.
-    /// </remarks>
-    public static StorageOptions AddSqliteHistoricalAny(this StorageOptions options) => options
-        .AddHistoricalAny((p, valueType) =>
-        {
-            var implementationType = sqliteHistoricalProviderType.MakeGenericType(valueType);
-            return p.GetRequiredService(implementationType);
-        });
-
-    /// <summary>
-    ///     Registers SQLite partitioned storage provider of <paramref name="valueType"/>.
-    /// </summary>
-    /// <remarks>
-    ///     Pay attention, the method overrides already registered provider.
-    /// </remarks>
-    public static StorageOptions AddSqlitePartitioned(this StorageOptions options, Type valueType)
-    {
-        options.PartitionedProviders[valueType] = new InstanceCachingFactory<object>(p =>
-        {
-            var implementationType = sqlitePartitionedProviderType.MakeGenericType(valueType);
-            return p.GetRequiredService(implementationType);
-        });
-        return options;
-    }
-
-    /// <summary>
-    ///     Registers SQLite partitioned storage provider of any type.
-    /// </summary>
-    /// <remarks>
-    ///     Pay attention, the method overrides already registered provider.
-    /// </remarks>
-    public static StorageOptions AddSqlitePartitionedAny(this StorageOptions options) => options
-        .AddPartitionedAny((p, valueType) =>
-        {
-            var implementationType = sqlitePartitionedProviderType.MakeGenericType(valueType);
-            return p.GetRequiredService(implementationType);
+            var implementationType = typeof(SqlitePartitionedStorageProvider<>).MakeGenericType(valueType);
+            return (IPartitionedStorageProvider)p.GetRequiredService(implementationType);
         });
 }

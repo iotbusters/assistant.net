@@ -41,7 +41,7 @@ public static class HealthChecksBuilderExtensions
             if (registration != null)
                 options.Registrations.Remove(registration);
 
-            options.Registrations.Add(new HealthCheckRegistration(
+            options.Registrations.Add(new(
                 name,
                 factory: p => ActivatorUtilities.CreateInstance<MongoOptionsHealthCheck>(p),
                 failureStatus: HealthStatus.Unhealthy,

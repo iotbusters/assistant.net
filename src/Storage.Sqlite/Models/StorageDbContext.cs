@@ -105,7 +105,6 @@ public sealed class StorageDbContext : DbContext
             .HasMaxLength(256);
         valueBuilder.Property(x => x.ValueContent)
             .HasConversion(x => Convert.ToBase64String(x), x => Convert.FromBase64String(x));
-        valueBuilder.Property(x => x.Version);
         valueBuilder.HasOne<HistoricalKeyRecord>()
             .WithMany()
             .HasForeignKey(x => new {x.KeyId, x.ValueType})
