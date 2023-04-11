@@ -35,19 +35,21 @@ public static class HealthChecksBuilderExtensions
     /// </summary>
     public static IHealthChecksBuilder ReplaceMongo(this IHealthChecksBuilder builder, string name, TimeSpan? timeout = null)
     {
-        builder.Services.Configure<HealthCheckServiceOptions>(options =>
-        {
-            var registration = options.Registrations.FirstOrDefault(x => x.Name == name);
-            if (registration != null)
-                options.Registrations.Remove(registration);
+        builder.Services
+            .TryAddSingleton<MongoOptionsHealthCheck>()
+            .Configure<HealthCheckServiceOptions>(options =>
+            {
+                var registration = options.Registrations.FirstOrDefault(x => x.Name == name);
+                if (registration != null)
+                    options.Registrations.Remove(registration);
 
-            options.Registrations.Add(new(
-                name,
-                factory: p => ActivatorUtilities.CreateInstance<MongoOptionsHealthCheck>(p),
-                failureStatus: HealthStatus.Unhealthy,
-                tags: null,
-                timeout));
-        });
+                options.Registrations.Add(new(
+                    name,
+                    factory: p => p.GetRequiredService<MongoOptionsHealthCheck>(),
+                    failureStatus: HealthStatus.Unhealthy,
+                    tags: null,
+                    timeout));
+            });
         return builder;
     }
 }

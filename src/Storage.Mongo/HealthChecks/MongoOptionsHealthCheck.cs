@@ -36,11 +36,10 @@ internal sealed class MongoOptionsHealthCheck : IHealthCheck
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken token)
     {
         var tasks = names
-            .Select(x => monitor.Get(x))
+            .Select(monitor.Get)
             .DistinctBy(x => (x.ConnectionString, x.DatabaseName))
             .Select(x => Check(x, token));
         var results = await Task.WhenAll(tasks);
-
         return results.Aggregate((x, y) => x && y)
             ? HealthCheckResult.Healthy()
             : HealthCheckResult.Unhealthy();

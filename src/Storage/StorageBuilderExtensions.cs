@@ -113,7 +113,7 @@ public static class StorageBuilderExtensions
         if (!convertingTypes.Any())
             throw new ArgumentException($"{converterType} doesn't implement IValueConverter<T>.", nameof(converterType));
 
-        builder.Services.ConfigureStorageOptions(o =>
+        builder.Services.ConfigureStorageOptions(builder.Name, o =>
         {
             var factory = new InstanceCachingFactory<object>(p => p.GetService(converterType) ?? p.Create(converterType));
             foreach (var convertingType in convertingTypes)
@@ -135,7 +135,7 @@ public static class StorageBuilderExtensions
         if (!convertingTypes.Any())
             throw new ArgumentException($"{converterType} doesn't implement IValueConverter<T>.", nameof(converterType));
 
-        builder.Services.ConfigureStorageOptions(o =>
+        builder.Services.ConfigureStorageOptions(builder.Name, o =>
         {
             var factory = new InstanceCachingFactory<object>(_ => converter);
             foreach (var convertingType in convertingTypes)
