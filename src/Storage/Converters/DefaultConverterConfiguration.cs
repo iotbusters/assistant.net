@@ -9,6 +9,9 @@ namespace Assistant.Net.Storage.Converters;
 public class DefaultConverterConfiguration : IStorageConfiguration
 {
     /// <inheritdoc/>
-    public void Configure(StorageBuilder builder) => builder
-        .AddConverter<PrimitiveValueConverter>();
+    public void Configure(StorageBuilder builder)
+    {
+        builder.Services.TryAddSingleton<PrimitiveValueConverter>();
+        builder.AddConverter<PrimitiveValueConverter>();
+    }
 }
