@@ -25,7 +25,7 @@ public class ClientServerIntegrationTests
     {
         var handler = new TestScenarioMessageHandler();
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteProvider(ConnectionString)
+            .UseSqlite(ConnectionString)
             .AddHandler(handler)
             .Create();
 
@@ -37,50 +37,25 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public async Task RequestObject_returnsResponse_singleProvider()
-    {
-        using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteSingleProvider(ConnectionString)
-            .AddSingleProviderHandler<TestScenarioMessageHandler>()
-            .Create();
-
-        var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
-
-        response.Should().Be(new TestResponse(false));
-    }
-
-    [Test]
-    public async Task RequestObject_returnsResponse_AnySingleProvider()
-    {
-        using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteSingleProvider(ConnectionString)
-            .AddAnySingleProviderHandler<TestScenarioMessageHandler>()
-            .Create();
-
-        var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
-
-        response.Should().Be(new TestResponse(false));
-    }
-
-    [Test]
-    public async Task RequestObject_returnsResponse_AnyProvider()
-    {
-        using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteSingleProvider(ConnectionString)
-            .AddAnyProviderHandler<TestScenarioMessageHandler>()
-            .Create();
-
-        var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
-
-        response.Should().Be(new TestResponse(false));
-    }
-
-    [Test]
     public async Task RequestObject_returnsResponse()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteProvider(ConnectionString)
+            .UseSqlite(ConnectionString)
             .AddHandler<TestScenarioMessageHandler>()
+            .Create();
+
+        var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
+
+        response.Should().Be(new TestResponse(false));
+    }
+
+    [Test]
+    public async Task RequestObject_returnsResponse_usingBackoffHandler()
+    {
+        using var fixture = new MessagingClientFixtureBuilder()
+            .UseSqlite(ConnectionString)
+            .UseRemoteBackoffHandler<TestScenarioMessageHandler>()
+            .AddMessageRegistrationOnly<TestScenarioMessage>()
             .Create();
 
         var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
@@ -92,7 +67,7 @@ public class ClientServerIntegrationTests
     public async Task RequestObject_returnsResponse_nestedRequestCall()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteProvider(ConnectionString)
+            .UseSqlite(ConnectionString)
             .AddHandler<TestNestedMessageHandler>()
             .AddHandler(new TestMessageHandler<TestRequest, TestResponse>(new TestResponse(false)))
             .Create();
@@ -106,12 +81,14 @@ public class ClientServerIntegrationTests
     public async Task RequestObject_returnsNothing_nestedPublishCall()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteProvider(ConnectionString)
+            .UseSqlite(ConnectionString)
             .AddHandler<TestNestedMessageHandler>()
             .AddHandler(new TestEventHandler<TestEvent>())
             .Create();
 
-        await fixture.Client.RequestObject(new TestNestedEvent());
+        var response = await fixture.Client.RequestObject(new TestNestedEvent());
+
+        response.Should().Be(Nothing.Instance);
     }
 
     [Test]
@@ -119,7 +96,7 @@ public class ClientServerIntegrationTests
     {
         // global arrange
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteProvider(ConnectionString)
+            .UseSqlite(ConnectionString)
             .AddHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
             .Create();
 
@@ -146,8 +123,8 @@ public class ClientServerIntegrationTests
     public async Task RequestObject_throwsMessageNotRegisteredException_noLocalHandler()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteProvider(ConnectionString)
-            .AddHandler<TestSuccessFailureMessageHandler>()
+            .UseSqlite(ConnectionString)
+            .AddHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
             .Create();
 
         await fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
@@ -159,7 +136,7 @@ public class ClientServerIntegrationTests
     public async Task RequestObject_throwsMessageNotRegisteredException_noRemoteHandler()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteProvider(ConnectionString)
+            .UseSqlite(ConnectionString)
             .AddMessageRegistrationOnly<TestScenarioMessage>()
             .AddHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
             .Create();
@@ -170,72 +147,72 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void RequestObject_throwsTimeoutException_thrownTimeoutException()
+    public async Task RequestObject_throwsTimeoutException_thrownTimeoutException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteProvider(ConnectionString)
+            .UseSqlite(ConnectionString)
             .AddHandler<TestSuccessFailureMessageHandler>()
             .Create();
 
-        fixture.Client.Awaiting(x => x.RequestObject(new TestSuccessFailureMessage(typeof(TimeoutException).AssemblyQualifiedName)))
-            .Should().ThrowExactlyAsync<TimeoutException>()
-            .Result.Which.InnerException.Should().BeNull();
+        var ex = await fixture.Client.Awaiting(x => x.RequestObject(new TestSuccessFailureMessage(typeof(TimeoutException).AssemblyQualifiedName)))
+            .Should().ThrowExactlyAsync<TimeoutException>();
+        ex.Which.InnerException.Should().BeNull();
     }
 
     [Test]
-    public void RequestObject_throwsMessageDeferredException_thrownMessageDeferredException()
+    public async Task RequestObject_throwsMessageDeferredException_thrownMessageDeferredException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteProvider(ConnectionString)
+            .UseSqlite(ConnectionString)
             .AddHandler<TestSuccessFailureMessageHandler>()
             .Create();
 
-        fixture.Client.Awaiting(x => x.RequestObject(new TestSuccessFailureMessage(typeof(MessageDeferredException).AssemblyQualifiedName)))
-            .Should().ThrowExactlyAsync<MessageDeferredException>()
-            .Result.Which.InnerException.Should().BeNull();
+        var ex = await fixture.Client.Awaiting(x => x.RequestObject(new TestSuccessFailureMessage(typeof(MessageDeferredException).AssemblyQualifiedName)))
+            .Should().ThrowExactlyAsync<MessageDeferredException>();
+        ex.Which.InnerException.Should().BeNull();
     }
 
     [Test]
-    public void RequestObject_throwsMessageFailedException_thrownInvalidOperationException()
+    public async Task RequestObject_throwsMessageFailedException_thrownInvalidOperationException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteProvider(ConnectionString)
+            .UseSqlite(ConnectionString)
             .AddHandler<TestScenarioMessageHandler>()
             .Create();
 
-        fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(1)))
+        var ex = await fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(1)))
             .Should().ThrowExactlyAsync<MessageFailedException>()
-            .WithMessage("Message handling has failed.")
-            .Result.Which.InnerException.Should().BeNull();
+            .WithMessage("Message handling has failed.");
+        ex.Which.InnerException.Should().BeNull();
     }
 
     [Test]
-    public void RequestObject_throwsMessageFailedException_thrownMessageFailedException()
+    public async Task RequestObject_throwsMessageFailedException_thrownMessageFailedException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteProvider(ConnectionString)
+            .UseSqlite(ConnectionString)
             .AddHandler<TestScenarioMessageHandler>()
             .Create();
 
-        fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(2)))
+        var ex = await fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(2)))
             .Should().ThrowExactlyAsync<MessageFailedException>()
-            .WithMessage("2")
-            .Result.Which.InnerException.Should().BeNull();
+            .WithMessage("2");
+        ex.Which.InnerException.Should().BeNull();
     }
 
     [Test]
-    public void RequestObject_throwsMessageFailedException_thrownMessageFailedExceptionWithInnerException()
+    public async Task RequestObject_throwsMessageFailedException_thrownMessageFailedExceptionWithInnerException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteProvider(ConnectionString)
+            .UseSqlite(ConnectionString)
             .AddHandler<TestScenarioMessageHandler>()
             .Create();
 
-        fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(3)))
+        var ex = await fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(3)))
             .Should().ThrowExactlyAsync<MessageFailedException>()
             .WithMessage("3")
-            .Result.WithInnerExceptionExactly<MessageFailedException>()
-            .Which.InnerException?.Message.Should().Be("inner");
+            .WithInnerExceptionExactly<MessageFailedException, MessageFailedException>();
+        ex.Which.InnerException?.Message.Should().Be("inner");
     }
 
     [Test]
@@ -244,8 +221,8 @@ public class ClientServerIntegrationTests
         // global arrange
         var message = new TestScenarioMessage(0);
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteSingleProvider(ConnectionString)
-            .AddSingleProviderHandler<TestScenarioMessageHandler>()
+            .UseSqlite(ConnectionString)
+            .AddHandler<TestScenarioMessageHandler>()
             .Create();
 
         // assert 1
@@ -266,8 +243,8 @@ public class ClientServerIntegrationTests
         // global arrange
         var message = new TestScenarioMessage(0);
         using var fixture = new MessagingClientFixtureBuilder()
-            .UseSqliteSingleProvider(ConnectionString)
-            .AddSingleProviderHandler<TestScenarioMessageHandler>()
+            .UseSqlite(ConnectionString)
+            .AddHandler<TestScenarioMessageHandler>()
             .Create();
 
         // assert 1

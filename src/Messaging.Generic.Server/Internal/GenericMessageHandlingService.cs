@@ -238,12 +238,15 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             return CachingResult.OfException(exception);
         }
 
+        var utcNow = clock.UtcNow;
         if (messageValue.Details.TryGetValue(MessagePropertyNames.ExpiredName, out var expiredString)
             && DateTimeOffset.TryParse(expiredString, out var expired)
-            && expired <= clock.UtcNow)
+            && expired <= utcNow)
         {
-            logger.LogWarning("Process: message is expired.");
-            var exception = new MessageFailedException($"Request({requestId})'s Message({messageName}, {messageId}) is expired.");
+            var duration = utcNow - expired;
+            logger.LogWarning("Process: message is expired for {Duration}.", duration);
+            var exception = new MessageFailedException(
+                $"Request({requestId})'s Message({messageName}, {messageId}) is expired for {duration}.");
             return CachingResult.OfException(exception);
         }
 

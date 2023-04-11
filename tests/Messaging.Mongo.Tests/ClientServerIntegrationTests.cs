@@ -36,50 +36,25 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public async Task RequestObject_returnsResponse_singleProvider()
-    {
-        using var fixture = new MessagingClientFixtureBuilder()
-            .UseMongo(ConnectionString, Database)
-            .AddSingleProviderHandler<TestScenarioMessageHandler>()
-            .Create();
-
-        var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
-
-        response.Should().Be(new TestResponse(false));
-    }
-
-    [Test]
-    public async Task RequestObject_returnsResponse_AnySingleProvider()
-    {
-        using var fixture = new MessagingClientFixtureBuilder()
-            .UseMongo(ConnectionString, Database)
-            .AddAnySingleProviderHandler<TestScenarioMessageHandler>()
-            .Create();
-
-        var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
-
-        response.Should().Be(new TestResponse(false));
-    }
-
-    [Test]
-    public async Task RequestObject_returnsResponse_AnyProvider()
-    {
-        using var fixture = new MessagingClientFixtureBuilder()
-            .UseMongo(ConnectionString, Database)
-            .AddAnyProviderHandler<TestScenarioMessageHandler>()
-            .Create();
-
-        var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
-
-        response.Should().Be(new TestResponse(false));
-    }
-
-    [Test]
     public async Task RequestObject_returnsResponse()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
             .AddHandler<TestScenarioMessageHandler>()
+            .Create();
+
+        var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
+
+        response.Should().Be(new TestResponse(false));
+    }
+
+    [Test]
+    public async Task RequestObject_returnsResponse_usingBackoffHandler()
+    {
+        using var fixture = new MessagingClientFixtureBuilder()
+            .UseMongo(ConnectionString, Database)
+            .UseRemoteBackoffHandler<TestScenarioMessageHandler>()
+            .AddMessageRegistrationOnly<TestScenarioMessage>()
             .Create();
 
         var response = await fixture.Client.RequestObject(new TestScenarioMessage(0));
@@ -120,7 +95,7 @@ public class ClientServerIntegrationTests
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
-            .AddHandler<TestSuccessFailureMessageHandler>()
+            .AddHandler<TestSuccessFailureMessageHandler>()// to have at least one handler configured
             .Create();
 
         await fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(0)))
@@ -218,7 +193,7 @@ public class ClientServerIntegrationTests
         var message = new TestScenarioMessage(0);
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
-            .AddSingleProviderHandler<TestScenarioMessageHandler>()
+            .AddHandler<TestScenarioMessageHandler>()
             .Create();
 
         // assert 1
@@ -240,7 +215,7 @@ public class ClientServerIntegrationTests
         var message = new TestScenarioMessage(0);
         using var fixture = new MessagingClientFixtureBuilder()
             .UseMongo(ConnectionString, Database)
-            .AddSingleProviderHandler<TestScenarioMessageHandler>()
+            .AddHandler<TestScenarioMessageHandler>()
             .Create();
 
         // assert 1
