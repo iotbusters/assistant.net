@@ -3,7 +3,7 @@
 namespace Assistant.Net.Storage.Exceptions;
 
 /// <summary>
-///     An exception thrown if no specific storage provider is configured.
+///     The exception thrown if no specific storage provider is configured.
 /// </summary>
 public class StorageProviderNotRegisteredException : StorageException
 {

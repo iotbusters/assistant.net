@@ -3,7 +3,7 @@
 namespace Assistant.Net.Serialization.Exceptions;
 
 /// <summary>
-///     An exception thrown if no serializer is configured for some type.
+///     The exception thrown if no serializer is configured for some type.
 /// </summary>
 public sealed class SerializingTypeNotRegisteredException : Exception
 {

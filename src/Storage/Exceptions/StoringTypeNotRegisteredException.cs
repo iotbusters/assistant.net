@@ -3,7 +3,7 @@
 namespace Assistant.Net.Storage.Exceptions;
 
 /// <summary>
-///     An exception thrown if specific storing type isn't configured.
+///     The exception thrown if specific storing type isn't configured.
 /// </summary>
 public class StoringTypeNotRegisteredException : StorageException
 {
