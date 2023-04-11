@@ -1,4 +1,5 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Options;
@@ -14,94 +15,87 @@ namespace Assistant.Net.Messaging;
 public static class MessagingClientOptionsExtensions
 {
     /// <summary>
-    ///     Configures the messaging client to use a single provider feature.
+    ///     Configures a single message <paramref name="handlerFactory"/>.
     /// </summary>
-    /// <param name="options"/>
-    /// <param name="factory">Remote single provider factory.</param>
     /// <remarks>
-    ///     The provider accepts all message types registered by calling one of <see cref="AddSingle"/> extension methods.
+    ///     Pay attention, the message handler will be used only for message types registered by calling one of <see cref="AddSingle"/> methods.
     /// </remarks>
-    public static MessagingClientOptions UseSingleProvider(this MessagingClientOptions options, Func<IServiceProvider, IAbstractHandler> factory)
+    /// <param name="options"/>
+    /// <param name="handlerFactory">A single message handler instance factory.</param>
+    public static MessagingClientOptions UseSingleHandler(this MessagingClientOptions options, Func<IServiceProvider, Type, IAbstractHandler> handlerFactory)
     {
-        options.SingleProvider = new InstanceCachingFactory<IAbstractHandler>(factory);
+        options.SingleHandlerFactory = new InstanceCachingFactory<IAbstractHandler, Type>(handlerFactory);
         return options;
     }
 
     /// <summary>
-    ///     Registers single provider based handler of <typeparamref name="TMessage"/>.
+    ///     Registers single handler based handler of <typeparamref name="TMessage"/>.
     /// </summary>
     /// <remarks>
-    ///     Pay attention, it requires calling one of Use***SingleProvider method.
+    ///     Pay attention, it requires calling one of <see cref="UseSingleHandler"/> like methods.
     /// </remarks>
-    /// <typeparam name="TMessage">Specific message type to be handled by a single provider.</typeparam>
+    /// <typeparam name="TMessage">A specific message type to be handled by a single handler.</typeparam>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddSingle<TMessage>(this MessagingClientOptions options)
         where TMessage : IAbstractMessage => options
         .AddSingle(typeof(TMessage));
 
     /// <summary>
-    ///     Registers single provider based handler of <paramref name="messageType"/>.
+    ///     Registers the single handler for <paramref name="messageType"/>.
     /// </summary>
     /// <remarks>
-    ///     Pay attention, it requires calling one of Use***SingleProvider method.
+    ///     Pay attention, it requires calling one of <see cref="UseSingleHandler"/> like methods.
     /// </remarks>
     /// <param name="options"/>
-    /// <param name="messageType">Accepting message type.</param>
+    /// <param name="messageType">A specific message type to be handled by a single handler.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddSingle(this MessagingClientOptions options, Type messageType)
     {
         if (!messageType.IsMessage())
             throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
 
-        options.Handlers[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
+        options.HandlerFactories[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
         {
-            var definition = options.SingleProvider ?? throw new ArgumentException("Single provider wasn't properly configured.");
-            return definition.Create(p);
+            var definition = options.SingleHandlerFactory ?? throw new HandlerNotRegisteredException();
+            return definition.Create(p, messageType);
         });
 
         return options;
     }
 
     /// <summary>
-    ///     Registers single provider based handler of any message type except defined explicitly.
+    ///     Configures <paramref name="backoffHandler"/> instance.
     /// </summary>
     /// <remarks>
-    ///     Pay attention, it requires calling one of Use***SingleProvider method.
+    ///      The message handler is used if no other handlers were configured for a message type.
     /// </remarks>
-    public static MessagingClientOptions AddSingleAny(this MessagingClientOptions options) => options
-        .AddDefaultHandler(p =>
-        {
-            var definition = options.SingleProvider ?? throw new ArgumentException("Single provider wasn't properly configured.");
-            return definition.Create(p);
-        });
+    /// <param name="options"/>
+    /// <param name="backoffHandler">A backoff message handler instance.</param>
+    public static MessagingClientOptions UseBackoffHandler(this MessagingClientOptions options, IAbstractHandler backoffHandler) => options
+        .UseBackoffHandler((_, _) => backoffHandler);
 
     /// <summary>
-    ///     Registers a handler of any message type if none defined explicitly.
+    ///     Configures <paramref name="handlerFactory"/>.
     /// </summary>
+    /// <remarks>
+    ///      The message handler is used if no other handlers were configured for a message type.
+    /// </remarks>
     /// <param name="options"/>
-    /// <param name="defaultHandler">A message handler instance.</param>
-    public static MessagingClientOptions AddDefaultHandler(this MessagingClientOptions options, IAbstractHandler defaultHandler) => options
-        .AddDefaultHandler(_ => defaultHandler);
-
-    /// <summary>
-    ///     Registers a handler of any message type if none defined explicitly.
-    /// </summary>
-    /// <param name="options"/>
-    /// <param name="factory">A message handler factory.</param>
-    public static MessagingClientOptions AddDefaultHandler(this MessagingClientOptions options, Func<IServiceProvider, IAbstractHandler> factory)
+    /// <param name="handlerFactory">A backoff message handler instance factory.</param>
+    public static MessagingClientOptions UseBackoffHandler(this MessagingClientOptions options, Func<IServiceProvider, Type, IAbstractHandler> handlerFactory)
     {
-        options.DefaultHandler = new InstanceCachingFactory<IAbstractHandler>(factory);
+        options.BackoffHandlerFactory = new InstanceCachingFactory<IAbstractHandler, Type>(handlerFactory);
         return options;
     }
 
     /// <summary>
-    ///     Registers a named message handler definition.
+    ///     Registers a named message handler type and allows messages it can handle.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered handlers.
     /// </remarks>
     /// <param name="options"/>
-    /// <param name="handlerType">Message handler type.</param>
+    /// <param name="handlerType">A message handler type.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddHandler(this MessagingClientOptions options, Type handlerType)
     {
@@ -110,7 +104,7 @@ public static class MessagingClientOptionsExtensions
             throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
 
         foreach (var messageType in messageTypes)
-            options.Handlers[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
+            options.HandlerFactories[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
             {
                 var handlerInstance = p.Create(handlerType);
                 var providerType = typeof(LocalMessageHandlingProxy<,>).MakeGenericTypeBoundToMessage(messageType);
@@ -122,13 +116,13 @@ public static class MessagingClientOptionsExtensions
     }
 
     /// <summary>
-    ///     Registers a named message handler definition.
+    ///     Registers a named message handler instance and allows messages it can handle.
     /// </summary>
     /// <remarks>
     ///     Pay attention, the method overrides already registered handlers.
     /// </remarks>
     /// <param name="options"/>
-    /// <param name="handlerInstance">Message handler instance.</param>
+    /// <param name="handlerInstance">A message handler instance.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddHandler(this MessagingClientOptions options, object handlerInstance)
     {
@@ -138,7 +132,7 @@ public static class MessagingClientOptionsExtensions
             throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerInstance));
 
         foreach (var messageType in messageTypes)
-            options.Handlers[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
+            options.HandlerFactories[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
             {
                 var providerType = typeof(LocalMessageHandlingProxy<,>).MakeGenericTypeBoundToMessage(messageType);
                 var handler = p.Create(providerType, handlerInstance);
@@ -149,10 +143,10 @@ public static class MessagingClientOptionsExtensions
     }
 
     /// <summary>
-    ///     Removes the <paramref name="handlerType"/> from the list.
+    ///     Removes the <paramref name="handlerType"/> and disallows messages it can handle.
     /// </summary>
     /// <param name="options"/>
-    /// <param name="handlerType">Message handler type.</param>
+    /// <param name="handlerType">A message handler type.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions RemoveHandler(this MessagingClientOptions options, Type handlerType)
     {
@@ -161,16 +155,16 @@ public static class MessagingClientOptionsExtensions
             throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
 
         foreach (var messageType in messageTypes)
-            options.Handlers.Remove(messageType);
+            options.HandlerFactories.Remove(messageType);
 
         return options;
     }
 
     /// <summary>
-    ///     Adds the <paramref name="interceptorType"/> to the end of the list.
+    ///     Appends the <paramref name="interceptorType"/> to the list.
     /// </summary>
     /// <param name="options"/>
-    /// <param name="interceptorType">Message interceptor type.</param>
+    /// <param name="interceptorType">A message interceptor type.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddInterceptor(this MessagingClientOptions options, Type interceptorType)
     {
@@ -185,10 +179,10 @@ public static class MessagingClientOptionsExtensions
     }
 
     /// <summary>
-    ///     Adds the <paramref name="interceptorInstance"/> to the end of the list.
+    ///     Appends the <paramref name="interceptorInstance"/> to the list.
     /// </summary>
     /// <param name="options"/>
-    /// <param name="interceptorInstance">Message interceptor instance.</param>
+    /// <param name="interceptorInstance">A message interceptor instance.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions AddInterceptor(this MessagingClientOptions options, object interceptorInstance)
     {
@@ -208,8 +202,8 @@ public static class MessagingClientOptionsExtensions
     ///     in the list with <paramref name="replacementType"/>.
     /// </summary>
     /// <param name="options"/>
-    /// <param name="targetType">Message interceptor type to be replaced.</param>
-    /// <param name="replacementType">Message interceptor type to be used instead.</param>
+    /// <param name="targetType">A message interceptor type to be replaced.</param>
+    /// <param name="replacementType">A message interceptor type to be used instead.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions ReplaceInterceptor(this MessagingClientOptions options, Type targetType, Type replacementType)
     {
@@ -228,8 +222,8 @@ public static class MessagingClientOptionsExtensions
     ///     in the list with <paramref name="replacementInstance"/>.
     /// </summary>
     /// <param name="options"/>
-    /// <param name="targetType">Message interceptor type to be replaced.</param>
-    /// <param name="replacementInstance">Message interceptor instance to be used instead.</param>
+    /// <param name="targetType">A message interceptor type to be replaced.</param>
+    /// <param name="replacementInstance">A message interceptor instance to be used instead.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions ReplaceInterceptor(this MessagingClientOptions options, Type targetType, object replacementInstance)
     {
@@ -248,7 +242,7 @@ public static class MessagingClientOptionsExtensions
     ///     Removes the interceptor type <paramref name="interceptorType"/> from the list.
     /// </summary>
     /// <param name="options"/>
-    /// <param name="interceptorType">Message interceptor type.</param>
+    /// <param name="interceptorType">A message interceptor type.</param>
     /// <exception cref="ArgumentException"/>
     public static MessagingClientOptions RemoveInterceptor(this MessagingClientOptions options, Type interceptorType)
     {

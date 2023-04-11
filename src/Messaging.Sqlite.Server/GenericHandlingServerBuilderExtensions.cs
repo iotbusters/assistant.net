@@ -23,7 +23,7 @@ public static class GenericHandlingServerBuilderExtensions
     {
         builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
             .UseSqlite(configureOptions)
-            .UseSqliteSingleProvider())
+            .UseSqlite())
             .AddHealthChecks()
             .ReplaceSqlite(HealthCheckNames.SingleName);
         return builder;
@@ -46,7 +46,7 @@ public static class GenericHandlingServerBuilderExtensions
     {
         builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
             .UseSqlite(configuration)
-            .UseSqliteSingleProvider())
+            .UseSqlite())
             .AddHealthChecks()
             .ReplaceSqlite(HealthCheckNames.SingleName);
         return builder;

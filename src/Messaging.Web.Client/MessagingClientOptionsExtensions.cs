@@ -18,7 +18,7 @@ public static class MessagingClientOptionsExtensions
     ///     Pay attention, it has dependencies configured by <see cref="MessagingClientBuilder"/>.
     /// </remarks>
     public static MessagingClientOptions UseWebSingleProvider(this MessagingClientOptions options) => options
-        .UseSingleProvider(p => p.Create<WebMessageHandlerProxy>());
+        .UseSingleHandler((p, _) => p.Create<WebMessageHandlerProxy>());
 
     /// <summary>
     ///     Registers remote WEB handler of <paramref name="messageType"/> from a client.
@@ -35,7 +35,7 @@ public static class MessagingClientOptionsExtensions
         if (!messageType.IsMessage())
             throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
 
-        options.Handlers[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
+        options.HandlerFactories[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
             p.Create<WebMessageHandlerProxy>());
 
         return options;
@@ -49,5 +49,5 @@ public static class MessagingClientOptionsExtensions
     ///     it has dependencies configured by <see cref="MessagingClientBuilder"/>.
     /// </remarks>
     public static MessagingClientOptions AddWebAny(this MessagingClientOptions options) => options
-        .AddDefaultHandler(p => p.Create<WebMessageHandlerProxy>());
+        .UseBackoffHandler((p, _) => p.Create<WebMessageHandlerProxy>());
 }

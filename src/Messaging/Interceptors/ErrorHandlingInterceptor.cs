@@ -65,8 +65,8 @@ public sealed class ErrorHandlingInterceptor : SharedAbstractInterceptor
                 throw;
             }
 
-            logger.LogError(ex, "Message error handling: wraps internal to hide.");
-            throw new MessageFailedException(ex);
+            logger.LogError(ex, "Message error handling: hide occurred and throw generic exception instead.");
+            throw new MessageFailedException();
         }
 
         logger.LogInformation("Message error handling: ends.");

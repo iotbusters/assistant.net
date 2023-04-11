@@ -1,7 +1,5 @@
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Storage;
 
 namespace Assistant.Net.Messaging.Interceptors;
 
@@ -14,16 +12,11 @@ namespace Assistant.Net.Messaging.Interceptors;
 public sealed class WebServerInterceptorConfiguration : IMessageConfiguration
 {
     /// <inheritdoc/>
-    public void Configure(MessagingClientBuilder builder)
-    {
-        builder.Services.AddStorage(builder.Name, b => b
-            .AddLocal<IAbstractMessage, CachingResult>()); // CachingInterceptor's requirement
-        builder
-            .ClearInterceptors()
-            .AddInterceptor<DiagnosticsInterceptor>()
-            .AddInterceptor<CachingInterceptor>()
-            .AddInterceptor<ErrorHandlingInterceptor>()
-            .AddInterceptor<DeferredCachingInterceptor>()
-            .AddInterceptor<TimeoutInterceptor>();
-    }
+    public void Configure(MessagingClientBuilder builder) => builder
+        .ClearInterceptors()
+        .AddInterceptor<DiagnosticsInterceptor>()
+        .AddInterceptor<CachingInterceptor>()
+        .AddInterceptor<ErrorHandlingInterceptor>()
+        .AddInterceptor<DeferredCachingInterceptor>()
+        .AddInterceptor<TimeoutInterceptor>();
 }

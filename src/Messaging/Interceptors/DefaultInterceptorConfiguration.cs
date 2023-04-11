@@ -1,4 +1,5 @@
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.RetryStrategies;
@@ -20,8 +21,9 @@ public sealed class DefaultInterceptorConfiguration : IMessageConfiguration
     {
         builder.Services
             .AddStorage(builder.Name, b => b
-                .AddLocal<IAbstractMessage, CachingResult>()) // CachingInterceptor's requirement
+                .Add<IAbstractMessage, CachingResult>())
             .ConfigureMessagingClient(builder.Name, o => o
+                .ExposeException<MessageException>()
                 .Retry(new ExponentialBackoff {MaxAttemptNumber = 5, Interval = TimeSpan.FromSeconds(1), Rate = 1.2})
                 .TimeoutIn(TimeSpan.FromSeconds(1)));
         builder
