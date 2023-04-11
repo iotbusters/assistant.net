@@ -3,7 +3,7 @@
 namespace Assistant.Net.Storage.Exceptions;
 
 /// <summary>
-///     An exception thrown if no specific value converter isn't configured.
+///     The exception thrown if no specific value converter isn't configured.
 /// </summary>
 public class ConverterNotRegisteredException : StorageException
 {
