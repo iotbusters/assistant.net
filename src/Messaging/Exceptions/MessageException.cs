@@ -3,13 +3,13 @@ using System;
 namespace Assistant.Net.Messaging.Exceptions;
 
 /// <summary>
-///     A parent to message exception family.
+///     A base exception to the whole message related failures.
 /// </summary>
 public abstract class MessageException : Exception
 {
     /// <remarks>
-    ///     Pay attention, this ctor is required to implement for all children.
-    ///     Otherwise, deserialization will fail.
+    ///     Pay attention, this ctor is required to implement for all derived exception types.
+    ///     Otherwise, deserialization may fail.
     /// </remarks>
     protected MessageException(string? message) : base(message) { }
 

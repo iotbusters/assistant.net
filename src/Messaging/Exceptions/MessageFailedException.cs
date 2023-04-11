@@ -3,7 +3,7 @@ using System;
 namespace Assistant.Net.Messaging.Exceptions;
 
 /// <summary>
-///     Message failure exception.
+///     The exception thrown if some generic message failure occurred.
 /// </summary>
 public sealed class MessageFailedException : MessageException
 {

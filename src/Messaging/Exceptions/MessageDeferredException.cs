@@ -3,7 +3,7 @@ using System;
 namespace Assistant.Net.Messaging.Exceptions;
 
 /// <summary>
-///     Remote message handler cannot return response temporary.
+///     The exception thrown if remote message handler cannot temporary respond.
 /// </summary>
 public sealed class MessageDeferredException : MessageException
 {

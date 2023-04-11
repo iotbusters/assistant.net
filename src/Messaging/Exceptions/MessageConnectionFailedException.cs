@@ -3,7 +3,7 @@ using System;
 namespace Assistant.Net.Messaging.Exceptions;
 
 /// <summary>
-///     Any connection related issues occurred during remote message handling.
+///     The exception thrown if a connection related issue occurred during remote message handling.
 /// </summary>
 public sealed class MessageConnectionFailedException : MessageException
 {
