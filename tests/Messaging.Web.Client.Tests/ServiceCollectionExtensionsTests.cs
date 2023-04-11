@@ -14,7 +14,7 @@ public class ServiceCollectionExtensionsTests
         var provider = new ServiceCollection()
             .ConfigureJsonSerialization()
             .AddRemoteWebMessagingClient()
-            .ConfigureHttpClient(c => c.BaseAddress = new Uri("http://localhost"))
+            .ConfigureHttpClient(c => c.BaseAddress = new("http://localhost"))
             .Services.BuildServiceProvider();
 
         provider.GetService<IWebMessageHandlerClient>()

@@ -49,19 +49,19 @@ public sealed class MessagingClientFixture : IDisposable
         });
         remoteSource.Configurations.Add(o =>
         {
-            o.Handlers.Clear();
+            o.HandlerFactories.Clear();
             foreach (var handlerInstance in handlerInstances)
                 o.AddHandler(handlerInstance);
         });
         clientSource.Configurations.Add(o =>
         {
-            o.Handlers.Clear();
+            o.HandlerFactories.Clear();
             foreach (var handlerInstance in handlerInstances)
             {
                 var handlerType = handlerInstance.GetType();
                 var messageType = handlerType.GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
                                   ?? throw new ArgumentException("Invalid message handler type.", nameof(handlerInstances));
-                o.AddGeneric(messageType);
+                o.AddSingle(messageType);
             }
         });
         genericServerSource.Reload();

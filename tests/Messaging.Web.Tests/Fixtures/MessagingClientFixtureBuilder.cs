@@ -24,7 +24,7 @@ public class MessagingClientFixtureBuilder
             .AddMessagingClient(b => b
                 .UseWeb(hcb => hcb.ConfigureHttpClient(hc =>
                 {
-                    hc.BaseAddress = new Uri("http://localhost/messages");
+                    hc.BaseAddress = new("http://localhost/messages");
                     // debugging purpose only.
                     if (Debugger.IsAttached)
                         hc.Timeout = TimeSpan.FromSeconds(300);

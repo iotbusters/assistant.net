@@ -66,7 +66,7 @@ public class RemoteMessageHandlingClientTests
         services
             .ConfigureJsonSerialization()
             .AddRemoteWebMessagingClient()
-            .ConfigureHttpClient(c => c.BaseAddress = new Uri(RequestUri))
+            .ConfigureHttpClient(c => c.BaseAddress = new(RequestUri))
             .ClearAllHttpMessageHandlers()
             .AddHttpMessageHandler<ErrorPropagationHandler>()
             .AddHttpMessageHandler(() => handler);

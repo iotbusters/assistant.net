@@ -156,12 +156,11 @@ public class CachingInterceptorTests
     [OneTimeSetUp]
     public void OneTimeSetup()
     {
-        Options = new MessagingClientOptions();
+        Options = new();
         var services = new ServiceCollection()
             .AddTransient<CachingInterceptor>()
             .AddSingleton<INamedOptions<MessagingClientOptions>>(new TestNamedOptions(Options))
-            .AddSystemClock()
-            .AddStorage(b => b.AddLocal<IAbstractMessage, CachingResult>());
+            .AddStorage(b => b.UseLocal().Add<IAbstractMessage, CachingResult>());
         Provider = services.BuildServiceProvider();
     }
 

@@ -54,7 +54,7 @@ public class MessagingClientTests
         var interceptor = new TestMessageRequestInterceptor<TestMessage, TestResponse>();
         var client = new ServiceCollection()
             .AddMessagingClient(b => b
-                .AddHandler(new TestMessageHandler<TestMessage, TestResponse>(new TestResponse()))
+                .AddHandler(new TestMessageHandler<TestMessage, TestResponse>(new()))
                 .ClearInterceptors()
                 .AddInterceptor(interceptor))
             .BuildServiceProvider()
@@ -71,7 +71,7 @@ public class MessagingClientTests
         var interceptor = new TestMessageRequestInterceptor<IMessage<object>, object>();
         var client = new ServiceCollection()
             .AddMessagingClient(b => b
-                .AddHandler(new TestMessageHandler<TestMessage, TestResponse>(new TestResponse()))
+                .AddHandler(new TestMessageHandler<TestMessage, TestResponse>(new()))
                 .ClearInterceptors()
                 .AddInterceptor(interceptor))
             .BuildServiceProvider()
@@ -122,7 +122,7 @@ public class MessagingClientTests
         var interceptor = new TestAbstractInterceptor();
         var client = new ServiceCollection()
             .AddMessagingClient(b => b
-                .AddHandler(new TestMessageHandler<TestMessage, TestResponse>(new TestResponse()))
+                .AddHandler(new TestMessageHandler<TestMessage, TestResponse>(new()))
                 .ClearInterceptors()
                 .AddInterceptor(interceptor))
             .BuildServiceProvider()
@@ -166,9 +166,9 @@ public class MessagingClientTests
     [Test]
     public async Task RequestObject_returnsResponse_namedClient()
     {
-        var handler1 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(1));
-        var handler2 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(2));
-        var handler3 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(3));
+        var handler1 = new TestMessageHandler<TestMessage2, TestResponse2>(new(1));
+        var handler2 = new TestMessageHandler<TestMessage2, TestResponse2>(new(2));
+        var handler3 = new TestMessageHandler<TestMessage2, TestResponse2>(new(3));
         var mainProvider = new ServiceCollection()
             .AddMessagingClient(b => b.AddHandler(handler1).ClearInterceptors())
             .ConfigureMessagingClient("1", b => b.AddHandler(handler2).ClearInterceptors())
@@ -191,7 +191,7 @@ public class MessagingClientTests
     [Test]
     public async Task PublishObject_delegatesToHandler()
     {
-        var handler = new TestMessageHandler<TestMessage, TestResponse>(new TestResponse(false));
+        var handler = new TestMessageHandler<TestMessage, TestResponse>(new(false));
         var client = new ServiceCollection()
             .AddMessagingClient(b => b.AddHandler(handler).ClearInterceptors())
             .BuildServiceProvider()
@@ -232,7 +232,7 @@ public class MessagingClientTests
         var interceptor = new TestMessagePublishInterceptor<TestMessage>();
         var client = new ServiceCollection()
             .AddMessagingClient(b => b
-                .AddHandler(new TestMessageHandler<TestMessage, TestResponse>(new TestResponse()))
+                .AddHandler(new TestMessageHandler<TestMessage, TestResponse>(new()))
                 .ClearInterceptors()
                 .AddInterceptor(interceptor))
             .BuildServiceProvider()
@@ -249,7 +249,7 @@ public class MessagingClientTests
         var interceptor = new TestMessagePublishInterceptor<IMessage<object>>();
         var client = new ServiceCollection()
             .AddMessagingClient(b => b
-                .AddHandler(new TestMessageHandler<TestMessage, TestResponse>(new TestResponse()))
+                .AddHandler(new TestMessageHandler<TestMessage, TestResponse>(new()))
                 .ClearInterceptors()
                 .AddInterceptor(interceptor))
             .BuildServiceProvider()
@@ -283,7 +283,7 @@ public class MessagingClientTests
         var interceptor = new TestAbstractInterceptor();
         var client = new ServiceCollection()
             .AddMessagingClient(b => b
-                .AddHandler(new TestMessageHandler<TestMessage, TestResponse>(new TestResponse()))
+                .AddHandler(new TestMessageHandler<TestMessage, TestResponse>(new()))
                 .ClearInterceptors()
                 .AddInterceptor(interceptor))
             .BuildServiceProvider()
@@ -300,7 +300,7 @@ public class MessagingClientTests
         var interceptor = new TestAbstractInterceptor();
         var client = new ServiceCollection()
             .AddMessagingClient(b => b
-                .AddHandler(new TestMessageHandler<TestMessage, TestResponse>(new TestResponse()))
+                .AddHandler(new TestMessageHandler<TestMessage, TestResponse>(new()))
                 .ClearInterceptors()
                 .AddInterceptor(interceptor))
             .BuildServiceProvider()
@@ -314,9 +314,9 @@ public class MessagingClientTests
     [Test]
     public async Task PublishObject_returnsResponseObject_defaultInterceptors()
     {
-        var handler = new TestMessageHandler<TestMessage, TestResponse>(new TestResponse(false));
+        var handler = new TestMessageHandler<TestMessage, TestResponse>(new(false));
         var client = new ServiceCollection()
-            .AddMessagingClient(b => b.AddHandler(handler))
+            .AddMessagingClient(b => b.UseLocal().AddHandler(handler))
             .BuildServiceProvider()
             .GetRequiredService<IMessagingClient>();
 
@@ -328,9 +328,9 @@ public class MessagingClientTests
     [Test]
     public async Task PublishObject_returnsResponse_namedClient()
     {
-        var handler1 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(1));
-        var handler2 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(2));
-        var handler3 = new TestMessageHandler<TestMessage2, TestResponse2>(new TestResponse2(3));
+        var handler1 = new TestMessageHandler<TestMessage2, TestResponse2>(new(1));
+        var handler2 = new TestMessageHandler<TestMessage2, TestResponse2>(new(2));
+        var handler3 = new TestMessageHandler<TestMessage2, TestResponse2>(new(3));
         var mainProvider = new ServiceCollection()
             .AddMessagingClient(b => b.AddHandler(handler1).ClearInterceptors())
             .ConfigureMessagingClient("1", b => b.AddHandler(handler2).ClearInterceptors())
