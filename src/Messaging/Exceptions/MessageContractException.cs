@@ -3,7 +3,7 @@ using System;
 namespace Assistant.Net.Messaging.Exceptions;
 
 /// <summary>
-///     Remote message handling contract was breached.
+///     The exception thrown if remote message handling contract was breached.
 /// </summary>
 public sealed class MessageContractException : MessageException
 {

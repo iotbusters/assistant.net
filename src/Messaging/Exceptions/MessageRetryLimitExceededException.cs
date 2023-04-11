@@ -3,7 +3,7 @@ using System;
 namespace Assistant.Net.Messaging.Exceptions;
 
 /// <summary>
-///     Max retry limit was reached so message handling considered as failed.
+///     The exception thrown if max retry limit was reached.
 /// </summary>
 public sealed class MessageRetryLimitExceededException : MessageException
 {
