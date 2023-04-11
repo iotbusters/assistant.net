@@ -34,7 +34,7 @@ public class SerializerFactoryTests
     }
 
     [Test]
-    public void Create_returnsSerializer_registeredWithAddTypeAny()
+    public void Create_returnsSerializer_registeredWithAllowAnyType()
     {
         var factory = new ServiceCollection()
             .AddSerializer(b => b.UseFormat((_, _) => new TestSerializer<TestClass>()).AllowAnyType())

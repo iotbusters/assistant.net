@@ -35,7 +35,7 @@ public class MessagingClientFixtureBuilder
             .ConfigureServices(s => s
                 .AddTypeEncoder(o => o.Exclude("NUnit").Exclude("Newtonsoft"))
                 .AddGenericMessageHandling()
-                .ConfigureMessagingClient(GenericOptionsNames.DefaultName, o => o
+                .ConfigureMessagingClient(GenericOptionsNames.DefaultName, b => b
                     .RemoveInterceptor<CachingInterceptor>()
                     .RemoveInterceptor<RetryingInterceptor>()
                     .RemoveInterceptor<TimeoutInterceptor>()
@@ -52,16 +52,7 @@ public class MessagingClientFixtureBuilder
     public IServiceCollection Services { get; init; }
     public IHostBuilder RemoteHostBuilder { get; init; }
 
-    public MessagingClientFixtureBuilder UseSqliteProvider(string connectionString)
-    {
-        Services.ConfigureMessagingClient(b => b
-            .UseSqlite(connectionString).UseGenericSingleHandler());
-        RemoteHostBuilder.ConfigureServices(s => s.ConfigureGenericMessageHandling(b => b
-            .UseSqlite(connectionString)));
-        return this;
-    }
-
-    public MessagingClientFixtureBuilder UseSqliteSingleProvider(string connectionString)
+    public MessagingClientFixtureBuilder UseSqlite(string connectionString)
     {
         Services.ConfigureMessagingClient(b => b
             .UseSqlite(connectionString).UseGenericSingleHandler());
@@ -92,47 +83,7 @@ public class MessagingClientFixtureBuilder
         return this;
     }
 
-    public MessagingClientFixtureBuilder AddAnyProviderHandler<THandler>(THandler? handler = null) where THandler : class
-    {
-        var messageTypes = typeof(THandler).GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
-        if (!messageTypes.Any())
-            throw new ArgumentException($"Expected message handler but provided {typeof(THandler)}.", nameof(THandler));
-
-        genericServerSource.Configurations.Add(o => o.AcceptMessages(messageTypes));
-        remoteSource.Configurations.Add(o =>
-        {
-            if (handler != null)
-                o.AddHandler(handler);
-            else
-                o.AddHandler(typeof(THandler));
-        });
-        clientSource.Configurations.Add(o => o.UseGenericBackoffHandler());
-        return this;
-    }
-
-    public MessagingClientFixtureBuilder AddSingleProviderHandler<THandler>(THandler? handler = null) where THandler : class
-    {
-        var messageTypes = typeof(THandler).GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
-        if (!messageTypes.Any())
-            throw new ArgumentException($"Expected message handler but provided {typeof(THandler)}.", nameof(THandler));
-
-        genericServerSource.Configurations.Add(o => o.AcceptMessages(messageTypes));
-        remoteSource.Configurations.Add(o =>
-        {
-            if (handler != null)
-                o.AddHandler(handler);
-            else
-                o.AddHandler(typeof(THandler));
-        });
-        clientSource.Configurations.Add(o =>
-        {
-            foreach (var messageType in messageTypes)
-                o.AddSingle(messageType);
-        });
-        return this;
-    }
-
-    public MessagingClientFixtureBuilder AddAnySingleProviderHandler<THandler>(THandler? handler = null) where THandler : class
+    public MessagingClientFixtureBuilder UseRemoteBackoffHandler<THandler>(THandler? handler = null) where THandler : class
     {
         var messageTypes = typeof(THandler).GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
         if (!messageTypes.Any())

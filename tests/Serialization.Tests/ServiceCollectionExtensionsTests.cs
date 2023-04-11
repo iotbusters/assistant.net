@@ -46,7 +46,7 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Test]
-    public void GetServiceOfSerializer_resolvesObject_configuredWithAddTypeAny()
+    public void GetServiceOfSerializer_resolvesObject_configuredWithAllowAnyType()
     {
         using var provider = new ServiceCollection()
             .AddSerializer(b => b.UseFormat((_, _) => new TestSerializer<TestClass>()).AllowAnyType())

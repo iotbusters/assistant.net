@@ -28,32 +28,32 @@ public class ServiceCollectionExtensionsTests
         .BuildServiceProvider();
 
     [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithStorageProviderFactoryDefined_UsingLocal() =>
+    public void GetServiceOfStorageOptions_returnsInstanceWithStorageProviderFactoryDefined_LocalProvider() =>
         LocalProvider.GetService<INamedOptions<StorageOptions>>()?.Value.StorageProviderFactory
             .Should().NotBeNull();
 
     [Test]
-    public void GetServiceOfIStorage_returnsInstance_UsingLocal() =>
+    public void GetServiceOfIStorage_returnsInstance_LocalProvider() =>
         LocalProvider.GetService<IStorage<TestKey, object>>()
             .Should().NotBeNull();
 
     [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithPartitionedStorageProviderFactoryDefined_UsingLocal() =>
+    public void GetServiceOfStorageOptions_returnsInstanceWithPartitionedStorageProviderFactoryDefined_LocalProvider() =>
         LocalProvider.GetService<INamedOptions<StorageOptions>>()?.Value.PartitionedStorageProviderFactory
             .Should().NotBeNull();
 
     [Test]
-    public void GetServiceOfIPartitionedStorage_returnsInstance_UsingLocal() =>
+    public void GetServiceOfIPartitionedStorage_returnsInstance_LocalProvider() =>
         LocalProvider.GetService<IPartitionedStorage<TestKey, object>>()
             .Should().NotBeNull();
 
     [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithHistoricalStorageProviderFactoryDefined_UsingLocal() =>
+    public void GetServiceOfStorageOptions_returnsInstanceWithHistoricalStorageProviderFactoryDefined_LocalProvider() =>
         LocalProvider.GetService<INamedOptions<StorageOptions>>()?.Value.HistoricalStorageProviderFactory
             .Should().NotBeNull();
 
     [Test]
-    public void GetServiceOfIHistoricalStorage_returnsInstance_UsingLocal() =>
+    public void GetServiceOfIHistoricalStorage_returnsInstance_LocalProvider() =>
         LocalProvider.GetService<IHistoricalStorage<TestKey, object>>()
             .Should().NotBeNull();
 
@@ -93,7 +93,7 @@ public class ServiceCollectionExtensionsTests
             .Should().Throw<StoringTypeNotRegisteredException>();
 
     [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithStorageProviderFactoryUndefined_NotUsingLocal() =>
+    public void GetServiceOfStorageOptions_returnsInstanceWithStorageProviderFactoryUndefined_UnknownProvider() =>
         UnknownProvider.GetService<INamedOptions<StorageOptions>>()?.Value.StorageProviderFactory
             .Should().BeNull();
 
@@ -103,7 +103,7 @@ public class ServiceCollectionExtensionsTests
             .Should().Throw<StorageProviderNotRegisteredException>();
 
     [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithPartitionedStorageProviderFactoryUndefined_NotUsingLocal() =>
+    public void GetServiceOfStorageOptions_returnsInstanceWithPartitionedStorageProviderFactoryUndefined_UnknownProvider() =>
         UnknownProvider.GetService<INamedOptions<StorageOptions>>()?.Value.PartitionedStorageProviderFactory
             .Should().BeNull();
 
@@ -113,12 +113,12 @@ public class ServiceCollectionExtensionsTests
             .Should().Throw<StorageProviderNotRegisteredException>();
 
     [Test]
-    public void GetServiceOfStorageOptions_returnsInstanceWithHistoricalStorageProviderFactoryUndefined_NotUsingLocal() =>
+    public void GetServiceOfStorageOptions_returnsInstanceWithHistoricalStorageProviderFactoryUndefined_UnknownProvider() =>
         UnknownProvider.GetService<INamedOptions<StorageOptions>>()?.Value.HistoricalStorageProviderFactory
             .Should().BeNull();
 
     [Test]
-    public void GetServiceOfIHistoricalStorage_throwsException_NotUsingLocal() =>
+    public void GetServiceOfIHistoricalStorage_throwsException_UnknownProvider() =>
         UnknownProvider.Invoking(x => x.GetService<IHistoricalStorage<TestKey, object>>())
             .Should().Throw<StorageProviderNotRegisteredException>();
 
