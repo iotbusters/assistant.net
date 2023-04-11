@@ -23,15 +23,18 @@ public class ErrorHandlingInterceptorTests
     }
 
     [Test]
-    public async Task Intercept_throwsMessageExecutionException_request() =>
+    public async Task Intercept_throwsMessageExecutionException_requestAndThrownExposedException()
+    {
+        Options.ExposedExceptions.Add(typeof(MessageException));
         await Interceptor.Awaiting(x => x.Intercept(FailRequest(new TestMessageExecutionException()), Message, default))
             .Should().ThrowAsync<TestMessageExecutionException>();
+    }
 
     [TestCase(typeof(OperationCanceledException))]
     [TestCase(typeof(TaskCanceledException))]
     [TestCase(typeof(TimeoutException))]
     [TestCase(typeof(Exception))]
-    public async Task Intercept_throws_request(Type exceptionType)
+    public async Task Intercept_throws_requestAndThrown(Type exceptionType)
     {
         Options.ExposedExceptions.Add(exceptionType);
 
@@ -61,15 +64,18 @@ public class ErrorHandlingInterceptorTests
             .Should().NotThrowAsync();
 
     [Test]
-    public async Task Intercept_throwsMessageExecutionException_publish() =>
+    public async Task Intercept_throwsMessageExecutionException_publishAndThrownExposedException()
+    {
+        Options.ExposedExceptions.Add(typeof(MessageException));
         await Interceptor.Awaiting(x => x.Intercept(FailPublish(new TestMessageExecutionException()), Message, default))
             .Should().ThrowAsync<TestMessageExecutionException>();
+    }
 
     [TestCase(typeof(OperationCanceledException))]
     [TestCase(typeof(TaskCanceledException))]
     [TestCase(typeof(TimeoutException))]
     [TestCase(typeof(Exception))]
-    public async Task Intercept_throws_publish(Type exceptionType)
+    public async Task Intercept_throws_publishAndThrown(Type exceptionType)
     {
         Options.ExposedExceptions.Add(exceptionType);
 
@@ -96,7 +102,7 @@ public class ErrorHandlingInterceptorTests
     [OneTimeSetUp]
     public void OneTimeSetup()
     {
-        Options = new MessagingClientOptions();
+        Options = new();
         var services = new ServiceCollection()
             .AddTypeEncoder()
             .AddTransient<INamedOptions<MessagingClientOptions>>(_=> new TestNamedOptions(() => Options))
@@ -105,7 +111,7 @@ public class ErrorHandlingInterceptorTests
     }
 
     [SetUp]
-    public void Setup() => Options = new MessagingClientOptions();
+    public void Setup() => Options = new();
 
     [OneTimeTearDown]
     public void OneTimeTearDown() => Provider.Dispose();

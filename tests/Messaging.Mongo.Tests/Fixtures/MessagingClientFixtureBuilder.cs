@@ -59,19 +59,11 @@ public class MessagingClientFixtureBuilder
     public IServiceCollection Services { get; init; }
     public IHostBuilder RemoteHostBuilder { get; init; }
 
-    public MessagingClientFixtureBuilder UseMongoProvider(string connectionString, string database)
+    public MessagingClientFixtureBuilder UseMongo(string connectionString, string database)
     {
         Services.ConfigureMessagingClient(b => b
-            .UseMongo(o => o.Connection(connectionString).Database(database)).UseMongoProvider());
-        RemoteHostBuilder.ConfigureServices(s => s.ConfigureGenericMessageHandling(b => b
-            .UseMongo(o => o.Connection(connectionString).Database(database))));
-        return this;
-    }
-
-    public MessagingClientFixtureBuilder UseMongoSingleProvider(string connectionString, string database)
-    {
-        Services.ConfigureMessagingClient(b => b
-            .UseMongo(o => o.Connection(connectionString).Database(database)).UseMongoSingleProvider());
+            .UseMongo(o => o.Connection(connectionString).Database(database))
+            .UseGenericSingleHandler());
         RemoteHostBuilder.ConfigureServices(s => s.ConfigureGenericMessageHandling(b => b
             .UseMongo(o => o.Connection(connectionString).Database(database))));
         return this;
@@ -94,7 +86,7 @@ public class MessagingClientFixtureBuilder
         clientSource.Configurations.Add(o =>
         {
             foreach (var messageType in messageTypes)
-                o.AddGeneric(messageType);
+                o.AddSingle(messageType);
         });
         return this;
     }
@@ -113,7 +105,7 @@ public class MessagingClientFixtureBuilder
             else
                 o.AddHandler(typeof(THandler));
         });
-        clientSource.Configurations.Add(o => o.AddGenericAny());
+        clientSource.Configurations.Add(o => o.UseGenericBackoffHandler());
         return this;
     }
 
@@ -153,14 +145,14 @@ public class MessagingClientFixtureBuilder
             else
                 o.AddHandler(typeof(THandler));
         });
-        clientSource.Configurations.Add(o => o.AddSingleAny());
+        clientSource.Configurations.Add(o => o.UseGenericBackoffHandler());
         return this;
     }
 
     public MessagingClientFixtureBuilder AddMessageRegistrationOnly<TMessage>()
         where TMessage : IAbstractMessage
     {
-        clientSource.Configurations.Add(o => o.AddGeneric(typeof(TMessage)));
+        clientSource.Configurations.Add(o => o.AddSingle<TMessage>());
         return this;
     }
 

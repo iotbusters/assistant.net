@@ -33,7 +33,7 @@ public class ClientServerIntegrationTests
             .Create();
 
         // arrange 1
-        fixture.ReplaceHandlers(new TestMessageHandler<TestScenarioMessage, TestResponse>(new TestResponse(true)));
+        fixture.ReplaceHandlers(new TestMessageHandler<TestScenarioMessage, TestResponse>(new(true)));
 
         // act 1
         var response1 = await fixture.Client.RequestObject(new TestScenarioMessage(1));
@@ -42,7 +42,7 @@ public class ClientServerIntegrationTests
         response1.Should().BeEquivalentTo(new TestResponse(true));
 
         // arrange 2
-        fixture.ReplaceHandlers(new TestMessageHandler<TestScenarioMessage, TestResponse>(new TestResponse(false)));
+        fixture.ReplaceHandlers(new TestMessageHandler<TestScenarioMessage, TestResponse>(new(false)));
 
         // act 2
         var response2 = await fixture.Client.RequestObject(new TestScenarioMessage(2));
@@ -121,23 +121,24 @@ public class ClientServerIntegrationTests
     }
 
     [Test]
-    public void RequestObject_throwsMessageFailedException_thrownMessageFailedExceptionWithInnerException()
+    public async Task RequestObject_throwsMessageFailedException_thrownMessageFailedExceptionWithInnerException()
     {
         using var fixture = new MessagingClientFixtureBuilder()
             .AddWebHandler<TestScenarioMessageHandler>()
             .Create();
 
-        fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(3)))
+        var ex = await fixture.Client.Awaiting(x => x.RequestObject(new TestScenarioMessage(3)))
             .Should().ThrowExactlyAsync<MessageFailedException>()
-            .WithMessage("3")
-            .Result.WithInnerExceptionExactly<MessageFailedException>()
-            .Which.InnerException?.Message.Should().Be("inner");
+            .WithMessage("3");
+        ex
+            .Which.InnerException.Should().BeOfType<MessageFailedException>()
+            .Which.Message.Should().Be("inner");
     }
 
     [Test]
     public async Task PublishObject_returnsResponse()
     {
-        var handler = new TestMessageHandler<TestScenarioMessage, TestResponse>(new TestResponse(false));
+        var handler = new TestMessageHandler<TestScenarioMessage, TestResponse>(new(false));
         using var fixture = new MessagingClientFixtureBuilder()
             .AddWebHandler(handler)
             .Create();

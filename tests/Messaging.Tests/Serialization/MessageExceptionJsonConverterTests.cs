@@ -110,10 +110,10 @@ public class MessageExceptionJsonConverterTests
     private static IEnumerable<MessageException> SupportedExceptions()
     {
         yield return new MessageFailedException("1");
-        yield return new MessageFailedException("1", new Exception("2"));
+        yield return new MessageFailedException("1", new("2"));
         yield return new MessageRetryLimitExceededException();
         yield return new MessageRetryLimitExceededException("1");
-        yield return new MessageRetryLimitExceededException("1", new Exception("2"));
+        yield return new MessageRetryLimitExceededException("1", new("2"));
         yield return new MessageNotRegisteredException("1");
         yield return new MessageNotRegisteredException(typeof(object));
         yield return new MessageConnectionFailedException();

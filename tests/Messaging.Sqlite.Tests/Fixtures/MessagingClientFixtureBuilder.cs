@@ -55,7 +55,7 @@ public class MessagingClientFixtureBuilder
     public MessagingClientFixtureBuilder UseSqliteProvider(string connectionString)
     {
         Services.ConfigureMessagingClient(b => b
-            .UseSqlite(connectionString).UseSqliteProvider());
+            .UseSqlite(connectionString).UseGenericSingleHandler());
         RemoteHostBuilder.ConfigureServices(s => s.ConfigureGenericMessageHandling(b => b
             .UseSqlite(connectionString)));
         return this;
@@ -64,7 +64,7 @@ public class MessagingClientFixtureBuilder
     public MessagingClientFixtureBuilder UseSqliteSingleProvider(string connectionString)
     {
         Services.ConfigureMessagingClient(b => b
-            .UseSqlite(connectionString).UseSqliteSingleProvider());
+            .UseSqlite(connectionString).UseGenericSingleHandler());
         RemoteHostBuilder.ConfigureServices(s => s.ConfigureGenericMessageHandling(b => b
             .UseSqlite(connectionString)));
         return this;
@@ -87,7 +87,7 @@ public class MessagingClientFixtureBuilder
         clientSource.Configurations.Add(o =>
         {
             foreach (var messageType in messageTypes)
-                o.AddGeneric(messageType);
+                o.AddSingle(messageType);
         });
         return this;
     }
@@ -106,7 +106,7 @@ public class MessagingClientFixtureBuilder
             else
                 o.AddHandler(typeof(THandler));
         });
-        clientSource.Configurations.Add(o => o.AddGenericAny());
+        clientSource.Configurations.Add(o => o.UseGenericBackoffHandler());
         return this;
     }
 
@@ -146,14 +146,14 @@ public class MessagingClientFixtureBuilder
             else
                 o.AddHandler(typeof(THandler));
         });
-        clientSource.Configurations.Add(o => o.AddSingleAny());
+        clientSource.Configurations.Add(o => o.UseGenericBackoffHandler());
         return this;
     }
 
     public MessagingClientFixtureBuilder AddMessageRegistrationOnly<TMessage>()
         where TMessage : IAbstractMessage
     {
-        clientSource.Configurations.Add(o => o.AddGeneric(typeof(TMessage)));
+        clientSource.Configurations.Add(o => o.AddSingle(typeof(TMessage)));
         return this;
     }
 
