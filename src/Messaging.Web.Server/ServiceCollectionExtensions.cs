@@ -37,15 +37,14 @@ public static class ServiceCollectionExtensions
         .AddWebMessageHandlingMiddlewares()
         .AddSystemServicesHosted()
         .AddDiagnosticsWebHosted()
-        .AddMessagingClient()
-        .ConfigureWebMessageHandling(b => b.AddConfiguration<WebServerInterceptorConfiguration>())
-        .ConfigureWebMessageHandling(configureBuilder)
+        .AddMessagingClient(WebOptionsNames.DefaultName, b => b.AddConfiguration<WebServerInterceptorConfiguration>())
+        .ConfigureMessagingClient(WebOptionsNames.DefaultName, configureBuilder)
         .ConfigureJsonSerialization(WebOptionsNames.DefaultName)
         .AddOptions<WebHandlingServerOptions>()
         .ChangeOn<MessagingClientOptions>(WebOptionsNames.DefaultName, (wo, o) =>
         {
             wo.MessageTypes.Clear();
-            foreach (var messageType in o.Handlers.Keys)
+            foreach (var messageType in o.HandlerFactories.Keys)
                 wo.MessageTypes.Add(messageType);
         }).Services;
 

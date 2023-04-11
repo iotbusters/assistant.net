@@ -29,11 +29,11 @@ internal class MessagingClient : IMessagingClient
         var clientOptions = options.Value;
 
         var messageType = message.GetType();
-        if (!clientOptions.Handlers.TryGetValue(messageType, out var factory)
-            && clientOptions.DefaultHandler == null)
+        if (!clientOptions.HandlerFactories.TryGetValue(messageType, out var factory)
+            && clientOptions.BackoffHandlerFactory == null)
             throw new MessageNotRegisteredException(messageType);
 
-        var handler = (factory ?? clientOptions.DefaultHandler)!.Create(provider);
+        var handler = factory?.Create(provider) ?? clientOptions.BackoffHandlerFactory!.Create(provider, messageType);
         var interceptors = clientOptions.RequestInterceptors
             .Where(x => x.MessageType.IsAssignableFrom(messageType))
             .Select(x => x.Factory.Create(provider));
@@ -48,11 +48,11 @@ internal class MessagingClient : IMessagingClient
         var clientOptions = options.Value;
 
         var messageType = message.GetType();
-        if (!clientOptions.Handlers.TryGetValue(messageType, out var factory)
-            && clientOptions.DefaultHandler == null)
+        if (!clientOptions.HandlerFactories.TryGetValue(messageType, out var factory)
+            && clientOptions.BackoffHandlerFactory == null)
             throw new MessageNotRegisteredException(messageType);
 
-        var handler = (factory ?? clientOptions.DefaultHandler)!.Create(provider);
+        var handler = factory?.Create(provider) ?? clientOptions.BackoffHandlerFactory!.Create(provider, messageType);
         var interceptors = clientOptions.PublishInterceptors
             .Where(x => x.MessageType.IsAssignableFrom(messageType))
             .Select(x => x.Factory.Create(provider));

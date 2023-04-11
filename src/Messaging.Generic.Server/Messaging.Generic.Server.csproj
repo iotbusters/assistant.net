@@ -29,7 +29,7 @@
     <PackageTags>mediator rpc handler</PackageTags>
     <Description>storage based message handling server.</Description>
     <RepositoryUrl>https://github.com/iotbusters/assistant.net</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/blob/master/README.md#assistantnetmessagingmongoserver</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net/tree/master/src/Messaging.Generic.Server</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>

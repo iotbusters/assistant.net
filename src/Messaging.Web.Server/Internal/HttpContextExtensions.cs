@@ -69,7 +69,7 @@ internal static class HttpContextExtensions
         {
             return await serializer.DeserializeObject(httpContext.Request.Body);
         }
-        catch (SerializerTypeNotRegisteredException)
+        catch (SerializingTypeNotRegisteredException)
         {
             throw;
         }

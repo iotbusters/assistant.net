@@ -1,7 +1,6 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.DataAnnotations;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Options;
 using Assistant.Net.RetryStrategies;
@@ -16,40 +15,40 @@ namespace Assistant.Net.Messaging.Options;
 public sealed class MessagingClientOptions
 {
     /// <summary>
-    ///     Single provider instance used for message handling configured for the feature.
+    ///     A single message handler instance factory using for message handling configured for the feature.
     /// </summary>
-    public InstanceFactory<IAbstractHandler>? SingleProvider { get; internal set; }
+    public InstanceFactory<IAbstractHandler, Type>? SingleHandlerFactory { get; internal set; }
 
     /// <summary>
-    ///     A handler instance used for any message type except defined explicitly.
+    ///     A message handler instance factory using for not registered in <see cref="HandlerFactories"/> message types.
     /// </summary>
-    public InstanceFactory<IAbstractHandler>? DefaultHandler { get; internal set; }
+    public InstanceFactory<IAbstractHandler, Type>? BackoffHandlerFactory { get; internal set; }
 
     /// <summary>
-    ///     List of registered handlers.
+    ///     Specific message type handler registrations.
     /// </summary>
-    public Dictionary<Type, InstanceFactory<IAbstractHandler>> Handlers { get; } = new();
+    public Dictionary<Type, InstanceFactory<IAbstractHandler>> HandlerFactories { get; } = new();
 
     /// <summary>
-    ///     List of registered request interceptors.
+    ///     Request message operation interceptor registrations.
     /// </summary>
     public List<InterceptorDefinition<IAbstractRequestInterceptor>> RequestInterceptors { get; } = new();
-
+    
     /// <summary>
-    ///     List of registered publish interceptors.
+    ///     Publish message operation interceptor registrations.
     /// </summary>
     public List<InterceptorDefinition<IAbstractPublishInterceptor>> PublishInterceptors { get; } = new();
 
     /// <summary>
-    ///     List of allowed for exposing external exceptions.
+    ///     Allowed for exposing external exception registrations.
     /// </summary>
     /// <remarks>
     ///     It impacts <see cref="ErrorHandlingInterceptor"/>.
     /// </remarks>
-    public HashSet<Type> ExposedExceptions { get; } = new() {typeof(MessageException)};
+    public HashSet<Type> ExposedExceptions { get; } = new();
 
     /// <summary>
-    ///     List of allowed for retrying transient exceptions.
+    ///     Allowed for retrying transient exception registrations.
     /// </summary>
     /// <remarks>
     ///     It impacts <see cref="CachingInterceptor"/> and <see cref="RetryingInterceptor"/>.

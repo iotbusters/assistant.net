@@ -23,10 +23,7 @@ public static class ServiceCollectionExtensions
     ///     Pay attention, you need to call explicitly <see cref="ConfigureMessagingClient(IServiceCollection,Action{MessagingClientBuilder})"/> to register handlers.
     /// </remarks>
     public static IServiceCollection AddMessagingClient(this IServiceCollection services) => services
-        .AddDiagnostics()
-        .AddNamedOptionsContext()
-        .AddSystemServicesDefaulted()
-        .TryAddScoped<IMessagingClient, MessagingClient>();
+        .AddMessagingClient(delegate { });
 
     /// <summary>
     ///     Adds <see cref="IMessagingClient"/> implementation, required services and options.
@@ -34,10 +31,7 @@ public static class ServiceCollectionExtensions
     /// <param name="services"/>
     /// <param name="configure">The action used to configure the default messaging client.</param>
     public static IServiceCollection AddMessagingClient(this IServiceCollection services, Action<MessagingClientBuilder> configure) => services
-        .AddMessagingClient()
-        .ConfigureJsonSerialization()
-        .ConfigureMessagingClient(b => b.AddConfiguration<DefaultInterceptorConfiguration>())
-        .ConfigureMessagingClient(configure);
+        .AddMessagingClient(Microsoft.Extensions.Options.Options.DefaultName, configure);
 
     /// <summary>
     ///     Adds <see cref="IMessagingClient"/> implementation, required services and options.
@@ -46,7 +40,10 @@ public static class ServiceCollectionExtensions
     /// <param name="name">The name of related option instances.</param>
     /// <param name="configure">The action used to configure the default messaging client.</param>
     public static IServiceCollection AddMessagingClient(this IServiceCollection services, string name, Action<MessagingClientBuilder> configure) => services
-        .AddMessagingClient()
+        .AddDiagnostics()
+        .AddNamedOptionsContext()
+        .AddSystemServicesDefaulted()
+        .TryAddScoped<IMessagingClient, MessagingClient>()
         .ConfigureJsonSerialization(name)
         .ConfigureMessagingClient(name, b => b.AddConfiguration<DefaultInterceptorConfiguration>())
         .ConfigureMessagingClient(name, configure);
@@ -105,6 +102,7 @@ public static class ServiceCollectionExtensions
     /// </remarks>
     public static IServiceCollection ConfigureJsonSerialization(this IServiceCollection services, string name) => services
         .AddSerializer(name, b => b
+            .UseJson()
             .AddJsonConverter<MessageExceptionJsonConverter>()
             .AllowAnyType());
 }

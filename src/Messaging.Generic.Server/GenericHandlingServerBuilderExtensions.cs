@@ -15,7 +15,7 @@ public static class GenericHandlingServerBuilderExtensions
     /// </summary>
     public static GenericHandlingServerBuilder UseLocal(this GenericHandlingServerBuilder builder)
     {
-        builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b.UseLocalSingleProvider());
+        builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b.UseLocal());
         return builder;
     }
 
