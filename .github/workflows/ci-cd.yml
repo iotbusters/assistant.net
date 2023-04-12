@@ -22,7 +22,7 @@ jobs:
       - name: detect code changes
         id: change-detected
         run: |
-          LATEST_RELEASE=$(git describe --abbrev=0 --tags)
+          LATEST_RELEASE=$(git describe --always)
           COMMITS=$(git rev-list $LATEST_RELEASE..${{ github.event.after }})
           COMMIT_SUBJECTS=()
           for COMMIT in $COMMITS
@@ -37,7 +37,7 @@ jobs:
           echo "core=$(echo "$CHANGES" | grep -c src/Core/)" >> $GITHUB_OUTPUT
           echo "serialization=$(echo "$CHANGES" | grep -c src/Serialization/)" >> $GITHUB_OUTPUT
           echo "serialization-json=$(echo "$CHANGES" | grep -c src/Serialization.Json/)" >> $GITHUB_OUTPUT
-          echo "serialization-proto=$(echo "$CHANGES" | grep -c src/Serialization.ProtoBuf/)" >> $GITHUB_OUTPUT
+          echo "serialization-proto=$(echo "$CHANGES" | grep -c src/Serialization.Proto/)" >> $GITHUB_OUTPUT
           echo "storage=$(echo "$CHANGES" | grep -c src/Storage/)" >> $GITHUB_OUTPUT
           echo "storage-mongo=$(echo "$CHANGES" | grep -c src/Storage.Mongo/)" >> $GITHUB_OUTPUT
           echo "storage-sqlite=$(echo "$CHANGES" | grep -c src/Storage.Sqlite/)" >> $GITHUB_OUTPUT
