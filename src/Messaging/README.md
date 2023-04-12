@@ -41,7 +41,8 @@ services.ConfigureMessagingClient(b => b.UseLocal());
 services.ConfigureStorage(b => b.UseLocal());
 ```
 
-but pay attention, it should be configured for each named messaging client. See [named configuration](#named-configuration) for details.
+> **Note**
+> It should be configured for each named messaging client. See [named configuration](#named-configuration) for details.
 
 ## Configuration extension
 

@@ -1,25 +1,22 @@
 ﻿# assistant.net.messaging.generic.client
 
-Message handling client implementation which stores requested message to a storage delegating actual handling to
-a hosted [server](https://www.nuget.org/packages/assistant.net.messaging.generic.server/) and it starts polling
-a storage for a response.
+A [messaging](https://www.nuget.org/packages/assistant.net.messaging/) client extension which delegates message handling to
+a [generic server](https://www.nuget.org/packages/assistant.net.messaging.generic.server/) communicating via the same storage.
 
-> **Note**
-> Storage based messaging is called `generic` as cross-provider implementation. Also it helps to avoid
-> confusion between more clear `storage` and the same named package.
+## Configuration
 
-## Usage
+1. Configure a storage based single message handler and an accepting message type
 
 ```csharp
-using var provider = new ServiceCollection()
-    .AddMessagingClient(b => b
-        .UseMongo(o => o.Connection("mongodb://127.0.0.1:27017").Database("Messaging"))
-        .AddMongo<SomeMessage>());
+services.ConfigureMessagingClient(b => b
+    .UseGenericSingleHandler() // requires a storage provider to be configured
+    .AddSingle<SomeMessage>());
+```
 
-var client = provider.GetRequiredService<IMessagingClient>();
-var response = await client.Request(new SomeMessage());
+2. Configure a storage provider
 
-internal class SomeMessage : IMessage<SomeResponse> { ... }
-internal class SomeResponse { ... }
-internal class CustomHttpHandler : DelegatingHandler { ... }
+```csharp
+services.ConfigureMessagingClient(b => b.UseMongo(o => ...)); // or other provider
+// or
+services.ConfigureStorage(b => b.UseMongo(o => ...)); // or other provider
 ```
