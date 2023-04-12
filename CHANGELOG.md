@@ -10,6 +10,26 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - nothing
 
+## [0.5.153] - 2023-04-12
+
+### 0.5.153 Added
+
+- Serialization package
+- Serialization.Proto package with ProtoBuf serializer implementation
+- hash code generating extension methods to Core package
+
+### 0.5.153 Changed
+
+- moved common logic from Serialization.Json to new Serialization package
+- redesigned configuration including extension methods of
+  - redesigned serialization configuration
+  - redesigned storage configuration
+  - redesigned messaging configuration
+
+### 0.5.153 Fixed
+
+- small bugs
+
 ## [0.4.151] - 2023-03-26
 
 [Assistant.NET Release 0.4.151](https://github.com/iotbusters/assistant.net/releases/tag/0.4.151)
@@ -27,10 +47,10 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 ### 0.4.151 Removed
 
-- Core.Mongo project
-- Core.Mongo.HealthCheck project
-- Core.Sqlite project
-- Core.Sqlite.HealthCheck project
+- Core.Mongo package
+- Core.Mongo.HealthCheck package
+- Core.Sqlite package
+- Core.Sqlite.HealthCheck package
 
 ## [0.4.145] - 2023-03-22
 
