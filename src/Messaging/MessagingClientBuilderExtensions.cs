@@ -18,7 +18,8 @@ public static class MessagingClientBuilderExtensions
     ///     Configures a local storage for message handlers and interceptors.
     /// </summary>
     /// <remarks>
-    ///     This is just an alias to <see cref="StorageBuilderExtensions.UseLocal"/>.
+    ///     This is just an alias to <see cref="StorageBuilderExtensions.UseLocal"/> and
+    ///     required only for some interceptors.
     /// </remarks>
     public static MessagingClientBuilder UseLocal(this MessagingClientBuilder builder)
     {

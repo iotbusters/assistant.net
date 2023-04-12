@@ -1,7 +1,6 @@
 ﻿using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage;
 using System;
-using System.Linq;
 
 namespace Assistant.Net.Messaging;
 
