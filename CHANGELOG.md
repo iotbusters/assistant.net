@@ -10,15 +10,15 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - nothing
 
-## [0.5.153] - 2023-04-12
+## [0.5.154] - 2023-04-12
 
-### 0.5.153 Added
+### 0.5.154 Added
 
 - Serialization package
 - Serialization.Proto package with ProtoBuf serializer implementation
 - hash code generating extension methods to Core package
 
-### 0.5.153 Changed
+### 0.5.154 Changed
 
 - moved common logic from Serialization.Json to new Serialization package
 - redesigned configuration including extension methods of
@@ -26,7 +26,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
   - redesigned storage configuration
   - redesigned messaging configuration
 
-### 0.5.153 Fixed
+### 0.5.154 Fixed
 
 - small bugs
 
