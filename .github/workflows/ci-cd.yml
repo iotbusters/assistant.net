@@ -17,7 +17,7 @@ jobs:
     if: github.event.commits[0].id != '' # to avoid failures if no commit push (e.g. rebasing).
     steps:
       - uses: actions/checkout@v3.4.0
-        with: { fetch-depth: 100 }
+        with: { fetch-depth: 0 }
 
       - name: detect code changes
         id: change-detected
