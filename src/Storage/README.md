@@ -16,17 +16,28 @@ var services = new ServiceCollection()
 where a specific provider should be selected for the storing data
 
 ```csharp
-services.ConfigureStorage(b => b.UseLocal()); // Mongo or other
-
+services.ConfigureStorage(b => b.UseLocal()); // mongo or other
 ```
+
 and key-value types allowed for storing
 
 ```csharp
-
 services.ConfigureStorage(b => b
     .Add<SomeKey, SomeModel>() // by registering specific pairs
     .AllowAnyType()); // or allowing any type
+```
 
+## Configuration extension
+
+Storage configuration may be big and complicated so applying it again and again can be annoying and error-prone.
+But message configuration can help to avoid that
+
+```csharp
+services.ConfigureStorage(b => b
+    .AddConfiguration<CustomStorageConfiguration>() // by a type parameter
+    .AddConfiguration(new CustomStorageConfiguration())); // or an instance
+
+public class CustomStorageConfiguration : IStorageConfiguration { ... }
 ```
 
 ## Named configuration
@@ -55,7 +66,7 @@ Once storage was properly configured a specific storages can be resolved
 
 ```csharp
 var storage = provider.GetRequiredService<IStorage<Key, SomeModel>>();
-var historacalStorage = provider.GetRequiredService<IHistoricalStorage<Key, SomeModel>>();
+var historicalStorage = provider.GetRequiredService<IHistoricalStorage<Key, SomeModel>>();
 var partitionedStorage = provider.GetRequiredService<IPartitionedStorage<Key, SomeModel>>();
 ```
 
@@ -63,7 +74,7 @@ or specific storages extended with operations like removing values, getting valu
 
 ```csharp
 var regularAdminStorage = provider.GetRequiredService<IAdminStorage<Key, SomeModel>>();
-var historacalAdminStorage = provider.GetRequiredService<IHistoricalAdminStorage<Key, SomeModel>>();
+var historicalAdminStorage = provider.GetRequiredService<IHistoricalAdminStorage<Key, SomeModel>>();
 var partitionedAdminStorage = provider.GetRequiredService<IPartitionedAdminStorage<Key, SomeModel>>();
 ```
 
