@@ -9,7 +9,7 @@ on:
       - assistant.net.sln
       - LICENSE
 env:
-  VERSION: '${{ secrets.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
+  VERSION: '${{ vars.MAJOR_MINOR_VERSION }}.${{ github.run_number }}'
 
 jobs:
   change-detect:
