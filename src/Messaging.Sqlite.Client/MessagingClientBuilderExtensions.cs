@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Options;
+﻿using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage;
 using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Configuration;

@@ -1,6 +1,5 @@
 ﻿using Assistant.Net.Messaging.HealthChecks;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Options;
 using Assistant.Net.Storage;
 using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Configuration;
