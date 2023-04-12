@@ -1,21 +1,15 @@
 ﻿# assistant.net.messaging.mongo.client
 
-The package defines [generic client](https://www.nuget.org/packages/assistant.net.messaging.generic.client/) extensions
-to configure MongoDB providers required to connect a [server](https://www.nuget.org/packages/assistant.net.messaging.mongo.server/)
-from a client.
+A MongoDB extension of [generic messaging client](https://www.nuget.org/packages/assistant.net.messaging.generic.client/)
+communicating to a [server](https://www.nuget.org/packages/assistant.net.messaging.mongo.server/).
 
-## Usage
+## Configuration
+
+1. [Configure generic messaging client](https://github.com/iotbusters/assistant.net/tree/master/src/Messaging.Generic.Client/README.md#configuration)
+2. Configure MongoDB storage provider
 
 ```csharp
-using var provider = new ServiceCollection()
-    .AddMessagingClient(b => b
-        .UseMongo(o => o.Connection("mongodb://127.0.0.1:27017").Database("Messaging"))
-        .AddMongo<SomeMessage>());
-
-var client = provider.GetRequiredService<IMessagingClient>();
-var response = await client.Request(new SomeMessage());
-
-internal class SomeMessage : IMessage<SomeResponse> { ... }
-internal class SomeResponse { ... }
-internal class CustomHttpHandler : DelegatingHandler { ... }
+services.ConfigureMessagingClient(b => b.UseMongo(o => ...));
+// or
+services.ConfigureStorage(b => b.UseMongo(o => ...)); // or other provider
 ```
