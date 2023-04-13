@@ -24,18 +24,17 @@ jobs:
         run: |
           LATEST_RELEASE=$(git describe --abbrev=0 --tags)
           COMMITS=$(git rev-list $LATEST_RELEASE..${{ github.event.after }})
-          echo "LATEST_RELEASE: $LATEST_RELEASE"
-          echo "COMMITS: ${COMMITS[@]}"
+          echo COMMITS: $COMMITS
           COMMIT_SUBJECTS=()
-          for COMMIT in "${COMMITS[@]}"
+          for COMMIT in $COMMITS
           do
             COMMIT_MESSAGE=$(git show -s --format=%s -1 $COMMIT)
             COMMIT_SUBJECT="[${COMMIT:0:7}] $COMMIT_MESSAGE"
+            echo $COMMIT_SUBJECT
             COMMIT_SUBJECTS+=($COMMIT_SUBJECT)
-            echo "SUBJECT: $COMMIT_SUBJECT"
           done
-          echo "SUBJECTS: ${COMMIT_SUBJECTS[@]}"
           CHANGES=$(git diff --name-only "$LATEST_RELEASE"..${{ github.event.after }})
+          echo "$CHANGES"
           echo "latest-release=$LATEST_RELEASE" >> $GITHUB_OUTPUT
           echo "commit-subjects=$COMMIT_SUBJECTS" >> $GITHUB_OUTPUT
           echo "ci-changes=$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json|yml)$')" >> $GITHUB_OUTPUT
