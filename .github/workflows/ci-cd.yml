@@ -178,10 +178,10 @@ jobs:
           name: release-binaries
       - name: test commit subjects
         run: |
-          test=(${{needs.change-detect.outputs.commit_subjects[*]}})
+          test=(${{join(needs.change-detect.outputs.commit_subjects[*], ' ')}})
           echo 1. $test
           echo "2. ${test[@]}"
-          echo "3. ${{needs.change-detect.outputs.commit_subjects[*]}}"
+          echo "3. ${{join(needs.change-detect.outputs.commit_subjects[*], ' ')}}"
       - name: create release
         uses: actions/create-release@v1.1.4
         with:
@@ -218,7 +218,7 @@ jobs:
             <details>
               <summary>Commits</summary>
               <ul>
-                <li>${{ join(needs.change-detect.outputs.commit_subjects, '</li><li>') }}</li>
+                <li>${{ join(needs.change-detect.outputs.commit_subjects[*], '</li><li>') }}</li>
               </ul>
             </details>
         env:
