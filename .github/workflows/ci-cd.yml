@@ -36,7 +36,7 @@ jobs:
           CHANGES=$(git diff --name-only "$LATEST_RELEASE"..${{ github.event.after }})
           echo "$CHANGES"
           echo "latest-release=$LATEST_RELEASE" >> $GITHUB_OUTPUT
-          echo "commit-subjects=$COMMIT_SUBJECTS" >> $GITHUB_OUTPUT
+          echo "commit-subjects=${COMMIT_SUBJECTS[@]}" >> $GITHUB_OUTPUT
           echo "ci-changes=$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json|yml)$')" >> $GITHUB_OUTPUT
           echo "core=$(echo "$CHANGES" | grep -c src/Core/)" >> $GITHUB_OUTPUT
           echo "serialization=$(echo "$CHANGES" | grep -c src/Serialization/)" >> $GITHUB_OUTPUT
@@ -59,7 +59,7 @@ jobs:
           echo "total=$(echo "$CHANGES" | wc -l)" >> $GITHUB_OUTPUT
     outputs:
       latest-release: ${{ steps.change-detected.outputs.latest-release }}
-      commit_subjects: ${{ steps.change-detected.outputs.commit-subjects }}
+      commit-subjects: ${{ steps.change-detected.outputs.commit-subjects }}
       ci-changes: ${{ steps.change-detected.outputs.ci-changes }}
       core: ${{ steps.change-detected.outputs.core }}
       serialization: ${{ steps.change-detected.outputs.serialization }}
@@ -178,13 +178,13 @@ jobs:
           name: release-binaries
       - name: test commit subjects
         run: |
-          test=(${{needs.change-detect.outputs.commit_subjects}})
+          test=(${{needs.change-detect.outputs.commit-subjects}})
           echo 1. $test
           echo "2. ${test[@]}"
-          test="${{needs.change-detect.outputs.commit_subjects}}"
+          test="${{needs.change-detect.outputs.commit-subjects}}"
           echo 3. $test
           echo "4. ${test[@]}"
-          test=${{needs.change-detect.outputs.commit_subjects}}
+          test=${{needs.change-detect.outputs.commit-subjects}}
           echo 5. $test
           echo "6. ${test[@]}"
       - name: create release
@@ -223,7 +223,7 @@ jobs:
             <details>
               <summary>Commits</summary>
               <ul>
-                <li>${{ join(needs.change-detect.outputs.commit_subjects, '</li><li>') }}</li>
+                <li>${{ join(needs.change-detect.outputs.commit-subjects, '</li><li>') }}</li>
               </ul>
             </details>
         env:
