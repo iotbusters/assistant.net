@@ -25,7 +25,7 @@ jobs:
           LATEST_RELEASE=$(git describe --abbrev=0 --tags)
           COMMITS=$(git rev-list $LATEST_RELEASE..${{ github.event.after }})
           COMMIT_SUBJECTS=()
-          for COMMIT in $COMMITS
+          for COMMIT in "${COMMITS[@]}"
           do
             COMMIT_MESSAGE=$(git show -s --format=%s -1 $COMMIT)
             COMMIT_SUBJECTS+=("[${COMMIT:0:7}] $COMMIT_MESSAGE")
