@@ -218,7 +218,7 @@ jobs:
             <details>
               <summary>Commits</summary>
               <ul>
-                <li>${{ join(needs.change-detect.outputs.commit-subjects, '</li><li>') }}</li>
+                <li>${{ join(needs.change-detect.outputs.commit-subjects[*], '</li><li>') }}</li>
               </ul>
             </details>
         env:
