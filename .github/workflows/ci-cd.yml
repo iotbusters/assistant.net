@@ -179,14 +179,9 @@ jobs:
       - name: test commit subjects
         run: |
           test=(${{needs.change-detect.outputs.commit-subjects}})
-          echo 1. $test
           echo "2. ${test[@]}"
           test="${{needs.change-detect.outputs.commit-subjects}}"
           echo 3. $test
-          echo "4. ${test[@]}"
-          test=${{needs.change-detect.outputs.commit-subjects}}
-          echo 5. $test
-          echo "6. ${test[@]}"
       - name: create release
         uses: actions/create-release@v1.1.4
         with:
