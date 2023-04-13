@@ -28,8 +28,11 @@ jobs:
           for COMMIT in "${COMMITS[@]}"
           do
             COMMIT_MESSAGE=$(git show -s --format=%s -1 $COMMIT)
-            COMMIT_SUBJECTS+=("[${COMMIT:0:7}] $COMMIT_MESSAGE")
+            COMMIT_TITLE="[${COMMIT:0:7}] $COMMIT_MESSAGE"
+            COMMIT_SUBJECTS+=($COMMIT_TITLE)
+            echo "$COMMIT_TITLE"
           done
+          echo "${COMMIT_SUBJECTS[@]}"
           CHANGES=$(git diff --name-only "$LATEST_RELEASE"..${{ github.event.after }})
           echo "latest-release=$LATEST_RELEASE" >> $GITHUB_OUTPUT
           echo "commit-subjects=$COMMIT_SUBJECTS" >> $GITHUB_OUTPUT
@@ -172,9 +175,13 @@ jobs:
         uses: actions/download-artifact@v3.0.2
         with:
           name: release-binaries
-
+      - name: test commit subjects
+        run: |
+          test=(${{needs.change-detect.outputs.commit_subjects}})
+          echo "${test[@]}"
+          echo "${{needs.change-detect.outputs.commit_subjects}}"
       - name: create release
-        uses: actions/create-release@v1
+        uses: actions/create-release@v1.1.4
         with:
           tag_name: ${{ env.VERSION }}
           release_name: Assistant.NET Release ${{ env.VERSION }}
