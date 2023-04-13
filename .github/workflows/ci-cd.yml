@@ -28,7 +28,7 @@ jobs:
           for COMMIT in $COMMITS
           do
             COMMIT_MESSAGE=$(git show -s --format=%s -1 $COMMIT)
-            COMMIT_SUBJECTS+=$(echo "[${COMMIT:0:7}](https://github.com/iotbusters/assistant.net/commit/$COMMIT) $COMMIT_MESSAGE")
+            COMMIT_SUBJECTS+=("[${COMMIT:0:7}](https://github.com/iotbusters/assistant.net/commit/$COMMIT) $COMMIT_MESSAGE")
           done
           CHANGES=$(git diff --name-only "$LATEST_RELEASE"..${{ github.event.after }})
           echo "latest-release=$LATEST_RELEASE" >> $GITHUB_OUTPUT
@@ -209,7 +209,7 @@ jobs:
             <details>
               <summary>Commits</summary>
               <ul>
-                <li>${{ join(needs.change-detect.outputs.commit_subjects.*, '</li><li>') }}</li>
+                <li>${{ join(needs.change-detect.outputs.commit_subjects, '</li><li>') }}</li>
               </ul>
             </details>
         env:
