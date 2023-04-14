@@ -25,13 +25,16 @@ jobs:
           LATEST_RELEASE=$(git describe --abbrev=0 --tags)
           COMMITS=$(git rev-list $LATEST_RELEASE..${{ github.event.after }})
           echo COMMITS: $COMMITS
-          COMMIT_SUBJECTS=()
+          COMMIT_SUBJECTS="["
           for COMMIT in $COMMITS
           do
             COMMIT_MESSAGE=$(git show -s --format=%s -1 $COMMIT)
-            COMMIT_SUBJECT="[${COMMIT:0:7}] $COMMIT_MESSAGE"
+            COMMIT_MESSAGE=${COMMIT_MESSAGE/\"/\\\""}
+            COMMIT_MESSAGE=${COMMIT_MESSAGE/\'/\\\'"}
+            COMMIT_SUBJECT="'[${COMMIT:0:7}] $COMMIT_MESSAGE',"
             echo $COMMIT_SUBJECT
           done
+          COMMIT_SUBJECTS+="]"
           CHANGES=$(git diff --name-only "$LATEST_RELEASE"..${{ github.event.after }})
           echo "$CHANGES"
           echo "latest-release=$LATEST_RELEASE" >> $GITHUB_OUTPUT
@@ -211,11 +214,7 @@ jobs:
             <details>
               <summary>Commits</summary>
               <ul>
-                <li>${{ needs.change-detect.outputs.commit-subjects[0] }}</li>
-                <li>${{ needs.change-detect.outputs.commit-subjects[1] }}</li>
-                <li>${{ needs.change-detect.outputs.commit-subjects[2] }}</li>
-                <li>${{ needs.change-detect.outputs.commit-subjects[3] }}</li>
-                <li>${{ join(needs.change-detect.outputs.commit-subjects, '</li><li>') }}</li>
+                <li>${{ join(fromJSON(needs.change-detect.outputs.commit-subjects), '</li><li>') }}</li>
               </ul>
             </details>
         env:
