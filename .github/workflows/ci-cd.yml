@@ -25,18 +25,17 @@ jobs:
           LATEST_RELEASE=$(git describe --abbrev=0 --tags)
           COMMITS=$(git rev-list $LATEST_RELEASE..${{ github.event.after }})
           echo COMMITS: $COMMITS
-          COMMIT_SUBJECTS=()
-          for COMMIT in $COMMITS
-          do
-            COMMIT_MESSAGE=$(git show -s --format=%s -1 $COMMIT)
-            COMMIT_SUBJECT="[${COMMIT:0:7}] $COMMIT_MESSAGE"
-            echo $COMMIT_SUBJECT
-            COMMIT_SUBJECTS+=($COMMIT_SUBJECT)
-          done
+          COMMIT_SUBJECTS=$(
+            for COMMIT in $COMMITS
+            do
+              COMMIT_MESSAGE=$(git show -s --format=%s -1 $COMMIT)
+              COMMIT_SUBJECT="[${COMMIT:0:7}] $COMMIT_MESSAGE"
+              echo $COMMIT_SUBJECT
+            done)
           CHANGES=$(git diff --name-only "$LATEST_RELEASE"..${{ github.event.after }})
           echo "$CHANGES"
           echo "latest-release=$LATEST_RELEASE" >> $GITHUB_OUTPUT
-          echo "commit-subjects=${COMMIT_SUBJECTS[@]}" >> $GITHUB_OUTPUT
+          echo "commit-subjects=$COMMIT_SUBJECTS" >> $GITHUB_OUTPUT
           echo "ci-changes=$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json|yml)$')" >> $GITHUB_OUTPUT
           echo "core=$(echo "$CHANGES" | grep -c src/Core/)" >> $GITHUB_OUTPUT
           echo "serialization=$(echo "$CHANGES" | grep -c src/Serialization/)" >> $GITHUB_OUTPUT
@@ -179,9 +178,11 @@ jobs:
       - name: test commit subjects
         run: |
           test=(${{needs.change-detect.outputs.commit-subjects}})
-          echo "2. ${test[@]}"
+          echo 0. $test
+          echo "1. $test"
           test="${{needs.change-detect.outputs.commit-subjects}}"
           echo 3. $test
+          echo "4. $test"
       - name: create release
         uses: actions/create-release@v1.1.4
         with:
