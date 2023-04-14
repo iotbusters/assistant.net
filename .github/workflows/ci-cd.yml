@@ -35,7 +35,7 @@ jobs:
           CHANGES=$(git diff --name-only "$LATEST_RELEASE"..${{ github.event.after }})
           echo "$CHANGES"
           echo "latest-release=$LATEST_RELEASE" >> $GITHUB_OUTPUT
-          echo "commit-subjects=$COMMIT_SUBJECTS" >> $GITHUB_OUTPUT
+          echo "commit-subjects='$COMMIT_SUBJECTS'" >> $GITHUB_OUTPUT
           echo "ci-changes=$(echo "$CHANGES" | grep -c -E '\.(cs|csproj|json|yml)$')" >> $GITHUB_OUTPUT
           echo "core=$(echo "$CHANGES" | grep -c src/Core/)" >> $GITHUB_OUTPUT
           echo "serialization=$(echo "$CHANGES" | grep -c src/Serialization/)" >> $GITHUB_OUTPUT
