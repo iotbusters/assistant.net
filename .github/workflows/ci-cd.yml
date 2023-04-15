@@ -25,16 +25,15 @@ jobs:
           LATEST_RELEASE=$(git describe --abbrev=0 --tags)
           COMMITS=$(git rev-list $LATEST_RELEASE..${{ github.event.after }})
           echo COMMITS: $COMMITS
-          COMMIT_SUBJECTS="["
-          for COMMIT in $COMMITS
+          COMMIT_SUBJECTS=""
+          for COMMIT in $(tail -n +2 <<< "${COMMITS[*]}")
           do
             COMMIT_MESSAGE=$(git show -s --format=%s -1 $COMMIT)
-            COMMIT_MESSAGE=${COMMIT_MESSAGE/\"/\\\""}
-            COMMIT_MESSAGE=${COMMIT_MESSAGE/\'/\\\'"}
-            COMMIT_SUBJECT="'[${COMMIT:0:7}] $COMMIT_MESSAGE',"
-            echo $COMMIT_SUBJECT
+            COMMIT_MESSAGE=${COMMIT_MESSAGE//\"/\\\"}
+            COMMIT_MESSAGE=${COMMIT_MESSAGE//\'/\\\'}
+            COMMIT_SUBJECTS+=",\"[${COMMIT:0:7}] $COMMIT_MESSAGE\""
           done
-          COMMIT_SUBJECTS+="]"
+          COMMIT_SUBJECTS="[${COMMIT_SUBJECTS:1}]"
           CHANGES=$(git diff --name-only "$LATEST_RELEASE"..${{ github.event.after }})
           echo "$CHANGES"
           echo "latest-release=$LATEST_RELEASE" >> $GITHUB_OUTPUT
