@@ -1,4 +1,3 @@
-using Assistant.Net.Storage.Options;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -8,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Mongo.Tests
 {
-    public class MongoOptionsHealthCheckTests
+    public class HealthCheckServiceTests
     {
         [Test]
         public async Task CheckHealthAsync_returnsHealthy_twoSameNamedMongoOptions()
@@ -18,7 +17,8 @@ namespace Assistant.Net.Storage.Mongo.Tests
                 .ConfigureMongoOptions("1", o => o.Connection(ValidConnectionString).Database("test"))
                 .ConfigureMongoOptions("2", o => o.Connection(ValidConnectionString).Database("test"))
                 .AddHealthChecks()
-                .AddMongo(timeout)
+                .AddMongo("1", timeout)
+                .AddMongo("2", timeout)
                 .Services
                 .BuildServiceProvider();
 
@@ -28,7 +28,11 @@ namespace Assistant.Net.Storage.Mongo.Tests
             report.Should().BeEquivalentTo(new
             {
                 Status = HealthStatus.Healthy,
-                Entries = new[] {new {Key = nameof(MongoOptions), Value = new {Status = HealthStatus.Healthy}}}
+                Entries = new[]
+                {
+                    new {Key = "storage-1", Value = new {Status = HealthStatus.Healthy}},
+                    new {Key = "storage-2", Value = new {Status = HealthStatus.Healthy}}
+                }
             });
         }
 
@@ -40,7 +44,8 @@ namespace Assistant.Net.Storage.Mongo.Tests
                 .ConfigureMongoOptions("1", o => o.Connection(ValidConnectionString).Database("test1"))
                 .ConfigureMongoOptions("2", o => o.Connection(ValidConnectionString).Database("test2"))
                 .AddHealthChecks()
-                .AddMongo(timeout)
+                .AddMongo("1", timeout)
+                .AddMongo("2", timeout)
                 .Services
                 .BuildServiceProvider();
 
@@ -50,7 +55,11 @@ namespace Assistant.Net.Storage.Mongo.Tests
             report.Should().BeEquivalentTo(new
             {
                 Status = HealthStatus.Healthy,
-                Entries = new[] {new {Key = nameof(MongoOptions), Value = new {Status = HealthStatus.Healthy}}}
+                Entries = new[]
+                {
+                    new {Key = "storage-1", Value = new {Status = HealthStatus.Healthy}},
+                    new {Key = "storage-2", Value = new {Status = HealthStatus.Healthy}}
+                }
             });
         }
 
@@ -62,7 +71,8 @@ namespace Assistant.Net.Storage.Mongo.Tests
                 .ConfigureMongoOptions("1", o => o.Connection(ValidConnectionString).Database("test"))
                 .ConfigureMongoOptions("2", o => o.Connection(InvalidConnectionString).Database("test"))
                 .AddHealthChecks()
-                .AddMongo(timeout)
+                .AddMongo("1", timeout)
+                .AddMongo("2", timeout)
                 .Services
                 .BuildServiceProvider();
 
@@ -72,7 +82,11 @@ namespace Assistant.Net.Storage.Mongo.Tests
             report.Should().BeEquivalentTo(new
             {
                 Status = HealthStatus.Unhealthy,
-                Entries = new[] {new {Key = nameof(MongoOptions), Value = new {Status = HealthStatus.Unhealthy}}}
+                Entries = new[]
+                {
+                    new {Key = "storage-1", Value = new {Status = HealthStatus.Healthy}},
+                    new {Key = "storage-2", Value = new {Status = HealthStatus.Unhealthy}}
+                }
             });
         }
 
@@ -85,8 +99,7 @@ namespace Assistant.Net.Storage.Mongo.Tests
         {
             var provider = new ServiceCollection()
                 .AddLogging()
-                .ConfigureMongoOptions("1", o => o.Connection(ValidConnectionString).Database("test"))
-                .ConfigureMongoOptions("2", o => o.Connection(ValidConnectionString).Database("test"))
+                .ConfigureMongoOptions(o => o.Connection(ValidConnectionString).Database("test"))
                 .AddHealthChecks()
                 .AddMongo(timeout: TimeSpan.FromSeconds(5))
                 .Services

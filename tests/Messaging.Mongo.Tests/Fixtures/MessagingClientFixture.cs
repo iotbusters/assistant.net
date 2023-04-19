@@ -70,7 +70,7 @@ public sealed class MessagingClientFixture : IDisposable
         Thread.Sleep(1);
 
         var service = host.Services.GetRequiredService<ServerAvailabilityService>();
-        service.Register(TimeSpan.FromSeconds(1), default).Wait();
+        service.Register(string.Empty, TimeSpan.FromSeconds(1), default).Wait();
     }
 
     public TService GetServerService<TService>() where TService : class => host.Services.GetRequiredService<TService>();

@@ -35,7 +35,7 @@ public class MessagingClientFixtureBuilder
             .ConfigureServices(s => s
                 .AddTypeEncoder(o => o.Exclude("NUnit").Exclude("Newtonsoft"))
                 .AddGenericMessageHandling()
-                .ConfigureMessagingClient(GenericOptionsNames.DefaultName, b => b
+                .ConfigureMessagingClient(b => b
                     .RemoveInterceptor<CachingInterceptor>()
                     .RemoveInterceptor<RetryingInterceptor>()
                     .RemoveInterceptor<TimeoutInterceptor>()
@@ -45,7 +45,7 @@ public class MessagingClientFixtureBuilder
                     o.InactivityDelayTime = TimeSpan.FromSeconds(0.05);
                     o.NextMessageDelayTime = TimeSpan.FromSeconds(0.01);
                 })
-                .BindOptions(GenericOptionsNames.DefaultName, remoteSource)
+                .BindOptions(remoteSource)
                 .BindOptions(genericServerSource));
     }
 
@@ -113,7 +113,7 @@ public class MessagingClientFixtureBuilder
         var provider = Services.BuildServiceProvider();
         var host = RemoteHostBuilder.Start();
 
-        host.Services.GetRequiredService<ServerAvailabilityService>().Register(TimeSpan.FromSeconds(1), default).Wait();
+        host.Services.GetRequiredService<ServerAvailabilityService>().Register(string.Empty, TimeSpan.FromSeconds(1), default).Wait();
         host.Services.GetRequiredService<ServerActivityService>().Activate();
 
         return new(genericServerSource, remoteSource, clientSource, provider, host);

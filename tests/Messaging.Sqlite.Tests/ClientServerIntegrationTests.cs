@@ -251,7 +251,7 @@ public class ClientServerIntegrationTests
         await fixture.Client.RequestObject(message);
 
         // arrange 2
-        await fixture.GetServerService<ServerAvailabilityService>().Unregister(default);
+        await fixture.GetServerService<ServerAvailabilityService>().Unregister(string.Empty, default);
 
         // assert 2
         await fixture.Awaiting(x => x.Client.RequestObject(message))

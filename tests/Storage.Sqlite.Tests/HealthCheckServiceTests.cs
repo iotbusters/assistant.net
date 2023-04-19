@@ -1,4 +1,3 @@
-using Assistant.Net.Storage.Options;
 using FluentAssertions;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,7 +28,10 @@ namespace Assistant.Net.Storage.Sqlite.Tests
             report.Should().BeEquivalentTo(new
             {
                 Status = HealthStatus.Healthy,
-                Entries = new[] {new {Key = nameof(SqliteOptions), Value = new {Status = HealthStatus.Healthy}}}
+                Entries = new[]
+                {
+                    new {Key = "storage-", Value = new {Status = HealthStatus.Healthy}}
+                }
             });
         }
 
@@ -41,7 +43,8 @@ namespace Assistant.Net.Storage.Sqlite.Tests
                 .ConfigureSqliteOptions("1", o => o.Connection(ValidConnectionString))
                 .ConfigureSqliteOptions("2", o => o.Connection(ValidConnectionString))
                 .AddHealthChecks()
-                .AddSqlite(timeout)
+                .AddSqlite("1", timeout)
+                .AddSqlite("2", timeout)
                 .Services
                 .BuildServiceProvider();
 
@@ -51,7 +54,11 @@ namespace Assistant.Net.Storage.Sqlite.Tests
             report.Should().BeEquivalentTo(new
             {
                 Status = HealthStatus.Healthy,
-                Entries = new[] {new {Key = nameof(SqliteOptions), Value = new {Status = HealthStatus.Healthy}}}
+                Entries = new[]
+                {
+                    new {Key = "storage-1", Value = new {Status = HealthStatus.Healthy}},
+                    new {Key = "storage-2", Value = new {Status = HealthStatus.Healthy}}
+                }
             });
         }
 
@@ -63,7 +70,8 @@ namespace Assistant.Net.Storage.Sqlite.Tests
                 .ConfigureSqliteOptions("1", o => o.Connection(ValidConnectionString))
                 .ConfigureSqliteOptions("2", o => o.Connection(ValidConnectionString))
                 .AddHealthChecks()
-                .AddSqlite(timeout)
+                .AddSqlite("1", timeout)
+                .AddSqlite("2", timeout)
                 .Services
                 .BuildServiceProvider();
 
@@ -73,7 +81,11 @@ namespace Assistant.Net.Storage.Sqlite.Tests
             report.Should().BeEquivalentTo(new
             {
                 Status = HealthStatus.Healthy,
-                Entries = new[] {new {Key = nameof(SqliteOptions), Value = new {Status = HealthStatus.Healthy}}}
+                Entries = new[]
+                {
+                    new {Key = "storage-1", Value = new {Status = HealthStatus.Healthy}},
+                    new {Key = "storage-2", Value = new {Status = HealthStatus.Healthy}}
+                }
             });
         }
 
@@ -85,7 +97,8 @@ namespace Assistant.Net.Storage.Sqlite.Tests
                 .ConfigureSqliteOptions("1", o => o.Connection(ValidConnectionString))
                 .ConfigureSqliteOptions("2", o => o.Connection(InvalidConnectionString))
                 .AddHealthChecks()
-                .AddSqlite(timeout)
+                .AddSqlite("1", timeout)
+                .AddSqlite("2", timeout)
                 .Services
                 .BuildServiceProvider();
 
@@ -95,7 +108,11 @@ namespace Assistant.Net.Storage.Sqlite.Tests
             report.Should().BeEquivalentTo(new
             {
                 Status = HealthStatus.Unhealthy,
-                Entries = new[] {new {Key = nameof(SqliteOptions), Value = new {Status = HealthStatus.Unhealthy}}}
+                Entries = new[]
+                {
+                    new {Key = "storage-1", Value = new {Status = HealthStatus.Healthy}},
+                    new {Key = "storage-2", Value = new {Status = HealthStatus.Unhealthy}}
+                }
             });
         }
 
