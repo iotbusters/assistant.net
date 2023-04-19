@@ -53,9 +53,9 @@ public sealed class DiagnosticsInterceptor : SharedAbstractInterceptor
             operation.Fail();
             throw;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            logger.LogInformation(ex, "Message handling operation: failed.");
+            logger.LogInformation("Message handling operation: failed.");
             operation.Fail();
             throw;
         }
