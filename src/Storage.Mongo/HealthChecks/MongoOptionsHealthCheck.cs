@@ -1,13 +1,10 @@
-﻿using Assistant.Net.Options;
-using Assistant.Net.Storage.Options;
+﻿using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,36 +13,23 @@ namespace Assistant.Net.Storage.HealthChecks;
 internal sealed class MongoOptionsHealthCheck : IHealthCheck
 {
     private readonly ILogger<MongoOptionsHealthCheck> logger;
-    private readonly IOptionsMonitor<MongoOptions> monitor;
-    private readonly string[] names;
+    private readonly MongoOptions options;
 
     public MongoOptionsHealthCheck(
+        string name,
         ILogger<MongoOptionsHealthCheck> logger,
-        IOptionsMonitor<MongoOptions> monitor,
-        IEnumerable<IConfigureOptions<MongoOptions>> configureNamedOptions)
+        IOptionsMonitor<MongoOptions> monitor)
     {
         this.logger = logger;
-        this.monitor = monitor;
-        this.names = configureNamedOptions
-            .OfType<ConfigureNamedOptions<MongoOptions>>()
-            .Select(x => x.Name ?? Microsoft.Extensions.Options.Options.DefaultName)
-            .Distinct()
-            .ToArray();
+        this.options = monitor.Get(name);
     }
 
-    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken token)
-    {
-        var tasks = names
-            .Select(monitor.Get)
-            .DistinctBy(x => (x.ConnectionString, x.DatabaseName))
-            .Select(x => Check(x, token));
-        var results = await Task.WhenAll(tasks);
-        return results.Aggregate((x, y) => x && y)
+    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken token) =>
+        await Check(token)
             ? HealthCheckResult.Healthy()
             : HealthCheckResult.Unhealthy();
-    }
 
-    private async Task<bool> Check(MongoOptions options, CancellationToken token)
+    private async Task<bool> Check(CancellationToken token)
     {
         string? response;
         try

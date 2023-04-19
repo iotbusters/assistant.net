@@ -1,12 +1,9 @@
-﻿using Assistant.Net.Options;
-using Assistant.Net.Storage.Options;
+﻿using Assistant.Net.Storage.Options;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,37 +12,23 @@ namespace Assistant.Net.Storage.HealthChecks;
 internal sealed class SqliteOptionsHealthCheck : IHealthCheck
 {
     private readonly ILogger<SqliteOptionsHealthCheck> logger;
-    private readonly IOptionsMonitor<SqliteOptions> monitor;
-    private readonly string[] names;
+    private readonly SqliteOptions options;
 
     public SqliteOptionsHealthCheck(
+        string name,
         ILogger<SqliteOptionsHealthCheck> logger,
-        IOptionsMonitor<SqliteOptions> monitor,
-        IEnumerable<IConfigureOptions<SqliteOptions>> configureNamedOptions)
+        IOptionsMonitor<SqliteOptions> monitor)
     {
         this.logger = logger;
-        this.monitor = monitor;
-        this.names = configureNamedOptions
-            .OfType<ConfigureNamedOptions<SqliteOptions>>()
-            .Select(x => x.Name ?? Microsoft.Extensions.Options.Options.DefaultName)
-            .Distinct()
-            .ToArray();
+        this.options = monitor.Get(name);
     }
 
-    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken token)
-    {
-        var tasks = names
-            .Select(x => monitor.Get(x))
-            .DistinctBy(x => x.ConnectionString)
-            .Select(x => Check(x, token));
-        var results = await Task.WhenAll(tasks);
-
-        return results.Aggregate((x, y) => x && y)
+    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken token) =>
+        await Check(token)
             ? HealthCheckResult.Healthy()
             : HealthCheckResult.Unhealthy();
-    }
 
-    private async Task<bool> Check(SqliteOptions options, CancellationToken token)
+    private async Task<bool> Check(CancellationToken token)
     {
         try
         {
