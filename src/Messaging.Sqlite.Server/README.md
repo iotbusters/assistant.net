@@ -11,6 +11,6 @@ communicating to a [client](https://www.nuget.org/packages/assistant.net.messagi
 ```csharp
 // Startup.cs: void ConfigureServices(IServiceCollection services)
 services.ConfigureGenericMessageHandling(b => b.UseSqlite(o => ...));
-// or named messaging client
-services.ConfigureMessagingClient(GenericOptionsNames.DefaultName, b => b.UseSqlite(o => ...));
+// or
+services.ConfigureMessagingClient(b => b.UseSqlite(o => ...));
 ```

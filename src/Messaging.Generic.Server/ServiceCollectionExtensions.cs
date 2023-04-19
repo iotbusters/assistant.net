@@ -21,9 +21,18 @@ public static class ServiceCollectionExtensions
     ///     Pay attention, it's configured to use storage single provider required only <i>Use{Provider}</i>.
     /// </remarks>
     public static IServiceCollection AddGenericMessageHandling(this IServiceCollection services) => services
-        .AddHostedService<GenericMessageHandlingService>()
+        .AddGenericMessageHandling(Microsoft.Extensions.Options.Options.DefaultName);
+
+    /// <summary>
+    ///     Registers storage based server message handling.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, it's configured to use storage single provider required only <i>Use{Provider}</i>.
+    /// </remarks>
+    public static IServiceCollection AddGenericMessageHandling(this IServiceCollection services, string name) => services
+        .AddHostedService(p => p.Create<GenericMessageHandlingService>(name))
         .AddSystemServicesHosted()
-        .AddMessagingClient(GenericOptionsNames.DefaultName, b => b.AddConfiguration<GenericServerInterceptorConfiguration>())
+        .AddMessagingClient(name, b => b.AddConfiguration<GenericServerInterceptorConfiguration>())
         .AddHealthChecks().Services
         .Configure<HealthCheckPublisherOptions>(o =>
         {
@@ -40,19 +49,37 @@ public static class ServiceCollectionExtensions
     ///     Registers storage based server message handling.
     /// </summary>
     /// <param name="services"/>
-    /// <param name="configure">The action used to configure the <see cref="GenericOptionsNames.DefaultName"/> named messaging client.</param>
-    public static IServiceCollection AddGenericMessageHandling(this IServiceCollection services, Action<GenericHandlingServerBuilder> configure) => services
-        .AddGenericMessageHandling()
-        .ConfigureGenericMessageHandling(configure);
+    /// <param name="configureBuilder">The action used to configure a default messaging client.</param>
+    public static IServiceCollection AddGenericMessageHandling(this IServiceCollection services, Action<GenericHandlingServerBuilder> configureBuilder) => services
+        .AddGenericMessageHandling(Microsoft.Extensions.Options.Options.DefaultName, configureBuilder);
+
+    /// <summary>
+    ///     Registers storage based server message handling.
+    /// </summary>
+    /// <param name="services"/>
+    /// <param name="name">The name of related option instances.</param>
+    /// <param name="configureBuilder">The action used to configure the named messaging client.</param>
+    public static IServiceCollection AddGenericMessageHandling(this IServiceCollection services, string name, Action<GenericHandlingServerBuilder> configureBuilder) => services
+        .AddGenericMessageHandling(name)
+        .ConfigureGenericMessageHandling(name, configureBuilder);
 
     /// <summary>
     ///     Configures storage based server message handling.
     /// </summary>
     /// <param name="services"/>
     /// <param name="configureBuilder">The action used to configure the builder.</param>
-    public static IServiceCollection ConfigureGenericMessageHandling(this IServiceCollection services, Action<GenericHandlingServerBuilder> configureBuilder)
+    public static IServiceCollection ConfigureGenericMessageHandling(this IServiceCollection services, Action<GenericHandlingServerBuilder> configureBuilder) => services
+        .ConfigureGenericMessageHandling(Microsoft.Extensions.Options.Options.DefaultName, configureBuilder);
+
+    /// <summary>
+    ///     Configures storage based server message handling.
+    /// </summary>
+    /// <param name="services"/>
+    /// <param name="name">The name of related option instances.</param>
+    /// <param name="configureBuilder">The action used to configure the builder.</param>
+    public static IServiceCollection ConfigureGenericMessageHandling(this IServiceCollection services, string name, Action<GenericHandlingServerBuilder> configureBuilder)
     {
-        var builder = new GenericHandlingServerBuilder(services);
+        var builder = new GenericHandlingServerBuilder(services, name);
         configureBuilder(builder);
         return services;
     }
@@ -66,10 +93,28 @@ public static class ServiceCollectionExtensions
         .Configure(configureOptions);
 
     /// <summary>
+    ///    Register an action used to configure default <see cref="GenericHandlingServerOptions"/> options.
+    /// </summary>
+    /// <param name="services"/>
+    /// <param name="name">The name of related option instances.</param>
+    /// <param name="configureOptions">The action used to configure the options.</param>
+    public static IServiceCollection ConfigureGenericHandlingServerOptions(this IServiceCollection services, string name, Action<GenericHandlingServerOptions> configureOptions) => services
+        .Configure(name, configureOptions);
+
+    /// <summary>
     ///     Registers a configuration instance which default <see cref="GenericHandlingServerOptions"/> will bind against.
     /// </summary>
     /// <param name="services"/>
     /// <param name="configuration">The application configuration values.</param>
     public static IServiceCollection ConfigureGenericHandlingServerOptions(this IServiceCollection services, IConfigurationSection configuration) => services
         .Configure<GenericHandlingServerOptions>(configuration);
+
+    /// <summary>
+    ///     Registers a configuration instance which default <see cref="GenericHandlingServerOptions"/> will bind against.
+    /// </summary>
+    /// <param name="services"/>
+    /// <param name="name">The name of related option instances.</param>
+    /// <param name="configuration">The application configuration values.</param>
+    public static IServiceCollection ConfigureGenericHandlingServerOptions(this IServiceCollection services, string name, IConfigurationSection configuration) => services
+        .Configure<GenericHandlingServerOptions>(name, configuration);
 }

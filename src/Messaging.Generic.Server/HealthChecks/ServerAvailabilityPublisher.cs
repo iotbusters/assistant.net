@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
+﻿using Assistant.Net.Storage.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using System.Linq;
 using System.Threading;
@@ -11,15 +12,15 @@ namespace Assistant.Net.Messaging.HealthChecks;
 /// </summary>
 internal class ServerAvailabilityPublisher : IHealthCheckPublisher
 {
-    private readonly IOptions<HealthCheckPublisherOptions> publisherOptions;
-    private readonly ServerAvailabilityService acceptanceService;
+    private readonly IOptionsMonitor<HealthCheckPublisherOptions> options;
+    private readonly ServerAvailabilityService availabilityService;
 
     public ServerAvailabilityPublisher(
-        IOptions<HealthCheckPublisherOptions> publisherOptions,
-        ServerAvailabilityService acceptanceService)
+        IOptionsMonitor<HealthCheckPublisherOptions> options,
+        ServerAvailabilityService availabilityService)
     {
-        this.publisherOptions = publisherOptions;
-        this.acceptanceService = acceptanceService;
+        this.options = options;
+        this.availabilityService = availabilityService;
     }
 
     public async Task PublishAsync(HealthReport report, CancellationToken token)
@@ -27,14 +28,18 @@ internal class ServerAvailabilityPublisher : IHealthCheckPublisher
         if (!report.Entries.Any())
             return;
 
-        var isHealthy = report.Entries.All(x => x.Value.Status == HealthStatus.Healthy);
-        var expiration = publisherOptions.Value.Timeout != Timeout.InfiniteTimeSpan
-            ? publisherOptions.Value.Period + publisherOptions.Value.Timeout // period + timeout
-            : publisherOptions.Value.Period * 0.5; // period + 50%
+        var isHealthy = report.Entries.Values.All(x => x.Status == HealthStatus.Healthy);
+        var names = report.Entries.Keys.Select(HealthCheckNames.GetOptionName).Where(x => x != null);
+        var publisherOptions = options.CurrentValue;
+        var expiration = publisherOptions.Timeout != Timeout.InfiniteTimeSpan
+            ? publisherOptions.Period + publisherOptions.Timeout // period + timeout
+            : publisherOptions.Period * 0.5; // period + 50%
 
         if (isHealthy)
-            await acceptanceService.Register(expiration, token);
+            foreach (var name in names)
+                await availabilityService.Register(name!, expiration, token);
         else
-            await acceptanceService.Unregister(token);
+            foreach (var name in names)
+                await availabilityService.Unregister(name!, token);
     }
 }

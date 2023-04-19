@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Messaging.HealthChecks;
-using Assistant.Net.Messaging.Options;
+﻿using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage;
 using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Configuration;
@@ -21,9 +20,9 @@ public static class GenericHandlingServerBuilderExtensions
     public static GenericHandlingServerBuilder UseMongo(this GenericHandlingServerBuilder builder, Action<MongoOptions> configureOptions)
     {
         builder.Services
-            .ConfigureStorage(GenericOptionsNames.DefaultName, b => b.UseMongo(configureOptions))
+            .ConfigureStorage(builder.Name, b => b.UseMongo(configureOptions))
             .AddHealthChecks()
-            .ReplaceMongo(HealthCheckNames.SingleName);
+            .AddMongo(builder.Name);
         return builder;
     }
 
@@ -43,9 +42,9 @@ public static class GenericHandlingServerBuilderExtensions
     public static GenericHandlingServerBuilder UseMongo(this GenericHandlingServerBuilder builder, IConfigurationSection configuration)
     {
         builder.Services
-            .ConfigureStorage(GenericOptionsNames.DefaultName, b => b.UseMongo(configuration))
+            .ConfigureStorage(builder.Name, b => b.UseMongo(configuration))
             .AddHealthChecks()
-            .ReplaceMongo(HealthCheckNames.SingleName);
+            .AddMongo(builder.Name);
         return builder;
     }
 }

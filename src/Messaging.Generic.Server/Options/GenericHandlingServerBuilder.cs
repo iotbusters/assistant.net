@@ -8,8 +8,16 @@ namespace Assistant.Net.Messaging.Options;
 public sealed class GenericHandlingServerBuilder
 {
     /// <summary/>
-    public GenericHandlingServerBuilder(IServiceCollection services) =>
+    public GenericHandlingServerBuilder(IServiceCollection services, string name)
+    {
         Services = services;
+        Name = name;
+    }
+
+    /// <summary>
+    ///     The name of the <see cref="GenericHandlingServerOptions"/> and <see cref="MessagingClientOptions"/> instances.
+    /// </summary>
+    public string Name { get; }
 
     /// <summary/>
     public IServiceCollection Services { get; }

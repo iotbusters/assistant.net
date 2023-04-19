@@ -11,6 +11,6 @@ communicating to a [generic messaging client](https://www.nuget.org/packages/ass
 ```csharp
 // Startup.cs: void ConfigureServices(IServiceCollection services)
 services.ConfigureGenericMessageHandling(b => b.UseMongo(o => ...));
-// or named messaging client
-services.ConfigureMessagingClient(GenericOptionsNames.DefaultName, b => b.UseMongo(o => ...));
+// or
+services.ConfigureMessagingClient(b => b.UseMongo(o => ...));
 ```

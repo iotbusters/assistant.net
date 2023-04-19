@@ -14,7 +14,7 @@ public static class GenericHandlingServerBuilderExtensions
     /// </summary>
     public static GenericHandlingServerBuilder UseLocal(this GenericHandlingServerBuilder builder)
     {
-        builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b.UseLocal());
+        builder.Services.ConfigureStorage(builder.Name, b => b.UseLocal());
         return builder;
     }
 
@@ -38,8 +38,8 @@ public static class GenericHandlingServerBuilderExtensions
             throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
 
         builder.Services
-            .ConfigureMessagingClient(GenericOptionsNames.DefaultName, o => o.AddHandler(handlerType))
-            .ConfigureGenericHandlingServerOptions(o => o.AcceptMessagesFromHandler(handlerType));
+            .ConfigureMessagingClient(builder.Name, o => o.AddHandler(handlerType))
+            .ConfigureGenericHandlingServerOptions(builder.Name, o => o.AcceptMessagesFromHandler(handlerType));
         return builder;
     }
 
@@ -56,8 +56,8 @@ public static class GenericHandlingServerBuilderExtensions
             throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerInstance));
 
         builder.Services
-            .ConfigureMessagingClient(GenericOptionsNames.DefaultName, o => o.AddHandler(handlerInstance))
-            .ConfigureGenericHandlingServerOptions(o => o.AcceptMessagesFromHandler(handlerType));
+            .ConfigureMessagingClient(builder.Name, o => o.AddHandler(handlerInstance))
+            .ConfigureGenericHandlingServerOptions(builder.Name, o => o.AcceptMessagesFromHandler(handlerType));
         return builder;
     }
 }

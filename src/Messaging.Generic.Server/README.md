@@ -19,7 +19,7 @@ services
 ```csharp
 services.ConfigureGenericMessageHandling(b => b.AddHandler<SomeMessageHandler>());
 // or named messaging client
-services.ConfigureMessageClient(GenericOptionsNames.DefaultName, b => b.AddHandler<SomeMessageHandler>());
+services.ConfigureMessageClient(b => b.AddHandler<SomeMessageHandler>());
 ```
 
 > **Note**
@@ -33,10 +33,23 @@ services.ConfigureMessageClient(GenericOptionsNames.DefaultName, b => b.AddHandl
 ```csharp
 services.ConfigureGenericMessageHandling(b => b.UseMongo(o => ...)); // or other provider
 // or
-services.ConfigureMessageClient(GenericOptionsNames.DefaultName, b => b.UseMongo(o => ...)); // or other provider
+services.ConfigureMessageClient(b => b.UseMongo(o => ...)); // or other provider
 // or
-services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b.UseMongo(o => ...)); // or other provider
+services.ConfigureStorage(b => b.UseMongo(o => ...)); // or other provider
 ```
 
 4. [Configure messaging client](https://github.com/iotbusters/assistant.net/blob/master/Messaging/README.md#default-configuration)
 for generic message handling additionally.
+
+## Named configuration
+
+Message handling implementation is based on
+[named options](https://github.com/iotbusters/assistant.net/blob/master/Core/README.md#named-options)
+so you can have multiple named message handling servers with different configurations.
+
+```csharp
+services
+    .AddGenericMessageHandling(b => b.AddHandler<Handle1>()) // default name registration
+    .AddGenericMessageHandling("name-1", b => b.AddHandler<Handle2>()) // named registration
+    .AddGenericMessageHandling("name-2", b => b.AddHandler<Handle3>()); // named registration
+```

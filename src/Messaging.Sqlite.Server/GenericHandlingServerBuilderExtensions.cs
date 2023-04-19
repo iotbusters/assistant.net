@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Messaging.HealthChecks;
-using Assistant.Net.Messaging.Options;
+﻿using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage;
 using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Configuration;
@@ -20,11 +19,10 @@ public static class GenericHandlingServerBuilderExtensions
     /// <param name="configureOptions">The action used to configure the options.</param>
     public static GenericHandlingServerBuilder UseSqlite(this GenericHandlingServerBuilder builder, Action<SqliteOptions> configureOptions)
     {
-        builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
-            .UseSqlite(configureOptions)
-            .UseSqlite())
+        builder.Services
+            .ConfigureStorage(builder.Name, b => b.UseSqlite(configureOptions))
             .AddHealthChecks()
-            .ReplaceSqlite(HealthCheckNames.SingleName);
+            .AddSqlite(builder.Name);
         return builder;
     }
 
@@ -43,11 +41,10 @@ public static class GenericHandlingServerBuilderExtensions
     /// <param name="configuration">The application configuration values.</param>
     public static GenericHandlingServerBuilder UseSqlite(this GenericHandlingServerBuilder builder, IConfigurationSection configuration)
     {
-        builder.Services.ConfigureStorage(GenericOptionsNames.DefaultName, b => b
-            .UseSqlite(configuration)
-            .UseSqlite())
+        builder.Services
+            .ConfigureStorage(builder.Name, b => b.UseSqlite(configuration))
             .AddHealthChecks()
-            .ReplaceSqlite(HealthCheckNames.SingleName);
+            .AddSqlite(builder.Name);
         return builder;
     }
 }

@@ -26,8 +26,7 @@ namespace Assistant.Net.Messaging.Internal;
 internal sealed class GenericMessageHandlingService : BackgroundService
 {
     private readonly ILogger<GenericMessageHandlingService> logger;
-    private readonly IHostEnvironment environment;
-    private readonly IOptionsMonitor<GenericHandlingServerOptions> options;
+    private readonly string instanceName;
     private readonly ITypeEncoder typeEncoder;
     private readonly ISystemLifetime lifetime;
     private readonly ISystemClock clock;
@@ -37,8 +36,12 @@ internal sealed class GenericMessageHandlingService : BackgroundService
     private readonly IStorage<string, long> processedIndexStorage;
     private readonly IServiceScopeFactory scopeFactory;
     private readonly ServerActivityService activityService;
+    private readonly IDisposable disposable;
+
+    private GenericHandlingServerOptions serverOptions;
 
     public GenericMessageHandlingService(
+        string name,
         ILogger<GenericMessageHandlingService> logger,
         IHostEnvironment environment,
         IOptionsMonitor<GenericHandlingServerOptions> options,
@@ -49,24 +52,31 @@ internal sealed class GenericMessageHandlingService : BackgroundService
         ServerActivityService activityService)
     {
         this.logger = logger;
-        this.environment = environment;
-        this.options = options;
+        this.instanceName = environment.ApplicationName;
         this.typeEncoder = typeEncoder;
         this.lifetime = lifetime;
         this.clock = clock;
         this.scopeFactory = scopeFactory;
         this.activityService = activityService;
 
-        globalScope = scopeFactory.CreateScopeWithNamedOptionContext(GenericOptionsNames.DefaultName);
+        globalScope = scopeFactory.CreateScopeWithNamedOptionContext(name);
         requestStorage = globalScope.ServiceProvider.GetRequiredService<IPartitionedAdminStorage<string, IAbstractMessage>>();
         responseStorage = globalScope.ServiceProvider.GetRequiredService<IAdminStorage<string, CachingResult>>();
         processedIndexStorage = globalScope.ServiceProvider.GetRequiredService<IStorage<string, long>>();
+
+        disposable = options.OnChange((o, n) =>
+        {
+            if (n == name)
+                this.serverOptions = o;
+        })!;
+        this.serverOptions = options.Get(name);
     }
 
     public override void Dispose()
     {
-        base.Dispose();
+        disposable.Dispose();
         globalScope.Dispose();
+        base.Dispose();
     }
 
     protected override async Task ExecuteAsync(CancellationToken token)
@@ -77,8 +87,6 @@ internal sealed class GenericMessageHandlingService : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             await activityService.DelayInactive(stoppingToken);
-
-            var serverOptions = options.CurrentValue;
 
             if (!await TryHandle(index, token))
             {
@@ -97,8 +105,6 @@ internal sealed class GenericMessageHandlingService : BackgroundService
 
     private async Task<long> FindLatestProcessedIndex(CancellationToken token)
     {
-        var instance = environment.ApplicationName;
-
         logger.LogDebug("Find processing index: begins.");
 
         while (!token.IsCancellationRequested)
@@ -106,7 +112,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             long index;
             try
             {
-                index = await processedIndexStorage.GetOrDefault(instance, token);
+                index = await processedIndexStorage.GetOrDefault(instanceName, token);
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
@@ -128,15 +134,13 @@ internal sealed class GenericMessageHandlingService : BackgroundService
 
     private async Task StoreProcessedIndex(long index, CancellationToken token)
     {
-        var instance = environment.ApplicationName;
-
         logger.LogDebug("Update processing {Index}: begins.", index);
 
         while (!token.IsCancellationRequested)
         {
             try
             {
-                await processedIndexStorage.AddOrUpdate(instance, index, token);
+                await processedIndexStorage.AddOrUpdate(instanceName, index, token);
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
@@ -168,8 +172,6 @@ internal sealed class GenericMessageHandlingService : BackgroundService
 
     private async Task<Option<PartitionValue<IAbstractMessage>>> GetRequestedMessage(long index, CancellationToken token)
     {
-        var instance = environment.ApplicationName;
-
         logger.LogDebug("Find requested message: begins.");
 
         while (!token.IsCancellationRequested)
@@ -177,7 +179,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             Option<PartitionValue<IAbstractMessage>> option;
             try
             {
-                option = await requestStorage.TryGetDetailed(instance, index, token);
+                option = await requestStorage.TryGetDetailed(instanceName, index, token);
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
@@ -199,8 +201,6 @@ internal sealed class GenericMessageHandlingService : BackgroundService
 
     private async Task<CachingResult> HandleMessage(PartitionValue<IAbstractMessage> messageValue, CancellationToken token)
     {
-        var serverOptions = options.CurrentValue;
-
         var requestId = messageValue.Details.GetOrDefault(MessagePropertyNames.RequestIdName);
         var messageId = messageValue.Value.GetSha1();
         var messageType = messageValue.Value.GetType();
@@ -252,8 +252,8 @@ internal sealed class GenericMessageHandlingService : BackgroundService
 
         logger.LogDebug("Process: message is accepted.");
 
-        await using var handlingScope = scopeFactory
-            .CreateAsyncScopeWithNamedOptionContext(GenericOptionsNames.DefaultName)
+        await using var handlingScope = globalScope.ServiceProvider
+            .CloneAsyncScopeWithNamedOptionContext()
             .ConfigureDiagnosticContext(messageValue.CorrelationId, messageValue.User);
         var client = handlingScope.ServiceProvider.GetRequiredService<IMessagingClient>();
 
