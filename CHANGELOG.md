@@ -10,25 +10,32 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 - nothing
 
-## [0.5.156] - 2023-04-12
+## [0.5.175] - 2023-04-12
 
-### 0.5.156 Added
+### 0.5.175 Added
 
 - Serialization package
 - Serialization.Proto package with ProtoBuf serializer implementation
 - hash code generating extension methods to Core package
+- named generic message handling
 
-### 0.5.156 Changed
+### 0.5.175 Changed
 
 - moved common logic from Serialization.Json to new Serialization package
 - redesigned configuration including extension methods of
   - redesigned serialization configuration
   - redesigned storage configuration
   - redesigned messaging configuration
+- generic message handling was refactored to support multiple named registrations
+- storage health check was refactored to have a dedicated check per named storage registration
 
-### 0.5.156 Fixed
+### 0.5.175 Fixed
 
 - small bugs
+
+### 0.5.175 Removed
+
+- single name for generic message handling registration
 
 ## [0.4.151] - 2023-03-26
 
