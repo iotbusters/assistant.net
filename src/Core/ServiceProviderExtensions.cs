@@ -26,6 +26,32 @@ public static class ServiceProviderExtensions
         .GetRequiredService<IServiceScopeFactory>().CreateAsyncScopeWithNamedOptionContext(name);
 
     /// <summary>
+    ///     Clone a scope with configured <see cref="NamedOptionsContext"/>.
+    /// </summary>
+    /// <param name="provider"/>
+    public static IServiceScope CloneScopeWithNamedOptionContext(this IServiceProvider provider)
+    {
+        var context = provider.GetService<NamedOptionsContext>();
+        if (context == null)
+            throw new ArgumentException("No named option contest is registered.", nameof(provider));
+
+        return provider.GetRequiredService<IServiceScopeFactory>().CreateScopeWithNamedOptionContext(context.Name);
+    }
+
+    /// <summary>
+    ///     Clone an async scope with configured <see cref="NamedOptionsContext"/>.
+    /// </summary>
+    /// <param name="provider"/>
+    public static AsyncServiceScope CloneAsyncScopeWithNamedOptionContext(this IServiceProvider provider)
+    {
+        var context = provider.GetService<NamedOptionsContext>();
+        if (context == null)
+            throw new ArgumentException("No named option contest is registered.", nameof(provider));
+
+        return provider.GetRequiredService<IServiceScopeFactory>().CreateAsyncScopeWithNamedOptionContext(context.Name);
+    }
+
+    /// <summary>
     ///     Creates a scope with configured <see cref="NamedOptionsContext"/>.
     /// </summary>
     /// <param name="factory"/>
