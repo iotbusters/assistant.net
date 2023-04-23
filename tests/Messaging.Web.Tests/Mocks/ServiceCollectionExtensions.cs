@@ -9,7 +9,7 @@ namespace Assistant.Net.Messaging.Web.Tests.Mocks;
 public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddHttpClientRedirect<TImplementation>(this IServiceCollection services, IHost host) => services
-        .AddHttpClientRedirect<TImplementation>(p => host);
+        .AddHttpClientRedirect<TImplementation>(_ => host);
 
     public static IServiceCollection AddHttpClientRedirect<TImplementation>(this IServiceCollection services, Func<IServiceProvider, IHost> hostFactory) => services
         .AddSingleton(hostFactory)

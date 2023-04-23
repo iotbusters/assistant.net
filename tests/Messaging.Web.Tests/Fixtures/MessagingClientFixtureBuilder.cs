@@ -14,21 +14,23 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures;
 
 public class MessagingClientFixtureBuilder
 {
-    private readonly TestConfigureOptionsSource remoteSource = new();
-    private readonly TestConfigureOptionsSource clientSource = new();
+    private readonly TestConfigureOptionsSource<MessagingClientOptions> remoteSource = new();
+    private readonly TestConfigureOptionsSource<MessagingClientOptions> clientSource = new();
+    private readonly TestConfigureOptionsSource<WebHandlingServerOptions> webServerSource = new();
 
     public MessagingClientFixtureBuilder()
     {
         Services = new ServiceCollection()
             .AddTypeEncoder(o => o.Exclude("NUnit").Exclude("Newtonsoft"))
             .AddMessagingClient(b => b
-                .UseWeb(hcb => hcb.ConfigureHttpClient(hc =>
+                .UseWeb(c =>
                 {
-                    hc.BaseAddress = new("http://localhost/messages");
+                    c.BaseAddress = new("http://localhost");
                     // debugging purpose only.
                     if (Debugger.IsAttached)
-                        hc.Timeout = TimeSpan.FromSeconds(300);
-                }))
+                        c.Timeout = TimeSpan.FromSeconds(300);
+                })
+                .UseWebSingleHandler()
                 .RemoveInterceptor<CachingInterceptor>()
                 .RemoveInterceptor<RetryingInterceptor>()
                 .RemoveInterceptor<TimeoutInterceptor>())
@@ -37,26 +39,32 @@ public class MessagingClientFixtureBuilder
             .Services;
         RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
-                .Configure(b => b.UseRemoteWebMessageHandler()))
+                .Configure(b => b.UseWebMessageHandling()))
             .ConfigureServices(s => s
                 .AddTypeEncoder(o => o.Exclude("NUnit").Exclude("Newtonsoft"))
-                .AddWebMessageHandling(b => b
+                .AddWebMessageHandling()
+                .ConfigureMessagingClient(b => b
                     .RemoveInterceptor<CachingInterceptor>()
                     .RemoveInterceptor<RetryingInterceptor>()
                     .RemoveInterceptor<TimeoutInterceptor>())
-                .AddOptions<MessagingClientOptions>(WebOptionsNames.DefaultName)
-                .Bind(remoteSource));
+                .BindOptions(remoteSource)
+                .BindOptions(webServerSource));
     }
 
     public MessagingClientFixtureBuilder ClearInterceptors()
     {
         Services.ConfigureMessagingClient(b => b.ClearInterceptors());
-        RemoteHostBuilder.ConfigureServices(s => s.ConfigureWebMessageHandling(b => b.ClearInterceptors()));
+        RemoteHostBuilder.ConfigureServices(s => s.ConfigureMessagingClient(b => b.ClearInterceptors()));
         return this;
     }
 
     public MessagingClientFixtureBuilder AddWebHandler<THandler>(THandler? handler = null) where THandler : class
     {
+        var messageTypes = typeof(THandler).GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
+        if (!messageTypes.Any())
+            throw new ArgumentException($"Expected message handler but provided {typeof(THandler)}.", nameof(THandler));
+
+        webServerSource.Configurations.Add(o => o.AcceptMessages(messageTypes));
         remoteSource.Configurations.Add(o =>
         {
             if (handler != null)
@@ -68,7 +76,7 @@ public class MessagingClientFixtureBuilder
         {
             var messageType = typeof(THandler).GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
                               ?? throw new ArgumentException("Invalid message handler type.", nameof(THandler));
-            o.AddWeb(messageType);
+            o.AddSingle(messageType);
         });
         return this;
     }
@@ -80,7 +88,7 @@ public class MessagingClientFixtureBuilder
         where TMessage : IAbstractMessage
     {
         var messageType = typeof(TMessage);
-        Services.ConfigureMessagingClient(b => b.AddWeb(messageType));
+        Services.ConfigureMessagingClient(b => b.AddSingle(messageType));
         return this;
     }
 
@@ -88,9 +96,9 @@ public class MessagingClientFixtureBuilder
     {
         var host = RemoteHostBuilder.Start();
         var provider = Services
-            .AddHttpClientRedirect<IWebMessageHandlerClient>(_ => host)
+            .AddHttpClientRedirect<IWebMessageHandlerClient>(host)
             .BuildServiceProvider();
-        return new(remoteSource, clientSource, provider, host);
+        return new(webServerSource, remoteSource, clientSource, provider, host);
     }
 
     private IServiceCollection Services { get; init; }

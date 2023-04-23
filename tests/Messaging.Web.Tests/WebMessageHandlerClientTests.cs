@@ -1,7 +1,7 @@
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Extensions;
-using Assistant.Net.Messaging.Web.Client.Tests.Mocks;
+using Assistant.Net.Messaging.Web.Tests.Mocks;
 using Assistant.Net.Serialization.Abstractions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +11,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging.Web.Client.Tests;
+namespace Assistant.Net.Messaging.Web.Tests;
 
 public class RemoteMessageHandlingClientTests
 {
@@ -19,8 +19,6 @@ public class RemoteMessageHandlingClientTests
     private static readonly TestScenarioMessage validMessage = new(0);
     private static readonly TestResponse successResponse = new(true);
     private static readonly MessageFailedException failedResponse = new("test");
-
-    private static Task<byte[]> Binary<T>(T value) => provider.GetRequiredService<ISerializer<T>>().Serialize(value);
     private static readonly IServiceProvider provider = new ServiceCollection().ConfigureJsonSerialization().BuildServiceProvider();
 
     [Test]
@@ -31,9 +29,9 @@ public class RemoteMessageHandlingClientTests
 
         await client.DelegateHandling(validMessage);
 
-        handler.Request.Should().BeEquivalentTo(new HttpRequestMessage(HttpMethod.Post, RequestUri)
+        handler.Request.Should().BeEquivalentTo(new HttpRequestMessage(HttpMethod.Post, RequestUri + "/messages")
         {
-            Headers = { { ClientHeaderNames.MessageName, nameof(TestScenarioMessage) } },
+            Headers = {{ClientHeaderNames.MessageName, nameof(TestScenarioMessage)}},
             Content = new ByteArrayContent(await Binary(successResponse))
         });
     }
@@ -60,12 +58,14 @@ public class RemoteMessageHandlingClientTests
             .WithMessage("test");
     }
 
+    private static Task<byte[]> Binary<T>(T value) => provider.GetRequiredService<ISerializer<T>>().Serialize(value);
+
     private static IWebMessageHandlerClient Client(DelegatingHandler handler)
     {
         var services = new ServiceCollection();
         services
             .ConfigureJsonSerialization()
-            .AddRemoteWebMessagingClient()
+            .AddWebMessageHandlerClient()
             .ConfigureHttpClient(c => c.BaseAddress = new(RequestUri))
             .ClearAllHttpMessageHandlers()
             .AddHttpMessageHandler<ErrorPropagationHandler>()

@@ -1,16 +1,15 @@
 using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Messaging.Web.Server.Tests.Fixtures;
-using Assistant.Net.Messaging.Web.Server.Tests.Mocks;
+using Assistant.Net.Messaging.Web.Tests.Fixtures;
+using Assistant.Net.Messaging.Web.Tests.Mocks;
 using FluentAssertions;
 using NUnit.Framework;
 using System;
-using System.Net;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging.Web.Server.Tests.Internal;
+namespace Assistant.Net.Messaging.Web.Tests.Internal;
 
 [Timeout(2000)]
-public class RemoteExceptionHandlingMiddlewareTests
+public class ExceptionHandlingMiddlewareTests
 {
     [TestCase(typeof(TimeoutException))]
     [TestCase(typeof(TaskCanceledException))]
@@ -23,9 +22,8 @@ public class RemoteExceptionHandlingMiddlewareTests
             .ClearInterceptors()
             .Create();
 
-        var response = await fixture.Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
-
-        response.Should().BeEquivalentTo(new {StatusCode = HttpStatusCode.Accepted});
+        await fixture.Awaiting(x => x.WebRequest(new TestFailMessage(exceptionType.AssemblyQualifiedName)))
+            .Should().ThrowAsync<MessageDeferredException>();
     }
 
     [Test]
@@ -36,11 +34,8 @@ public class RemoteExceptionHandlingMiddlewareTests
             .AddWebHandler<TestFailMessageHandler>()
             .Create();
 
-        var response = await fixture.Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
-
-        response.Should().BeEquivalentTo(new {StatusCode = HttpStatusCode.NotFound});
-        var responseObject = await fixture.ReadObject<MessageException>(response);
-        responseObject.Should().BeOfType<MessageNotFoundException>();
+        await fixture.Awaiting(x => x.WebRequest(new TestFailMessage(exceptionType.AssemblyQualifiedName)))
+            .Should().ThrowAsync<MessageNotFoundException>();
     }
 
     [Test]
@@ -51,11 +46,8 @@ public class RemoteExceptionHandlingMiddlewareTests
             .AddWebHandler<TestFailMessageHandler>()
             .Create();
 
-        var response = await fixture.Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
-
-        response.Should().BeEquivalentTo(new {StatusCode = HttpStatusCode.NotFound});
-        var responseObject = await fixture.ReadObject<MessageException>(response);
-        responseObject.Should().BeOfType<MessageNotRegisteredException>();
+        await fixture.Awaiting(x => x.WebRequest(new TestFailMessage(exceptionType.AssemblyQualifiedName)))
+            .Should().ThrowAsync<MessageNotRegisteredException>();
     }
 
     [Test]
@@ -66,11 +58,8 @@ public class RemoteExceptionHandlingMiddlewareTests
             .AddWebHandler<TestFailMessageHandler>()
             .Create();
 
-        var response = await fixture.Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
-
-        response.Should().BeEquivalentTo(new {StatusCode = HttpStatusCode.BadRequest});
-        var responseObject = await fixture.ReadObject<MessageException>(response);
-        responseObject.Should().BeOfType<MessageContractException>();
+        await fixture.Awaiting(x => x.WebRequest(new TestFailMessage(exceptionType.AssemblyQualifiedName)))
+            .Should().ThrowAsync<MessageContractException>();
     }
 
     [Test]
@@ -81,10 +70,7 @@ public class RemoteExceptionHandlingMiddlewareTests
             .AddWebHandler<TestFailMessageHandler>()
             .Create();
 
-        var response = await fixture.Request(new TestFailMessage(exceptionType.AssemblyQualifiedName));
-
-        response.Should().BeEquivalentTo(new {StatusCode = HttpStatusCode.InternalServerError});
-        var responseObject = await fixture.ReadObject<MessageException>(response);
-        responseObject.Should().BeOfType<TestMessageException>();
+        await fixture.Awaiting(x => x.WebRequest(new TestFailMessage(exceptionType.AssemblyQualifiedName)))
+            .Should().ThrowAsync<TestMessageException>();
     }
 }
