@@ -1,7 +1,6 @@
-﻿using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Options;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Assistant.Net.Messaging.Options;
 using System;
+using System.Net.Http;
 
 namespace Assistant.Net.Messaging;
 
@@ -11,70 +10,55 @@ namespace Assistant.Net.Messaging;
 public static class MessagingClientBuilderExtensions
 {
     /// <summary>
-    ///     Configures the messaging client to use a WEB single provider implementation.
+    ///     Configures WEB based message handling.
     /// </summary>
-    public static MessagingClientBuilder UseWebSingleProvider(this MessagingClientBuilder builder, Action<IHttpClientBuilder> configureBuilder)
+    /// <remarks>
+    ///     Pay attention, the method overrides already configured single message handler.
+    /// </remarks>
+    public static MessagingClientBuilder UseWeb(this MessagingClientBuilder builder)
     {
         builder.Services
+            .ConfigureWebHandlerProxyOptions(builder.Name, delegate { })
             .ConfigureJsonSerialization(builder.Name)
-            .ConfigureMessagingClientOptions(builder.Name, o => o.UseWebSingleProvider());
-        return builder.UseWeb(configureBuilder);
-    }
-
-    /// <summary>
-    ///     Configures the messaging client to connect the remote web handler.
-    /// </summary>
-    public static MessagingClientBuilder UseWeb(this MessagingClientBuilder builder, Action<IHttpClientBuilder> configureBuilder)
-    {
-        var clientBuilder = builder.Services
-            .ConfigureJsonSerialization(builder.Name)
-            .AddRemoteWebMessagingClient();
-        configureBuilder.Invoke(clientBuilder);
+            .AddWebMessageHandlerClient();
         return builder;
     }
 
     /// <summary>
-    ///     Registers remote WEB handler of <typeparamref name="TMessage"/>.
+    ///     Configures WEB based single message handling.
     /// </summary>
     /// <remarks>
-    ///     Pay attention, it requires calling <see cref="UseWeb"/>.
+    ///     Pay attention, the method overrides already configured single message handler.
     /// </remarks>
-    /// <typeparam name="TMessage">Specific message type to be handled remotely.</typeparam>
-    /// <exception cref="ArgumentException"/>
-    public static MessagingClientBuilder AddWeb<TMessage>(this MessagingClientBuilder builder)
-        where TMessage : class, IAbstractMessage => builder.AddWeb(typeof(TMessage));
-
-    /// <summary>
-    ///     Registers remote WEB handler of <paramref name="messageType"/>.
-    /// </summary>
-    /// <remarks>
-    ///     Pay attention, it requires calling <see cref="UseWeb"/>.
-    /// </remarks>
-    /// <exception cref="ArgumentException"/>
     /// <param name="builder"/>
-    /// <param name="messageType">The message type to find associated handler.</param>
-    public static MessagingClientBuilder AddWeb(this MessagingClientBuilder builder, Type messageType)
+    /// <param name="configure">The action used to configure the <see cref="HttpClient"/>.</param>
+    public static MessagingClientBuilder UseWeb(this MessagingClientBuilder builder, Action<HttpClient> configure)
     {
-        if (!messageType.IsMessage())
-            throw new ArgumentException("Invalid message type.", nameof(messageType));
+        builder.Services.ConfigureWebHandlerProxyOptions(builder.Name, o => o.Configurations.Add(configure));
+        return builder.UseWeb();
+    }
 
-        builder.Services
-            .ConfigureJsonSerialization(builder.Name)
-            .ConfigureMessagingClientOptions(builder.Name, o => o.AddWeb(messageType));
+    /// <summary>
+    ///     Configures WEB based single message handling.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, the method overrides already configured single message handler.
+    /// </remarks>
+    public static MessagingClientBuilder UseWebSingleHandler(this MessagingClientBuilder builder)
+    {
+        builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.UseWebSingleHandler());
         return builder;
     }
 
     /// <summary>
-    ///     Registers remote WEB handler of any message type except explicitly registered.
+    ///     Configures WEB based backoff message handling.
     /// </summary>
     /// <remarks>
-    ///     Pay attention, it requires calling <see cref="UseWeb"/>.
+    ///     Pay attention, the method overrides already configured backoff message handler.
     /// </remarks>
-    public static MessagingClientBuilder AddWebAny(this MessagingClientBuilder builder)
+    public static MessagingClientBuilder UseWebBackoffHandler(this MessagingClientBuilder builder)
     {
-        builder.Services
-            .ConfigureJsonSerialization(builder.Name)
-            .ConfigureMessagingClientOptions(builder.Name, o => o.AddWebAny());
+        builder.Services.ConfigureMessagingClientOptions(builder.Name, o => o.UseWebBackoffHandler());
         return builder;
     }
 }

@@ -46,7 +46,7 @@ internal class WebMessageHandlerClient : IWebMessageHandlerClient
 
         var messageName = typeEncoder.Encode(messageType);
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, "")
+        using var request = new HttpRequestMessage(HttpMethod.Post, "messages")
         {
             Headers = {{ClientHeaderNames.MessageName, messageName}},
             Content = new StreamContent(requestStream)
