@@ -15,6 +15,24 @@ public static class HealthChecksBuilderExtensions
     ///     Adds a default storage health check registration.
     /// </summary>
     /// <param name="builder"/>
+    /// <param name="name">The name of the storage options instance.</param>
+    /// <param name="timeout">Health check timeout.</param>
+    public static IHealthChecksBuilder AddLocalStorage(this IHealthChecksBuilder builder, string name, TimeSpan? timeout = null)
+    {
+        builder.Services.Configure<HealthCheckServiceOptions>(options =>
+        {
+            var healthCheckName = HealthCheckNames.CreateName(name);
+            var registration = options.Registrations.FirstOrDefault(x => x.Name == healthCheckName);
+            if (registration != null)
+                options.Registrations.Remove(registration);
+        });
+        return builder;
+    }
+
+    /// <summary>
+    ///     Adds a default storage health check registration.
+    /// </summary>
+    /// <param name="builder"/>
     /// <param name="timeout">Health check timeout.</param>
     public static IHealthChecksBuilder AddStorage<TProviderHealthCheck>(this IHealthChecksBuilder builder, TimeSpan? timeout = null)
         where TProviderHealthCheck : class, IHealthCheck => builder
