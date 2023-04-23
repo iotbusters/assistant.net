@@ -69,7 +69,7 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    ///     Register an action used to configure the same named <see cref="MessagingClientOptions"/> options.
+    ///     Register an action used to configure default <see cref="MessagingClientOptions"/> options.
     /// </summary>
     /// <param name="services">The <see cref="IServiceCollection"/> to add the services to.</param>
     /// <param name="configureOptions">The action used to configure the options.</param>

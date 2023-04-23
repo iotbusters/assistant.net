@@ -69,7 +69,7 @@ public sealed class OptionsBuilder<TOptions> : Microsoft.Extensions.Options.Opti
     }
 
     /// <summary>
-    ///     Registers a cascade change dependency between <typeparamref name="TOptions"/> and <typrparamref name="TDependentOptions"/> options.
+    ///     Registers a cascade change dependency between <typeparamref name="TOptions"/> and named <typrparamref name="TDependentOptions"/> options.
     /// </summary>
     public OptionsBuilder<TOptions> ChangeOn<TDependentOptions>(string name)
         where TDependentOptions : class
@@ -90,7 +90,13 @@ public sealed class OptionsBuilder<TOptions> : Microsoft.Extensions.Options.Opti
     }
 
     /// <summary>
-    ///     Registers a cascade change dependency between <typeparamref name="TOptions"/> and <typrparamref name="TDependentOptions"/> options.
+    ///     Registers a cascade change dependency between <typeparamref name="TOptions"/> and default <typrparamref name="TDependentOptions"/> options.
+    /// </summary>
+    public OptionsBuilder<TOptions> ChangeOn<TDependentOptions>(Action<TOptions, TDependentOptions> configureOptions)
+        where TDependentOptions : class => ChangeOn(Microsoft.Extensions.Options.Options.DefaultName, configureOptions);
+
+    /// <summary>
+    ///     Registers a cascade change dependency between <typeparamref name="TOptions"/> and named <typrparamref name="TDependentOptions"/> options.
     /// </summary>
     public OptionsBuilder<TOptions> ChangeOn<TDependentOptions>(string name, Action<TOptions, TDependentOptions> configureOptions)
         where TDependentOptions : class
@@ -105,7 +111,7 @@ public sealed class OptionsBuilder<TOptions> : Microsoft.Extensions.Options.Opti
     }
 
     /// <summary>
-    ///     Registers a cascade change dependency between <typeparamref name="TOptions"/> and <typrparamref name="TDependentOptions"/> options.
+    ///     Registers a cascade change dependency between <typeparamref name="TOptions"/> and default <typrparamref name="TDependentOptions"/> options.
     /// </summary>
     public OptionsBuilder<TOptions> ChangeOn<TDependentOptions>()
         where TDependentOptions : class => ChangeOn<TDependentOptions>(Microsoft.Extensions.Options.Options.DefaultName);
