@@ -18,7 +18,7 @@ public static class GenericHandlingServerOptionsExtensions
     public static GenericHandlingServerOptions AcceptMessage(this GenericHandlingServerOptions options, Type messageType)
     {
         if (!messageType.IsMessage())
-            throw new ArgumentException("", nameof(messageType));
+            throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
         options.MessageTypes.Add(messageType);
         return options;
     }
