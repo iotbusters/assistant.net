@@ -23,9 +23,11 @@ public sealed class ErrorPropagationHandler : DelegatingHandler
     /// <exception cref="MessageDeferredException"/>
     /// <exception cref="MessageContractException"/>
     /// <exception cref="MessageException"/>
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken token)
     {
-        var response = await base.SendAsync(request, cancellationToken);
+        var response = await base.SendAsync(request, token);
+
+        var str = await response.Content.ReadAsStringAsync(token);
 
         return (response.IsSuccessStatusCode, response.StatusCode) switch
         {
@@ -34,14 +36,14 @@ public sealed class ErrorPropagationHandler : DelegatingHandler
             (true, HttpStatusCode.Accepted)     => throw new MessageDeferredException("Web message handler deferred a message."),
             (true, var x)                       => throw new MessageContractException(InvalidStatusMessage(x)),
 
-            (false, HttpStatusCode.NotFound)            => throw await ReadException(response, cancellationToken),
-            (false, HttpStatusCode.InternalServerError) => throw await ReadException(response, cancellationToken),
-            (false, HttpStatusCode.BadGateway)          => throw await ReadException(response, cancellationToken),
-            (false, HttpStatusCode.FailedDependency)    => throw await ReadException(response, cancellationToken),
-            (false, HttpStatusCode.Forbidden)           => throw await ReadException(response, cancellationToken),
-            (false, HttpStatusCode.RequestTimeout)      => throw await ReadException(response, cancellationToken),
-            (false, HttpStatusCode.ServiceUnavailable)  => throw await ReadException(response, cancellationToken),
-            (false, HttpStatusCode.Unauthorized)        => throw await ReadException(response, cancellationToken),
+            (false, HttpStatusCode.NotFound)            => throw await ReadException(response, token),
+            (false, HttpStatusCode.InternalServerError) => throw await ReadException(response, token),
+            (false, HttpStatusCode.BadGateway)          => throw await ReadException(response, token),
+            (false, HttpStatusCode.FailedDependency)    => throw await ReadException(response, token),
+            (false, HttpStatusCode.Forbidden)           => throw await ReadException(response, token),
+            (false, HttpStatusCode.RequestTimeout)      => throw await ReadException(response, token),
+            (false, HttpStatusCode.ServiceUnavailable)  => throw await ReadException(response, token),
+            (false, HttpStatusCode.Unauthorized)        => throw await ReadException(response, token),
             (false, var x)                              => throw new MessageContractException(InvalidStatusMessage(x)),
         };
     }
