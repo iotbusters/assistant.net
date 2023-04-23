@@ -19,7 +19,7 @@ namespace Assistant.Net.Messaging.Internal;
 /// <summary>
 ///     Storage based message handling coordination proxy.
 /// </summary>
-internal class GenericMessagingHandlerProxy : IAbstractHandler
+internal class GenericMessageHandlerProxy : IAbstractHandler
 {
     private readonly ILogger logger;
     private readonly IOptionsSnapshot<GenericHandlerProxyOptions> options;
@@ -30,8 +30,8 @@ internal class GenericMessagingHandlerProxy : IAbstractHandler
     private readonly ITypeEncoder typeEncoder;
     private readonly ISystemClock clock;
 
-    public GenericMessagingHandlerProxy(
-        ILogger<GenericMessagingHandlerProxy> logger,
+    public GenericMessageHandlerProxy(
+        ILogger<GenericMessageHandlerProxy> logger,
         IOptionsSnapshot<GenericHandlerProxyOptions> options,
         IAdminStorage<string, RemoteHandlerModel> remoteHostRegistrationStorage,
         IPartitionedAdminStorage<string, IAbstractMessage> requestStorage,

@@ -26,6 +26,8 @@ public static class ServiceCollectionExtensions
     /// <summary>
     ///     Registers storage based server message handling.
     /// </summary>
+    /// <param name="services"/>
+    /// <param name="name">The name of related option instances.</param>
     /// <remarks>
     ///     Pay attention, it's configured to use storage single provider required only <i>Use{Provider}</i>.
     /// </remarks>
