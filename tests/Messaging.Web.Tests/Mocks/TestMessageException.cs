@@ -1,6 +1,6 @@
 using Assistant.Net.Messaging.Exceptions;
 
-namespace Assistant.Net.Messaging.Web.Server.Tests.Mocks;
+namespace Assistant.Net.Messaging.Web.Tests.Mocks;
 
 public class TestMessageException : MessageException
 {

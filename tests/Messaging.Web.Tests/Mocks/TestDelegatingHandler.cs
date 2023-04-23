@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Messaging.Web.Client.Tests.Mocks;
+namespace Assistant.Net.Messaging.Web.Tests.Mocks;
 
 public class TestDelegatingHandler : DelegatingHandler
 {
