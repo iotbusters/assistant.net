@@ -10,11 +10,13 @@ YAML formatter logging is an extension to .net regular console logger.
 using var provider = new ServiceCollection()
     .AddLogging(b => b
       .AddYamlConsole()
-      .AddPropertyScope("Thread", () => Thread.CurrentThread.ManagedThreadId))
+      .AddPropertyScope("ApplicationName", () => Thread.CurrentThread.ManagedThreadId)
+      .AddPropertyScope("Thread", () => "event-handler-1"))
     .BuildServiceProvider();
 
 var logger = provider.GetRequiredService<ILogger<SomeService>>();
 using var _ logger.BeginPropertyScope("RequestId", id);
+logger.LogError(ex, "Querying timers: found arranged {TimerCount} timer(s).", count);
 ```
 
 ## Formatting sample
@@ -45,8 +47,6 @@ Scopes:
     Value: event-handler-1
   - Name: Thread
     Value: 24
-  - Name: CorrelationId
+  - Name: RequestId
     Value: 5793e715-6e50-4f84-9c9e-85be62de689c
-  - Name: User
-    Value: user@gmail.com
 ```
