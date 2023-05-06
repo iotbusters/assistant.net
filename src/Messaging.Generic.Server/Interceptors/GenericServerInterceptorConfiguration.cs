@@ -24,6 +24,6 @@ public sealed class GenericServerInterceptorConfiguration : IMessageConfiguratio
             .Add<string, IAbstractMessage>() // GenericMessageHandlingService's requirement
             .Add<string, CachingResult>() // GenericMessageHandlingService's requirement
             .Add<string, long>() // GenericMessageHandlingService's requirement
-            .Add<string, RemoteHandlerModel>());// GenericServerAvailabilityPublisher's requirement
+            .Add<string, HostsAvailabilityModel>());// GenericServerAvailabilityPublisher's requirement
     }
 }

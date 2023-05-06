@@ -1,6 +1,8 @@
-﻿using Assistant.Net.Storage.HealthChecks;
+﻿using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Storage.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,11 +15,13 @@ namespace Assistant.Net.Messaging.HealthChecks;
 internal class ServerAvailabilityPublisher : IHealthCheckPublisher
 {
     private readonly IOptionsMonitor<HealthCheckPublisherOptions> options;
-    private readonly ServerAvailabilityService availabilityService;
+    private readonly IServerAvailabilityService availabilityService;
+
+    private TimeSpan? averageDuration;
 
     public ServerAvailabilityPublisher(
         IOptionsMonitor<HealthCheckPublisherOptions> options,
-        ServerAvailabilityService availabilityService)
+        IServerAvailabilityService availabilityService)
     {
         this.options = options;
         this.availabilityService = availabilityService;
@@ -28,16 +32,18 @@ internal class ServerAvailabilityPublisher : IHealthCheckPublisher
         if (!report.Entries.Any())
             return;
 
+        if (averageDuration == null)
+            averageDuration = report.TotalDuration;
+        else
+            averageDuration = averageDuration * 0.75 + report.TotalDuration * 0.25;
+
         var isHealthy = report.Entries.Values.All(x => x.Status == HealthStatus.Healthy);
         var names = report.Entries.Keys.Select(HealthCheckNames.GetOptionName).Where(x => x != null);
-        var publisherOptions = options.CurrentValue;
-        var expiration = publisherOptions.Timeout != Timeout.InfiniteTimeSpan
-            ? publisherOptions.Period + publisherOptions.Timeout // period + timeout
-            : publisherOptions.Period * 0.5; // period + 50%
+        var timeToLive = options.CurrentValue.Period + averageDuration!.Value * 1.1; // +10%.
 
         if (isHealthy)
             foreach (var name in names)
-                await availabilityService.Register(name!, expiration, token);
+                await availabilityService.Register(name!, timeToLive, token);
         else
             foreach (var name in names)
                 await availabilityService.Unregister(name!, token);

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Diagnostics.HealthChecks;
+﻿using Assistant.Net.Messaging.Abstractions;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,9 +11,9 @@ namespace Assistant.Net.Messaging.HealthChecks;
 /// </summary>
 internal class ServerActivityPublisher : IHealthCheckPublisher
 {
-    private readonly ServerActivityService service;
+    private readonly IServerActivityService service;
 
-    public ServerActivityPublisher(ServerActivityService service) =>
+    public ServerActivityPublisher(IServerActivityService service) =>
         this.service = service;
 
     public Task PublishAsync(HealthReport report, CancellationToken token)

@@ -12,8 +12,16 @@ public sealed class GenericHandlingServerOptions
     /// <summary>
     ///     List of registered messages for remote handling.
     /// </summary>
+    /// <remarks>
+    ///     It should be empty only if backoff handling was selected.
+    /// </remarks>
     [MinLength(1)]
     public ISet<Type> MessageTypes { get; } = new HashSet<Type>();
+
+    /// <summary>
+    ///     Determine if message handling has backoff message handler configured.
+    /// </summary>
+    public bool HasBackoffHandler { get; set; }
 
     /// <summary>
     ///     Time to delay after no messages to handle were found.

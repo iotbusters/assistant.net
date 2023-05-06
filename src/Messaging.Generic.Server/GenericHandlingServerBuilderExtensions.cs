@@ -1,5 +1,7 @@
-﻿using Assistant.Net.Messaging.Options;
+﻿using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 
 namespace Assistant.Net.Messaging;
@@ -14,7 +16,10 @@ public static class GenericHandlingServerBuilderExtensions
     /// </summary>
     public static GenericHandlingServerBuilder UseLocal(this GenericHandlingServerBuilder builder)
     {
-        builder.Services.ConfigureStorage(builder.Name, b => b.UseLocal());
+        builder.Services
+            .ConfigureStorage(builder.Name, b => b.UseLocal())
+            .AddHealthChecks()
+            .AddLocalStorage(builder.Name);
         return builder;
     }
 
@@ -27,7 +32,7 @@ public static class GenericHandlingServerBuilderExtensions
         .AddHandler(typeof(THandler));
 
     /// <summary>
-    ///     Registers a server message handler with <paramref name="handlerType"/>.
+    ///     Registers a <paramref name="handlerType"/> for external requests to the server.
     /// </summary>
     /// <param name="builder"/>
     /// <param name="handlerType">The message handler implementation type.</param>
@@ -38,13 +43,13 @@ public static class GenericHandlingServerBuilderExtensions
             throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerType));
 
         builder.Services
-            .ConfigureMessagingClient(builder.Name, o => o.AddHandler(handlerType))
+            .ConfigureMessagingClient(builder.Name, b => b.AddHandler(handlerType))
             .ConfigureGenericHandlingServerOptions(builder.Name, o => o.AcceptMessagesFromHandler(handlerType));
         return builder;
     }
 
     /// <summary>
-    ///     Registers a server message handler with <paramref name="handlerInstance"/>.
+    ///     Registers a <paramref name="handlerInstance"/> for external requests to the server.
     /// </summary>
     /// <param name="builder"/>
     /// <param name="handlerInstance">The message handler instance.</param>
@@ -56,8 +61,42 @@ public static class GenericHandlingServerBuilderExtensions
             throw new ArgumentException($"Expected message handler but provided {handlerType}.", nameof(handlerInstance));
 
         builder.Services
-            .ConfigureMessagingClient(builder.Name, o => o.AddHandler(handlerInstance))
+            .ConfigureMessagingClient(builder.Name, b => b.AddHandler(handlerInstance))
             .ConfigureGenericHandlingServerOptions(builder.Name, o => o.AcceptMessagesFromHandler(handlerType));
+        return builder;
+    }
+
+    /// <summary>
+    ///     Registers a <paramref name="handlerType"/> for external requests to the server if no other registered handlers.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, the method overrides already registered backoff handler.
+    /// </remarks>
+    /// <param name="builder"/>
+    /// <param name="handlerType">The backoff message handler implementation type.</param>
+    /// <exception cref="ArgumentException"/>
+    public static GenericHandlingServerBuilder AddBackoffHandler(this GenericHandlingServerBuilder builder, Type handlerType)
+    {
+        builder.Services
+            .ConfigureMessagingClient(builder.Name, b => b.UseBackoffHandler(handlerType))
+            .ConfigureGenericHandlingServerOptions(builder.Name, o => o.BackoffHandler(true));
+        return builder;
+    }
+
+    /// <summary>
+    ///     Registers a <paramref name="handlerInstance"/> for external requests to the server if no other registered handlers.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, the method overrides already registered backoff handler.
+    /// </remarks>
+    /// <param name="builder"/>
+    /// <param name="handlerInstance">The backoff message handler instance.</param>
+    /// <exception cref="ArgumentException"/>
+    public static GenericHandlingServerBuilder AddBackoffHandler(this GenericHandlingServerBuilder builder, IAbstractHandler handlerInstance)
+    {
+        builder.Services
+            .ConfigureMessagingClient(builder.Name, b => b.UseBackoffHandler(handlerInstance))
+            .ConfigureGenericHandlingServerOptions(builder.Name, o => o.BackoffHandler(true));
         return builder;
     }
 }
