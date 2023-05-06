@@ -19,13 +19,7 @@ public sealed class DefaultInterceptorConfiguration : IMessageConfiguration
     /// <inheritdoc/>
     public void Configure(MessagingClientBuilder builder)
     {
-        builder.Services
-            .AddStorage(builder.Name, b => b
-                .Add<IAbstractMessage, CachingResult>())
-            .ConfigureMessagingClient(builder.Name, o => o
-                .ExposeException<MessageException>()
-                .Retry(new ExponentialBackoff {MaxAttemptNumber = 5, Interval = TimeSpan.FromSeconds(1), Rate = 1.2})
-                .TimeoutIn(TimeSpan.FromSeconds(1)));
+        builder.Services.AddStorage(builder.Name, b => b.Add<IAbstractMessage, CachingResult>());
         builder
             .AddInterceptor<DiagnosticsInterceptor>()
             .AddInterceptor<CachingInterceptor>()
@@ -33,6 +27,9 @@ public sealed class DefaultInterceptorConfiguration : IMessageConfiguration
             .AddInterceptor<RetryingInterceptor>()
             .AddInterceptor<TimeoutInterceptor>()
             .ExposeException<TimeoutException>()
-            .AddTransientException<TimeoutException>();
+            .ExposeException<MessageException>()
+            .AddTransientException<TimeoutException>()
+            .Retry(new ExponentialBackoff { MaxAttemptNumber = 3, Interval = TimeSpan.FromSeconds(0.1), Rate = 2 })
+            .TimeoutIn(TimeSpan.FromSeconds(1));
     }
 }

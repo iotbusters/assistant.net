@@ -21,9 +21,8 @@ public sealed class CachingInterceptor : DefaultCachingInterceptor
     /// <summary/>
     public CachingInterceptor(
         ILogger<CachingInterceptor> logger,
-        ITypeEncoder typeEncoder,
         IStorage<IAbstractMessage, CachingResult> cache,
-        INamedOptions<MessagingClientOptions> options) : base((ILogger)logger, typeEncoder, cache, options) { }
+        INamedOptions<MessagingClientOptions> options) : base((ILogger)logger, cache, options) { }
 
     /// <inheritdoc/>
     protected override async ValueTask<object> Intercept(SharedMessageHandler next, IAbstractMessage message, CancellationToken token) =>

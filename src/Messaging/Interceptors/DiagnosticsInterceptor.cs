@@ -1,7 +1,6 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Utils;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
@@ -15,29 +14,24 @@ namespace Assistant.Net.Messaging.Interceptors;
 public sealed class DiagnosticsInterceptor : SharedAbstractInterceptor
 {
     private readonly ILogger logger;
-    private readonly ITypeEncoder typeEncode;
+    private readonly ITypeEncoder typeEncoder;
     private readonly IDiagnosticFactory diagnosticFactory;
 
     /// <summary/>
     public DiagnosticsInterceptor(
         ILogger<DiagnosticsInterceptor> logger,
-        ITypeEncoder typeEncode,
+        ITypeEncoder typeEncoder,
         IDiagnosticFactory diagnosticFactory)
     {
         this.logger = logger;
-        this.typeEncode = typeEncode;
+        this.typeEncoder = typeEncoder;
         this.diagnosticFactory = diagnosticFactory;
     }
 
     /// <inheritdoc/>
     protected override async ValueTask<object> Intercept(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
     {
-        var messageId = message.GetSha1();
-        var messageName = typeEncode.Encode(message.GetType());
-
-        using var scope = logger.BeginPropertyScope()
-            .AddPropertyScope("MessageId", messageId)
-            .AddPropertyScope("MessageName", messageName);
+        var messageName = typeEncoder.Encode(message.GetType());
 
         var operation = diagnosticFactory.Start($"{messageName}-handling-local");
         logger.LogInformation("Message handling operation: begins.");
