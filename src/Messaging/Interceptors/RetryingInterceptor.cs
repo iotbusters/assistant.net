@@ -3,7 +3,6 @@ using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Utils;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
@@ -42,18 +41,15 @@ public sealed class RetryingInterceptor : SharedAbstractInterceptor
     /// <exception cref="MessageRetryLimitExceededException"/>
     protected override async ValueTask<object> Intercept(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
     {
-        var messageId = message.GetSha1();
         var messageName = typeEncoder.Encode(message.GetType());
-
-        using var scope = logger.BeginPropertyScope()
-            .AddPropertyScope("MessageId", messageId)
-            .AddPropertyScope("MessageName", messageName);
 
         var attempt = 1;
         while (true)
         {
             var operation = diagnosticFactory.Start($"{messageName}-handling-attempt-{attempt}");
-            logger.LogInformation("Message retrying: #{Attempt} begins.", attempt);
+            using var attemptScope = logger.BeginPropertyScope("RetryAttempt", attempt);
+
+            logger.LogInformation("Message retrying: begins.");
 
             object response;
             try
@@ -62,24 +58,24 @@ public sealed class RetryingInterceptor : SharedAbstractInterceptor
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
-                logger.LogWarning("Message retrying: #{Attempt} cancelled.", attempt);
+                logger.LogWarning("Message retrying: cancelled.");
                 throw;
             }
             catch (Exception ex) when (!options.TransientExceptions.Any(x => x.IsInstanceOfType(ex)))
             {
-                logger.LogError(ex, "Message retrying: #{Attempt} rethrows permanent error.", attempt);
+                logger.LogError(ex, "Message retrying: rethrows permanent error.");
                 operation.Fail();
                 throw;
             }
             catch (Exception ex) when (!options.Retry.CanRetry(attempt + 1))
             {
-                logger.LogError(ex, "Message retrying: #{Attempt} reached the limit.", attempt);
+                logger.LogError(ex, "Message retrying: reached the limit.");
                 operation.Fail();
                 throw new MessageRetryLimitExceededException();
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Message retrying: #{Attempt} failed on transient error.", attempt);
+                logger.LogWarning(ex, "Message retrying: failed on transient error.");
 
                 operation.Fail();
                 await Task.WhenAny(Task.Delay(options.Retry.DelayTime(attempt), token));
@@ -87,7 +83,7 @@ public sealed class RetryingInterceptor : SharedAbstractInterceptor
                 continue;
             }
 
-            logger.LogInformation("Message retrying: #{Attempt} ends.", attempt);
+            logger.LogInformation("Message retrying: ends.");
             operation.Complete();
             return response;
         }

@@ -4,7 +4,6 @@ using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Utils;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
@@ -22,26 +21,22 @@ namespace Assistant.Net.Messaging.Interceptors;
 public class DefaultCachingInterceptor : SharedAbstractInterceptor
 {
     private readonly ILogger logger;
-    private readonly ITypeEncoder typeEncoder;
     private readonly IStorage<IAbstractMessage, CachingResult> cache;
     private readonly MessagingClientOptions options;
 
     /// <summary/>
     public DefaultCachingInterceptor(
         ILogger<DefaultCachingInterceptor> logger,
-        ITypeEncoder typeEncoder,
         IStorage<IAbstractMessage, CachingResult> cache,
-        INamedOptions<MessagingClientOptions> options) : this((ILogger)logger, typeEncoder, cache, options) { }
+        INamedOptions<MessagingClientOptions> options) : this((ILogger)logger, cache, options) { }
 
     /// <summary/>
     protected DefaultCachingInterceptor(
         ILogger logger,
-        ITypeEncoder typeEncoder,
         IStorage<IAbstractMessage, CachingResult> cache,
         INamedOptions<MessagingClientOptions> options)
     {
         this.logger = logger;
-        this.typeEncoder = typeEncoder;
         this.cache = cache;
         this.options = options.Value;
     }
@@ -49,13 +44,6 @@ public class DefaultCachingInterceptor : SharedAbstractInterceptor
     /// <inheritdoc/>
     protected override async ValueTask<object> Intercept(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
     {
-        var messageId = message.GetSha1();
-        var messageName = typeEncoder.Encode(message.GetType());
-
-        using var scope = logger.BeginPropertyScope()
-            .AddPropertyScope("MessageId", messageId)
-            .AddPropertyScope("MessageName", messageName);
-
         logger.LogInformation("Message caching: begins.");
 
         var result = await cache.AddOrGet(message, async _ =>

@@ -2,7 +2,6 @@ using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Utils;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
@@ -38,13 +37,6 @@ public sealed class ErrorHandlingInterceptor : SharedAbstractInterceptor
     /// <exception cref="MessageFailedException"/>
     protected override async ValueTask<object> Intercept(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
     {
-        var messageId = message.GetSha1();
-        var messageName = typeEncode.Encode(message.GetType());
-
-        using var scope = logger.BeginPropertyScope()
-            .AddPropertyScope("MessageId", messageId)
-            .AddPropertyScope("MessageName", messageName);
-
         logger.LogInformation("Message error handling: begins.");
 
         object response;

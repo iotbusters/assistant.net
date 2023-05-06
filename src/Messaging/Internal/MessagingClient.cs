@@ -2,6 +2,8 @@ using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Messaging.Options;
+using Assistant.Net.Utils;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Threading;
@@ -14,11 +16,19 @@ namespace Assistant.Net.Messaging.Internal;
 /// </summary>
 internal class MessagingClient : IMessagingClient
 {
+    private readonly ILogger<MessagingClient> logger;
+    private readonly ITypeEncoder typeEncoder;
     private readonly IServiceProvider provider;
     private readonly INamedOptions<MessagingClientOptions> options;
 
-    public MessagingClient(IServiceProvider provider, INamedOptions<MessagingClientOptions> options)
+    public MessagingClient(
+        ILogger<MessagingClient> logger,
+        ITypeEncoder typeEncoder,
+        IServiceProvider provider,
+        INamedOptions<MessagingClientOptions> options)
     {
+        this.logger = logger;
+        this.typeEncoder = typeEncoder;
         this.provider = provider;
         this.options = options;
     }
@@ -26,6 +36,12 @@ internal class MessagingClient : IMessagingClient
     /// <exception cref="MessageNotRegisteredException"/>
     public async Task<object> RequestObject(IAbstractMessage message, CancellationToken token)
     {
+        var messageId = message.GetSha1();
+        var messageName = typeEncoder.Encode(message.GetType());
+        using var _ = logger.BeginPropertyScope()
+            .AddPropertyScope("MessageId", messageId)
+            .AddPropertyScope("MessageName", messageName);
+
         var clientOptions = options.Value;
 
         var messageType = message.GetType();
@@ -45,6 +61,12 @@ internal class MessagingClient : IMessagingClient
     /// <exception cref="MessageNotRegisteredException"/>
     public async Task PublishObject(IAbstractMessage message, CancellationToken token)
     {
+        var messageId = message.GetSha1();
+        var messageName = typeEncoder.Encode(message.GetType());
+        using var _ = logger.BeginPropertyScope()
+            .AddPropertyScope("MessageId", messageId)
+            .AddPropertyScope("MessageName", messageName);
+
         var clientOptions = options.Value;
 
         var messageType = message.GetType();

@@ -1,7 +1,6 @@
 using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Utils;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
@@ -37,13 +36,6 @@ public sealed class TimeoutInterceptor : SharedAbstractInterceptor
     /// <exception cref="TimeoutException"/>
     protected override async ValueTask<object> Intercept(SharedMessageHandler next, IAbstractMessage message, CancellationToken token)
     {
-        var messageId = message.GetSha1();
-        var messageName = typeEncode.Encode(message.GetType());
-
-        using var scope = logger.BeginPropertyScope()
-            .AddPropertyScope("MessageId", messageId)
-            .AddPropertyScope("MessageName", messageName);
-
         logger.LogInformation("Message timeout counter: begins.");
 
         var timeout = Debugger.IsAttached
