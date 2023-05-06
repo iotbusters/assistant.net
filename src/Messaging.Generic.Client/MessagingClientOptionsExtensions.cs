@@ -1,6 +1,7 @@
 ﻿using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage.Options;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Assistant.Net.Messaging;
 
@@ -17,7 +18,7 @@ public static class MessagingClientOptionsExtensions
     ///     or <see cref="StorageBuilder"/>.Use***() methods; the method overrides already configured single message handler.
     /// </remarks>
     public static MessagingClientOptions UseGenericSingleHandler(this MessagingClientOptions options) => options
-        .UseSingleHandler((p, _) => p.Create<GenericMessageHandlerProxy>());
+        .UseSingleHandler((p, _) => p.GetRequiredService<GenericMessageHandlerProxy>());
 
     /// <summary>
     ///     Configures a storage based backoff message handler instance factory.
@@ -27,5 +28,5 @@ public static class MessagingClientOptionsExtensions
     ///     or <see cref="StorageBuilder"/>.Use***() methods; the method overrides already configured backoff message handler.
     /// </remarks>
     public static MessagingClientOptions UseGenericBackoffHandler(this MessagingClientOptions options) => options
-        .UseBackoffHandler((p, _) => p.Create<GenericMessageHandlerProxy>());
+        .UseBackoffHandler((p, _) => p.GetRequiredService<GenericMessageHandlerProxy>());
 }

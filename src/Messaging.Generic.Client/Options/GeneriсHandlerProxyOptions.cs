@@ -1,6 +1,6 @@
 using Assistant.Net.Abstractions;
-using Assistant.Net.RetryStrategies;
-using System;
+using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Options;
 
 namespace Assistant.Net.Messaging.Options;
 
@@ -12,5 +12,10 @@ public sealed class GenericHandlerProxyOptions
     /// <summary>
     ///     Message handling response polling strategy.
     /// </summary>
-    public IRetryStrategy ResponsePoll { get; set; } = new ConstantBackoff {MaxAttemptNumber = 4, Interval = TimeSpan.FromSeconds(0.1)};
+    public IRetryStrategy ResponsePoll { get; internal set; } = null!;
+
+    /// <summary>
+    ///     Instance factory using for message handling host selection strategy.
+    /// </summary>
+    public InstanceFactory<IHostSelectionStrategy> HostSelectionStrategyFactory { get; internal set; } = null!;
 }

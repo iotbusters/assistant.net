@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Assistant.Net.Messaging.Abstractions;
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,9 +7,9 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Messaging.HealthChecks;
 
 /// <summary>
-///     Activation managing service required to start and stop message handling.
+///     Message handling activation mechanism implementation.
 /// </summary>
-public sealed class ServerActivityService
+internal sealed class ServerActivityService : IServerActivityService
 {
     private readonly ILogger<ServerActivityService> logger;
 
@@ -18,17 +19,10 @@ public sealed class ServerActivityService
     public ServerActivityService(ILogger<ServerActivityService> logger) =>
         this.logger = logger;
 
-    /// <summary>
-    ///     Determines if activation was requested.
-    /// </summary>
+    /// <inheritdoc/>
     public bool IsActivationRequested => activityTokenSource.IsCancellationRequested;
 
-    /// <summary>
-    ///     Requests server activation.
-    /// </summary>
-    /// <remarks>
-    ///     It ignores activated server.
-    /// </remarks>
+    /// <inheritdoc/>
     public void Activate()
     {
         var local = activityTokenSource;
@@ -42,12 +36,7 @@ public sealed class ServerActivityService
         logger.LogInformation("The service was activated.");
     }
 
-    /// <summary>
-    ///     Requests server inactivation.
-    /// </summary>
-    /// <remarks>
-    ///     It ignores inactivated server.
-    /// </remarks>
+    /// <inheritdoc/>
     public void Inactivate()
     {
         var local = activityTokenSource;
@@ -61,12 +50,7 @@ public sealed class ServerActivityService
         logger.LogWarning("The service was inactivated.");
     }
 
-    /// <summary>
-    ///     Delays until server is activated.
-    /// </summary>
-    /// <remarks>
-    ///     It ignores activated server.
-    /// </remarks>
+    /// <inheritdoc/>
     public async Task DelayInactive(CancellationToken token)
     {
         var local = activityTokenSource;

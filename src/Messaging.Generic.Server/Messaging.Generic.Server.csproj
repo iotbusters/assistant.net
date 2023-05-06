@@ -37,5 +37,8 @@
     <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
     <None Include="README.md" Pack="true" PackagePath="" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Abstractions\" />
+  </ItemGroup>
 
 </Project>

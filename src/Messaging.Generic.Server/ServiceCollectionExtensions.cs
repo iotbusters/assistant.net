@@ -1,4 +1,5 @@
-﻿using Assistant.Net.Messaging.HealthChecks;
+﻿using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.HealthChecks;
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
@@ -44,8 +45,8 @@ public static class ServiceCollectionExtensions
         })
         .TryAddSingletonEnumerable<IHealthCheckPublisher, ServerActivityPublisher>()
         .TryAddSingletonEnumerable<IHealthCheckPublisher, ServerAvailabilityPublisher>()
-        .TryAddSingleton<ServerAvailabilityService>()
-        .TryAddSingleton<ServerActivityService>();
+        .TryAddSingleton<IServerAvailabilityService, ServerAvailabilityService>()
+        .TryAddSingleton<IServerActivityService, ServerActivityService>();
 
     /// <summary>
     ///     Registers storage based server message handling.

@@ -25,7 +25,7 @@ namespace Assistant.Net.Messaging.Internal;
 /// </summary>
 internal sealed class GenericMessageHandlingService : BackgroundService
 {
-    private readonly ILogger<GenericMessageHandlingService> logger;
+    private readonly ILogger logger;
     private readonly string instanceName;
     private readonly ITypeEncoder typeEncoder;
     private readonly ISystemLifetime lifetime;
@@ -34,29 +34,28 @@ internal sealed class GenericMessageHandlingService : BackgroundService
     private readonly IPartitionedAdminStorage<string, IAbstractMessage> requestStorage;
     private readonly IAdminStorage<string, CachingResult> responseStorage;
     private readonly IStorage<string, long> processedIndexStorage;
-    private readonly IServiceScopeFactory scopeFactory;
-    private readonly ServerActivityService activityService;
-    private readonly IDisposable disposable;
+    private readonly IServerActivityService activityService;
+    private readonly IDisposable optionsRegistration;
+    private readonly IDisposable loggerPropertyScope;
 
     private GenericHandlingServerOptions serverOptions;
 
     public GenericMessageHandlingService(
         string name,
-        ILogger<GenericMessageHandlingService> logger,
+        ILoggerFactory loggerFactory,
         IHostEnvironment environment,
         IOptionsMonitor<GenericHandlingServerOptions> options,
         ITypeEncoder typeEncoder,
         ISystemLifetime lifetime,
         ISystemClock clock,
         IServiceScopeFactory scopeFactory,
-        ServerActivityService activityService)
+        IServerActivityService activityService)
     {
-        this.logger = logger;
-        this.instanceName = environment.ApplicationName;
+        this.logger = loggerFactory.CreateLogger(GetType().ToLoggerName(name));
+        this.instanceName = InstanceName.Create(environment.ApplicationName, name);
         this.typeEncoder = typeEncoder;
         this.lifetime = lifetime;
         this.clock = clock;
-        this.scopeFactory = scopeFactory;
         this.activityService = activityService;
 
         globalScope = scopeFactory.CreateScopeWithNamedOptionContext(name);
@@ -64,26 +63,31 @@ internal sealed class GenericMessageHandlingService : BackgroundService
         responseStorage = globalScope.ServiceProvider.GetRequiredService<IAdminStorage<string, CachingResult>>();
         processedIndexStorage = globalScope.ServiceProvider.GetRequiredService<IStorage<string, long>>();
 
-        disposable = options.OnChange((o, n) =>
+        optionsRegistration = options.OnChange((o, n) =>
         {
             if (n == name)
                 this.serverOptions = o;
         })!;
         this.serverOptions = options.Get(name);
+
+        loggerPropertyScope = logger.BeginPropertyScope("InstanceName", instanceName);
     }
 
     public override void Dispose()
     {
-        disposable.Dispose();
+        loggerPropertyScope.Dispose();
+        optionsRegistration.Dispose();
         globalScope.Dispose();
         base.Dispose();
     }
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
+        logger.LogInformation("Message processing: begins.");
+
         var stoppingToken = lifetime.Stopping;
 
-        var index = await FindLatestProcessedIndex(token) + 1;
+        var index = await GetLatestProcessedIndex(token) + 1;
         while (!stoppingToken.IsCancellationRequested)
         {
             await activityService.DelayInactive(stoppingToken);
@@ -100,19 +104,19 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             index++;
         }
 
-        logger.LogInformation("Requested message processing was stopped.");
+        logger.LogInformation("Message processing: ends.");
     }
 
-    private async Task<long> FindLatestProcessedIndex(CancellationToken token)
+    private async Task<long> GetLatestProcessedIndex(CancellationToken token)
     {
-        logger.LogDebug("Find processing index: begins.");
+        logger.LogDebug("Processing index get: begins.");
 
         while (!token.IsCancellationRequested)
         {
-            long index;
+            Option<long> option;
             try
             {
-                index = await processedIndexStorage.GetOrDefault(instanceName, token);
+                option = await processedIndexStorage.TryGet(instanceName, token);
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
             {
@@ -120,21 +124,29 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             }
             catch (StorageException ex)
             {
-                logger.LogError(ex, "Find processing index: failed.");
+                logger.LogError(ex, "Processing index get: failed.");
                 continue;
             }
 
-            logger.LogDebug("Find processing index: ends.");
-            return index;
+            if (option is Some<long>(var index))
+            {
+                logger.LogInformation("Processing index get: ends with {Index}.", index);
+                return index;
+            }
+
+            logger.LogInformation("Processing index get: ends without index.");
+            return default; // initial value.
         }
 
-        logger.LogWarning("Find processing index: cancelled.");
+        logger.LogWarning("Processing index get: cancelled.");
         return default; // safe exit: it won't be used.
     }
 
     private async Task StoreProcessedIndex(long index, CancellationToken token)
     {
-        logger.LogDebug("Update processing {Index}: begins.", index);
+        using var _ = logger.BeginPropertyScope("Index", index);
+
+        logger.LogDebug("Processing index update: begins.");
 
         while (!token.IsCancellationRequested)
         {
@@ -148,15 +160,15 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             }
             catch (StorageException ex)
             {
-                logger.LogError(ex, "Update processing {Index}: failed.", index);
+                logger.LogError(ex, "Processing index update: failed.");
                 continue;
             }
 
-            logger.LogDebug("Update processing {Index}: ends.", index);
+            logger.LogDebug("Processing index update: ends.");
             return;
         }
 
-        logger.LogWarning("Update processing {Index}: cancelled.", index);
+        logger.LogWarning("Processing index update: cancelled.");
     }
 
     private async Task<bool> TryHandle(long index, CancellationToken token)
@@ -172,7 +184,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
 
     private async Task<Option<PartitionValue<IAbstractMessage>>> GetRequestedMessage(long index, CancellationToken token)
     {
-        logger.LogDebug("Find requested message: begins.");
+        logger.LogDebug("Message polling: begins.");
 
         while (!token.IsCancellationRequested)
         {
@@ -187,54 +199,59 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             }
             catch (StorageException ex)
             {
-                logger.LogError(ex, "Find requested message: failed.");
+                logger.LogError(ex, "Message polling: failed.");
                 continue;
             }
 
-            logger.LogDebug("Find requested message: ends.");
+            if (option is Some<PartitionValue<IAbstractMessage>>)
+                logger.LogInformation("Message polling: ends with a message.");
+            else
+                logger.LogDebug("Message polling: ends without a message.");
+
             return option;
         }
 
-        logger.LogWarning("Find requested message: cancelled.");
+        logger.LogWarning("Message polling: cancelled.");
         return Option.None;
     }
 
     private async Task<CachingResult> HandleMessage(PartitionValue<IAbstractMessage> messageValue, CancellationToken token)
     {
         var requestId = messageValue.Details.GetOrDefault(MessagePropertyNames.RequestIdName);
-        var messageId = messageValue.Value.GetSha1();
-        var messageType = messageValue.Value.GetType();
+        var message = messageValue.Value;
+        var messageId = message.GetSha1();
+        var messageType = message.GetType();
         var messageName = typeEncoder.Encode(messageType);
         using var handlingLoggingScope = logger
             .BeginPropertyScope()
             .AddPropertyScope("CorrelationId", messageValue.CorrelationId!)
             .AddPropertyScope("User", messageValue.User!)
-            .AddPropertyScope("RequestId", requestId!)
-            .AddPropertyScope("MessageId", messageId)
-            .AddPropertyScope("MessageName", messageName!);
-
-        logger.LogDebug("Process: begins.");
+            .AddPropertyScope("MessageId", messageId);
 
         if (requestId == null)
         {
-            logger.LogCritical("Process: message doesn't have required {PropertyName}.", MessagePropertyNames.RequestIdName);
+            logger.LogCritical("Message validation: property {PropertyName} is required.", MessagePropertyNames.RequestIdName);
             var exception = new MessageContractException($"Message({messageName ?? messageType.FullName}, {messageId}) "
                                                          + $"doesn't have required {MessagePropertyNames.RequestIdName}.");
             return CachingResult.OfException(exception);
         }
 
+        handlingLoggingScope.AddPropertyScope("RequestId", requestId);
+
         if (messageName == null)
         {
-            logger.LogCritical("Process: {MessageType} isn't supported.", messageType.FullName);
-            var exception = new MessageFailedException($"Request({requestId})'s Message({messageId}) has unsupported {messageType}.");
+            logger.LogCritical("Message validation: type {MessageType} isn't supported.", messageType.FullName);
+            var exception = new MessageFailedException($"Requested({requestId}) Message({messageId}) has unsupported {messageType}.");
             return CachingResult.OfException(exception);
         }
 
-        if (!serverOptions.MessageTypes.Contains(messageType))
+        handlingLoggingScope.AddPropertyScope("MessageName", messageName);
+
+        if (!serverOptions.HasBackoffHandler && !serverOptions.MessageTypes.Contains(messageType))
         {
-            logger.LogWarning("Process: {MessageType} isn't registered on the server.", messageType.FullName);
+            logger.LogWarning("Message validation: {MessageType} isn't registered on the server.", messageType.FullName);
             var exception = new MessageNotRegisteredException(
-                $" Request({requestId})'s Message({messageName}, {messageId}) isn't registered on the server.");
+                $" Requested({requestId}) Message({messageName}, {messageId}) isn't registered on the server.");
             return CachingResult.OfException(exception);
         }
 
@@ -244,13 +261,13 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             && expired <= utcNow)
         {
             var duration = utcNow - expired;
-            logger.LogWarning("Process: message is expired for {Duration}.", duration);
+            logger.LogWarning("Message validation: already expired for {Duration}.", duration);
             var exception = new MessageFailedException(
-                $"Request({requestId})'s Message({messageName}, {messageId}) is expired for {duration}.");
+                $"Requested({requestId}) Message({messageName}, {messageId}) is expired for {duration}.");
             return CachingResult.OfException(exception);
         }
 
-        logger.LogDebug("Process: message is accepted.");
+        logger.LogInformation("Message processing: begins.");
 
         await using var handlingScope = globalScope.ServiceProvider
             .CloneAsyncScopeWithNamedOptionContext()
@@ -260,20 +277,20 @@ internal sealed class GenericMessageHandlingService : BackgroundService
         object response;
         try
         {
-            response = await client.RequestObject(messageValue.Value, token);
+            response = await client.RequestObject(message, token);
         }
         catch (OperationCanceledException ex) when (token.IsCancellationRequested)
         {
-            logger.LogWarning(ex, "Process: cancelled.");
+            logger.LogWarning(ex, "Message processing: cancelled.");
             return default!; // safe exit: it won't be used.
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Process: failed.");
+            logger.LogError(ex, "Message processing: failed.");
             return CachingResult.OfException(ex);
         }
 
-        logger.LogInformation("Process: ends.");
+        logger.LogInformation("Message processing: ends.");
         return CachingResult.OfValue((dynamic)response);
     }
 
@@ -289,7 +306,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             User = requestValue.User
         };
 
-        logger.LogDebug("Respond: begins.");
+        logger.LogDebug("Message responding: begins.");
 
         while (!token.IsCancellationRequested)
         {
@@ -303,14 +320,14 @@ internal sealed class GenericMessageHandlingService : BackgroundService
             }
             catch (StorageException ex)
             {
-                logger.LogError(ex, "Respond: failed.");
+                logger.LogError(ex, "Message responding: failed.");
                 continue;
             }
 
-            logger.LogDebug("Respond: ends.");
+            logger.LogDebug("Message responding: ends.");
             return;
         }
 
-        logger.LogWarning("Respond: cancelled.");
+        logger.LogWarning("Message responding: cancelled.");
     }
 }
