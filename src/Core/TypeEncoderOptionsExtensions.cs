@@ -44,15 +44,37 @@ public static class TypeEncoderOptionsExtensions
     /// <param name="assembly">Type assembly to ignore.</param>
     public static TypeEncoderOptions Exclude(this TypeEncoderOptions options, Assembly assembly)
     {
-        options.ExcludedAssembly.Add(assembly);
+        options.ExcludedAssemblies.Add(assembly);
+        return options;
+    }
+
+    /// <summary>
+    ///     Includes <typeparamref name="T"/> type.
+    /// </summary>
+    public static TypeEncoderOptions Include<T>(this TypeEncoderOptions options) => options
+        .Include(typeof(T));
+
+    /// <summary>
+    ///     Includes <paramref name="type"/>.
+    /// </summary>
+    public static TypeEncoderOptions Include(this TypeEncoderOptions options, Type type)
+    {
+        options.IncludedTypes.Add(type);
+        return options;
+    }
+
+    /// <summary>
+    ///     Includes all types from <paramref name="assembly"/>.
+    /// </summary>
+    public static TypeEncoderOptions Include(this TypeEncoderOptions options, Assembly assembly)
+    {
+        options.IncludedAssemblies.Add(assembly);
         return options;
     }
 
     /// <summary>
     ///     Removes <paramref name="namespace"/> from excludes.
     /// </summary>
-    /// <param name="options"/>
-    /// <param name="namespace">Type namespace to ignore.</param>
     public static TypeEncoderOptions Ensure(this TypeEncoderOptions options, string @namespace)
     {
         options.ExcludedNamespaces.Remove(@namespace);
@@ -68,8 +90,6 @@ public static class TypeEncoderOptionsExtensions
     /// <summary>
     ///     Removes <paramref name="type"/> from excludes.
     /// </summary>
-    /// <param name="options"/>
-    /// <param name="type">Type to ignore.</param>
     public static TypeEncoderOptions Ensure(this TypeEncoderOptions options, Type type)
     {
         options.ExcludedTypes.Remove(type);
@@ -79,11 +99,9 @@ public static class TypeEncoderOptionsExtensions
     /// <summary>
     ///     Removes <paramref name="assembly"/> from excludes.
     /// </summary>
-    /// <param name="options"/>
-    /// <param name="assembly">Type assembly to ignore.</param>
     public static TypeEncoderOptions Ensure(this TypeEncoderOptions options, Assembly assembly)
     {
-        options.ExcludedAssembly.Remove(assembly);
+        options.ExcludedAssemblies.Remove(assembly);
         return options;
     }
 }

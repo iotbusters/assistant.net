@@ -37,5 +37,15 @@ public class TypeEncoderOptions
     /// <summary>
     ///     Assemblies which types to be ignored.
     /// </summary>
-    public List<Assembly> ExcludedAssembly = new();
+    public List<Assembly> ExcludedAssemblies = new();
+
+    /// <summary>
+    ///     Types to be included only.
+    /// </summary>
+    public List<Type> IncludedTypes = new();
+
+    /// <summary>
+    ///     Assemblies which types to be included only.
+    /// </summary>
+    public List<Assembly> IncludedAssemblies = new();
 }
