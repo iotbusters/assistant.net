@@ -40,6 +40,7 @@ public static class ServiceCollectionExtensions
     /// <param name="name">The name of related option instances.</param>
     /// <param name="configure">The action used to configure the default messaging client.</param>
     public static IServiceCollection AddMessagingClient(this IServiceCollection services, string name, Action<MessagingClientBuilder> configure) => services
+        .AddTypeEncoder(o => o.Include(typeof(IMessage).Assembly))
         .AddDiagnostics()
         .AddNamedOptionsContext()
         .AddSystemServicesDefaulted()

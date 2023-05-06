@@ -61,7 +61,7 @@ public sealed class MessagingClientOptions
     /// <remarks>
     ///     It impacts <see cref="RetryingInterceptor"/>.
     /// </remarks>
-    public IRetryStrategy Retry { get; set; } = new ExponentialBackoff
+    public IRetryStrategy Retry { get; internal set; } = new ExponentialBackoff
     {
         MaxAttemptNumber = 5,
         Interval = TimeSpan.FromSeconds(1),
@@ -75,5 +75,5 @@ public sealed class MessagingClientOptions
     ///     It impacts <see cref="TimeoutInterceptor"/>.
     /// </remarks>
     [Time("00:00:00.000001", "00:30:00", AllowInfinite = true)]
-    public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(5);
+    public TimeSpan Timeout { get; internal set; } = TimeSpan.FromSeconds(5);
 }
