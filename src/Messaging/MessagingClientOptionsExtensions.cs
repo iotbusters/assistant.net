@@ -1,11 +1,15 @@
-﻿using Assistant.Net.Messaging.Abstractions;
+﻿using Assistant.Net.Abstractions;
+using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
+using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.Options;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace Assistant.Net.Messaging;
 
@@ -67,7 +71,8 @@ public static class MessagingClientOptionsExtensions
     ///     Configures <paramref name="backoffHandler"/> instance.
     /// </summary>
     /// <remarks>
-    ///      The message handler is used if no other handlers were configured for a message type.
+    ///     The message handler is used if no other handlers were configured for a message type.
+    ///     Pay attention, the method overrides already registered backoff handler.
     /// </remarks>
     /// <param name="options"/>
     /// <param name="backoffHandler">A backoff message handler instance.</param>
@@ -78,7 +83,8 @@ public static class MessagingClientOptionsExtensions
     ///     Configures <paramref name="handlerFactory"/>.
     /// </summary>
     /// <remarks>
-    ///      The message handler is used if no other handlers were configured for a message type.
+    ///     The message handler is used if no other handlers were configured for a message type.
+    ///     Pay attention, the method overrides already registered backoff handler.
     /// </remarks>
     /// <param name="options"/>
     /// <param name="handlerFactory">A backoff message handler instance factory.</param>
@@ -161,6 +167,130 @@ public static class MessagingClientOptionsExtensions
     }
 
     /// <summary>
+    ///     Allows exposing an external <typeparamref name="TException"/> type.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="ErrorHandlingInterceptor"/>.
+    /// </remarks>
+    public static MessagingClientOptions ExposeException<TException>(this MessagingClientOptions options)
+        where TException : Exception => options.ExposeException(typeof(TException));
+
+    /// <summary>
+    ///     Allows exposing an external <paramref name="exceptionType"/>.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="ErrorHandlingInterceptor"/>.
+    /// </remarks>
+    /// <exception cref="ArgumentException"/>
+    public static MessagingClientOptions ExposeException(this MessagingClientOptions options, Type exceptionType)
+    {
+        if (!exceptionType.IsAssignableTo(typeof(Exception)))
+            throw new ArgumentException($"Expected exception but provided {exceptionType}.", nameof(exceptionType));
+
+        options.ExposedExceptions.Add(exceptionType);
+        return options;
+    }
+
+    /// <summary>
+    ///     Removes an exposed <typeparamref name="TException"/> type.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="ErrorHandlingInterceptor"/>.
+    /// </remarks>
+    public static MessagingClientOptions RemoveExposedException<TException>(this MessagingClientOptions options)
+        where TException : Exception => options.RemoveExposedException(typeof(TException));
+
+    /// <summary>
+    ///     Removes an exposed <paramref name="exceptionType"/>.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="ErrorHandlingInterceptor"/>.
+    /// </remarks>
+    /// <exception cref="ArgumentException"/>
+    public static MessagingClientOptions RemoveExposedException(this MessagingClientOptions options, Type exceptionType)
+    {
+        if (!exceptionType.IsAssignableTo(typeof(Exception)))
+            throw new ArgumentException($"Expected exception but provided {exceptionType}.", nameof(exceptionType));
+
+        options.ExposedExceptions.Remove(exceptionType);
+        return options;
+    }
+
+    /// <summary>
+    ///     Removes all exposed external exception types.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="ErrorHandlingInterceptor"/>.
+    /// </remarks>
+    public static MessagingClientOptions ClearExposedExceptions(this MessagingClientOptions options)
+    {
+        options.ExposedExceptions.Clear();
+        return options;
+    }
+
+    /// <summary>
+    ///     Allows retrying a transient <typeparamref name="TException"/> type.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="CachingInterceptor"/> and <see cref="RetryingInterceptor"/>.
+    /// </remarks>
+    public static MessagingClientOptions AddTransientException<TException>(this MessagingClientOptions options)
+        where TException : Exception => options.AddTransientException(typeof(TException));
+
+    /// <summary>
+    ///     Allows retrying a transient <paramref name="exceptionType"/>.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="CachingInterceptor"/> and <see cref="RetryingInterceptor"/>.
+    /// </remarks>
+    /// <exception cref="ArgumentException"/>
+    public static MessagingClientOptions AddTransientException(this MessagingClientOptions options, Type exceptionType)
+    {
+        if (!exceptionType.IsAssignableTo(typeof(Exception)))
+            throw new ArgumentException($"Expected exception but provided {exceptionType}.", nameof(exceptionType));
+
+        options.TransientExceptions.Add(exceptionType);
+        return options;
+    }
+
+    /// <summary>
+    ///     Removes a transient <typeparamref name="TException"/> type.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="CachingInterceptor"/> and <see cref="RetryingInterceptor"/>.
+    /// </remarks>
+    public static MessagingClientOptions RemoveTransientException<TException>(this MessagingClientOptions options)
+        where TException : Exception => options.RemoveTransientException(typeof(TException));
+
+    /// <summary>
+    ///     Removes a transient <paramref name="exceptionType"/>.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="CachingInterceptor"/> and <see cref="RetryingInterceptor"/>.
+    /// </remarks>
+    /// <exception cref="ArgumentException"/>
+    public static MessagingClientOptions RemoveTransientException(this MessagingClientOptions options, Type exceptionType)
+    {
+        if (!exceptionType.IsAssignableTo(typeof(Exception)))
+            throw new ArgumentException($"Expected exception but provided {exceptionType}.", nameof(exceptionType));
+
+        options.TransientExceptions.Remove(exceptionType);
+        return options;
+    }
+
+    /// <summary>
+    ///     Removes all transient exception types.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="CachingInterceptor"/> and <see cref="RetryingInterceptor"/>.
+    /// </remarks>
+    public static MessagingClientOptions ClearTransientExceptions(this MessagingClientOptions options)
+    {
+        options.TransientExceptions.Clear();
+        return options;
+    }
+
+    /// <summary>
     ///     Appends the <paramref name="interceptorType"/> to the list.
     /// </summary>
     /// <param name="options"/>
@@ -177,6 +307,49 @@ public static class MessagingClientOptionsExtensions
 
         return options;
     }
+
+    /// <summary>
+    ///     Overrides the retrying strategy.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="RetryingInterceptor"/>.
+    /// </remarks>
+    public static MessagingClientOptions Retry(this MessagingClientOptions options, IRetryStrategy strategy)
+    {
+        options.Retry = strategy;
+        return options;
+    }
+
+    /// <summary>
+    ///     Overrides the retrying strategy.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="RetryingInterceptor"/>.
+    /// </remarks>
+    /// <exception cref="ArgumentException"/>
+    public static MessagingClientOptions Retry(this MessagingClientOptions options, IConfigurationSection configuration) => options
+        .Retry(IRetryStrategy.ReadStrategy(configuration));
+
+    /// <summary>
+    ///     Overrides the message handling timeout.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="TimeoutInterceptor"/>.
+    /// </remarks>
+    public static MessagingClientOptions TimeoutIn(this MessagingClientOptions options, TimeSpan timeout)
+    {
+        options.Timeout = timeout;
+        return options;
+    }
+
+    /// <summary>
+    ///     Disables the message handling timeout.
+    /// </summary>
+    /// <remarks>
+    ///     It impacts <see cref="TimeoutInterceptor"/>.
+    /// </remarks>
+    public static MessagingClientOptions NoTimeout(this MessagingClientOptions options) => options
+        .TimeoutIn(Timeout.InfiniteTimeSpan);
 
     /// <summary>
     ///     Appends the <paramref name="interceptorInstance"/> to the list.
