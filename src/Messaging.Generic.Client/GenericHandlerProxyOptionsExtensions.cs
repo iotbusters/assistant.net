@@ -22,6 +22,12 @@ public static class GenericHandlerProxyOptionsExtensions
     }
 
     /// <summary>
+    ///     Configures host selection <paramref name="strategy"/>.
+    /// </summary>
+    public static GenericHandlerProxyOptions UseHostSelectionStrategy(this GenericHandlerProxyOptions options, IHostSelectionStrategy strategy) => options
+        .UseHostSelectionStrategy(_ => strategy);
+
+    /// <summary>
     ///     Configures host selection <paramref name="strategyFactory"/>.
     /// </summary>
     public static GenericHandlerProxyOptions UseHostSelectionStrategy(this GenericHandlerProxyOptions options, Func<IServiceProvider, IHostSelectionStrategy> strategyFactory)

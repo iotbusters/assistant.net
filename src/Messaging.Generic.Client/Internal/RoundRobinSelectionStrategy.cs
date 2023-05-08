@@ -47,7 +47,6 @@ internal sealed class RoundRobinSelectionStrategy : IHostSelectionStrategy
         configuration ??= await GetLatestConfiguration(token);
 
         var messageName = typeEncoder.Encode(messageType)!;
-        // todo: replace with pre-cached registrations instead.
         var registration = SelectInstance(configuration.Registrations.Where(x => x.Messages.Contains(messageName)).ToArray())
                            ?? SelectInstance(configuration.Registrations.Where(x => x.AcceptOthers).ToArray());
         var now = clock.UtcNow;
@@ -63,7 +62,7 @@ internal sealed class RoundRobinSelectionStrategy : IHostSelectionStrategy
         if (registration == null)
             logger.LogWarning("Host selection: ends without a host.");
         else
-            logger.LogInformation("Host selection: ends with {host} expired in {ExpirationTime}.",
+            logger.LogInformation("Host selection: ends with {host} to be expired in {ExpirationTime}.",
                 registration.Instance,
                 registration.Expired - now);
 
@@ -81,9 +80,9 @@ internal sealed class RoundRobinSelectionStrategy : IHostSelectionStrategy
 
         foreach (var registration in model.Registrations)
             if (registration.Expired <= now)
-                logger.LogDebug("Host reload: {host} instance has expired.", registration.Instance);
+                logger.LogWarning("Host reload: loaded {host} instance has expired.", registration.Instance);
             else
-                logger.LogDebug("Host reload: {host} instance expires in {ExpirationTime}.",
+                logger.LogDebug("Host reload: loaded {host} instance expires in {ExpirationTime}.",
                     registration.Instance,
                     registration.Expired - now);
 
