@@ -1,4 +1,5 @@
 using Assistant.Net.Abstractions;
+using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Serialization.Abstractions;
 using Assistant.Net.Serialization.Exceptions;
@@ -62,6 +63,9 @@ internal static class HttpContextExtensions
     public static async Task<object> ReadMessageObject(this HttpContext httpContext)
     {
         var messageType = httpContext.GetMessageType();
+        if (!messageType.IsAssignableTo(typeof(IAbstractMessage)))
+            throw new MessageContractException($"Reading {messageType} isn't a message type.");
+
         var factory = httpContext.GetService<ISerializerFactory>();
         var serializer = factory.Create(messageType);
 
@@ -75,7 +79,7 @@ internal static class HttpContextExtensions
         }
         catch (Exception ex)
         {
-            throw new MessageContractException($"Reading '{messageType.Name}' object has failed.", ex);
+            throw new MessageContractException($"Reading {messageType} object has failed.", ex);
         }
     }
 

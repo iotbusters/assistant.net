@@ -14,4 +14,9 @@ public sealed class WebHandlingServerOptions
     /// </summary>
     [MinLength(1)]
     public List<Type> MessageTypes { get; } = new();
+
+    /// <summary>
+    ///     Determine if message handling has backoff message handler configured.
+    /// </summary>
+    public bool HasBackoffHandler { get; set; }
 }

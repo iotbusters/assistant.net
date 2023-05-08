@@ -1,5 +1,6 @@
 ﻿using Assistant.Net.Messaging.Internal;
 using Assistant.Net.Messaging.Options;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Assistant.Net.Messaging;
 
@@ -15,7 +16,7 @@ public static class MessagingClientOptionsExtensions
     ///     Pay attention, the method overrides already configured single message handler.
     /// </remarks>
     public static MessagingClientOptions UseWebSingleHandler(this MessagingClientOptions options) => options
-        .UseSingleHandler((p, _) => p.Create<WebMessageHandlerProxy>());
+        .UseSingleHandler((p, _) => p.GetRequiredService<WebMessageHandlerProxy>());
 
     /// <summary>
     ///     Configures WEB based backoff message handler instance factory.
@@ -24,5 +25,5 @@ public static class MessagingClientOptionsExtensions
     ///     Pay attention, the method overrides already configured backoff message handler.
     /// </remarks>
     public static MessagingClientOptions UseWebBackoffHandler(this MessagingClientOptions options) => options
-        .UseBackoffHandler((p, _) => p.Create<WebMessageHandlerProxy>());
+        .UseBackoffHandler((p, _) => p.GetRequiredService<WebMessageHandlerProxy>());
 }

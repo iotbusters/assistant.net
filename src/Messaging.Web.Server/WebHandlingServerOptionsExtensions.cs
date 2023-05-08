@@ -48,4 +48,13 @@ public static class WebHandlingServerOptionsExtensions
         options.AcceptMessages(messageTypes);
         return options;
     }
+
+    /// <summary>
+    ///     Configures the generic handling server to accept or not any message types.
+    /// </summary>
+    public static WebHandlingServerOptions BackoffHandler(this WebHandlingServerOptions options, bool hasHandler)
+    {
+        options.HasBackoffHandler = hasHandler;
+        return options;
+    }
 }

@@ -1,4 +1,5 @@
-﻿using Assistant.Net.Messaging.Options;
+﻿using Assistant.Net.Messaging.Internal;
+using Assistant.Net.Messaging.Options;
 using System;
 using System.Net.Http;
 
@@ -20,6 +21,7 @@ public static class MessagingClientBuilderExtensions
         builder.Services
             .ConfigureWebHandlerProxyOptions(builder.Name, delegate { })
             .ConfigureJsonSerialization(builder.Name)
+            .TryAddScoped<WebMessageHandlerProxy>()
             .AddWebMessageHandlerClient();
         return builder;
     }
