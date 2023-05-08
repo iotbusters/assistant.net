@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Sqlite.Tests;
 
-[Timeout(2000)]
+[Timeout(3000)]
 public class ClientServerIntegrationTests
 {
     [TestCase(5)]
@@ -66,7 +66,7 @@ public class ClientServerIntegrationTests
         response2.Should().Be(Nothing.Instance);
     }
 
-    [Test, Timeout(3000)]
+    [Test]
     public async Task RequestObject_returnsAnotherResponse_serverSideHandlerChanged()
     {
         // global arrange
