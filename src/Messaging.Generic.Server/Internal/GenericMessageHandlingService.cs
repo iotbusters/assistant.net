@@ -51,7 +51,7 @@ internal sealed class GenericMessageHandlingService : BackgroundService
         IServiceScopeFactory scopeFactory,
         IServerActivityService activityService)
     {
-        this.logger = loggerFactory.CreateLogger(GetType().ToLoggerName(name));
+        this.logger = loggerFactory.CreateLogger(GetType().GetLoggerName(name));
         this.instanceName = InstanceName.Create(environment.ApplicationName, name);
         this.typeEncoder = typeEncoder;
         this.lifetime = lifetime;
