@@ -9,6 +9,7 @@ using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 
 namespace Assistant.Net.Utils;
 
@@ -17,6 +18,10 @@ namespace Assistant.Net.Utils;
 /// </summary>
 public static class HashExtensions
 {
+    private static readonly ThreadLocal<SHA1> sha1 = new(SHA1.Create);
+    private static readonly ThreadLocal<SHA256> sha256 = new(SHA256.Create);
+    private static readonly ThreadLocal<MD5> md5 = new(MD5.Create);
+
     /// <summary>
     ///     Generates <see cref="SHA1"/> hash code from <paramref name="stream"/>.
     /// </summary>
@@ -27,8 +32,7 @@ public static class HashExtensions
             throw new ArgumentNullException(nameof(stream));
 
         stream.Position = 0;
-        using var sha1 = SHA1.Create();
-        var hash = sha1.ComputeHash(stream);
+        var hash = sha1.Value!.ComputeHash(stream);
         return Convert.ToBase64String(hash);
     }
 
@@ -41,8 +45,7 @@ public static class HashExtensions
         if (bytes == null)
             throw new ArgumentNullException(nameof(bytes));
 
-        using var sha1 = SHA1.Create();
-        var hash = sha1.ComputeHash(bytes);
+        var hash = sha1.Value!.ComputeHash(bytes);
         return Convert.ToBase64String(hash);
     }
 
@@ -79,8 +82,7 @@ public static class HashExtensions
             throw new ArgumentNullException(nameof(stream));
 
         stream.Position = 0;
-        using var sha256 = SHA256.Create();
-        var hash = sha256.ComputeHash(stream);
+        var hash = sha256.Value!.ComputeHash(stream);
         return Convert.ToBase64String(hash);
     }
 
@@ -93,8 +95,7 @@ public static class HashExtensions
         if (bytes == null)
             throw new ArgumentNullException(nameof(bytes));
 
-        using var sha256 = SHA256.Create();
-        var hash = sha256.ComputeHash(bytes);
+        var hash = sha256.Value!.ComputeHash(bytes);
         return Convert.ToBase64String(hash);
     }
 
@@ -131,8 +132,7 @@ public static class HashExtensions
             throw new ArgumentNullException(nameof(stream));
 
         stream.Position = 0;
-        using var md5 = MD5.Create();
-        var hash = md5.ComputeHash(stream);
+        var hash = md5.Value!.ComputeHash(stream);
         return Convert.ToBase64String(hash);
     }
 
@@ -145,8 +145,7 @@ public static class HashExtensions
         if (bytes == null)
             throw new ArgumentNullException(nameof(bytes));
 
-        using var md5 = MD5.Create();
-        var hash = md5.ComputeHash(bytes);
+        var hash = md5.Value!.ComputeHash(bytes);
         return Convert.ToBase64String(hash);
     }
 
