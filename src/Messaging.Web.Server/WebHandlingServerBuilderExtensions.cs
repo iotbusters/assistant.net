@@ -1,4 +1,5 @@
-﻿using Assistant.Net.Messaging.Options;
+﻿using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Options;
 using Assistant.Net.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -62,6 +63,40 @@ public static class WebHandlingServerBuilderExtensions
         builder.Services
             .ConfigureMessagingClient(builder.Name, o => o.AddHandler(handlerInstance))
             .ConfigureWebHandlingServerOptions(builder.Name, o => o.AcceptMessagesFromHandler(handlerType));
+        return builder;
+    }
+
+    /// <summary>
+    ///     Registers a <paramref name="handlerType"/> for external requests to the server if no other registered handlers.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, the method overrides already registered backoff handler.
+    /// </remarks>
+    /// <param name="builder"/>
+    /// <param name="handlerType">The backoff message handler implementation type.</param>
+    /// <exception cref="ArgumentException"/>
+    public static WebHandlingServerBuilder AddBackoffHandler(this WebHandlingServerBuilder builder, Type handlerType)
+    {
+        builder.Services
+            .ConfigureMessagingClient(builder.Name, b => b.UseBackoffHandler(handlerType))
+            .ConfigureWebHandlingServerOptions(builder.Name, o => o.BackoffHandler(true));
+        return builder;
+    }
+
+    /// <summary>
+    ///     Registers a <paramref name="handlerInstance"/> for external requests to the server if no other registered handlers.
+    /// </summary>
+    /// <remarks>
+    ///     Pay attention, the method overrides already registered backoff handler.
+    /// </remarks>
+    /// <param name="builder"/>
+    /// <param name="handlerInstance">The backoff message handler instance.</param>
+    /// <exception cref="ArgumentException"/>
+    public static WebHandlingServerBuilder AddBackoffHandler(this WebHandlingServerBuilder builder, IAbstractHandler handlerInstance)
+    {
+        builder.Services
+            .ConfigureMessagingClient(builder.Name, b => b.UseBackoffHandler(handlerInstance))
+            .ConfigureWebHandlingServerOptions(builder.Name, o => o.BackoffHandler(true));
         return builder;
     }
 }

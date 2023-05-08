@@ -1,9 +1,6 @@
 using Assistant.Net.Messaging.Internal;
-using Assistant.Net.Messaging.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace Assistant.Net.Messaging;
 
@@ -34,13 +31,19 @@ public static class ApplicationBuilderExtensions
         .UseRouting()
         .UseEndpoints(b =>
         {
-            var options = b.ServiceProvider.GetRequiredService<IOptionsMonitor<WebHandlingServerOptions>>();
-            b.MapPost("/messages", b
+            if (names.Length == 0)
+                names = new[] {Microsoft.Extensions.Options.Options.DefaultName};
+            var appBuilder = b
                 .CreateApplicationBuilder()
                 .UseMiddleware<DiagnosticMiddleware>()
-                .UseMiddleware<ExceptionHandlingMiddleware>()
-                .Use(b.ServiceProvider.Create<MessageHandlingMiddleware>(names, options).InvokeAsync)
-                .Build());
+                .UseMiddleware<ExceptionHandlingMiddleware>();
+
+            foreach (var name in names)
+                appBuilder.Use((ctx, next) => ctx.RequestServices.Create<MessageHandlingMiddleware>(name).InvokeAsync(ctx, next));
+
+            appBuilder.Use(new MessageHandlingMiddleware().InvokeAsync); // backoff MessageNotRegisteredException scenario.
+
+            b.MapPost("/messages", appBuilder.Build());
             b.MapHealthChecks("/health", new() {AllowCachingResponses = false});
         });
 }
