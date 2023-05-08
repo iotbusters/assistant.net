@@ -3,18 +3,14 @@ using Assistant.Net.Messaging.Options;
 using Assistant.Net.Messaging.Web.Tests.Mocks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Web.Tests.Fixtures;
 
 public class MessagingClientFixture : IDisposable
 {
-    public static readonly string CorrelationId = Guid.NewGuid().ToString();
-
     private readonly TestConfigureOptionsSource<WebHandlingServerOptions> webServerSource;
     private readonly TestConfigureOptionsSource<MessagingClientOptions> remoteSource;
     private readonly TestConfigureOptionsSource<MessagingClientOptions> clientSource;
@@ -83,6 +79,4 @@ public class MessagingClientFixture : IDisposable
         provider.Dispose();
         host.Dispose();
     }
-
-    private JsonSerializerOptions Options => provider.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
 }
