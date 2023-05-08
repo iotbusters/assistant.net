@@ -49,26 +49,37 @@ public static class TypeEncoderOptionsExtensions
     }
 
     /// <summary>
+    ///     Includes any type except <c>Excluded*</c> configurations.
+    /// </summary>
+    public static TypeEncoderOptions IncludeAnyType(this TypeEncoderOptions options)
+    {
+        options.IncludedTypes.Clear();
+        return options;
+    }
+
+    /// <summary>
     ///     Includes <typeparamref name="T"/> type.
     /// </summary>
     public static TypeEncoderOptions Include<T>(this TypeEncoderOptions options) => options
         .Include(typeof(T));
 
     /// <summary>
-    ///     Includes <paramref name="type"/>.
+    ///     Includes <paramref name="types"/>.
     /// </summary>
-    public static TypeEncoderOptions Include(this TypeEncoderOptions options, Type type)
+    public static TypeEncoderOptions Include(this TypeEncoderOptions options, params Type[] types)
     {
-        options.IncludedTypes.Add(type);
+        foreach (var type in types)
+            options.IncludedTypes.Add(type);
         return options;
     }
 
     /// <summary>
-    ///     Includes all types from <paramref name="assembly"/>.
+    ///     Includes all types from <paramref name="assemblies"/>.
     /// </summary>
-    public static TypeEncoderOptions Include(this TypeEncoderOptions options, Assembly assembly)
+    public static TypeEncoderOptions Include(this TypeEncoderOptions options, params Assembly[] assemblies)
     {
-        options.IncludedAssemblies.Add(assembly);
+        foreach (var assembly in assemblies)
+            options.Include(assembly.GetTypes());
         return options;
     }
 
