@@ -127,7 +127,7 @@ See also [keepachangelog.com](https://keepachangelog.com/en/1.0.0/).
 
 ### 0.3.138 Fixed
 
-- health check cleanup after changing messaging handling provider on a server
+- health check cleanup after changing message handling provider on a server
 - accepting not configured messages on a server
 
 ## [0.3.137] - 2022-08-06
