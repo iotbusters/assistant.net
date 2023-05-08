@@ -27,24 +27,26 @@ public static class TypeEncoderOptionsExtensions
         .Exclude(typeof(T));
 
     /// <summary>
-    ///     Excludes <paramref name="type"/>.
+    ///     Excludes <paramref name="types"/>.
     /// </summary>
     /// <param name="options"/>
-    /// <param name="type">Type to ignore.</param>
-    public static TypeEncoderOptions Exclude(this TypeEncoderOptions options, Type type)
+    /// <param name="types">Types to ignore.</param>
+    public static TypeEncoderOptions Exclude(this TypeEncoderOptions options, params Type[] types)
     {
-        options.ExcludedTypes.Add(type);
+        foreach (var type in types)
+            options.ExcludedTypes.Add(type);
         return options;
     }
 
     /// <summary>
-    ///     Excludes all types from <paramref name="assembly"/>.
+    ///     Excludes all types from <paramref name="assemblies"/>.
     /// </summary>
     /// <param name="options"/>
-    /// <param name="assembly">Type assembly to ignore.</param>
-    public static TypeEncoderOptions Exclude(this TypeEncoderOptions options, Assembly assembly)
+    /// <param name="assemblies">Assembly types to ignore.</param>
+    public static TypeEncoderOptions Exclude(this TypeEncoderOptions options, params Assembly[] assemblies)
     {
-        options.ExcludedAssemblies.Add(assembly);
+        foreach (var assembly in assemblies)
+            options.Exclude(assembly.GetType());
         return options;
     }
 
@@ -99,20 +101,18 @@ public static class TypeEncoderOptionsExtensions
         .Exclude(typeof(T));
 
     /// <summary>
-    ///     Removes <paramref name="type"/> from excludes.
+    ///     Removes <paramref name="types"/> from excludes.
     /// </summary>
-    public static TypeEncoderOptions Ensure(this TypeEncoderOptions options, Type type)
+    public static TypeEncoderOptions Ensure(this TypeEncoderOptions options, params Type[] types)
     {
-        options.ExcludedTypes.Remove(type);
+        foreach (var type in types)
+            options.ExcludedTypes.Remove(type);
         return options;
     }
 
     /// <summary>
     ///     Removes <paramref name="assembly"/> from excludes.
     /// </summary>
-    public static TypeEncoderOptions Ensure(this TypeEncoderOptions options, Assembly assembly)
-    {
-        options.ExcludedAssemblies.Remove(assembly);
-        return options;
-    }
+    public static TypeEncoderOptions Ensure(this TypeEncoderOptions options, Assembly assembly) => options
+        .Ensure(assembly.GetTypes());
 }
