@@ -14,14 +14,17 @@ namespace Assistant.Net.Messaging.Web.Tests.Fixtures;
 
 public class MessagingClientFixtureBuilder
 {
+    private readonly string serverName;
     private readonly TestConfigureOptionsSource<MessagingClientOptions> remoteSource = new();
     private readonly TestConfigureOptionsSource<MessagingClientOptions> clientSource = new();
     private readonly TestConfigureOptionsSource<WebHandlingServerOptions> webServerSource = new();
 
-    public MessagingClientFixtureBuilder()
+    public MessagingClientFixtureBuilder(string serverName = "")
     {
+        this.serverName = serverName;
         Services = new ServiceCollection()
             .AddTypeEncoder(o => o.Exclude("NUnit").Exclude("Newtonsoft"))
+            .AddLogging(b => b.AddYamlConsole())
             .AddMessagingClient(b => b
                 .UseWeb(c =>
                 {
@@ -34,31 +37,30 @@ public class MessagingClientFixtureBuilder
                 .RemoveInterceptor<CachingInterceptor>()
                 .RemoveInterceptor<RetryingInterceptor>()
                 .RemoveInterceptor<TimeoutInterceptor>())
-            .AddOptions<MessagingClientOptions>()
-            .Bind(clientSource)
-            .Services;
+            .BindOptions(clientSource);
         RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
-                .Configure(b => b.UseWebMessageHandling()))
+                .Configure(b => b.UseWebMessageHandling(serverName)))
             .ConfigureServices(s => s
                 .AddTypeEncoder(o => o.Exclude("NUnit").Exclude("Newtonsoft"))
-                .AddWebMessageHandling()
-                .ConfigureMessagingClient(b => b
+                .AddLogging(b => b.AddYamlConsole())
+                .AddWebMessageHandling(serverName)
+                .ConfigureMessagingClient(serverName, b => b
                     .RemoveInterceptor<CachingInterceptor>()
                     .RemoveInterceptor<RetryingInterceptor>()
                     .RemoveInterceptor<TimeoutInterceptor>())
-                .BindOptions(remoteSource)
-                .BindOptions(webServerSource));
+                .BindOptions(serverName, remoteSource)
+                .BindOptions(serverName, webServerSource));
     }
 
     public MessagingClientFixtureBuilder ClearInterceptors()
     {
         Services.ConfigureMessagingClient(b => b.ClearInterceptors());
-        RemoteHostBuilder.ConfigureServices(s => s.ConfigureMessagingClient(b => b.ClearInterceptors()));
+        RemoteHostBuilder.ConfigureServices(s => s.ConfigureMessagingClient(serverName, b => b.ClearInterceptors()));
         return this;
     }
 
-    public MessagingClientFixtureBuilder AddWebHandler<THandler>(THandler? handler = null) where THandler : class
+    public MessagingClientFixtureBuilder AddHandler<THandler>(THandler? handler = null) where THandler : class
     {
         var messageTypes = typeof(THandler).GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
         if (!messageTypes.Any())

@@ -198,7 +198,6 @@ public class HistoricalStoragePerformanceTests
 
         var collection = database.GetCollection<MongoVersionedRecord>(MongoNames.HistoricalStorageCollectionName);
 
-        // todo: init on startupS
         await AddIndex(collection, b => b.Ascending(x => x.Key.Key).Ascending(x => x.Key.Version));
 
         var batchCount = 50;

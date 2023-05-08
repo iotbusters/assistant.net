@@ -18,7 +18,7 @@ public class ExceptionHandlingMiddlewareTests
     public async Task Post_returnsStatusAccepted_thrownInterruptingKindOfException(Type exceptionType)
     {
         using var fixture = new MessagingClientFixtureBuilder()
-            .AddWebHandler<TestFailMessageHandler>()
+            .AddHandler<TestFailMessageHandler>()
             .ClearInterceptors()
             .Create();
 
@@ -31,7 +31,7 @@ public class ExceptionHandlingMiddlewareTests
     {
         var exceptionType = typeof(MessageNotFoundException);
         using var fixture = new MessagingClientFixtureBuilder()
-            .AddWebHandler<TestFailMessageHandler>()
+            .AddHandler<TestFailMessageHandler>()
             .Create();
 
         await fixture.Awaiting(x => x.WebRequest(new TestFailMessage(exceptionType.AssemblyQualifiedName)))
@@ -43,7 +43,7 @@ public class ExceptionHandlingMiddlewareTests
     {
         var exceptionType = typeof(MessageNotRegisteredException);
         using var fixture = new MessagingClientFixtureBuilder()
-            .AddWebHandler<TestFailMessageHandler>()
+            .AddHandler<TestFailMessageHandler>()
             .Create();
 
         await fixture.Awaiting(x => x.WebRequest(new TestFailMessage(exceptionType.AssemblyQualifiedName)))
@@ -55,7 +55,7 @@ public class ExceptionHandlingMiddlewareTests
     {
         var exceptionType = typeof(MessageContractException);
         using var fixture = new MessagingClientFixtureBuilder()
-            .AddWebHandler<TestFailMessageHandler>()
+            .AddHandler<TestFailMessageHandler>()
             .Create();
 
         await fixture.Awaiting(x => x.WebRequest(new TestFailMessage(exceptionType.AssemblyQualifiedName)))
@@ -67,7 +67,7 @@ public class ExceptionHandlingMiddlewareTests
     {
         var exceptionType = typeof(TestMessageException);
         using var fixture = new MessagingClientFixtureBuilder()
-            .AddWebHandler<TestFailMessageHandler>()
+            .AddHandler<TestFailMessageHandler>()
             .Create();
 
         await fixture.Awaiting(x => x.WebRequest(new TestFailMessage(exceptionType.AssemblyQualifiedName)))
