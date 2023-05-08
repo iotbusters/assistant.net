@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Assistant.Net.Messaging.Models;
 
 /// <summary>
-///     TODO: Remote message handler configuration model.
+///     Configuration model of hosts available to accept messages.
 /// </summary>
 public class HostsAvailabilityModel
 {
@@ -28,8 +28,8 @@ public class HostsAvailabilityModel
     ///     Registers new remote message handler.
     /// </summary>
     /// <param name="instance">Remote server instance name.</param>
-    /// <param name="messages"> TODO </param>
-    /// <param name="acceptOthers"> TODO </param>
+    /// <param name="messages">Message names accepting by host <paramref name="instance"/>.</param>
+    /// <param name="acceptOthers">Determine if host <paramref name="instance"/> can accept any message types.</param>
     /// <param name="expired">The time when current record can be abandoned.</param>
     public HostsAvailabilityModel Add(string instance, string[] messages, bool acceptOthers, DateTimeOffset expired)
     {

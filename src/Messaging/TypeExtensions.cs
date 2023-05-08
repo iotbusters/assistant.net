@@ -5,7 +5,7 @@ using System.Linq;
 namespace Assistant.Net.Messaging;
 
 /// <summary>
-///     System.Type extensions for messaging handling.
+///     System.Type extensions for message handling.
 /// </summary>
 public static class TypeExtensions
 {
