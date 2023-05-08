@@ -14,6 +14,9 @@ using System.Linq;
 
 namespace Assistant.Net.Messaging.HealthChecks;
 
+/// <summary>
+///     Message handling named host availability registering mechanism implementation.
+/// </summary>
 internal sealed class ServerInstanceAvailabilityService : IDisposable
 {
     private readonly IServiceScope scope;
@@ -33,7 +36,7 @@ internal sealed class ServerInstanceAvailabilityService : IDisposable
         var environment = provider.GetRequiredService<IHostEnvironment>();
         instance = InstanceName.Create(environment.ApplicationName, name);
         var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
-        this.logger = loggerFactory.CreateLogger(GetType().ToLoggerName(name));
+        this.logger = loggerFactory.CreateLogger(GetType().GetLoggerName(name));
         this.loggerScope = logger.BeginPropertyScope("InstanceName", instance);
         this.hostStorage = provider.GetRequiredService<IAdminStorage<string, HostsAvailabilityModel>>();
         this.clock = provider.GetRequiredService<ISystemClock>();
@@ -50,16 +53,16 @@ internal sealed class ServerInstanceAvailabilityService : IDisposable
 
     public void Change(GenericHandlingServerOptions changedOptions)
     {
-        logger.LogDebug("Configuration reloading: begins.");
+        logger.LogDebug("Configuration reload: begins.");
 
         this.options = (changedOptions, this.options.latest);
 
-        logger.LogInformation("Configuration reloading: ends.");
+        logger.LogInformation("Configuration reload: ends.");
     }
 
     public async Task Register(TimeSpan timeToLive, CancellationToken token)
     {
-        logger.LogDebug("Message registration: begins.");
+        logger.LogDebug("Message registration: begins with {TimeToLive}.", timeToLive);
 
         var (latestOptions, previousOptions) = this.options;
         var messageNames = latestOptions.MessageTypes.Select(typeEncoder.Encode).ToArray();

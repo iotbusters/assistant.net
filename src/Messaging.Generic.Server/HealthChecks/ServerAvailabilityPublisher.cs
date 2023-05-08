@@ -2,7 +2,6 @@
 using Assistant.Net.Storage.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,12 +11,10 @@ namespace Assistant.Net.Messaging.HealthChecks;
 /// <summary>
 ///     Generic messaging server availability publisher based on the server latest health check status.
 /// </summary>
-internal class ServerAvailabilityPublisher : IHealthCheckPublisher
+internal sealed class ServerAvailabilityPublisher : IHealthCheckPublisher
 {
     private readonly IOptionsMonitor<HealthCheckPublisherOptions> options;
     private readonly IServerAvailabilityService availabilityService;
-
-    private TimeSpan? averageDuration;
 
     public ServerAvailabilityPublisher(
         IOptionsMonitor<HealthCheckPublisherOptions> options,
@@ -32,14 +29,9 @@ internal class ServerAvailabilityPublisher : IHealthCheckPublisher
         if (!report.Entries.Any())
             return;
 
-        if (averageDuration == null)
-            averageDuration = report.TotalDuration;
-        else
-            averageDuration = averageDuration * 0.75 + report.TotalDuration * 0.25;
-
         var isHealthy = report.Entries.Values.All(x => x.Status == HealthStatus.Healthy);
         var names = report.Entries.Keys.Select(HealthCheckNames.GetOptionName).Where(x => x != null);
-        var timeToLive = options.CurrentValue.Period + averageDuration!.Value * 1.1; // +10%.
+        var timeToLive = options.CurrentValue.Period * 1.2; // +20% to health check period.
 
         if (isHealthy)
             foreach (var name in names)

@@ -9,7 +9,7 @@ namespace Assistant.Net.Messaging.HealthChecks;
 /// <summary>
 ///     Generic messaging server activation manager based on the server latest health check status.
 /// </summary>
-internal class ServerActivityPublisher : IHealthCheckPublisher
+internal sealed class ServerActivityPublisher : IHealthCheckPublisher
 {
     private readonly IServerActivityService service;
 
