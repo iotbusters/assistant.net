@@ -47,7 +47,6 @@ public static class ServiceCollectionExtensions
         .AddLogging()
         .AddSystemClock()
         .AddDiagnostics()
-        .AddTypeEncoder()
         .AddNamedOptionsContext()
         .TryAddScoped(typeof(IStorage<,>), typeof(Storage<,>))
         .TryAddScoped(typeof(IAdminStorage<,>), typeof(Storage<,>))
