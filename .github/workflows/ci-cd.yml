@@ -106,6 +106,12 @@ jobs:
       - name: test
         run: dotnet test assistant.net.sln -v n -c Release --no-restore --no-build -l junit -p:CollectCoverage=true -p:CoverletOutputFormat=opencover
 
+      - name: restore (persist)
+        uses: actions/cache/restore@v3.3.1
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ hashFiles('src/**/*.csproj') }}
+
       - name: publish test result
         uses: EnricoMi/publish-unit-test-result-action@v2.6.1
         with:
