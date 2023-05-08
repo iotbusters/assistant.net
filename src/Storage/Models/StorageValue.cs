@@ -39,17 +39,20 @@ public abstract class StorageValue
     /// <summary>
     ///     Storage value details indexer.
     /// </summary>
+    /// <remarks>
+    ///     Pay attention, the value will be ignored if the detail is already set.
+    /// </remarks>
     public string? this[string propertyName]
     {
         get => Details.GetOrDefault(propertyName);
-        set => Details.SetUnlessDefault(propertyName, value);
+        set => Details.TryAddUnlessDefault(propertyName, value);
     }
 
     /// <summary>
     ///     Value change related correlation id.
     /// </summary>
     /// <remarks>
-    ///     Pay attention, the value would be ignored if the detail is already set.
+    ///     Pay attention, the value will be ignored if the detail is already set.
     /// </remarks>
     public string? CorrelationId
     {
@@ -61,7 +64,7 @@ public abstract class StorageValue
     ///     User created value.
     /// </summary>
     /// <remarks>
-    ///     Pay attention, the value would be ignored if the detail is already set.
+    ///     Pay attention, the value will be ignored if the detail is already set.
     /// </remarks>
     public string? User
     {
@@ -73,7 +76,7 @@ public abstract class StorageValue
     ///     The date when value was created.
     /// </summary>
     /// <remarks>
-    ///     Pay attention, the value would be ignored if the detail is already set.
+    ///     Pay attention, the value will be ignored if the detail is already set.
     /// </remarks>
     public DateTimeOffset Created
     {
@@ -85,7 +88,7 @@ public abstract class StorageValue
     ///     The date when value was updated.
     /// </summary>
     /// <remarks>
-    ///     Pay attention, the value would be ignored if the detail is already set.
+    ///     Pay attention, the value will be ignored if the detail is already set.
     /// </remarks>
     public DateTimeOffset? Updated
     {

@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Internal;
 
-internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
+internal sealed class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
 {
     private readonly IDiagnosticContext diagnosticContext;
     private readonly ISystemClock clock;
@@ -239,7 +239,7 @@ internal class Storage<TKey, TValue> : IAdminStorage<TKey, TValue>
     }
 
     private static string GetTypeName<T>(ITypeEncoder typeEncoder) =>
-        typeEncoder.Encode(typeof(T)) ?? throw new StorageException($"Type({typeof(T).Name}) isn't supported.");
+        typeEncoder.Encode(typeof(T)) ?? throw new StorageException($"Type({typeof(T)}) isn't supported.");
 
     private static IStorageProvider<TValue> GetProvider(IServiceProvider provider)
     {
