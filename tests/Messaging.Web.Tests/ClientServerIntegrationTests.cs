@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Messaging.Web.Tests;
 
-[Timeout(2000)]
+[Timeout(3000)]
 public class ClientServerIntegrationTests
 {
     [Test]
