@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Internal;
 
-internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey, TValue>
+internal sealed class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey, TValue>
 {
     private readonly string keyType;
     private readonly string valueType;
@@ -182,7 +182,7 @@ internal class PartitionedStorage<TKey, TValue> : IPartitionedAdminStorage<TKey,
         }
     }
 
-    protected async Task<KeyRecord> CreateKeyRecord(TKey key, CancellationToken token)
+    private async Task<KeyRecord> CreateKeyRecord(TKey key, CancellationToken token)
     {
         var keyContent = await keyConverter.Convert(key, token);
         var keyId = keyContent.GetSha1();

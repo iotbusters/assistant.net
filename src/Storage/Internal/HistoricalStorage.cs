@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Storage.Internal;
 
-internal class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, TValue>
+internal sealed class HistoricalStorage<TKey, TValue> : IHistoricalAdminStorage<TKey, TValue>
 {
     private readonly IDiagnosticContext diagnosticContext;
     private readonly ISystemClock clock;
