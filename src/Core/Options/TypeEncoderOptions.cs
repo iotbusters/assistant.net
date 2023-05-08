@@ -13,7 +13,7 @@ public class TypeEncoderOptions
     /// <summary>
     ///     Type namespaces to be ignored.
     /// </summary>
-    public List<string> ExcludedNamespaces = new()
+    public HashSet<string> ExcludedNamespaces = new()
     {
         "Assistant.Net.Diagnostics",
         "Assistant.Net.Interceptors",
@@ -32,20 +32,15 @@ public class TypeEncoderOptions
     /// <summary>
     ///     Types to be ignored.
     /// </summary>
-    public List<Type> ExcludedTypes = new();
+    public HashSet<Type> ExcludedTypes = new();
 
     /// <summary>
     ///     Assemblies which types to be ignored.
     /// </summary>
-    public List<Assembly> ExcludedAssemblies = new();
+    public HashSet<Assembly> ExcludedAssemblies = new();
 
     /// <summary>
     ///     Types to be included only.
     /// </summary>
-    public List<Type> IncludedTypes = new();
-
-    /// <summary>
-    ///     Assemblies which types to be included only.
-    /// </summary>
-    public List<Assembly> IncludedAssemblies = new();
+    public HashSet<Type> IncludedTypes = new();
 }

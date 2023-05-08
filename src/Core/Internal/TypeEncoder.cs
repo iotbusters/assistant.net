@@ -19,7 +19,6 @@ internal sealed class TypeEncoder : ITypeEncoder, IDisposable
     private const string GenericTypeArgumentsSeparator = ",";
 
     private readonly ILogger<TypeEncoder> logger;
-    //private readonly IOptionsMonitor<TypeEncoderOptions> optionsMonitor;
     private readonly IDisposable optionsChangeOnSubscription;
     private readonly List<(string name, Type type)> duplicatedTypes = new();
     private readonly Dictionary<string, Type> decodeTypes = new();
@@ -30,20 +29,14 @@ internal sealed class TypeEncoder : ITypeEncoder, IDisposable
     public TypeEncoder(ILogger<TypeEncoder> logger, IOptionsMonitor<TypeEncoderOptions> optionsMonitor)
     {
         this.logger = logger;
-        //this.optionsMonitor = optionsMonitor;
         this.optionsChangeOnSubscription = optionsMonitor.OnChange(Configure)!;
 
         Configure(optionsMonitor.CurrentValue);
-        //AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoad;
     }
 
     public IEnumerable<(string name, Type type)> DuplicatedTypes => duplicatedTypes;
 
-    void IDisposable.Dispose()
-    {
-        optionsChangeOnSubscription.Dispose();
-        //AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoad;
-    }
+    void IDisposable.Dispose() => optionsChangeOnSubscription.Dispose();
 
     public Type? Decode(string encodedType)
     {
@@ -106,7 +99,7 @@ internal sealed class TypeEncoder : ITypeEncoder, IDisposable
 
     private void Configure(TypeEncoderOptions o)
     {
-        logger.LogInformation("Configure known types on options change.");
+        logger.LogDebug("Configure known types on options change.");
 
         duplicatedTypes.Clear();
         decodeTypes.Clear();
@@ -114,9 +107,6 @@ internal sealed class TypeEncoder : ITypeEncoder, IDisposable
 
         if (o.IncludedTypes.Any())
             AddTypes(o, o.IncludedTypes);
-        else if (o.IncludedAssemblies.Any())
-            foreach (var assembly in o.IncludedAssemblies)
-                AddTypes(o, assembly.GetTypes());
         else
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
                 AddTypes(o, assembly.GetTypes());
@@ -125,7 +115,7 @@ internal sealed class TypeEncoder : ITypeEncoder, IDisposable
             decodeTypes.Count, duplicatedTypes.Count);
     }
 
-    private void AddTypes(TypeEncoderOptions options, IReadOnlyList<Type> newTypes)
+    private void AddTypes(TypeEncoderOptions options, IEnumerable<Type> newTypes)
     {
         var types = newTypes
             .Where(x => x is {IsPublic: true, Namespace: { }})
@@ -144,7 +134,7 @@ internal sealed class TypeEncoder : ITypeEncoder, IDisposable
             else if (type != knownType)
             {
                 duplicatedTypes.Add((name, knownType));
-                logger.LogWarning("Duplicate {Type} was ignored.", knownType);
+                logger.LogDebug("Duplicate {Type} was ignored.", knownType);
             }
         }
     }
@@ -152,7 +142,4 @@ internal sealed class TypeEncoder : ITypeEncoder, IDisposable
     private static string GetName(Type type) => type.IsNested
         ? type.FullName![type.Namespace!.Length..]
         : type.Name;
-
-    //private void OnAssemblyLoad(object? sender, AssemblyLoadEventArgs args) =>
-    //    AddTypes(optionsMonitor.CurrentValue, args.LoadedAssembly);
 }
